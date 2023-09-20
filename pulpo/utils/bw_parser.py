@@ -85,6 +85,7 @@ def save_lci_data(directory: str, project: str, method: List[str], database: str
     sparse.save_npz(f"{directory}/processed/{project}_{database}_biosphere", lca.biosphere_matrix)
     sparse.save_npz(f"{directory}/processed/{project}_{database}_technosphere", lca.technosphere_matrix)
 
+    # activity_map[key] --> ID | activity_map[ID] --> description (name | reference product | location)
     activity_map = lca.product_dict
     for act in eidb:
         activity_map[activity_map[act.key]] = str(act['name']) + ' | ' + str(act['reference product']) + ' | ' + str(act['location'])
@@ -168,31 +169,3 @@ def retrieve_methods(project: str, sub_string: str):
     ''' This function retrieves all the methods that contain the specified list of substrings'''
     bw.projects.set_current(project)
     return [method for method in bw.methods if any([x.lower() in str(method).lower() for x in sub_string])]
-
-def main():
-    import os
-    # Specify the project and database names as well as the impact to minimize
-    project = "PULPO Methanol Case"
-    scenario = "PkBudg500"
-    year = "2040"
-    database = "ecoinvent_cutoff_3.8_remind_SSP2-" + scenario + "_" + year
-    method = {"('IPCC 2013', 'climate change', 'GWP 100a, incl. H and bio CO2')": 1,
-              "('ReCiPe Endpoint (H,A)', 'total', 'total')": 0,
-              "('ReCiPe Endpoint (H,A)', 'ecosystem quality', 'total')": 0,
-              "('ReCiPe Endpoint (H,A)', 'resources', 'total')": 0,
-              "('ReCiPe Endpoint (H,A)', 'human health', 'total')": 0,
-              "('EF v3.0', 'acidification', 'accumulated exceedance (ae)')": 0,}
-
-    # Substitute with your working directory of choice
-    notebook_dir = os.path.dirname(os.getcwd())
-    directory = os.path.join(notebook_dir, 'data')
-
-    # Substitute with your GAMS path
-    GAMS_PATH = "C:/GAMS/37/gams.exe"
-
-    import_data(project, database, method, directory)
-
-
-# This conditional statement checks if the script is being run as the main program
-if __name__ == "__main__":
-    main()
