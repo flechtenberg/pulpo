@@ -82,6 +82,17 @@ def summarize_results(instance, project, database, choices, constraints, demand,
                 data = [(k, v) for k, v in v._data.items()]
                 df = pd.DataFrame(data, columns=['Key', 'Value'])
             df.sort_values(by=['Value'], inplace=True, ascending=False)
+            print('\nThese are the impacts contained in the objective:')
+            display(df)
+
+        if v.name == 'impacts_calculated':
+            try:
+                data = [(k, map[k], v) for k, v in v._data.items()]
+                df = pd.DataFrame(data, columns=['ID', 'Activity', 'Value'])
+            except:
+                data = [(k, v) for k, v in v._data.items()]
+                df = pd.DataFrame(data, columns=['Key', 'Value'])
+            df.sort_values(by=['Value'], inplace=True, ascending=False)
             print('\nThe following impacts were calculated: ')
             display(df)
 
