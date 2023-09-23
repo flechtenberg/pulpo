@@ -11,7 +11,7 @@ class PulpoOptimizer:
         self.instance = None
 
     def get_lci_data(self):
-        self.lci_data = bw_parser.import_data(self.project, self.database, self.method, self.directory)
+        self.lci_data = bw_parser.import_data(self.project, self.database, self.method)
 
     def instantiate(self, choices={}, demand={}, upper_limit={},lower_limit={}, methods={}):
         data = converter.combine_inputs(self.lci_data, demand, choices, upper_limit, lower_limit, methods)
