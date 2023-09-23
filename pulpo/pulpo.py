@@ -14,11 +14,17 @@ class PulpoOptimizer:
         self.lci_data = bw_parser.import_data(self.project, self.database, self.method)
 
     def instantiate(self, choices={}, demand={}, upper_limit={},lower_limit={}, methods={}):
+        # Instantiate only for those methods that are part of the objecitve
+        methods = {h: methods[h] for h in methods if methods[h] !=0}
         data = converter.combine_inputs(self.lci_data, demand, choices, upper_limit, lower_limit, methods)
         self.instance = optimizer.instantiate(data)
 
     def solve(self, GAMS_PATH=False):
         results, self.instance = optimizer.solve_model(self.instance, GAMS_PATH)
+        # Post calculate additional methods, in case several methods have been specified and one of them is 0
+        if not isinstance(self.method, str):
+            if len(self.method) > 1 and 0 in [self.method[x] for x in self.method]:
+                self.instance = optimizer.calculate_methods(self.instance, self.lci_data, self.method)
         return results
 
     def retrieve_activities(self, keys=None, activities=None, reference_products=None, locations=None):

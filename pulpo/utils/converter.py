@@ -8,6 +8,9 @@ def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, methods)
     technosphere = lci_data['technosphere']
     activity_map = lci_data['activity_map']
 
+    ''' Remove matrices that are not part of the objective '''
+    matrices = {h: matrices[h] for h in matrices if str(h) in methods}
+
     ''' Prepare the environmental impact matrices Q[h]*B'''
     env_cost = {h: sparse.csr_matrix.dot(matrices[h], biosphere) for h in matrices}
 
