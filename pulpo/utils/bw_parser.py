@@ -4,7 +4,7 @@ import pickle
 import brightway2 as bw
 from scipy import sparse
 
-def import_data(project: str, database: str, method: Union[str, List[str]]) -> Dict[str, Union[dict, Any]]:
+def import_data(project: str, database: str, method: Union[str, List[str], dict[str, int]]) -> Dict[str, Union[dict, Any]]:
     """ TODO can we find a faster way to import the data without having to save it locally? """
     """
     Main function to import LCI data for a project from a database.
@@ -76,13 +76,13 @@ def retrieve_activities(project, database, keys=None, activities=None, reference
     else:
         return matching_activities
 
-def retrieve_envflows(project, keys=None, activities=None, categories=None):
+def retrieve_envflows(project, biosphere='biosphere3', keys=None, activities=None, categories=None):
     """
     Retrieve environmental flows from the biosphere database based on specified keys, activities, and categories.
     """
 
     bw.projects.set_current(project)
-    eidb = bw.Database('biosphere3')
+    eidb = bw.Database(biosphere)
 
     if keys is not None:
         if isinstance(keys, str):
@@ -103,18 +103,12 @@ def retrieve_envflows(project, keys=None, activities=None, categories=None):
         return matching_flows
 
 
-def retrieve_methods(project: str, sub_string: str):
+def retrieve_methods(project: str, sub_string: List[str]):
     ''' This function retrieves all the methods that contain the specified list of substrings'''
     bw.projects.set_current(project)
     return [method for method in bw.methods if any([x.lower() in str(method).lower() for x in sub_string])]
 
 def main():
-    methods = {"('IPCC 2013', 'climate change', 'GWP 100a, incl. H and bio CO2')": 1,
-               "('ReCiPe Endpoint (E,A)', 'resources', 'total')": 0,
-               "('ReCiPe Endpoint (E,A)', 'human health', 'total')": 0,
-               "('ReCiPe Endpoint (E,A)', 'ecosystem quality', 'total')": 0}
-
-    lci_data = import_data("fold_example", "cutoff38", methods)
     1+1
 
 if __name__ == "__main__":
