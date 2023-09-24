@@ -2,10 +2,10 @@ from pulpo.utils import optimizer, bw_parser, converter, saver
 from typing import List, Union
 
 class PulpoOptimizer:
-    def __init__(self, project: str, database: str, method: Union[str, List[str]], directory: str):
+    def __init__(self, project: str, database: str, method: Union[str, List[str], dict], directory: str):
         self.project = project
         self.database = database
-        self.method = method
+        self.method = converter.convert_to_dict(method)
         self.directory = directory
         self.lci_data = None
         self.instance = None
@@ -13,9 +13,9 @@ class PulpoOptimizer:
     def get_lci_data(self):
         self.lci_data = bw_parser.import_data(self.project, self.database, self.method)
 
-    def instantiate(self, choices={}, demand={}, upper_limit={},lower_limit={}, methods={}):
+    def instantiate(self, choices={}, demand={}, upper_limit={},lower_limit={}):
         # Instantiate only for those methods that are part of the objecitve
-        methods = {h: methods[h] for h in methods if methods[h] !=0}
+        methods = {h: self.method[h] for h in self.method if self.method[h] !=0}
         data = converter.combine_inputs(self.lci_data, demand, choices, upper_limit, lower_limit, methods)
         self.instance = optimizer.instantiate(data)
 
