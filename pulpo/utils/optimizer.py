@@ -153,15 +153,15 @@ def solve_model(model_instance, gams_path, options=None):
 
         if options is None:
             options = [
-                'option optcr = 0.000000001;',
+                'option optcr = 1e-15;',
                 'option reslim = 3600;',
                 'GAMS_MODEL.optfile = 1;',
                 '$onecho > cplex.opt',
                 'workmem=4096',
                 'scaind=1',
-                'numericalemphasis=1',
-                'epmrk=0.9',
-                'eprhs=1E-9',
+                #'numericalemphasis=1',
+                #'epmrk=0.99',
+                #'eprhs=1E-9',
                 '$offecho',
             ]
 
