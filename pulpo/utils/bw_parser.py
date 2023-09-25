@@ -26,8 +26,9 @@ def import_data(project: str, database: str, method: Union[str, List[str], dict[
     methods = retrieve_methods(project, method)
     # Get data
     matrices = {}
+    rand_act = eidb.random()
     for method in methods:
-        lca = bw.LCA({eidb.random(): 1}, method)
+        lca = bw.LCA({rand_act: 1}, method)
         lca.load_lci_data()
         lca.load_lcia_data()
         matrices[str(method)] = lca.characterization_matrix
