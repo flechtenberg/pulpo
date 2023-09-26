@@ -15,31 +15,33 @@ def create_model():
     model.PROCESS_IN = pyo.Set(model.PROCESS, within=model.PRODUCT, doc='Subset of intermediate products i produced/absorbed by process p')
     model.PROCESS_OUT = pyo.Set(model.PRODUCT, within=model.PROCESS, doc='Subset of processes p that produce/absorb intermediate product i')
     model.PRODUCT_PROCESS = pyo.Set(within=model.PRODUCT * model.PROCESS, doc='Relation set between intermediate products and processes')
+    model.SUPPLY = pyo.Set(within=model.PRODUCT, doc='Subset of products for which a supply is defined instead of a demand')
 
     # Parameters
     model.UPPER_LIMIT = pyo.Param(model.PROCESS, mutable=True, within=pyo.Reals, doc='Maximum production capacity of process p')
     model.LOWER_LIMIT = pyo.Param(model.PROCESS, mutable=True, within=pyo.Reals, doc='Minimum production capacity of process p')
     model.ELEMENTARY_MATRIX = pyo.Param(model.ELEMENTARY_PROCESS, mutable=True, doc='Biosphere Impact matrix Q*B describing the elementary flow e entering/leaving process p')
     model.FINAL_DEMAND = pyo.Param(model.PRODUCT, mutable=True, within=pyo.Reals, doc='Final demand of intermediate flows (i.e., functional unit)')
-    model.SUPPLY = pyo.Param(model.PRODUCT, mutable=True, within=pyo.Binary, doc='Binary parameter which specifies whether or not a supply has been specified instead of a demand')
+    model.FINAL_SUPPLY = pyo.Param(model.SUPPLY, mutable=True, within=pyo.Binary, doc='Binary parameter which specifies whether or not a supply has been specified instead of a demand')
     model.TECH_MATRIX = pyo.Param(model.PRODUCT_PROCESS, mutable=True, doc='Technology matrix A describing the intermediate product i produced/absorbed by process p')
     model.WEIGHTS = pyo.Param(model.INDICATOR, mutable=True, within=pyo.NonNegativeReals, doc='Weighting factors for the impact assessment indicators in the objective function')
 
     # Variables
     model.impacts = pyo.Var(model.INDICATOR, bounds=(-1e24, 1e24), doc='Environmental impact on indicator h evaluated with the established LCIA method')
     model.scaling_vector = pyo.Var(model.PROCESS, bounds=(-1e24, 1e24), doc='Activity level of each process to meet the final demand')
-    model.slack = pyo.Var(model.PRODUCT, bounds=(0, 1e24), doc='Supply slack variables')
+    model.slack = pyo.Var(model.SUPPLY, bounds=(0, 1e24), doc='Supply slack variables')
 
     # Building rules for sets
     model.Env = pyo.BuildAction(rule=populate_env)
     model.In_n_Out = pyo.BuildAction(rule=populate_in_and_out)
 
     # Constraints
-    model.FINAL_DEMAND_CNSTR = pyo.Constraint(model.PRODUCT, rule=demand_constraint)
+    model.FINAL_DEMAND_CNSTR = pyo.Constraint(model.PRODUCT - model.SUPPLY, rule=demand_constraint)
+    model.FINAL_SUPPLY_CNSTR = pyo.Constraint(model.SUPPLY, rule=supply_constraint)
+    model.FINAL_SUPPLY_FIX_CNSTR = pyo.Constraint(model.SUPPLY, rule=supply_fix_constraint)
     model.IMPACTS_CNSTR = pyo.Constraint(model.INDICATOR, rule=impact_constraint)
     model.UPPER_CNSTR = pyo.Constraint(model.PROCESS, rule=upper_constraint)
     model.LOWER_CNSTR = pyo.Constraint(model.PROCESS, rule=lower_constraint)
-    model.SLACK_CNSTR = pyo.Constraint(model.PRODUCT, rule=slack_constraint)
 
     # Objective function
     model.OBJ = pyo.Objective(sense=pyo.minimize, rule=objective_function)
@@ -65,7 +67,15 @@ def populate_in_and_out(model):
 
 def demand_constraint(model, i):
     """Fixes a value in the demand vector"""
+    return sum(model.TECH_MATRIX[i, p] * model.scaling_vector[p] for p in model.PROCESS_OUT[i]) == model.FINAL_DEMAND[i]
+
+def supply_constraint(model, i):
+    """Fixes a value in the supply vector"""
     return sum(model.TECH_MATRIX[i, p] * model.scaling_vector[p] for p in model.PROCESS_OUT[i]) == model.FINAL_DEMAND[i] + model.slack[i]
+
+def supply_fix_constraint(model, i):
+    """Fixes a value in the supply vector"""
+    return model.scaling_vector[i] == model.FINAL_SUPPLY[i]
 
 
 def impact_constraint(model, h):
@@ -81,10 +91,6 @@ def upper_constraint(model, p):
 def lower_constraint(model, p):
     """ Minimum production constraint """
     return model.scaling_vector[p] >= model.LOWER_LIMIT[p]
-
-def slack_constraint(model, p):
-    """ Slack variable upper limit for activities where supply is specified instead of demand """
-    return model.slack[p] <= 1e20 * model.SUPPLY[p]
 
 
 def objective_function(model):

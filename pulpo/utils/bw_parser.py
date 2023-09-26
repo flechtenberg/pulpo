@@ -1,8 +1,5 @@
 from typing import List, Union, Dict, Any
-from pathlib import Path
-import pickle
 import brightway2 as bw
-from scipy import sparse
 
 def import_data(project: str, database: str, method: Union[str, List[str], dict[str, int]]) -> Dict[str, Union[dict, Any]]:
     """ TODO can we find a faster way to import the data without having to save it locally? """

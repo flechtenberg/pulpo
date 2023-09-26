@@ -70,9 +70,16 @@ def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, methods)
         upper_limit_dict[activity_map[act]] = upper_limit[act]
 
     ''' Check if a supply has been specified '''
-    supply_dict = {prod: 0 for prod in PRODUCTS[None]}
+    supply_dict = {}
     for act in list(lower_limit.keys() & upper_limit.keys()):
-        supply_dict[activity_map[act]] = 1 if lower_limit[act] == upper_limit[act] else 0
+        if lower_limit[act] == upper_limit[act]:
+            supply_dict[activity_map[act]] = lower_limit[act]
+
+    print('This is the supply:')
+    print(supply_dict)
+
+    SUPPLY = {None: list({i for i in supply_dict})}
+
 
     ''' Create weights'''
     weights = {method: 1 for method in matrices} if methods == {} else methods
@@ -86,10 +93,11 @@ def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, methods)
             'INDICATOR': INDICATOR,
             'PRODUCT_PROCESS': PRODUCT_PROCESS,
             'ELEMENTARY_PROCESS': ELEMENTARY_PROCESS,
+            'SUPPLY': SUPPLY,
             'TECH_MATRIX': technosphere_dict,
             'ELEMENTARY_MATRIX': biosphere_dict,
             'FINAL_DEMAND': demand_dict,
-            'SUPPLY': supply_dict,
+            'FINAL_SUPPLY': supply_dict,
             'LOWER_LIMIT': lower_limit_dict,
             'UPPER_LIMIT': upper_limit_dict,
             'WEIGHTS': weights,
