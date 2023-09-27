@@ -13,14 +13,19 @@ class PulpoOptimizer:
     def get_lci_data(self):
         self.lci_data = bw_parser.import_data(self.project, self.database, self.method)
 
-    def instantiate(self, choices={}, demand={}, upper_limit={},lower_limit={}):
+    def instantiate(self, choices={}, demand={}, upper_limit={},lower_limit={}, cuts={}):
         # Instantiate only for those methods that are part of the objecitve
         methods = {h: self.method[h] for h in self.method if self.method[h] !=0}
-        data = converter.combine_inputs(self.lci_data, demand, choices, upper_limit, lower_limit, methods)
+        data = converter.combine_inputs(self.lci_data, demand, choices, upper_limit, lower_limit, methods, cuts)
         self.instance = optimizer.instantiate(data)
+        if cuts == {}:
+            self.instance.CHOICES_1_CNSTR.deactivate()
+            self.instance.CHOICES_2_CNSTR.deactivate()
+            self.instance.INTEGER_CUTS.deactivate()
+            self.instance.choices.fix(0)
 
-    def solve(self, GAMS_PATH=False):
-        results, self.instance = optimizer.solve_model(self.instance, GAMS_PATH)
+    def solve(self, GAMS_PATH=False, tee=True):
+        results, self.instance = optimizer.solve_model(self.instance, GAMS_PATH, tee)
         # Post calculate additional methods, in case several methods have been specified and one of them is 0
         if not isinstance(self.method, str):
             if len(self.method) > 1 and 0 in [self.method[x] for x in self.method]:

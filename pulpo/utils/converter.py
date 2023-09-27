@@ -1,6 +1,6 @@
 import scipy.sparse as sparse
 
-def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, methods):
+def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, methods, cuts = {}):
     ''' This function combines all the inputs to a dictionary as an input for the optimization model'''
     ''' Load LCIA methods into a list of matrices'''
     matrices = lci_data['matrices']
@@ -75,11 +75,10 @@ def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, methods)
         if lower_limit[act] == upper_limit[act]:
             supply_dict[activity_map[act]] = lower_limit[act]
 
-    print('This is the supply:')
-    print(supply_dict)
-
     SUPPLY = {None: list({i for i in supply_dict})}
-
+    CHOICES = {None: list({activity_map[act] for i in choices for act in choices[i]})}
+    CUTS = {None: list({i for i in cuts})}
+    CUTS_SET = {i: [j for j in cuts[i]] for i in cuts}
 
     ''' Create weights'''
     weights = {method: 1 for method in matrices} if methods == {} else methods
@@ -94,6 +93,9 @@ def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, methods)
             'PRODUCT_PROCESS': PRODUCT_PROCESS,
             'ELEMENTARY_PROCESS': ELEMENTARY_PROCESS,
             'SUPPLY': SUPPLY,
+            'CHOICES': CHOICES,
+            'CUTS': CUTS,
+            'INTEGER_CUT_SETS': CUTS_SET,
             'TECH_MATRIX': technosphere_dict,
             'ELEMENTARY_MATRIX': biosphere_dict,
             'FINAL_DEMAND': demand_dict,

@@ -5,6 +5,20 @@ from pulpo.utils.bw_parser import import_data, retrieve_methods, retrieve_envflo
 from pulpo import pulpo
 
 setup_test_db()
+def setup_worker():
+    project = 'sample_project'
+    database = 'technosphere'
+    methods = {"('my project', 'climate change')": 1,
+               "('my project', 'air quality')": 1,
+               "('my project', 'resources')": 0}
+
+    worker = pulpo.PulpoOptimizer(project, database, methods, '')
+    worker.get_lci_data()
+    eCar = worker.retrieve_activities(reference_products='transport')
+    demand = {eCar[0]: 1}
+    elec = worker.retrieve_activities(reference_products='electricity')
+    choices = {'electricity': {elec[0]: 100, elec[1]: 100}}
+    return worker, demand, choices
 
 class TestParser(unittest.TestCase):
     def test_database_import(self):
@@ -46,34 +60,35 @@ class TestParser(unittest.TestCase):
 
 class TestPULPO(unittest.TestCase):
 
-    def test_pulpo(self):
-        project = 'sample_project'
-        database = 'technosphere'
-        methods = {"('my project', 'climate change')": 1,
-                   "('my project', 'air quality')": 1,
-                   "('my project', 'resources')": 0}
-
-        worker = pulpo.PulpoOptimizer(project, database, methods, '')
-        worker.get_lci_data()
-        eCar = worker.retrieve_activities(reference_products='transport')
-        demand = {eCar[0]: 1}
-        elec = worker.retrieve_activities(reference_products='electricity')
-        choices = {'electricity': {elec[0]: 100, elec[1]: 100}}
+    def test_pulpo_regular(self):
+        worker, demand, choices = setup_worker()
+        # Testing Regular Optimization
         worker.instantiate(choices=choices, demand=demand)
-        worker.solve()
+        worker.solve(GAMS_PATH="C:/GAMS/37/gams.exe", tee=False)
         result_obj = round(worker.instance.OBJ(), 6)
         result_aux = round(worker.instance.impacts_calculated["('my project', 'resources')"].value, 5)
         self.assertEqual(result_obj, 0.103093)
         self.assertEqual(result_aux, 5.25773)
 
-        upper_limit = {eCar[0]: 1}
-        lower_limit = {eCar[0]: 1}
+    def test_pulpo_supply(self):
+        worker, demand, choices = setup_worker()
+        # Testing Supply Definition
+        upper_limit = demand
+        lower_limit = demand
         worker.instantiate(choices=choices, upper_limit=upper_limit, lower_limit=lower_limit)
-        worker.solve()
+        worker.solve(GAMS_PATH="C:/GAMS/37/gams.exe", tee=False)
         result_obj = round(worker.instance.OBJ(), 6)
         result_aux = round(worker.instance.impacts_calculated["('my project', 'resources')"].value, 5)
         self.assertEqual(result_obj, 0.1)
         self.assertEqual(result_aux, 5.1)
+
+    def test_pulpo_integer(self):
+        worker, demand, choices = setup_worker()
+        # Testing Integer Cuts
+        cuts = {1: {3: 1}}
+        worker.instantiate(choices=choices, demand=demand, cuts=cuts)
+        worker.solve(GAMS_PATH="C:/GAMS/37/gams.exe", tee=False)
+        self.assertEqual({choice: worker.instance.choices[choice].value for choice in worker.instance.choices}, {2: 1.0, 3: 0.0})
 
 
 

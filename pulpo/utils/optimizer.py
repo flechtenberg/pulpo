@@ -16,6 +16,9 @@ def create_model():
     model.PROCESS_OUT = pyo.Set(model.PRODUCT, within=model.PROCESS, doc='Subset of processes p that produce/absorb intermediate product i')
     model.PRODUCT_PROCESS = pyo.Set(within=model.PRODUCT * model.PROCESS, doc='Relation set between intermediate products and processes')
     model.SUPPLY = pyo.Set(within=model.PRODUCT, doc='Subset of products for which a supply is defined instead of a demand')
+    model.CHOICES = pyo.Set(within=model.PROCESS, doc='Subset of processes which form part of the choices specified by the user')
+    model.CUTS = pyo.Set(doc='Set of implemented integer cuts')
+    model.INTEGER_CUT_SETS = pyo.Set(model.CUTS, within=model.CHOICES, doc='Set of Interger cut combinations to be excluded')
 
     # Parameters
     model.UPPER_LIMIT = pyo.Param(model.PROCESS, mutable=True, within=pyo.Reals, doc='Maximum production capacity of process p')
@@ -30,6 +33,7 @@ def create_model():
     model.impacts = pyo.Var(model.INDICATOR, bounds=(-1e24, 1e24), doc='Environmental impact on indicator h evaluated with the established LCIA method')
     model.scaling_vector = pyo.Var(model.PROCESS, bounds=(-1e24, 1e24), doc='Activity level of each process to meet the final demand')
     model.slack = pyo.Var(model.SUPPLY, bounds=(0, 1e24), doc='Supply slack variables')
+    model.choices = pyo.Var(model.CHOICES, within=pyo.Binary, doc='Active choice variable')
 
     # Building rules for sets
     model.Env = pyo.BuildAction(rule=populate_env)
@@ -39,6 +43,9 @@ def create_model():
     model.FINAL_DEMAND_CNSTR = pyo.Constraint(model.PRODUCT - model.SUPPLY, rule=demand_constraint)
     model.FINAL_SUPPLY_CNSTR = pyo.Constraint(model.SUPPLY, rule=supply_constraint)
     model.FINAL_SUPPLY_FIX_CNSTR = pyo.Constraint(model.SUPPLY, rule=supply_fix_constraint)
+    model.CHOICES_1_CNSTR = pyo.Constraint(model.CHOICES, rule=choices_constraint_1)
+    model.CHOICES_2_CNSTR = pyo.Constraint(model.CHOICES, rule=choices_constraint_2)
+    model.INTEGER_CUTS = pyo.Constraint(model.CUTS, rule=integer_cuts)
     model.IMPACTS_CNSTR = pyo.Constraint(model.INDICATOR, rule=impact_constraint)
     model.UPPER_CNSTR = pyo.Constraint(model.PROCESS, rule=upper_constraint)
     model.LOWER_CNSTR = pyo.Constraint(model.PROCESS, rule=lower_constraint)
@@ -76,6 +83,17 @@ def supply_constraint(model, i):
 def supply_fix_constraint(model, i):
     """Fixes a value in the supply vector"""
     return model.scaling_vector[i] == model.FINAL_SUPPLY[i]
+
+def choices_constraint_1(model, j):
+    """ Big-M constraint for the active choices """
+    return model.scaling_vector[j] <= 1e24 * model.choices[j]
+
+def choices_constraint_2(model, j):
+    """ Big-M constraint for the active choices """
+    return model.scaling_vector[j] >= 0.000001 * model.choices[j]
+
+def integer_cuts(model, c):
+    return sum(model.choices[cc] for cc in model.INTEGER_CUT_SETS[c]) <= len(model.INTEGER_CUT_SETS[c]) - 1
 
 
 def impact_constraint(model, h):
@@ -128,7 +146,7 @@ def instantiate(model_data):
     return problem
 
 
-def solve_model(model_instance, gams_path, options=None):
+def solve_model(model_instance, gams_path, tee=True, options=None):
     """ TODO enable ipopt or other free solver application! """
     """Solves the instance of the optimization model.
 
@@ -153,7 +171,7 @@ def solve_model(model_instance, gams_path, options=None):
         print('Solver path:', solver.executable())
 
         io_options = {
-            'mtype': 'lp',                      # Type of problem (lp, nlp, mip, minlp)
+            #'mtype': 'mip',                      # Type of problem (lp, nlp, mip, minlp)
             'solver': 'CPLEX',                  # Name of solver
         }
 
@@ -174,7 +192,7 @@ def solve_model(model_instance, gams_path, options=None):
         results = solver.solve(
             model_instance,
             keepfiles=True,
-            tee=True,
+            tee=tee,
             report_timing=True,
             io_options=io_options,
             add_options=options
