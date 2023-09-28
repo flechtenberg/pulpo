@@ -25,14 +25,16 @@ def create_model():
     model.LOWER_LIMIT = pyo.Param(model.PROCESS, mutable=True, within=pyo.Reals, doc='Minimum production capacity of process p')
     model.ELEMENTARY_MATRIX = pyo.Param(model.ELEMENTARY_PROCESS, mutable=True, doc='Biosphere Impact matrix Q*B describing the elementary flow e entering/leaving process p')
     model.FINAL_DEMAND = pyo.Param(model.PRODUCT, mutable=True, within=pyo.Reals, doc='Final demand of intermediate flows (i.e., functional unit)')
-    model.FINAL_SUPPLY = pyo.Param(model.SUPPLY, mutable=True, within=pyo.Binary, doc='Binary parameter which specifies whether or not a supply has been specified instead of a demand')
+    model.FINAL_SUPPLY = pyo.Param(model.SUPPLY, mutable=True, within=pyo.Reals, doc='Binary parameter which specifies whether or not a supply has been specified instead of a demand')
     model.TECH_MATRIX = pyo.Param(model.PRODUCT_PROCESS, mutable=True, doc='Technology matrix A describing the intermediate product i produced/absorbed by process p')
     model.WEIGHTS = pyo.Param(model.INDICATOR, mutable=True, within=pyo.NonNegativeReals, doc='Weighting factors for the impact assessment indicators in the objective function')
+    model.UPPER_M = pyo.Param(mutable=True, within=pyo.NonNegativeReals, doc='Upper bound for the big-M constraint')
+    model.LOWER_M = pyo.Param(mutable=True, within=pyo.NonNegativeReals, doc='Lower bound for the big-M constraint')
 
     # Variables
-    model.impacts = pyo.Var(model.INDICATOR, bounds=(-1e24, 1e24), doc='Environmental impact on indicator h evaluated with the established LCIA method')
-    model.scaling_vector = pyo.Var(model.PROCESS, bounds=(-1e24, 1e24), doc='Activity level of each process to meet the final demand')
-    model.slack = pyo.Var(model.SUPPLY, bounds=(0, 1e24), doc='Supply slack variables')
+    model.impacts = pyo.Var(model.INDICATOR, within=pyo.Reals, doc='Environmental impact on indicator h evaluated with the established LCIA method')
+    model.scaling_vector = pyo.Var(model.PROCESS, within=pyo.Reals, doc='Activity level of each process to meet the final demand')
+    model.slack = pyo.Var(model.SUPPLY, within=pyo.NonNegativeReals, doc='Supply slack variables')
     model.choices = pyo.Var(model.CHOICES, within=pyo.Binary, doc='Active choice variable')
 
     # Building rules for sets
@@ -84,13 +86,13 @@ def supply_fix_constraint(model, i):
     """Fixes a value in the supply vector"""
     return model.scaling_vector[i] == model.FINAL_SUPPLY[i]
 
-def choices_constraint_1(model, j):
+def choices_constraint_1(model, c):
     """ Big-M constraint for the active choices """
-    return model.scaling_vector[j] <= 1e24 * model.choices[j]
+    return model.scaling_vector[c] <= model.UPPER_M * model.choices[c]
 
-def choices_constraint_2(model, j):
+def choices_constraint_2(model, c):
     """ Big-M constraint for the active choices """
-    return model.scaling_vector[j] >= 0.000001 * model.choices[j]
+    return model.scaling_vector[c] >= model.LOWER_M * model.choices[c]
 
 def integer_cuts(model, c):
     return sum(model.choices[cc] for cc in model.INTEGER_CUT_SETS[c]) <= len(model.INTEGER_CUT_SETS[c]) - 1
@@ -113,7 +115,7 @@ def lower_constraint(model, p):
 
 def objective_function(model):
     """Objective is a sum over all indicators with weights. Typically, the indicator of study has weight 1, the rest 0"""
-    return sum(model.impacts[h] * model.WEIGHTS[h] for h in model.INDICATOR)
+    return sum(model.impacts[h] * model.WEIGHTS[h] for h in model.INDICATOR) + 1e6 * sum(model.choices[c] for c in model.CHOICES)
 
 def calculate_methods(instance, lci_data, methods):
     '''
@@ -185,7 +187,8 @@ def solve_model(model_instance, gams_path, tee=True, options=None):
                 'scaind=1',
                 #'numericalemphasis=1',
                 #'epmrk=0.99',
-                #'eprhs=1E-9',
+                'eprhs=0.1',
+                'epint=0.1',
                 '$offecho',
             ]
 

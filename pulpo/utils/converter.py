@@ -1,6 +1,6 @@
 import scipy.sparse as sparse
 
-def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, methods, cuts = {}):
+def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, methods, cuts, mip_bound):
     ''' This function combines all the inputs to a dictionary as an input for the optimization model'''
     ''' Load LCIA methods into a list of matrices'''
     matrices = lci_data['matrices']
@@ -57,7 +57,11 @@ def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, methods,
         demand_dict[activity_map[dem]] = demand[dem]
 
     ''' Specify the lower limit '''
-    lower_limit_dict = {proc: -1e20 for proc in PROCESS[None]}
+    if mip_bound == {}:
+        mip_bound = {'lower': 1e-6,
+                     'upper': 1e20,
+                     'scale': 1e20}
+    lower_limit_dict = {proc: -mip_bound['scale'] for proc in PROCESS[None]}
     for act in lower_limit:
         lower_limit_dict[activity_map[act]] = lower_limit[act]
     for choice in choices:
@@ -65,7 +69,7 @@ def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, methods,
             lower_limit_dict[activity_map[act]] = 0
 
     ''' Specify the upper limit '''
-    upper_limit_dict = {proc: 1e20 for proc in PROCESS[None]}
+    upper_limit_dict = {proc: mip_bound['scale'] for proc in PROCESS[None]}
     for act in upper_limit:
         upper_limit_dict[activity_map[act]] = upper_limit[act]
 
@@ -103,6 +107,8 @@ def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, methods,
             'LOWER_LIMIT': lower_limit_dict,
             'UPPER_LIMIT': upper_limit_dict,
             'WEIGHTS': weights,
+            'LOWER_M': {None: mip_bound['lower']},
+            'UPPER_M': {None: mip_bound['upper']},
         }
     }
     return model_data
