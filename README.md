@@ -1,8 +1,7 @@
 <div align="center">
 <h1 align="center">
-<img src="https://raw.githubusercontent.com/PKief/vscode-material-icon-theme/ec559a9f6bfd399b82bb44393651661b08aaf7ba/icons/folder-markdown-open.svg" width="100" />
-<br>pulpo</h1>
-<h3>◦ PULPO: Python-based User-defined Lifecycle Production Optimization!</h3>
+<img src="https://github.com/flechtenberg/flechtenberg_images/blob/main/Pulpo-Logo_INKSCAPE.png?raw=true" width="300" />
+<h3>◦ Python-based User-defined Lifecycle Production Optimization!</h3>
 <h3>◦ Developed with the software and tools below.</h3>
 
 <p align="center">
