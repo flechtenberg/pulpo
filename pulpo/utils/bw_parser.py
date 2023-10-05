@@ -4,7 +4,7 @@ import pickle
 import brightway2 as bw
 from scipy import sparse
 
-def import_data(project: str, database: str, method: Union[str, List[str]], directory: str, force=False) -> Dict[str, Union[dict, Any]]:
+def import_data(project: str, database: str, method: Union[str, List[str], dict[str, int]]) -> Dict[str, Union[dict, Any]]:
     """ TODO can we find a faster way to import the data without having to save it locally? """
     """
     Main function to import LCI data for a project from a database.
@@ -12,93 +12,33 @@ def import_data(project: str, database: str, method: Union[str, List[str]], dire
     :param project: The name of the Ecoinvent project.
     :param database: The name of the Ecoinvent database.
     :param method: The method(s) to evaluate. Can be a single method name or a list of method names.
-    :param directory: The working directory where the matrices are saved to or read from.
-    :param force: If True, re-load the LCI data regardless of the existing data in the directory.
     :return: A dictionary with the relevant LCI data.
 
     :rtype: dict[str, Union[dict, Any]]
     """
+    # Set project and get database
     bw.projects.set_current(project)
     eidb = bw.Database(database)
-
+    # Prepare methods
     if isinstance(method, str):
         method = [method]  # Convert single string to list of strings
     method = sorted(method)
-
-    paths = get_paths(project, database, method, directory)
-
-    if should_reload_data(paths, force):
-        methods = retrieve_methods(project, method)
-        random_act = eidb.random()
-        myMultiLCA, lca = perform_generic_lca(random_act, methods)
-        save_lci_data(directory, project, method, database, myMultiLCA, lca, eidb)
-
-    lci_data = read_lci_data(directory, project, method, database)
-
-    return lci_data
-
-
-def get_paths(project: str, database: str, method: List[str], directory: str) -> List[str]:
-    """
-    Get a list of file paths for the LCI data files.
-    """
-    directory = directory.replace('\\', '/')
-
-    paths = [
-        f"{directory}/processed/{project}_{meth.replace(':',';').replace('/','!')}.npz" for meth in method
-    ]
-    paths.append(f"{directory}/processed/{project}_{database}_biosphere.npz")
-    paths.append(f"{directory}/processed/{project}_{database}_technosphere.npz")
-    paths.append(f"{directory}/processed/{project}_{database}_names.p")
-
-    return paths
-
-
-def should_reload_data(paths: List[str], force: bool) -> bool:
-    """
-    Check if the LCI data should be reloaded.
-    """
-    return any(not Path(path).exists() for path in paths) or force
-
-
-def perform_generic_lca(random_act: bw.Database, methods: List[str]) -> tuple:
-    """
-    Perform a generic LCA calculation.
-    """
-    bw.calculation_setups['multiLCA'] = {'inv': [{random_act: 1}], 'ia': methods}
-    myMultiLCA = bw.MultiLCA('multiLCA')
-    lca = myMultiLCA.lca
-
-    return myMultiLCA, lca
-
-
-def save_lci_data(directory: str, project: str, method: List[str], database: str,
-                  myMultiLCA: bw.MultiLCA, lca: bw.LCA, eidb: bw.Database):
-    """
-    Save the LCI data to files.
-    """
-    Path(f"{directory}/processed").mkdir(parents=True, exist_ok=True)
-
-    for i in range(0,len(myMultiLCA.methods)):
-        sparse.save_npz(f"{directory}/processed/{project}_{str(myMultiLCA.methods[i]).replace(':',';').replace('/','!')}", myMultiLCA.method_matrices[i])
-
-    sparse.save_npz(f"{directory}/processed/{project}_{database}_biosphere", lca.biosphere_matrix)
-    sparse.save_npz(f"{directory}/processed/{project}_{database}_technosphere", lca.technosphere_matrix)
-
+    methods = retrieve_methods(project, method)
+    # Get data
+    matrices = {}
+    rand_act = eidb.random()
+    for method in methods:
+        lca = bw.LCA({rand_act: 1}, method)
+        lca.load_lci_data()
+        lca.load_lcia_data()
+        matrices[str(method)] = lca.characterization_matrix
+    technosphere = lca.technosphere_matrix
+    biosphere = lca.biosphere_matrix
+    # Create activity map key --> ID | ID --> description
     activity_map = lca.product_dict
     for act in eidb:
-        activity_map[activity_map[act.key]] = str(act['name']) + ' | ' + str(act['reference product']) + ' | ' + str(act['location'])
-    pickle.dump(activity_map, open(f"{directory}/processed/{project}_{database}_names.p", 'wb'))
-
-
-def read_lci_data(directory: str, project: str, method: List[str], database: str) -> Dict[str, Union[dict, Any]]:
-    """
-    Read the LCI data from files.
-    """
-    matrices = {meth: sparse.load_npz(f"{directory}/processed/{project}_{meth.replace(':',';').replace('/','!')}.npz") for meth in method}
-    biosphere = sparse.load_npz(f"{directory}/processed/{project}_{database}_biosphere.npz")
-    technosphere = sparse.load_npz(f"{directory}/processed/{project}_{database}_technosphere.npz")
-    activity_map = pickle.load(open(f"{directory}/processed/{project}_{database}_names.p", 'rb'))
+        activity_map[activity_map[act.key]] = str(act['name']) + ' | ' + str(act['reference product']) + ' | ' + str(
+            act['location'])
 
     lci_data = {
         'matrices': matrices,
@@ -137,13 +77,13 @@ def retrieve_activities(project, database, keys=None, activities=None, reference
     else:
         return matching_activities
 
-def retrieve_envflows(project, keys=None, activities=None, categories=None):
+def retrieve_envflows(project, biosphere='biosphere3', keys=None, activities=None, categories=None):
     """
     Retrieve environmental flows from the biosphere database based on specified keys, activities, and categories.
     """
 
     bw.projects.set_current(project)
-    eidb = bw.Database('biosphere3')
+    eidb = bw.Database(biosphere)
 
     if keys is not None:
         if isinstance(keys, str):
@@ -164,35 +104,13 @@ def retrieve_envflows(project, keys=None, activities=None, categories=None):
         return matching_flows
 
 
-def retrieve_methods(project: str, sub_string: str):
+def retrieve_methods(project: str, sub_string: List[str]):
     ''' This function retrieves all the methods that contain the specified list of substrings'''
     bw.projects.set_current(project)
     return [method for method in bw.methods if any([x.lower() in str(method).lower() for x in sub_string])]
 
 def main():
-    import os
-    # Specify the project and database names as well as the impact to minimize
-    project = "PULPO Methanol Case"
-    scenario = "PkBudg500"
-    year = "2040"
-    database = "ecoinvent_cutoff_3.8_remind_SSP2-" + scenario + "_" + year
-    method = {"('IPCC 2013', 'climate change', 'GWP 100a, incl. H and bio CO2')": 1,
-              "('ReCiPe Endpoint (H,A)', 'total', 'total')": 0,
-              "('ReCiPe Endpoint (H,A)', 'ecosystem quality', 'total')": 0,
-              "('ReCiPe Endpoint (H,A)', 'resources', 'total')": 0,
-              "('ReCiPe Endpoint (H,A)', 'human health', 'total')": 0,
-              "('EF v3.0', 'acidification', 'accumulated exceedance (ae)')": 0,}
+    1+1
 
-    # Substitute with your working directory of choice
-    notebook_dir = os.path.dirname(os.getcwd())
-    directory = os.path.join(notebook_dir, 'data')
-
-    # Substitute with your GAMS path
-    GAMS_PATH = "C:/GAMS/37/gams.exe"
-
-    import_data(project, database, method, directory)
-
-
-# This conditional statement checks if the script is being run as the main program
 if __name__ == "__main__":
     main()

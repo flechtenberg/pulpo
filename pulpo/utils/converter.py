@@ -8,6 +8,9 @@ def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, methods)
     technosphere = lci_data['technosphere']
     activity_map = lci_data['activity_map']
 
+    ''' Remove matrices that are not part of the objective '''
+    matrices = {h: matrices[h] for h in matrices if str(h) in methods}
+
     ''' Prepare the environmental impact matrices Q[h]*B'''
     env_cost = {h: sparse.csr_matrix.dot(matrices[h], biosphere) for h in matrices}
 
@@ -93,3 +96,23 @@ def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, methods)
         }
     }
     return model_data
+
+def convert_to_dict(input_data):
+    ''' Checks if the passed method is in the correct format '''
+    # Check if the input is a string
+    if isinstance(input_data, str):
+        return {input_data: 1}
+
+    # Check if the input is a list of strings
+    elif isinstance(input_data, list) and all(isinstance(item, str) for item in input_data):
+        return {item: 1 for item in input_data}
+
+    # Check if the input is a dictionary with numerical values
+    elif isinstance(input_data, dict) and all(isinstance(value, (int, float)) for value in input_data.values()):
+        return input_data
+
+    # If the input is of any other type, raise an error
+    else:
+        raise ValueError(
+            "Input should be either a string, a list of strings, or a dictionary with string indices and numerical values")
+

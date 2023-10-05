@@ -91,6 +91,27 @@ def objective_function(model):
     """Objective is a sum over all indicators with weights. Typically, the indicator of study has weight 1, the rest 0"""
     return sum(model.impacts[h] * model.WEIGHTS[h] for h in model.INDICATOR)
 
+def calculate_methods(instance, lci_data, methods):
+    '''
+    This function calculates the impacts if a method with weight 0 has been specified
+    '''
+    import scipy.sparse as sparse
+    import numpy as np
+    matrices = lci_data['matrices']
+    biosphere = lci_data['biosphere']
+    matrices = {h: matrices[h] for h in matrices if str(h) in methods}
+    env_cost = {h: sparse.csr_matrix.dot(matrices[h], biosphere) for h in matrices}
+    try:
+        scaling_vector = np.array([instance.scaling_vector[x].value for x in instance.scaling_vector])
+    except:
+        scaling_vector = np.array([instance.scaling_vector[x] for x in instance.scaling_vector])
+    impacts = {}
+    for h in matrices:
+        impacts[h] = sum(env_cost[h].dot(scaling_vector))
+    instance.impacts_calculated = pyo.Var([h for h in impacts], initialize=impacts)
+    return instance
+
+
 
 def instantiate(model_data):
     """ This function builds an instance of the optimization model with specific data and objective function"""
@@ -132,15 +153,15 @@ def solve_model(model_instance, gams_path, options=None):
 
         if options is None:
             options = [
-                'option optcr = 0.000000001;',
+                'option optcr = 1e-15;',
                 'option reslim = 3600;',
                 'GAMS_MODEL.optfile = 1;',
                 '$onecho > cplex.opt',
                 'workmem=4096',
                 'scaind=1',
-                'numericalemphasis=1',
-                'epmrk=0.9',
-                'eprhs=1E-9',
+                #'numericalemphasis=1',
+                #'epmrk=0.99',
+                #'eprhs=1E-9',
                 '$offecho',
             ]
 
