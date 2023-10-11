@@ -1,5 +1,6 @@
 from pulpo.utils import optimizer, bw_parser, converter, saver
 from typing import List, Union
+import webbrowser
 
 class PulpoOptimizer:
     def __init__(self, project: str, database: str, method: Union[str, List[str], dict], directory: str):
@@ -44,3 +45,13 @@ class PulpoOptimizer:
 
     def summarize_results(self, choices={}, constraints={}, demand={}, zeroes=False):
             saver.summarize_results(self.instance, self.project, self.database, choices, constraints, demand, self.lci_data['activity_map'], zeroes)
+
+def electricity_showcase():
+    github_url = 'https://github.com/flechtenberg/pulpo/blob/develop/notebooks/electricity_showcase.ipynb'  # Replace with your GitHub URL
+    nbviewer_url = 'https://nbviewer.jupyter.org/github/' + github_url.split('github.com/')[1]
+    webbrowser.open(nbviewer_url)
+
+def hydrogen_showcase():
+    github_url = 'https://github.com/flechtenberg/pulpo/blob/develop/notebooks/hydrogen_showcase.ipynb'  # Replace with your GitHub URL
+    nbviewer_url = 'https://nbviewer.jupyter.org/github/' + github_url.split('github.com/')[1]
+    webbrowser.open(nbviewer_url)
