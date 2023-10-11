@@ -40,9 +40,9 @@ or premise.
 ### 🤖 Running pulpo
 After installing PULPO, check if the package has been set up properly by running the setup function:
 ```sh
-from pulpo import pulpo
+from pulpo.utils import tests
 
-pulpo.setup()
+tests.setup()
 ```
 This function mimics the development test functions and if all tests have passed you are good to go.
 
