@@ -1,4 +1,4 @@
-from utils import optimizer, bw_parser, converter, saver
+from pulpo.utils import optimizer, bw_parser, converter, saver
 from typing import List, Union
 import webbrowser
 
@@ -55,9 +55,3 @@ class PulpoOptimizer:
         github_url = 'https://github.com/flechtenberg/pulpo/blob/develop/notebooks/hydrogen_showcase.ipynb'  # Replace with your GitHub URL
         nbviewer_url = 'https://nbviewer.jupyter.org/github/' + github_url.split('github.com/')[1]
         webbrowser.open(nbviewer_url)
-def main():
-    worker = PulpoOptimizer(project='a', database='b', method='c', directory='d')
-    worker.electricity_showcase()
-
-if __name__ == "__main__":
-    main()
