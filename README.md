@@ -93,6 +93,7 @@ pip install pulpo-dev
 
 
 ### 🤖 Running pulpo
+See [pypi](https://pypi.org/project/pulpo-dev/) for a description of how to use PULPO via pip.
 
 Find example notebooks for a [hydrogen case](https://github.com/flechtenberg/pulpo/blob/master/notebooks/hydrogen_showcase.ipynb) and an [electricity case](https://github.com/flechtenberg/pulpo/blob/master/notebooks/electricity_showcase.ipynb) here.
 
@@ -150,7 +151,6 @@ Copyright (c) 2023, Fabian Lechtenberg. All rights reserved.
 
 We would like to acknowledge the authors and contributors of these main packages that pulpo is based on:
  - [pyomo](https://github.com/Pyomo/pyomo)
- - [premise](https://github.com/polca/premise)
  - [brightway2](https://github.com/brightway-lca/brightway2)
 ---
 ## Authors

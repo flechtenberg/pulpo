@@ -56,10 +56,9 @@ pulpo.electricity_showcase()
 pulpo.hydrogen_showcase()
 ```
 
-It should be noted that to run these showcase it is necessary to install the ecoinvent cutoff38 system model via brightway2/activity-browser:
-```sh
-test
-```
+It should be noted that to run these showcase it is necessary to install the ecoinvent cutoff38 system model via brightway2/activity-browser.
+Please follow instructions on [Brightway2](https://learn.brightway.dev/en/latest/content/notebooks/BW2_for_beginners.html) or
+[Activity-Browser](https://github.com/LCA-ActivityBrowser/activity-browser) to see how this is done.
 
 ---
 
@@ -74,7 +73,6 @@ Copyright (c) 2023, Fabian Lechtenberg. All rights reserved.
 
 We would like to acknowledge the authors and contributors of these main packages that pulpo is based on:
  - [pyomo](https://github.com/Pyomo/pyomo)
- - [premise](https://github.com/polca/premise)
  - [brightway2](https://github.com/brightway-lca/brightway2)
 ---
 ## Authors
