@@ -1,6 +1,6 @@
 import pulpo as pulpo
 import unittest
-from sample_database import sample_lcia, setup_test_db
+from tests.sample_database import sample_lcia, setup_test_db
 from pulpo.utils.bw_parser import import_data, retrieve_methods, retrieve_envflows, retrieve_activities
 from pulpo import pulpo
 
