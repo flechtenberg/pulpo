@@ -86,30 +86,14 @@ The project, "pulpo," is a life cycle assessment (LCA) optimization tool that ai
 ## 🚀 Getting Started
 
 ### 🔧 Installation
-Soon PULPO will be installable via
+PULPO has been deployed to the pypi index and can now be installed via:
 ```sh
-pip install pulpo
-```
-But for the time being, please get the repo by cloning. It is highly recommended to create a new and separate conda 
-environment for PULPO. The requirements.txt comes from the current stable release and will be updated with each release. 
-A long-term task is to reduce the requirements.txt to a minimum, stating only the important packages.
-
-1. Clone the pulpo repository:
-```sh
-git clone https://github.com/flechtenberg/pulpo
+pip install pulpo-dev
 ```
 
-2. Change to the project directory:
-```sh
-cd pulpo
-```
-
-3. Install the dependencies:
-```sh
-pip install -r requirements.txt
-```
 
 ### 🤖 Running pulpo
+See [pypi](https://pypi.org/project/pulpo-dev/) for a description of how to use PULPO via pip.
 
 Find example notebooks for a [hydrogen case](https://github.com/flechtenberg/pulpo/blob/master/notebooks/hydrogen_showcase.ipynb) and an [electricity case](https://github.com/flechtenberg/pulpo/blob/master/notebooks/electricity_showcase.ipynb) here.
 
@@ -167,7 +151,6 @@ Copyright (c) 2023, Fabian Lechtenberg. All rights reserved.
 
 We would like to acknowledge the authors and contributors of these main packages that pulpo is based on:
  - [pyomo](https://github.com/Pyomo/pyomo)
- - [premise](https://github.com/polca/premise)
  - [brightway2](https://github.com/brightway-lca/brightway2)
 ---
 ## Authors
