@@ -45,7 +45,10 @@ class PulpoOptimizer:
         return methods
 
     def return_integer_cuts(self):
-        return [choice for choice in self.instance.choices if self.instance.choices[choice] == 1]
+        try:
+            return [choice for choice in self.instance.CHOICES if self.instance.choices[choice] == 1]
+        except:
+            return [choice for choice in self.instance.CHOICES if self.instance.choices[choice].value == 1]
 
     def save_results(self, choices={}, constraints={}, demand={}, name='results.xlxs'):
         saver.save_results(self.instance, self.project, self.database, choices, constraints, demand, self.lci_data['activity_map'], self.directory, name)

@@ -32,9 +32,9 @@ def create_model():
     model.LOWER_M = pyo.Param(mutable=True, within=pyo.NonNegativeReals, doc='Lower bound for the big-M constraint')
 
     # Variables
-    model.impacts = pyo.Var(model.INDICATOR, within=pyo.Reals, doc='Environmental impact on indicator h evaluated with the established LCIA method')
-    model.scaling_vector = pyo.Var(model.PROCESS, within=pyo.Reals, doc='Activity level of each process to meet the final demand')
-    model.slack = pyo.Var(model.SUPPLY, within=pyo.NonNegativeReals, doc='Supply slack variables')
+    model.impacts = pyo.Var(model.INDICATOR, within=pyo.Reals, bounds=(-1e20, 1e20), doc='Environmental impact on indicator h evaluated with the established LCIA method')
+    model.scaling_vector = pyo.Var(model.PROCESS, within=pyo.Reals, bounds=(-1e20, 1e20), doc='Activity level of each process to meet the final demand')
+    model.slack = pyo.Var(model.SUPPLY, within=pyo.NonNegativeReals, bounds=(-1e20, 1e20), doc='Supply slack variables')
     model.choices = pyo.Var(model.CHOICES, within=pyo.Binary, doc='Active choice variable')
 
     # Building rules for sets
@@ -115,7 +115,7 @@ def lower_constraint(model, p):
 
 def objective_function(model):
     """Objective is a sum over all indicators with weights. Typically, the indicator of study has weight 1, the rest 0"""
-    return sum(model.impacts[h] * model.WEIGHTS[h] for h in model.INDICATOR) + 1e6 * sum(model.choices[c] for c in model.CHOICES)
+    return sum(model.impacts[h] * model.WEIGHTS[h] for h in model.INDICATOR)
 
 def calculate_methods(instance, lci_data, methods):
     '''
@@ -174,7 +174,7 @@ def solve_model(model_instance, gams_path, tee=True, options=None):
 
         io_options = {
             #'mtype': 'mip',                      # Type of problem (lp, nlp, mip, minlp)
-            'solver': 'CPLEX',                  # Name of solver
+            'solver': 'cplex',                  # Name of solver
         }
 
         if options is None:
@@ -187,8 +187,8 @@ def solve_model(model_instance, gams_path, tee=True, options=None):
                 'scaind=1',
                 #'numericalemphasis=1',
                 #'epmrk=0.99',
-                'eprhs=0.1',
-                'epint=0.1',
+                'eprhs=1e-8',
+                'epint=1e-8',
                 '$offecho',
             ]
 
@@ -196,6 +196,7 @@ def solve_model(model_instance, gams_path, tee=True, options=None):
             model_instance,
             keepfiles=True,
             tee=tee,
+            symbolic_solver_labels=True,
             report_timing=True,
             io_options=io_options,
             add_options=options
