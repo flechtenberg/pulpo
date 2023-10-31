@@ -32,9 +32,9 @@ def create_model():
     model.LOWER_M = pyo.Param(mutable=True, within=pyo.NonNegativeReals, doc='Lower bound for the big-M constraint')
 
     # Variables
-    model.impacts = pyo.Var(model.INDICATOR, within=pyo.Reals, bounds=(-1e20, 1e20), doc='Environmental impact on indicator h evaluated with the established LCIA method')
-    model.scaling_vector = pyo.Var(model.PROCESS, within=pyo.Reals, bounds=(-1e20, 1e20), doc='Activity level of each process to meet the final demand')
-    model.slack = pyo.Var(model.SUPPLY, within=pyo.NonNegativeReals, bounds=(-1e20, 1e20), doc='Supply slack variables')
+    model.impacts = pyo.Var(model.INDICATOR, within=pyo.Reals, bounds=(-1e18, 1e18), doc='Environmental impact on indicator h evaluated with the established LCIA method')
+    model.scaling_vector = pyo.Var(model.PROCESS, within=pyo.Reals, bounds=(-1e18, 1e18), doc='Activity level of each process to meet the final demand')
+    model.slack = pyo.Var(model.SUPPLY, within=pyo.NonNegativeReals, bounds=(-1e18, 1e18), doc='Supply slack variables')
     model.choices = pyo.Var(model.CHOICES, within=pyo.Binary, doc='Active choice variable')
 
     # Building rules for sets
@@ -76,7 +76,7 @@ def populate_in_and_out(model):
 
 def demand_constraint(model, i):
     """Fixes a value in the demand vector"""
-    return sum(model.TECH_MATRIX[i, p] * model.scaling_vector[p] for p in model.PROCESS_OUT[i]) == model.FINAL_DEMAND[i]
+    return sum(model.TECH_MATRIX[i, p] * model.scaling_vector[p] for p in model.PROCESS_OUT[i]) >= model.FINAL_DEMAND[i]
 
 def supply_constraint(model, i):
     """Fixes a value in the supply vector"""
@@ -137,6 +137,23 @@ def calculate_methods(instance, lci_data, methods):
     instance.impacts_calculated = pyo.Var([h for h in impacts], initialize=impacts)
     return instance
 
+def calculate_final_demand(instance, lci_data):
+    '''
+    This function calculates the impacts if a method with weight 0 has been specified
+    '''
+    from numpy import savetxt
+    import numpy as np
+    technosphere = lci_data['technosphere']
+    try:
+        scaling_vector = np.array([instance.scaling_vector[x].value for x in instance.scaling_vector])
+    except:
+        scaling_vector = np.array([instance.scaling_vector[x] for x in instance.scaling_vector])
+    print(max(technosphere))
+    print(min(technosphere))
+    demand = technosphere.dot(scaling_vector)
+    savetxt('scaling_results.csv', demand, delimiter=',')
+    return demand
+
 
 
 def instantiate(model_data):
@@ -148,7 +165,7 @@ def instantiate(model_data):
     return problem
 
 
-def solve_model(model_instance, gams_path, tee=True, options=None):
+def solve_model(model_instance, gams_path, tee=True, options=None, io_options=None):
     """ TODO enable ipopt or other free solver application! """
     """Solves the instance of the optimization model.
 
@@ -172,10 +189,11 @@ def solve_model(model_instance, gams_path, tee=True, options=None):
         print('GAMS solvers library availability:', solver.available())
         print('Solver path:', solver.executable())
 
-        io_options = {
-            #'mtype': 'mip',                      # Type of problem (lp, nlp, mip, minlp)
-            'solver': 'cplex',                  # Name of solver
-        }
+        if io_options is None:
+            io_options = {
+                #'mtype': 'mip',                      # Type of problem (lp, nlp, mip, minlp)
+                'solver': 'cplex',                  # Name of solver
+            }
 
         if options is None:
             options = [
@@ -186,9 +204,9 @@ def solve_model(model_instance, gams_path, tee=True, options=None):
                 'workmem=4096',
                 'scaind=1',
                 #'numericalemphasis=1',
-                #'epmrk=0.99',
-                'eprhs=1e-8',
-                'epint=1e-8',
+                'epmrk=0.99',
+                'eprhs=0.99',
+                'epint=0.99',
                 '$offecho',
             ]
 

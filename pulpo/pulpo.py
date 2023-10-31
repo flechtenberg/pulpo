@@ -24,8 +24,8 @@ class PulpoOptimizer:
             self.instance.INTEGER_CUTS.deactivate()
             self.instance.choices.fix(0)
 
-    def solve(self, GAMS_PATH=False, tee=True):
-        results, self.instance = optimizer.solve_model(self.instance, GAMS_PATH, tee)
+    def solve(self, GAMS_PATH=False, tee=True, options=None, io_options=None):
+        results, self.instance = optimizer.solve_model(self.instance, GAMS_PATH, tee, options, io_options)
         # Post calculate additional methods, in case several methods have been specified and one of them is 0
         if not isinstance(self.method, str):
             if len(self.method) > 1 and 0 in [self.method[x] for x in self.method]:
@@ -55,3 +55,6 @@ class PulpoOptimizer:
 
     def summarize_results(self, choices={}, constraints={}, demand={}, zeroes=False):
             saver.summarize_results(self.instance, self.project, self.database, choices, constraints, demand, self.lci_data['activity_map'], zeroes)
+
+    def check_consistency(self):
+        optimizer.calculate_final_demand(self.instance, self.lci_data)

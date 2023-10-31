@@ -59,8 +59,8 @@ def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, methods,
     ''' Specify the lower limit '''
     if mip_bound == {}:
         mip_bound = {'lower': 1e-6,
-                     'upper': 1e20,
-                     'scale': 1e20}
+                     'upper': 1e18,
+                     'scale': 1e18}
     lower_limit_dict = {proc: -mip_bound['scale'] for proc in PROCESS[None]}
     for act in lower_limit:
         lower_limit_dict[activity_map[act]] = lower_limit[act]
