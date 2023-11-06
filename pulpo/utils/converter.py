@@ -52,22 +52,25 @@ def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, methods)
     INDICATOR = {None: list({h for h in matrices})}
 
     ''' Specify the demand'''
+    supply_scale = sum([lower_limit[x] for x in [k for k in lower_limit if k in upper_limit] if lower_limit[x] == upper_limit[x]])
+    scale = supply_scale + sum([demand[x] for x in demand]) # Added 06/11/23: Scale functional unit to length 1!
+    demand = {x: demand[x] / scale for x in demand}
     demand_dict = {prod: 0 for prod in PRODUCTS[None]}
     for dem in demand:
         demand_dict[activity_map[dem]] = demand[dem]
 
     ''' Specify the lower limit '''
-    lower_limit_dict = {proc: -1e20 for proc in PROCESS[None]}
+    lower_limit_dict = {proc: -100 for proc in PROCESS[None]}
     for act in lower_limit:
-        lower_limit_dict[activity_map[act]] = lower_limit[act]
+        lower_limit_dict[activity_map[act]] = lower_limit[act]/scale # Added 06/11/23: Scale functional unit to length 1!
     for choice in choices:
         for act in choices[choice]:
             lower_limit_dict[activity_map[act]] = 0
 
     ''' Specify the upper limit '''
-    upper_limit_dict = {proc: 1e20 for proc in PROCESS[None]}
+    upper_limit_dict = {proc: 100 for proc in PROCESS[None]}
     for act in upper_limit:
-        upper_limit_dict[activity_map[act]] = upper_limit[act]
+        upper_limit_dict[activity_map[act]] = upper_limit[act]/scale # Added 06/11/23: Scale functional unit to length 1!
 
     ''' Check if a supply has been specified '''
     supply_dict = {prod: 0 for prod in PRODUCTS[None]}
@@ -93,6 +96,7 @@ def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, methods)
             'LOWER_LIMIT': lower_limit_dict,
             'UPPER_LIMIT': upper_limit_dict,
             'WEIGHTS': weights,
+            'SCALE': {None: scale},
         }
     }
     return model_data

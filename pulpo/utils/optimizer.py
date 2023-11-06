@@ -24,11 +24,12 @@ def create_model():
     model.SUPPLY = pyo.Param(model.PRODUCT, mutable=True, within=pyo.Binary, doc='Binary parameter which specifies whether or not a supply has been specified instead of a demand')
     model.TECH_MATRIX = pyo.Param(model.PRODUCT_PROCESS, mutable=True, doc='Technology matrix A describing the intermediate product i produced/absorbed by process p')
     model.WEIGHTS = pyo.Param(model.INDICATOR, mutable=True, within=pyo.NonNegativeReals, doc='Weighting factors for the impact assessment indicators in the objective function')
+    model.SCALE = pyo.Param(mutable=True, within=pyo.NonNegativeReals, doc='scaling factor to normalize functional unit to length 1')
 
     # Variables
-    model.impacts = pyo.Var(model.INDICATOR, bounds=(-1e24, 1e24), doc='Environmental impact on indicator h evaluated with the established LCIA method')
-    model.scaling_vector = pyo.Var(model.PROCESS, bounds=(-1e24, 1e24), doc='Activity level of each process to meet the final demand')
-    model.slack = pyo.Var(model.PRODUCT, bounds=(0, 1e24), doc='Supply slack variables')
+    model.impacts = pyo.Var(model.INDICATOR, bounds=(-100, 100), doc='Environmental impact on indicator h evaluated with the established LCIA method')
+    model.scaling_vector = pyo.Var(model.PROCESS, bounds=(-100, 100), doc='Activity level of each process to meet the final demand')
+    model.slack = pyo.Var(model.PRODUCT, bounds=(0, 100), doc='Supply slack variables')
 
     # Building rules for sets
     model.Env = pyo.BuildAction(rule=populate_env)
@@ -84,7 +85,7 @@ def lower_constraint(model, p):
 
 def slack_constraint(model, p):
     """ Slack variable upper limit for activities where supply is specified instead of demand """
-    return model.slack[p] <= 1e20 * model.SUPPLY[p]
+    return model.slack[p] <= 100 * model.SUPPLY[p]
 
 
 def objective_function(model):
