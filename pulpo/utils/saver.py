@@ -9,7 +9,7 @@ def save_results(instance, project, database, choices, constraints, demand, map,
     There must be a better way to save the outputs of a pyomo model than this code I developed in 2020 """
     # Check if data/results folder exists, if not create it
     Path(directory + '/results').mkdir(parents=True, exist_ok=True)
-
+    scale = instance.SCALE()
     # Recover dictionary values
     list_of_vars = []
     for v in instance.component_objects(ctype=pyo.Var, active=True, descend_into=True):
@@ -23,10 +23,10 @@ def save_results(instance, project, database, choices, constraints, demand, map,
     # Raw results
     for v in list_of_vars:
         try:
-            data = [(k, map[k], v) for k, v in v._data.items()]
+            data = [(k, map[k], v * scale) for k, v in v._data.items()]
             df = pd.DataFrame(data, columns=['ID', 'Activity', 'Value'])
         except:
-            data = [(k, v) for k, v in v._data.items()]
+            data = [(k, v * scale) for k, v in v._data.items()]
             df = pd.DataFrame(data, columns=['Key', 'Value'])
         df.sort_values(by=['Value'], inplace=True, ascending=False)
         df.to_excel(writer, sheet_name=v.name, index=False)
@@ -64,7 +64,7 @@ def summarize_results(instance, project, database, choices, constraints, demand,
     metadata['Demand'] = {map[map[key]]: demand[key] for key in demand}
     print('The following demand / functional unit has been specified: ')
     display(pd.DataFrame(metadata))
-
+    scale = instance.SCALE()
     # Recover dictionary values
     list_of_vars = []
     for v in instance.component_objects(ctype=pyo.Var, active=True, descend_into=True):
@@ -76,10 +76,10 @@ def summarize_results(instance, project, database, choices, constraints, demand,
     for v in list_of_vars:
         if v.name == 'impacts':
             try:
-                data = [(k, map[k], v) for k, v in v._data.items()]
+                data = [(k, map[k], v * scale) for k, v in v._data.items()]
                 df = pd.DataFrame(data, columns=['ID', 'Activity', 'Value'])
             except:
-                data = [(k, v) for k, v in v._data.items()]
+                data = [(k, v * scale) for k, v in v._data.items()]
                 df = pd.DataFrame(data, columns=['Key', 'Value'])
             df.sort_values(by=['Value'], inplace=True, ascending=False)
             print('\nThese are the impacts contained in the objective:')
@@ -87,10 +87,10 @@ def summarize_results(instance, project, database, choices, constraints, demand,
 
         if v.name == 'impacts_calculated':
             try:
-                data = [(k, map[k], v) for k, v in v._data.items()]
+                data = [(k, map[k], v * scale) for k, v in v._data.items()]
                 df = pd.DataFrame(data, columns=['ID', 'Activity', 'Value'])
             except:
-                data = [(k, v) for k, v in v._data.items()]
+                data = [(k, v * scale) for k, v in v._data.items()]
                 df = pd.DataFrame(data, columns=['Key', 'Value'])
             df.sort_values(by=['Value'], inplace=True, ascending=False)
             print('\nThe following impacts were calculated: ')
