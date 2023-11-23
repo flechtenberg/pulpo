@@ -76,7 +76,7 @@ def populate_in_and_out(model):
 
 def demand_constraint(model, i):
     """Fixes a value in the demand vector"""
-    return sum(model.TECH_MATRIX[i, p] * model.scaling_vector[p] for p in model.PROCESS_OUT[i]) >= model.FINAL_DEMAND[i]
+    return sum(model.TECH_MATRIX[i, p] * model.scaling_vector[p] for p in model.PROCESS_OUT[i]) == model.FINAL_DEMAND[i]
 
 def supply_constraint(model, i):
     """Fixes a value in the supply vector"""
@@ -203,10 +203,6 @@ def solve_model(model_instance, gams_path, tee=True, options=None, io_options=No
                 '$onecho > cplex.opt',
                 'workmem=4096',
                 'scaind=1',
-                #'numericalemphasis=1',
-                'epmrk=0.99',
-                'eprhs=0.99',
-                'epint=0.99',
                 '$offecho',
             ]
 
