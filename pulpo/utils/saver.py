@@ -4,8 +4,8 @@ import pandas as pd
 from pathlib import Path
 from IPython.display import display
 
-def save_results(instance, project, database, choices, constraints, demand, map, directory, name):
-    """ TODO Imporve readability and structure ...
+def save_results(instance, project, database, choices, constraints, demand, map, elem_map, directory, name):
+    """ TODO Improve readability and structure ...
     There must be a better way to save the outputs of a pyomo model than this code I developed in 2020 """
     # Check if data/results folder exists, if not create it
     Path(directory + '/results').mkdir(parents=True, exist_ok=True)
@@ -23,7 +23,13 @@ def save_results(instance, project, database, choices, constraints, demand, map,
     # Raw results
     for v in list_of_vars:
         try:
-            data = [(k, map[k], v) for k, v in v._data.items()]
+            if str(v) == 'scaling_vector':
+                data = [(k, map[k], v) for k, v in v._data.items()]
+            elif str(v) == 'elem_vector':
+                try:
+                    data = [(k, elem_map[k], v) for k, v in v._data.items()]
+                except:
+                    data = [(k, 'unknown', v) for k, v in v._data.items()]
             df = pd.DataFrame(data, columns=['ID', 'Activity', 'Value'])
         except:
             data = [(k, v) for k, v in v._data.items()]
