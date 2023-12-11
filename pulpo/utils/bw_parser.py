@@ -4,7 +4,7 @@ import pickle
 import brightway2 as bw
 from scipy import sparse
 
-def import_data(project: str, database: str, method: Union[str, List[str], dict[str, int]]) -> Dict[str, Union[dict, Any]]:
+def import_data(project: str, database: str, method: Union[str, List[str], dict[str, int]], biosphere: str) -> Dict[str, Union[dict, Any]]:
     """ TODO can we find a faster way to import the data without having to save it locally? """
     """
     Main function to import LCI data for a project from a database.
@@ -33,18 +33,30 @@ def import_data(project: str, database: str, method: Union[str, List[str], dict[
         lca.load_lcia_data()
         matrices[str(method)] = lca.characterization_matrix
     technosphere = lca.technosphere_matrix
-    biosphere = lca.biosphere_matrix
+    biosphere_matrix = lca.biosphere_matrix
     # Create activity map key --> ID | ID --> description
     activity_map = lca.product_dict
+
     for act in eidb:
         activity_map[activity_map[act.key]] = str(act['name']) + ' | ' + str(act['reference product']) + ' | ' + str(
             act['location'])
 
+    if biosphere in bw.databases:
+        eidb_bio = bw.Database(biosphere)
+        elem_map = lca.biosphere_dict
+        for act in eidb_bio:
+            if act.key in elem_map:
+                elem_map[elem_map[act.key]] = act['name'] + ' | ' + str(act['categories'])
+    else:
+        print("The name of the biosphere is not '" + biosphere + "'. Please specify the correct biosphere.")
+        return {}
+
     lci_data = {
         'matrices': matrices,
-        'biosphere': biosphere,
+        'biosphere': biosphere_matrix,
         'technosphere': technosphere,
-        'activity_map': activity_map
+        'activity_map': activity_map,
+        'elem_map': elem_map,
     }
 
     return lci_data
@@ -77,7 +89,7 @@ def retrieve_activities(project, database, keys=None, activities=None, reference
     else:
         return matching_activities
 
-def retrieve_envflows(project, biosphere='biosphere3', keys=None, activities=None, categories=None):
+def retrieve_envflows(project='', biosphere='biosphere3', keys=None, activities=None, categories=None):
     """
     Retrieve environmental flows from the biosphere database based on specified keys, activities, and categories.
     """
@@ -108,9 +120,3 @@ def retrieve_methods(project: str, sub_string: List[str]):
     ''' This function retrieves all the methods that contain the specified list of substrings'''
     bw.projects.set_current(project)
     return [method for method in bw.methods if any([x.lower() in str(method).lower() for x in sub_string])]
-
-def main():
-    1+1
-
-if __name__ == "__main__":
-    main()
