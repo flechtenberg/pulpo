@@ -4,7 +4,7 @@ import pandas as pd
 from pathlib import Path
 from IPython.display import display
 
-def save_results(instance, project, database, choices, constraints, demand, map, directory, name):
+def save_results(instance, project, database, choices, constraints, demand, map, elem_map, directory, name):
     """ TODO Imporve readability and structure ...
     There must be a better way to save the outputs of a pyomo model than this code I developed in 2020 """
     # Check if data/results folder exists, if not create it
