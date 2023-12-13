@@ -1,12 +1,13 @@
 import scipy.sparse as sparse
 
-def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, methods):
+def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, upper_elem_limit, methods):
     ''' This function combines all the inputs to a dictionary as an input for the optimization model'''
     ''' Load LCIA methods into a list of matrices'''
     matrices = lci_data['matrices']
     biosphere = lci_data['biosphere']
     technosphere = lci_data['technosphere']
     activity_map = lci_data['activity_map']
+    elem_map = lci_data['elem_map']
 
     ''' Remove matrices that are not part of the objective '''
     matrices = {h: matrices[h] for h in matrices if str(h) in methods}
@@ -23,6 +24,12 @@ def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, methods)
     technosphere_dict = {(i - 1, technosphere.indices[j]): technosphere.data[j]
                          for i in range(1, technosphere.shape[0] + 1)
                          for j in range(technosphere.indptr[i - 1], technosphere.indptr[i])}
+
+    ''' Convert sparse csr biosphere impact matrix to dictionary'''
+    elem_to_consider = [elem_map[a] for a in upper_elem_limit]
+    env_dict = {(e, biosphere.indices[j]): biosphere.data[j]
+                      for e in elem_to_consider
+                      for j in range(biosphere.indptr[e], biosphere.indptr[e+1])}
 
     ''' Make technosphere matrix rectangular and update keys and product_ids'''
     capacity_dict = {}
@@ -49,6 +56,8 @@ def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, methods)
     PRODUCT_PROCESS = {None: list({(i[0], i[1]) for i in technosphere_dict})}
     ELEMENTARY = {None: list({k[0] for k in biosphere_dict})}
     ELEMENTARY_PROCESS = {None: list({k for k in biosphere_dict})}
+    ENV = {None: list({k[0] for k in env_dict})}
+    ENV_PROCESS = {None: list({(i[0], i[1]) for i in env_dict})}
     INDICATOR = {None: list({h for h in matrices})}
 
     ''' Specify the demand'''
@@ -74,6 +83,11 @@ def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, methods)
     for act in list(lower_limit.keys() & upper_limit.keys()):
         supply_dict[activity_map[act]] = 1 if lower_limit[act] == upper_limit[act] else 0
 
+    ''' Specify the upper elementary flow limit '''
+    upper_elem_limit_dict = {elem: 1e24 for elem in ENV[None]}
+    for elem in upper_elem_limit:
+        upper_elem_limit_dict[elem_map[elem.key]] = upper_elem_limit[elem]
+
     ''' Create weights'''
     weights = {method: 1 for method in matrices} if methods == {} else methods
 
@@ -84,14 +98,18 @@ def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, methods)
             'PROCESS': PROCESS,
             'ELEMENTARY': ELEMENTARY,
             'INDICATOR': INDICATOR,
+            'ENV': ENV,
             'PRODUCT_PROCESS': PRODUCT_PROCESS,
             'ELEMENTARY_PROCESS': ELEMENTARY_PROCESS,
+            'ENV_PROCESS': ENV_PROCESS,
             'TECH_MATRIX': technosphere_dict,
             'ELEMENTARY_MATRIX': biosphere_dict,
+            'ENV_MATRIX': env_dict,
             'FINAL_DEMAND': demand_dict,
             'SUPPLY': supply_dict,
             'LOWER_LIMIT': lower_limit_dict,
             'UPPER_LIMIT': upper_limit_dict,
+            'UPPER_ENV_LIMIT': upper_elem_limit_dict,
             'WEIGHTS': weights,
         }
     }
