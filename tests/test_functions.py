@@ -19,9 +19,9 @@ class TestParser(unittest.TestCase):
             "('my project', 'resources')": 1,
         }
 
-        result = import_data('sample_project', 'technosphere', methods)
+        result = import_data('sample_project', 'technosphere', methods, 'biosphere')
 
-        self.assertEqual([idx for idx in result], ['matrices', 'biosphere', 'technosphere', 'activity_map'])
+        self.assertEqual([idx for idx in result], ['matrices', 'biosphere', 'technosphere', 'activity_map', 'elem_map'])
         self.assertEqual(result['technosphere'].shape, (5, 5))
         self.assertEqual(result['biosphere'].shape, (4, 5))
         self.assertEqual(result['activity_map'], {('technosphere', 'oil extraction'): 0, ('technosphere', 'lignite extraction'): 1, ('technosphere', 'steam cycle'): 2, ('technosphere', 'wind turbine'): 3, ('technosphere', 'e-Car'): 4, 2: 'steam cycle | electricity | GLO', 1: 'lignite extraction | lignite | GLO', 0: 'oil extraction | oil | GLO', 3: 'wind turbine | electricity | GLO', 4: 'e-Car | transport | GLO'})
@@ -54,6 +54,7 @@ class TestPULPO(unittest.TestCase):
                    "('my project', 'resources')": 0}
 
         worker = pulpo.PulpoOptimizer(project, database, methods, '')
+        worker.biosphere = 'biosphere'
         worker.get_lci_data()
         eCar = worker.retrieve_activities(reference_products='transport')
         demand = {eCar[0]: 1}
