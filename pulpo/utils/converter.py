@@ -27,8 +27,8 @@ def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, upper_el
 
     ''' Convert sparse csr biosphere impact matrix to dictionary'''
     elem_to_consider = [elem_map[a] for a in upper_elem_limit]
-    env_dict = {(e - 1, biosphere.indices[j]): biosphere.data[j]
-                      for e in range(1, biosphere.shape[0] + 1) if e in elem_to_consider
+    env_dict = {(e, biosphere.indices[j]): biosphere.data[j]
+                      for e in elem_to_consider
                       for j in range(biosphere.indptr[e - 1], biosphere.indptr[e])}
 
     ''' Make technosphere matrix rectangular and update keys and product_ids'''

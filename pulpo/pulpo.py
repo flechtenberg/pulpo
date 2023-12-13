@@ -21,12 +21,13 @@ class PulpoOptimizer:
         data = converter.combine_inputs(self.lci_data, demand, choices, upper_limit, lower_limit, upper_elem_limit, methods)
         self.instance = optimizer.instantiate(data)
 
-    def solve(self, GAMS_PATH=False, options={}):
+    def solve(self, GAMS_PATH=False, options=None):
         results, self.instance = optimizer.solve_model(self.instance, GAMS_PATH, options=options)
         # Post calculate additional methods, in case several methods have been specified and one of them is 0
         if not isinstance(self.method, str):
             if len(self.method) > 1 and 0 in [self.method[x] for x in self.method]:
                 self.instance = optimizer.calculate_methods(self.instance, self.lci_data, self.method)
+        self.instance = optimizer.calculate_env_flows(self.instance, self.lci_data)
         return results
 
     def retrieve_activities(self, keys=None, activities=None, reference_products=None, locations=None):

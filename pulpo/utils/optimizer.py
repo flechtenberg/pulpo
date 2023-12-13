@@ -17,7 +17,7 @@ def create_model():
     model.PROCESS_OUT = pyo.Set(model.PRODUCT, within=model.PROCESS, doc='Subset of processes p that produce/absorb intermediate product i')
     model.PRODUCT_PROCESS = pyo.Set(within=model.PRODUCT * model.PROCESS, doc='Relation set between intermediate products and processes')
     model.ENV_PROCESS = pyo.Set(within=model.ENV * model.PROCESS, doc='Relation set between environmental flows and processes')
-    model.ENV_OUT = pyo.Set(model.PROCESS, within=model.ENV, doc='Subset of environmental flows a related processes p')
+    model.ENV_OUT = pyo.Set(model.ENV, within=model.PROCESS, doc='Subset of environmental flows a related processes p')
 
     # Parameters
     model.UPPER_LIMIT = pyo.Param(model.PROCESS, mutable=True, within=pyo.Reals, doc='Maximum production capacity of process p')
@@ -132,6 +132,20 @@ def calculate_methods(instance, lci_data, methods):
     instance.impacts_calculated = pyo.Var([h for h in impacts], initialize=impacts)
     return instance
 
+def calculate_env_flows(instance, lci_data):
+    '''
+    This function calculates elementary flows post-calculation
+    '''
+    import numpy as np
+    biosphere = lci_data['biosphere']
+    try:
+        scaling_vector = np.array([instance.scaling_vector[x].value for x in instance.scaling_vector])
+    except:
+        scaling_vector = np.array([instance.scaling_vector[x] for x in instance.scaling_vector])
+    flows = biosphere.dot(scaling_vector)
+    instance.elem_flows = pyo.Var(range(0, biosphere.shape[0]), initialize=flows)
+    return instance
+
 
 
 def instantiate(model_data):
@@ -189,6 +203,7 @@ def solve_model(model_instance, gams_path, options=None):
         results = solver.solve(
             model_instance,
             keepfiles=True,
+            symbolic_solver_labels=True,
             tee=True,
             report_timing=True,
             io_options=io_options,
