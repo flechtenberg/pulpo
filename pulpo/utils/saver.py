@@ -23,7 +23,10 @@ def save_results(instance, project, database, choices, constraints, demand, map,
     # Raw results
     for v in list_of_vars:
         try:
-            data = [(k, map[k], v) for k, v in v._data.items()]
+            if str(v) == 'elem_flows':
+                data = [(k, elem_map[k], v) for k, v in v._data.items()]
+            else:
+                data = [(k, map[k], v) for k, v in v._data.items()]
             df = pd.DataFrame(data, columns=['ID', 'Activity', 'Value'])
         except:
             data = [(k, v) for k, v in v._data.items()]
