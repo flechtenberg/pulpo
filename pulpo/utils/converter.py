@@ -29,7 +29,7 @@ def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, upper_el
     elem_to_consider = [elem_map[a] for a in upper_elem_limit]
     env_dict = {(e, biosphere.indices[j]): biosphere.data[j]
                       for e in elem_to_consider
-                      for j in range(biosphere.indptr[e - 1], biosphere.indptr[e])}
+                      for j in range(biosphere.indptr[e], biosphere.indptr[e+1])}
 
     ''' Make technosphere matrix rectangular and update keys and product_ids'''
     capacity_dict = {}
