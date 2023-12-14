@@ -27,7 +27,7 @@ class PulpoOptimizer:
         if not isinstance(self.method, str):
             if len(self.method) > 1 and 0 in [self.method[x] for x in self.method]:
                 self.instance = optimizer.calculate_methods(self.instance, self.lci_data, self.method)
-        self.instance = optimizer.calculate_env_flows(self.instance, self.lci_data)
+        self.instance = optimizer.calculate_inv_flows(self.instance, self.lci_data)
         return results
 
     def retrieve_activities(self, keys=None, activities=None, reference_products=None, locations=None):
