@@ -41,7 +41,7 @@ def import_data(project: str, database: str, method: Union[str, List[str], dict[
             if act.key in intervention_map:
                 intervention_map[intervention_map[act.key]] = act['name'] + ' | ' + str(act['categories'])
     else:
-        print("The name of the biosphere is not '" + intervention_matrix + "'. Please specify the correct biosphere.")
+        print("The name of the biosphere is not '" + intervention_matrix_name + "'. Please specify the correct biosphere.")
         return {}
 
     lci_data = {
