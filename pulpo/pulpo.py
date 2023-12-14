@@ -6,14 +6,14 @@ class PulpoOptimizer:
     def __init__(self, project: str, database: str, method: Union[str, List[str], dict], directory: str):
         self.project = project
         self.database = database
-        self.biosphere = 'biosphere3'
+        self.intervention_matrix = 'biosphere3'
         self.method = converter.convert_to_dict(method)
         self.directory = directory
         self.lci_data = None
         self.instance = None
 
     def get_lci_data(self):
-        self.lci_data = bw_parser.import_data(self.project, self.database, self.method, self.biosphere)
+        self.lci_data = bw_parser.import_data(self.project, self.database, self.method, self.intervention_matrix)
 
     def instantiate(self, choices={}, demand={}, upper_limit={},lower_limit={}, upper_elem_limit={}):
         # Instantiate only for those methods that are part of the objecitve
@@ -31,11 +31,11 @@ class PulpoOptimizer:
         return results
 
     def retrieve_activities(self, keys=None, activities=None, reference_products=None, locations=None):
-        activities = bw_parser.retrieve_activities(self.project, self.database, keys, activities, reference_products, locations)
+        activities = bw_parser.retrieve_processes(self.project, self.database, keys, activities, reference_products, locations)
         return activities
 
     def retrieve_envflows(self, keys=None, activities=None, categories=None):
-        activities = bw_parser.retrieve_envflows(project=self.project, biosphere=self.biosphere, keys=keys, activities=activities, categories=categories)
+        activities = bw_parser.retrieve_env_interventions(project=self.project, biosphere=self.intervention_matrix, keys=keys, activities=activities, categories=categories)
         return activities
 
     def retrieve_methods(self, string=""):
@@ -43,10 +43,10 @@ class PulpoOptimizer:
         return methods
 
     def save_results(self, choices={}, constraints={}, demand={}, name='results.xlxs'):
-        saver.save_results(self.instance, self.project, self.database, choices, constraints, demand, self.lci_data['activity_map'], self.lci_data['elem_map'], self.directory, name)
+        saver.save_results(self.instance, self.project, self.database, choices, constraints, demand, self.lci_data['process_map'], self.lci_data['intervention_map'], self.directory, name)
 
     def summarize_results(self, choices={}, constraints={}, demand={}, zeroes=False):
-            saver.summarize_results(self.instance, self.project, self.database, choices, constraints, demand, self.lci_data['activity_map'], zeroes)
+            saver.summarize_results(self.instance, self.project, self.database, choices, constraints, demand, self.lci_data['process_map'], zeroes)
 
 def electricity_showcase():
     github_url = 'https://github.com/flechtenberg/pulpo/blob/develop/notebooks/electricity_showcase.ipynb'  # Replace with your GitHub URL
