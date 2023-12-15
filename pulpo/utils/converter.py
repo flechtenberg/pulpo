@@ -104,12 +104,12 @@ def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, upper_in
             'INV_PROCESS': INV_PROCESS,
             'TECH_MATRIX': technology_matrix_dict,
             'ENV_COST_MATRIX': env_cost_dict,
-            'ENV_MATRIX': inv_dict,
+            'INV_MATRIX': inv_dict,
             'FINAL_DEMAND': demand_dict,
             'SUPPLY': supply_dict,
             'LOWER_LIMIT': lower_limit_dict,
             'UPPER_LIMIT': upper_limit_dict,
-            'UPPER_ENV_LIMIT': upper_inv_limit_dict,
+            'UPPER_INV_LIMIT': upper_inv_limit_dict,
             'WEIGHTS': weights,
         }
     }

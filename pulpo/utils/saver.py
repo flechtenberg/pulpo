@@ -23,7 +23,7 @@ def save_results(instance, project, database, choices, constraints, demand, proc
     # Raw results
     for v in list_of_vars:
         try:
-            if str(v) == 'inv_vector':
+            if str(v) == 'inv_flows' or str(v) == 'inv_vector':
                 data = [(k, itervention_map[k], v) for k, v in v._data.items()]
             else:
                 data = [(k, process_map[k], v) for k, v in v._data.items()]

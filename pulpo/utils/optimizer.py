@@ -143,7 +143,7 @@ def calculate_inv_flows(instance, lci_data):
     except:
         scaling_vector = np.array([instance.scaling_vector[x] for x in instance.scaling_vector])
     flows = intervention_matrix.dot(scaling_vector)
-    instance.elem_flows = pyo.Var(range(0, intervention_matrix.shape[0]), initialize=flows)
+    instance.inv_flows = pyo.Var(range(0, intervention_matrix.shape[0]), initialize=flows)
     return instance
 
 
