@@ -35,7 +35,7 @@ class PulpoOptimizer:
         return activities
 
     def retrieve_envflows(self, keys=None, activities=None, categories=None):
-        activities = bw_parser.retrieve_env_interventions(project=self.project, biosphere=self.intervention_matrix, keys=keys, activities=activities, categories=categories)
+        activities = bw_parser.retrieve_env_interventions(project=self.project, intervention_matrix=self.intervention_matrix, keys=keys, activities=activities, categories=categories)
         return activities
 
     def retrieve_methods(self, string=""):
