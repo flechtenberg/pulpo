@@ -6,40 +6,49 @@ def create_model():
 
     # Sets
     model.PRODUCT = pyo.Set(doc='Set of intermediate products (or technosphere exchanges), indexed by i')
-    model.PROCESS = pyo.Set(doc='Set of processes (or activities), indexed by p')
-    model.ELEMENTARY = pyo.Set(doc='Set of elementary flows, indexed by e')
+    model.PROCESS = pyo.Set(doc='Set of processes (or activities), indexed by j')
+    model.ENV_COST = pyo.Set(doc='Set of environmental cost flows, indexed by e')
     model.INDICATOR = pyo.Set(doc='Set of impact assessment indicators, indexed by h')
-    model.ELEMENTARY_PROCESS = pyo.Set(within=model.ELEMENTARY * model.PROCESS * model.INDICATOR, doc='Relation set between elementary flows and processes')
-    model.ELEMENTARY_IN = pyo.Set(model.INDICATOR, within=model.ELEMENTARY)
-    model.ELEMENTARY_OUT = pyo.Set(model.ELEMENTARY * model.INDICATOR, within=model.PROCESS)
-    model.PROCESS_IN = pyo.Set(model.PROCESS, within=model.PRODUCT, doc='Subset of intermediate products i produced/absorbed by process p')
-    model.PROCESS_OUT = pyo.Set(model.PRODUCT, within=model.PROCESS, doc='Subset of processes p that produce/absorb intermediate product i')
+    model.INV = pyo.Set(doc='Set of intervention flows, indexed by g')
+    model.ENV_COST_PROCESS = pyo.Set(within=model.ENV_COST * model.PROCESS * model.INDICATOR, doc='Relation set between environmental cost flows and processes')
+    model.ENV_COST_IN = pyo.Set(model.INDICATOR, within=model.ENV_COST)
+    model.ENV_COST_OUT = pyo.Set(model.ENV_COST * model.INDICATOR, within=model.PROCESS)
+    model.PROCESS_IN = pyo.Set(model.PROCESS, within=model.PRODUCT)
+    model.PROCESS_OUT = pyo.Set(model.PRODUCT, within=model.PROCESS)
     model.PRODUCT_PROCESS = pyo.Set(within=model.PRODUCT * model.PROCESS, doc='Relation set between intermediate products and processes')
+    model.INV_PROCESS = pyo.Set(within=model.INV * model.PROCESS, doc='Relation set between environmental flows and processes')
+    model.INV_OUT = pyo.Set(model.INV, within=model.PROCESS)
 
     # Parameters
-    model.UPPER_LIMIT = pyo.Param(model.PROCESS, mutable=True, within=pyo.Reals, doc='Maximum production capacity of process p')
-    model.LOWER_LIMIT = pyo.Param(model.PROCESS, mutable=True, within=pyo.Reals, doc='Minimum production capacity of process p')
-    model.ELEMENTARY_MATRIX = pyo.Param(model.ELEMENTARY_PROCESS, mutable=True, doc='Biosphere Impact matrix Q*B describing the elementary flow e entering/leaving process p')
-    model.FINAL_DEMAND = pyo.Param(model.PRODUCT, mutable=True, within=pyo.Reals, doc='Final demand of intermediate flows (i.e., functional unit)')
+    model.UPPER_LIMIT = pyo.Param(model.PROCESS, mutable=True, within=pyo.Reals, doc='Maximum production capacity of process j')
+    model.LOWER_LIMIT = pyo.Param(model.PROCESS, mutable=True, within=pyo.Reals, doc='Minimum production capacity of process j')
+    model.UPPER_INV_LIMIT = pyo.Param(model.INV, mutable=True, within=pyo.Reals, doc='Maximum intervention flow flow g')
+    model.ENV_COST_MATRIX = pyo.Param(model.ENV_COST_PROCESS, mutable=True, doc='Enviornmental cost matrix Q*B describing the environmental cost flows e associated to process j')
+    model.INV_MATRIX = pyo.Param(model.INV_PROCESS, mutable=True, doc='Intervention matrix B describing the intervention flow g entering/leaving process j')
+    model.FINAL_DEMAND = pyo.Param(model.PRODUCT, mutable=True, within=pyo.Reals, doc='Final demand of intermediate product flows (i.e., functional unit)')
     model.SUPPLY = pyo.Param(model.PRODUCT, mutable=True, within=pyo.Binary, doc='Binary parameter which specifies whether or not a supply has been specified instead of a demand')
-    model.TECH_MATRIX = pyo.Param(model.PRODUCT_PROCESS, mutable=True, doc='Technology matrix A describing the intermediate product i produced/absorbed by process p')
+    model.TECH_MATRIX = pyo.Param(model.PRODUCT_PROCESS, mutable=True, doc='Technology matrix A describing the intermediate product i produced/absorbed by process j')
     model.WEIGHTS = pyo.Param(model.INDICATOR, mutable=True, within=pyo.NonNegativeReals, doc='Weighting factors for the impact assessment indicators in the objective function')
 
     # Variables
     model.impacts = pyo.Var(model.INDICATOR, bounds=(-1e24, 1e24), doc='Environmental impact on indicator h evaluated with the established LCIA method')
     model.scaling_vector = pyo.Var(model.PROCESS, bounds=(-1e24, 1e24), doc='Activity level of each process to meet the final demand')
+    model.inv_vector = pyo.Var(model.INV, bounds=(-1e24, 1e24), doc='Intervention flows')
     model.slack = pyo.Var(model.PRODUCT, bounds=(0, 1e24), doc='Supply slack variables')
 
     # Building rules for sets
-    model.Env = pyo.BuildAction(rule=populate_env)
-    model.In_n_Out = pyo.BuildAction(rule=populate_in_and_out)
+    model.Env_in_out = pyo.BuildAction(rule=populate_env)
+    model.Process_in_out = pyo.BuildAction(rule=populate_in_and_out)
+    model.Inv_in_out = pyo.BuildAction(rule=populate_inv)
 
     # Constraints
     model.FINAL_DEMAND_CNSTR = pyo.Constraint(model.PRODUCT, rule=demand_constraint)
     model.IMPACTS_CNSTR = pyo.Constraint(model.INDICATOR, rule=impact_constraint)
+    model.INVENTORY_CNSTR = pyo.Constraint(model.INV, rule=inventory_constraint)
     model.UPPER_CNSTR = pyo.Constraint(model.PROCESS, rule=upper_constraint)
     model.LOWER_CNSTR = pyo.Constraint(model.PROCESS, rule=lower_constraint)
     model.SLACK_CNSTR = pyo.Constraint(model.PRODUCT, rule=slack_constraint)
+    model.INV_CNSTR = pyo.Constraint(model.INV, rule=upper_env_constraint)
 
     # Objective function
     model.OBJ = pyo.Objective(sense=pyo.minimize, rule=objective_function)
@@ -50,10 +59,10 @@ def create_model():
 # Rule functions
 def populate_env(model):
     """Relates the environmental flows to the processes."""
-    for i, j, h in model.ELEMENTARY_PROCESS:
-        if i not in model.ELEMENTARY_IN[h]:
-            model.ELEMENTARY_IN[h].add(i)
-        model.ELEMENTARY_OUT[i, h].add(j)
+    for i, j, h in model.ENV_COST_PROCESS:
+        if i not in model.ENV_COST_IN[h]:
+            model.ENV_COST_IN[h].add(i)
+        model.ENV_COST_OUT[i, h].add(j)
 
 
 def populate_in_and_out(model):
@@ -62,29 +71,41 @@ def populate_in_and_out(model):
         model.PROCESS_OUT[i].add(j)
         model.PROCESS_IN[j].add(i)
 
+def populate_inv(model):
+    """Relates the impacts to the environmental flows"""
+    for a, j in model.INV_PROCESS:
+        model.INV_OUT[a].add(j)
 
 def demand_constraint(model, i):
     """Fixes a value in the demand vector"""
-    return sum(model.TECH_MATRIX[i, p] * model.scaling_vector[p] for p in model.PROCESS_OUT[i]) == model.FINAL_DEMAND[i] + model.slack[i]
+    return sum(model.TECH_MATRIX[i, j] * model.scaling_vector[j] for j in model.PROCESS_OUT[i]) == model.FINAL_DEMAND[i] + model.slack[i]
 
 
 def impact_constraint(model, h):
     """Calculates all the impact categories"""
-    return model.impacts[h] == sum(sum(model.ELEMENTARY_MATRIX[i, j, h] * model.scaling_vector[j] for j in model.ELEMENTARY_OUT[i, h]) for i in model.ELEMENTARY_IN[h])
+    return model.impacts[h] == sum(sum(model.ENV_COST_MATRIX[i, j, h] * model.scaling_vector[j] for j in model.ENV_COST_OUT[i, h]) for i in model.ENV_COST_IN[h])
+
+def inventory_constraint(model, g):
+    """Calculates the environmental flows"""
+    return model.inv_vector[g] == sum(model.INV_MATRIX[g, j] * model.scaling_vector[j] for j in model.INV_OUT[g])
 
 
-def upper_constraint(model, p):
+def upper_constraint(model, j):
     """Ensures that variables are within capacities (Maximum production constraint) """
-    return model.scaling_vector[p] <= model.UPPER_LIMIT[p]
+    return model.scaling_vector[j] <= model.UPPER_LIMIT[j]
 
 
-def lower_constraint(model, p):
+def lower_constraint(model, j):
     """ Minimum production constraint """
-    return model.scaling_vector[p] >= model.LOWER_LIMIT[p]
+    return model.scaling_vector[j] >= model.LOWER_LIMIT[j]
 
-def slack_constraint(model, p):
+def upper_env_constraint(model, g):
+    """Ensures that variables are within capacities (Maximum production constraint) """
+    return model.inv_vector[g] <= model.UPPER_INV_LIMIT[g]
+
+def slack_constraint(model, j):
     """ Slack variable upper limit for activities where supply is specified instead of demand """
-    return model.slack[p] <= 1e20 * model.SUPPLY[p]
+    return model.slack[j] <= 1e20 * model.SUPPLY[j]
 
 
 def objective_function(model):
@@ -98,9 +119,9 @@ def calculate_methods(instance, lci_data, methods):
     import scipy.sparse as sparse
     import numpy as np
     matrices = lci_data['matrices']
-    biosphere = lci_data['biosphere']
+    intervention_matrix = lci_data['intervention_matrix']
     matrices = {h: matrices[h] for h in matrices if str(h) in methods}
-    env_cost = {h: sparse.csr_matrix.dot(matrices[h], biosphere) for h in matrices}
+    env_cost = {h: sparse.csr_matrix.dot(matrices[h], intervention_matrix) for h in matrices}
     try:
         scaling_vector = np.array([instance.scaling_vector[x].value for x in instance.scaling_vector])
     except:
@@ -109,6 +130,20 @@ def calculate_methods(instance, lci_data, methods):
     for h in matrices:
         impacts[h] = sum(env_cost[h].dot(scaling_vector))
     instance.impacts_calculated = pyo.Var([h for h in impacts], initialize=impacts)
+    return instance
+
+def calculate_inv_flows(instance, lci_data):
+    '''
+    This function calculates elementary flows post-optimization
+    '''
+    import numpy as np
+    intervention_matrix = lci_data['intervention_matrix']
+    try:
+        scaling_vector = np.array([instance.scaling_vector[x].value for x in instance.scaling_vector])
+    except:
+        scaling_vector = np.array([instance.scaling_vector[x] for x in instance.scaling_vector])
+    flows = intervention_matrix.dot(scaling_vector)
+    instance.inv_flows = pyo.Var(range(0, intervention_matrix.shape[0]), initialize=flows)
     return instance
 
 
@@ -123,23 +158,7 @@ def instantiate(model_data):
 
 
 def solve_model(model_instance, gams_path, options=None):
-    """ TODO enable ipopt or other free solver application! """
-    """Solves the instance of the optimization model.
-
-    Parameters:
-    ------------
-    model_instance: pyomo.ConcreteModel
-        The instance of the Pyomo model to solve.
-    gams_path: str
-        The directory path of GAMS.
-    options: list of str, optional
-        Additional solver options.
-
-    Returns:
-    ------------
-    pyomo.SolverResults, pyomo.ConcreteModel
-        The solver results and the updated instance of the Pyomo model.
-    """
+    """Solves the instance of the optimization model. """
     if gams_path is not False:
         pyo.pyomo.common.Executable('gams').set_path(gams_path)
         solver = pyo.SolverFactory('gams')
@@ -168,6 +187,7 @@ def solve_model(model_instance, gams_path, options=None):
         results = solver.solve(
             model_instance,
             keepfiles=True,
+            symbolic_solver_labels=True,
             tee=True,
             report_timing=True,
             io_options=io_options,
@@ -182,5 +202,3 @@ def solve_model(model_instance, gams_path, options=None):
         results = opt.solve(model_instance)
 
     return results, model_instance
-
-
