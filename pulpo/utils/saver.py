@@ -4,7 +4,7 @@ import pandas as pd
 from pathlib import Path
 from IPython.display import display
 
-def save_results(instance, project, database, choices, constraints, demand, map, directory, name):
+def save_results(instance, project, database, choices, constraints, demand, process_map, itervention_map, directory, name):
     """ TODO Imporve readability and structure ...
     There must be a better way to save the outputs of a pyomo model than this code I developed in 2020 """
     # Check if data/results folder exists, if not create it
@@ -23,7 +23,10 @@ def save_results(instance, project, database, choices, constraints, demand, map,
     # Raw results
     for v in list_of_vars:
         try:
-            data = [(k, map[k], v) for k, v in v._data.items()]
+            if str(v) == 'inv_flows' or str(v) == 'inv_vector':
+                data = [(k, itervention_map[k], v) for k, v in v._data.items()]
+            else:
+                data = [(k, process_map[k], v) for k, v in v._data.items()]
             df = pd.DataFrame(data, columns=['ID', 'Activity', 'Value'])
         except:
             data = [(k, v) for k, v in v._data.items()]
@@ -31,7 +34,7 @@ def save_results(instance, project, database, choices, constraints, demand, map,
         df.sort_values(by=['Value'], inplace=True, ascending=False)
         df.to_excel(writer, sheet_name=v.name, index=False)
 
-    # Store the metadata of the TCM
+    # Store the metadata
     pd.DataFrame([project + '__' + database]).to_excel(writer, sheet_name='project and db')
 
     metadata = {}
@@ -39,29 +42,29 @@ def save_results(instance, project, database, choices, constraints, demand, map,
         i = 0
         temp_dict = []
         for alt in choices[choice]:
-            temp_dict.append((alt, i, instance.scaling_vector[map[alt.key]]))
+            temp_dict.append((alt, i, instance.scaling_vector[process_map[alt.key]]))
             i+=1
-        metadata[(choice, 'Activity')] = {'Activity ' + str(i): map[map[alt.key]] for alt, i, val in temp_dict}
+        metadata[(choice, 'Activity')] = {'Activity ' + str(i): process_map[process_map[alt.key]] for alt, i, val in temp_dict}
         metadata[(choice, 'Capacity')] = {'Activity ' + str(i): choices[choice][alt] for alt, i, val in temp_dict}
         metadata[(choice, 'Value')] = {'Activity ' + str(i): x for alt, i, x in temp_dict}
 
     pd.DataFrame(metadata).to_excel(writer, sheet_name='choices')
 
     metadata = {}
-    metadata['Demand'] = {map[map[key]]: demand[key] for key in demand}
+    metadata['Demand'] = {process_map[process_map[key]]: demand[key] for key in demand}
     pd.DataFrame(metadata).to_excel(writer, sheet_name='demand')
 
     metadata = {}
-    metadata['Demand'] = {map[map[key]]: constraints[key] for key in constraints}
+    metadata['Demand'] = {process_map[process_map[key]]: constraints[key] for key in constraints}
     pd.DataFrame(metadata).to_excel(writer, sheet_name='constraints')
 
     # Save xlsx file
     writer.close()
     return
 
-def summarize_results(instance, project, database, choices, constraints, demand, map, zeroes):
+def summarize_results(instance, project, database, choices, constraints, demand, process_map, zeroes):
     metadata = {}
-    metadata['Demand'] = {map[map[key]]: demand[key] for key in demand}
+    metadata['Demand'] = {process_map[process_map[key]]: demand[key] for key in demand}
     print('The following demand / functional unit has been specified: ')
     display(pd.DataFrame(metadata))
 
@@ -76,7 +79,7 @@ def summarize_results(instance, project, database, choices, constraints, demand,
     for v in list_of_vars:
         if v.name == 'impacts':
             try:
-                data = [(k, map[k], v) for k, v in v._data.items()]
+                data = [(k, process_map[k], v) for k, v in v._data.items()]
                 df = pd.DataFrame(data, columns=['ID', 'Activity', 'Value'])
             except:
                 data = [(k, v) for k, v in v._data.items()]
@@ -87,7 +90,7 @@ def summarize_results(instance, project, database, choices, constraints, demand,
 
         if v.name == 'impacts_calculated':
             try:
-                data = [(k, map[k], v) for k, v in v._data.items()]
+                data = [(k, process_map[k], v) for k, v in v._data.items()]
                 df = pd.DataFrame(data, columns=['ID', 'Activity', 'Value'])
             except:
                 data = [(k, v) for k, v in v._data.items()]
@@ -102,10 +105,10 @@ def summarize_results(instance, project, database, choices, constraints, demand,
         i = 0
         temp_dict = []
         for alt in choices[choice]:
-            if zeroes == False or instance.scaling_vector[map[alt.key]] != 0:
-                temp_dict.append((alt, i, instance.scaling_vector[map[alt.key]]))
+            if zeroes == False or instance.scaling_vector[process_map[alt.key]] != 0:
+                temp_dict.append((alt, i, instance.scaling_vector[process_map[alt.key]]))
                 i += 1
-        metadata[(choice, 'Activity')] = {'Activity ' + str(i): map[map[alt.key]] for alt, i, val in temp_dict}
+        metadata[(choice, 'Activity')] = {'Activity ' + str(i): process_map[process_map[alt.key]] for alt, i, val in temp_dict}
         metadata[(choice, 'Capacity')] = {'Activity ' + str(i): choices[choice][alt] for alt, i, val in temp_dict}
         metadata[(choice, 'Value')] = {'Activity ' + str(i): x for alt, i, x in temp_dict}
         print(choice)
@@ -115,7 +118,7 @@ def summarize_results(instance, project, database, choices, constraints, demand,
         print('No additional constraints have been passed.')
     else:
         metadata = {}
-        metadata['Constraints'] = {map[map[key]]: constraints[key] for key in constraints}
+        metadata['Constraints'] = {process_map[process_map[key]]: constraints[key] for key in constraints}
         print('\nThe following constraints were implemented and oblieged: ')
         display(pd.DataFrame(metadata))
 
