@@ -52,7 +52,7 @@ class TestPULPO(unittest.TestCase):
         methods = {"('my project', 'climate change')": 1,
                    "('my project', 'air quality')": 1,
                    "('my project', 'resources')": 0}
-
+        # Test basic PULPO:
         worker = pulpo.PulpoOptimizer(project, database, methods, '')
         worker.intervention_matrix = 'biosphere'
         worker.get_lci_data()
@@ -66,7 +66,7 @@ class TestPULPO(unittest.TestCase):
         result_aux = round(worker.instance.impacts_calculated["('my project', 'resources')"].value, 5)
         self.assertEqual(result_obj, 0.103093)
         self.assertEqual(result_aux, 5.25773)
-
+        # Test supply specification:
         upper_limit = {eCar[0]: 1}
         lower_limit = {eCar[0]: 1}
         worker.instantiate(choices=choices, upper_limit=upper_limit, lower_limit=lower_limit)
@@ -75,6 +75,16 @@ class TestPULPO(unittest.TestCase):
         result_aux = round(worker.instance.impacts_calculated["('my project', 'resources')"].value, 5)
         self.assertEqual(result_obj, 0.1)
         self.assertEqual(result_aux, 5.1)
+        # Test elementary / intervention flow constraint:
+        water = worker.retrieve_envflows(activities="Water, irrigation")
+        upper_elem_limit = {water[0]: 5.2}
+        worker.instantiate(choices=choices, demand=demand, upper_elem_limit=upper_elem_limit)
+        worker.solve()
+        result_obj = round(worker.instance.OBJ(), 6)
+        result_aux = round(worker.instance.impacts_calculated["('my project', 'resources')"].value, 5)
+        self.assertEqual(result_obj, 0.14237)
+        self.assertEqual(result_aux, 5.2)
+
 
 
 
