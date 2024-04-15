@@ -15,10 +15,10 @@ class PulpoOptimizer:
     def get_lci_data(self):
         self.lci_data = bw_parser.import_data(self.project, self.database, self.method, self.intervention_matrix)
 
-    def instantiate(self, choices={}, demand={}, upper_limit={},lower_limit={}, upper_elem_limit={}):
-        # Instantiate only for those methods that are part of the objecitve
-        methods = {h: self.method[h] for h in self.method if self.method[h] !=0}
-        data = converter.combine_inputs(self.lci_data, demand, choices, upper_limit, lower_limit, upper_elem_limit, methods)
+    def instantiate(self, choices={}, demand={}, upper_limit={},lower_limit={}, upper_elem_limit={}, upper_imp_limit={}):
+        # Instantiate only for those methods that are part of the objecitve or the limits
+        methods = {h: self.method[h] for h in self.method if self.method[h] !=0 or h in upper_imp_limit}
+        data = converter.combine_inputs(self.lci_data, demand, choices, upper_limit, lower_limit, upper_elem_limit, upper_imp_limit, methods)
         self.instance = optimizer.instantiate(data)
 
     def solve(self, GAMS_PATH=False, options=None):
