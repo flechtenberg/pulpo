@@ -22,7 +22,8 @@ def create_model():
     # Parameters
     model.UPPER_LIMIT = pyo.Param(model.PROCESS, mutable=True, within=pyo.Reals, doc='Maximum production capacity of process j')
     model.LOWER_LIMIT = pyo.Param(model.PROCESS, mutable=True, within=pyo.Reals, doc='Minimum production capacity of process j')
-    model.UPPER_INV_LIMIT = pyo.Param(model.INV, mutable=True, within=pyo.Reals, doc='Maximum intervention flow flow g')
+    model.UPPER_INV_LIMIT = pyo.Param(model.INV, mutable=True, within=pyo.Reals, doc='Maximum intervention flow g')
+    model.UPPER_IMP_LIMIT = pyo.Param(model.INDICATOR, mutable=True, within=pyo.Reals, doc='Maximum impact on category h')
     model.ENV_COST_MATRIX = pyo.Param(model.ENV_COST_PROCESS, mutable=True, doc='Enviornmental cost matrix Q*B describing the environmental cost flows e associated to process j')
     model.INV_MATRIX = pyo.Param(model.INV_PROCESS, mutable=True, doc='Intervention matrix B describing the intervention flow g entering/leaving process j')
     model.FINAL_DEMAND = pyo.Param(model.PRODUCT, mutable=True, within=pyo.Reals, doc='Final demand of intermediate product flows (i.e., functional unit)')
@@ -49,6 +50,7 @@ def create_model():
     model.LOWER_CNSTR = pyo.Constraint(model.PROCESS, rule=lower_constraint)
     model.SLACK_CNSTR = pyo.Constraint(model.PRODUCT, rule=slack_constraint)
     model.INV_CNSTR = pyo.Constraint(model.INV, rule=upper_env_constraint)
+    model.IMP_CNSTR = pyo.Constraint(model.INDICATOR, rule=upper_imp_constraint)
 
     # Objective function
     model.OBJ = pyo.Objective(sense=pyo.minimize, rule=objective_function)
@@ -80,7 +82,6 @@ def demand_constraint(model, i):
     """Fixes a value in the demand vector"""
     return sum(model.TECH_MATRIX[i, j] * model.scaling_vector[j] for j in model.PROCESS_OUT[i]) == model.FINAL_DEMAND[i] + model.slack[i]
 
-
 def impact_constraint(model, h):
     """Calculates all the impact categories"""
     return model.impacts[h] == sum(sum(model.ENV_COST_MATRIX[i, j, h] * model.scaling_vector[j] for j in model.ENV_COST_OUT[i, h]) for i in model.ENV_COST_IN[h])
@@ -89,11 +90,9 @@ def inventory_constraint(model, g):
     """Calculates the environmental flows"""
     return model.inv_vector[g] == sum(model.INV_MATRIX[g, j] * model.scaling_vector[j] for j in model.INV_OUT[g])
 
-
 def upper_constraint(model, j):
     """Ensures that variables are within capacities (Maximum production constraint) """
     return model.scaling_vector[j] <= model.UPPER_LIMIT[j]
-
 
 def lower_constraint(model, j):
     """ Minimum production constraint """
@@ -103,10 +102,14 @@ def upper_env_constraint(model, g):
     """Ensures that variables are within capacities (Maximum production constraint) """
     return model.inv_vector[g] <= model.UPPER_INV_LIMIT[g]
 
+def upper_imp_constraint(model, h):
+    """ Imposes upper limits on selected impact categories """
+    return model.impacts[h] <= model.UPPER_IMP_LIMIT[h]
+
+
 def slack_constraint(model, j):
     """ Slack variable upper limit for activities where supply is specified instead of demand """
     return model.slack[j] <= 1e20 * model.SUPPLY[j]
-
 
 def objective_function(model):
     """Objective is a sum over all indicators with weights. Typically, the indicator of study has weight 1, the rest 0"""

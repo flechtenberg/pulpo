@@ -1,7 +1,7 @@
 import scipy.sparse as sparse
 
-def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, upper_inv_limit, methods):
-    ''' This function combines all the inputs to a dictionary as an input for the optimization model'''
+def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, upper_inv_limit, upper_imp_limit, methods):
+    ''' This function combines all the inputs to a dictionary as an input for the optimization model '''
     ''' Load LCIA methods into a list of matrices'''
     matrices = lci_data['matrices']
     intervention_matrix = lci_data['intervention_matrix']
@@ -88,6 +88,11 @@ def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, upper_in
     for inv in upper_inv_limit:
         upper_inv_limit_dict[intervention_map[inv.key]] = upper_inv_limit[inv]
 
+    ''' Specify the upper impact category limit '''
+    upper_imp_limit_dict = {imp: 1e24 for imp in INDICATOR[None]}
+    for imp in upper_imp_limit:
+        upper_imp_limit_dict[imp] = upper_imp_limit[imp]
+
     ''' Create weights'''
     weights = {method: 1 for method in matrices} if methods == {} else methods
 
@@ -110,6 +115,7 @@ def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, upper_in
             'LOWER_LIMIT': lower_limit_dict,
             'UPPER_LIMIT': upper_limit_dict,
             'UPPER_INV_LIMIT': upper_inv_limit_dict,
+            'UPPER_IMP_LIMIT': upper_imp_limit_dict,
             'WEIGHTS': weights,
         }
     }
