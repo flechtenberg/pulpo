@@ -2,7 +2,7 @@ from brightway2 import Database, projects, Method, databases, methods
 import brightway2 as bw
 import copy
 import pulpo as pulpo
-from pulpo.utils.bw_parser import import_data, retrieve_methods, retrieve_envflows, retrieve_activities
+from pulpo.utils.bw_parser import import_data, retrieve_methods, retrieve_env_interventions, retrieve_processes
 from pulpo import pulpo
 
 def setup_test_db():
@@ -150,17 +150,17 @@ def test_import_data():
         "('my project', 'resources')": 1,
     }
 
-    result = import_data('sample_project', 'technosphere', methods)
+    result = import_data('sample_project', 'technosphere', methods, 'biosphere')
 
-    assert [idx for idx in result] == ['matrices', 'biosphere', 'technosphere', 'activity_map']
-    assert result['technosphere'].shape == (5, 5)
-    assert result['biosphere'].shape == (4, 5)
-    assert result['activity_map'] == {('technosphere', 'oil extraction'): 0, ('technosphere', 'lignite extraction'): 1, ('technosphere', 'steam cycle'): 2, ('technosphere', 'wind turbine'): 3, ('technosphere', 'e-Car'): 4, 2: 'steam cycle | electricity | GLO', 1: 'lignite extraction | lignite | GLO', 0: 'oil extraction | oil | GLO', 3: 'wind turbine | electricity | GLO', 4: 'e-Car | transport | GLO'}
+    assert [idx for idx in result] == ['matrices', 'intervention_matrix', 'technology_matrix', 'process_map', 'intervention_map']
+    assert result['technology_matrix'].shape == (5, 5)
+    assert result['intervention_matrix'].shape == (4, 5)
+    assert result['process_map'] == {('technosphere', 'oil extraction'): 0, ('technosphere', 'lignite extraction'): 1, ('technosphere', 'steam cycle'): 2, ('technosphere', 'wind turbine'): 3, ('technosphere', 'e-Car'): 4, 2: 'steam cycle | electricity | GLO', 1: 'lignite extraction | lignite | GLO', 0: 'oil extraction | oil | GLO', 3: 'wind turbine | electricity | GLO', 4: 'e-Car | transport | GLO'}
 
 def test_retrieve_activities():
-    key = retrieve_activities('sample_project', 'technosphere', keys=["('technosphere', 'wind turbine')"])
-    name = retrieve_activities('sample_project', 'technosphere', activities=['e-Car'])
-    location = retrieve_activities('sample_project', 'technosphere', locations=['GLO'])
+    key = retrieve_processes('sample_project', 'technosphere', keys=["('technosphere', 'wind turbine')"])
+    name = retrieve_processes('sample_project', 'technosphere', activities=['e-Car'])
+    location = retrieve_processes('sample_project', 'technosphere', locations=['GLO'])
     assert key[0]['name'] == "wind turbine"
     assert name[0]['name'] == "e-Car"
     assert len(location) == 5
@@ -172,7 +172,7 @@ def test_retrieve_methods():
     assert multi_result == [('my project', 'climate change'), ('my project', 'air quality'), ('my project', 'resources')]
 
 def test_retrieve_envflows():
-    result = retrieve_envflows('sample_project', biosphere='biosphere', keys="('biosphere', 'PM')")
+    result = retrieve_env_interventions('sample_project', intervention_matrix='biosphere', keys="('biosphere', 'PM')")
     assert result[0]['name'] == 'Particulate matter, industrial'
 
 def test_pulpo():
@@ -183,6 +183,7 @@ def test_pulpo():
                "('my project', 'resources')": 0}
 
     worker = pulpo.PulpoOptimizer(project, database, methods, '')
+    worker.intervention_matrix = 'biosphere'
     worker.get_lci_data()
     eCar = worker.retrieve_activities(reference_products='transport')
     demand = {eCar[0]: 1}
