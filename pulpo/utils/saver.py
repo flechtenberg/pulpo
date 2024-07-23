@@ -5,8 +5,21 @@ from pathlib import Path
 from IPython.display import display
 
 def save_results(instance, project, database, choices, constraints, demand, process_map, itervention_map, directory, name):
-    """ TODO Imporve readability and structure ...
-    There must be a better way to save the outputs of a pyomo model than this code I developed in 2020 """
+    """
+    Saves the results of a Pyomo optimization model to an Excel file.
+
+    Args:
+        instance: The Pyomo model instance.
+        project (str): Name of the project.
+        database (str): Name of the database.
+        choices (dict): Choices for the model.
+        constraints (dict): Constraints applied during optimization.
+        demand (dict): Demand data used in optimization.
+        process_map (dict): Mapping of process IDs to descriptions.
+        itervention_map (dict): Mapping of intervention IDs to descriptions.
+        directory (str): Directory to save the results file.
+        name (str): Name of the results file.
+    """
     # Check if data/results folder exists, if not create it
     Path(directory + '/results').mkdir(parents=True, exist_ok=True)
 
@@ -62,7 +75,18 @@ def save_results(instance, project, database, choices, constraints, demand, proc
     writer.close()
     return
 
-def summarize_results(instance, project, database, choices, constraints, demand, process_map, zeroes):
+def summarize_results(instance, choices, constraints, demand, process_map, zeroes):
+    """
+    Summarizes the results of the optimization and prints them to the console.
+
+    Args:
+        instance: The Pyomo model instance.
+        choices (dict): Choices for the model.
+        constraints (dict): Constraints applied during optimization.
+        demand (dict): Demand data used in optimization.
+        process_map (dict): Mapping of process IDs to descriptions.
+        zeroes (bool): Whether to include zero values in the summary.
+    """
     metadata = {}
     metadata['Demand'] = {process_map[process_map[key]]: demand[key] for key in demand}
     print('The following demand / functional unit has been specified: ')
