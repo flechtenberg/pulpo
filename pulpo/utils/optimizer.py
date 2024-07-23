@@ -1,7 +1,12 @@
 import pyomo.environ as pyo
 
 def create_model():
-    """Builds an abstract model on top of the ecoinvent database."""
+    """
+    Builds an abstract model on top of the ecoinvent database.
+
+    Returns:
+        AbstractModel: The Pyomo abstract model for optimization.
+    """
     model = pyo.AbstractModel()
 
     # Sets
@@ -116,9 +121,17 @@ def objective_function(model):
     return sum(model.impacts[h] * model.WEIGHTS[h] for h in model.INDICATOR)
 
 def calculate_methods(instance, lci_data, methods):
-    '''
-    This function calculates the impacts if a method with weight 0 has been specified
-    '''
+    """
+    Calculates the impacts if a method with weight 0 has been specified.
+
+    Args:
+        instance: The Pyomo model instance.
+        lci_data (dict): LCI data containing matrices and mappings.
+        methods (dict): Methods for environmental impact assessment.
+
+    Returns:
+        instance: The updated Pyomo model instance with calculated impacts.
+    """
     import scipy.sparse as sparse
     import numpy as np
     matrices = lci_data['matrices']
@@ -136,9 +149,16 @@ def calculate_methods(instance, lci_data, methods):
     return instance
 
 def calculate_inv_flows(instance, lci_data):
-    '''
-    This function calculates elementary flows post-optimization
-    '''
+    """
+    Calculates elementary flows post-optimization.
+
+    Args:
+        instance: The Pyomo model instance.
+        lci_data (dict): LCI data containing matrices and mappings.
+
+    Returns:
+        instance: The updated Pyomo model instance with calculated intervention flows.
+    """
     import numpy as np
     intervention_matrix = lci_data['intervention_matrix']
     try:
@@ -152,7 +172,15 @@ def calculate_inv_flows(instance, lci_data):
 
 
 def instantiate(model_data):
-    """ This function builds an instance of the optimization model with specific data and objective function"""
+    """
+    Builds an instance of the optimization model with specific data and objective function.
+
+    Args:
+        model_data (dict): Data dictionary for the optimization model.
+
+    Returns:
+        ConcreteModel: The instantiated Pyomo model.
+    """
     print('Creating Instance')
     model = create_model()
     problem = model.create_instance(model_data, report_timing=False)
@@ -161,7 +189,17 @@ def instantiate(model_data):
 
 
 def solve_model(model_instance, gams_path, options=None):
-    """Solves the instance of the optimization model. """
+    """
+    Solves the instance of the optimization model.
+
+    Args:
+        model_instance (ConcreteModel): The Pyomo model instance.
+        gams_path (str): Path to the GAMS solver.
+        options (list, optional): Additional options for the GAMS solver.
+
+    Returns:
+        tuple: Results of the optimization and the updated model instance.
+    """
     if gams_path is not False:
         pyo.pyomo.common.Executable('gams').set_path(gams_path)
         solver = pyo.SolverFactory('gams')
