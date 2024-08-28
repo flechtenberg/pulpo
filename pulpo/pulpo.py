@@ -138,7 +138,7 @@ class PulpoOptimizer:
             demand (dict): Demand data used in optimization.
             zeroes (bool): Whether to include zero values in the summary.
         """
-        saver.summarize_results(self.instance, self.project, self.database, choices, constraints, demand,
+        saver.summarize_results(self.instance, choices, constraints, demand,
                                 self.lci_data['process_map'], zeroes)
 
 
