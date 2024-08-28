@@ -138,7 +138,7 @@ class PulpoOptimizer:
             demand (dict): Demand data used in optimization.
             zeroes (bool): Whether to include zero values in the summary.
         """
-        saver.summarize_results(self.instance, self.project, self.database, choices, constraints, demand,
+        saver.summarize_results(self.instance, choices, constraints, demand,
                                 self.lci_data['process_map'], zeroes)
 
 
@@ -146,7 +146,7 @@ def electricity_showcase():
     """
     Opens the electricity showcase notebook in the web browser.
     """
-    github_url = 'https://github.com/flechtenberg/pulpo/blob/develop/notebooks/electricity_showcase.ipynb'  # Replace with your GitHub URL
+    github_url = 'https://github.com/flechtenberg/pulpo/blob/develop/notebooks/electricity_showcase.ipynb'
     nbviewer_url = 'https://nbviewer.jupyter.org/github/' + github_url.split('github.com/')[1]
     webbrowser.open(nbviewer_url)
 
@@ -155,6 +155,6 @@ def hydrogen_showcase():
     """
     Opens the hydrogen showcase notebook in the web browser.
     """
-    github_url = 'https://github.com/flechtenberg/pulpo/blob/develop/notebooks/hydrogen_showcase.ipynb'  # Replace with your GitHub URL
+    github_url = 'https://github.com/flechtenberg/pulpo/blob/develop/notebooks/hydrogen_showcase.ipynb'
     nbviewer_url = 'https://nbviewer.jupyter.org/github/' + github_url.split('github.com/')[1]
     webbrowser.open(nbviewer_url)
