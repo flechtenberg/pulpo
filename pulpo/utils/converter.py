@@ -80,7 +80,15 @@ def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, upper_in
     # Specify the demand
     demand_dict = {prod: 0 for prod in PRODUCTS[None]}
     for dem in demand:
-        demand_dict[process_map[dem]] = demand[dem]
+        if dem in process_map:
+            # Case when dem is a key in process_map
+            demand_dict[process_map[dem]] = demand[dem]
+        elif dem in choices:
+            # Case when dem is already one of the elements in process_map
+            demand_dict[dem] = demand[dem]
+        else:
+            # Case when dem is neither a key nor a value in process_map
+            raise ValueError(f"'{dem}' is not found in process_map keys or values.")
 
     # Specify the lower limit
     lower_limit_dict = {proc: -1e20 for proc in PROCESS[None]}
