@@ -90,11 +90,11 @@ def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, upper_in
 
     # Specify the lower limit
     lower_limit_dict = {proc: -1e20 for proc in PROCESS[None]}
-    for proc in lower_limit:
-        lower_limit_dict[process_map[proc]] = lower_limit[proc]
     for choice in choices:
         for proc in choices[choice]:
             lower_limit_dict[process_map[proc]] = 0
+    for proc in lower_limit:
+        lower_limit_dict[process_map[proc]] = lower_limit[proc]
 
     # Specify the upper limit
     upper_limit_dict = {proc: 1e20 for proc in PROCESS[None]}
