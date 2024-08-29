@@ -64,7 +64,10 @@ def save_results(instance, project, database, choices, constraints, demand, proc
     pd.DataFrame(metadata).to_excel(writer, sheet_name='choices')
 
     metadata = {}
-    metadata['Demand'] = {process_map[process_map[key]]: demand[key] for key in demand}
+    metadata['Demand'] = {
+        process_map[process_map[key]] if key in process_map else key: demand[key]
+        for key in demand
+    }
     pd.DataFrame(metadata).to_excel(writer, sheet_name='demand')
 
     metadata = {}
@@ -88,7 +91,11 @@ def summarize_results(instance, choices, constraints, demand, process_map, zeroe
         zeroes (bool): Whether to include zero values in the summary.
     """
     metadata = {}
-    metadata['Demand'] = {process_map[process_map[key]]: demand[key] for key in demand}
+    metadata['Demand'] = {
+        process_map[process_map[key]] if key in process_map else key: demand[key]
+        for key in demand
+    }
+
     print('The following demand / functional unit has been specified: ')
     display(pd.DataFrame(metadata))
 
