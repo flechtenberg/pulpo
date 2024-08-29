@@ -49,13 +49,11 @@ def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, upper_in
                 for j in range(intervention_matrix.indptr[g], intervention_matrix.indptr[g + 1])}
 
     # Make technology matrix rectangular and update keys and product_ids
-    capacity_dict = {}
     keys = {}  # Store the activity keys of the choices
     product_ids = []  # Store the product IDs of the choices
     for key, processes in choices.items():
         for proc in processes:
             product_id = process_map[proc.key]
-            capacity_dict[product_id] = choices[key][proc]
             keys[product_id] = key
             product_ids.append(product_id)
 
@@ -102,6 +100,9 @@ def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, upper_in
     upper_limit_dict = {proc: 1e20 for proc in PROCESS[None]}
     for proc in upper_limit:
         upper_limit_dict[process_map[proc]] = upper_limit[proc]
+    for choice in choices:
+        for proc in choices[choice]:
+            upper_limit_dict[process_map[proc]] = choices[choice][proc]
 
     # Check if a supply has been specified
     supply_dict = {prod: 0 for prod in PRODUCTS[None]}
