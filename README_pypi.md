@@ -18,9 +18,7 @@
 
 ## 📍 Overview
 
-The project, "pulpo," is a life cycle assessment (LCA) optimization tool that aims to import, optimize, solve, retrieve, save, and summarize LCA results. It provides functionalities for data import from the Ecoinvent database, conversion of inputs into a dictionary for the optimization model, definition and solving of the optimization model using the pyomo package, and saving and summarizing of the model results. The tool's value lies in streamlining LCA processes, enabling optimization and analysis of environmental impacts, and facilitating the decision-making process for sustainable solutions.
-
-
+Pulpo is a comprehensive Life Cycle Optimization (LCO) tool designed to streamline the optimization of environmental impacts across the entire lifecycle of products. It facilitates the import of data from the LCI databases accessed via brightway, converts inputs into optimization-ready formats, defines and solves optimization models using the Pyomo package, and saves and summarizes results. Pulpo empowers users to efficiently optimize and analyze environmental impacts, supporting sustainable decision-making through lifecycle-based strategies.
 
 ---
 
