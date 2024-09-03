@@ -19,7 +19,6 @@
 
 ## 📖 Table of Contents
 - [📍 Overview](#-overview)
-- [📂 Repository Structure](#-repository-structure)
 - [⚙️ Modules](#modules)
 - [🚀 Getting Started](#-getting-started)
     - [🔧 Installation](#-installation)
@@ -35,34 +34,7 @@
 
 ## 📍 Overview
 
-The project, "pulpo," is a life cycle assessment (LCA) optimization tool that aims to import, optimize, solve, retrieve, save, and summarize LCA results. It provides functionalities for data import from the Ecoinvent database, conversion of inputs into a dictionary for the optimization model, definition and solving of the optimization model using the pyomo package, and saving and summarizing of the model results. The tool's value lies in streamlining LCA processes, enabling optimization and analysis of environmental impacts, and facilitating the decision-making process for sustainable solutions.
-
-
----
-
-
-## 📂 Repository Structure
-
-```sh
-└── pulpo/
-    ├── .gitattributes
-    ├── .gitconfig
-    ├── .gitignore
-    ├── desktop.ini
-    ├── LICENSE
-    ├── notebooks/
-    │   └── hydrogen_showcase.ipynb
-    ├── pulpo/
-    │   ├── __init__.py
-    │   ├── pulpo.py
-    │   └── utils/
-    ├── README.md
-    ├── setup.cfg
-    └── tests/
-        ├── __init__.py
-        └── test_functions.py
-```
-
+Pulpo is a comprehensive Life Cycle Optimization (LCO) tool designed to streamline the optimization of environmental impacts across the entire lifecycle of products. It facilitates the import of data from the LCI databases accessed via brightway, converts inputs into optimization-ready formats, defines and solves optimization models using the Pyomo package, and saves and summarizes results. Pulpo empowers users to efficiently optimize and analyze environmental impacts, supporting sustainable decision-making through lifecycle-based strategies.
 
 ---
 
@@ -70,14 +42,14 @@ The project, "pulpo," is a life cycle assessment (LCA) optimization tool that ai
 
 <details closed><summary>Root</summary>
 
-| File                                                                                                         | Summary                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| File                                                                                                         | Summary                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | ---                                                                                                          | ---                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-| [.gitconfig](https://github.com/flechtenberg/pulpo/blob/main/.gitconfig)                                     | This code fragment configures a git filter to clean Jupyter Notebook files in the.gitconfig file. It uses the Jupyter nbconvert command to remove the output cells and smudge to display the file's contents.                                                                                                                                                                                                                                                                                                                                              |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
-| [pulpo.py](https://github.com/flechtenberg/pulpo/blob/main/pulpo\pulpo.py)                                   | The code implements a PulpoOptimizer class that provides functionalities for data import, optimization, solving, retrieval, saving and summarizing results related to life cycle assessments. It uses modules like optimizer, bw_parser, converter, and saver for different operations.                                                                                                                                                                                                                                                                    |
-| [bw_parser.py](https://github.com/flechtenberg/pulpo/blob/main/pulpo\utils\bw_parser.py)                     | The code in `bw_parser.py` provides functions for importing, saving, and retrieving life cycle inventory (LCI) data from the Ecoinvent database using the Brightway2 library. It includes functions for importing data, checking if data needs to be reloaded, performing LCA calculations, saving LCI data to files, and reading LCI data from files. Additionally, it provides functions for retrieving activities and environmental flows from the database based on specified criteria. The `main` function demonstrates the usage of these functions. |
-| [converter.py](https://github.com/flechtenberg/pulpo/blob/main/pulpo\utils\converter.py)                     | The code in pulpo\utils\converter.py combines various inputs into a dictionary for an optimization model. It converts sparse matrices to dictionaries, modifies the technosphere matrix, creates sets, specifies demand, limits, and supply, assigns weights, and assembles the final data dictionary for the model. This function serves as a crucial step in preparing the inputs for the optimization process.                                                                                                                                          |
-| [optimizer.py](https://github.com/flechtenberg/pulpo/blob/main/pulpo\utils\optimizer.py)                     | The code defines an optimization model using the pyomo package. It includes sets, parameters, variables, constraints, and an objective function. The model is created and solved using different solvers.                                                                                                                                                                                                                                                                                                                                                  |
-| [saver.py](https://github.com/flechtenberg/pulpo/blob/main/pulpo\utils\saver.py)                             | The code provides two main functionalities:1. save_results: Saves the results of a Pyomo model to an Excel file, including raw results, metadata, and constraints.2. summarize_results: Prints a summary of the model results, including demand, impacts, choices, and constraints.                                                                                                                                                                                                                                                                        |
+| [.gitconfig](https://github.com/flechtenberg/pulpo/blob/main/.gitconfig)                                     | This code fragment configures a git filter to clean Jupyter Notebook files in the.gitconfig file. It uses the Jupyter nbconvert command to remove the output cells and smudge to display the file's contents.                                                                                                                                                                                                                                                                                                                                             |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| [pulpo.py](https://github.com/flechtenberg/pulpo/blob/main/pulpo\pulpo.py)                                   | The code implements a PulpoOptimizer class that provides functionalities for data import, optimization, solving, retrieval, saving and summarizing results related to life cycle assessments. It uses modules like optimizer, bw_parser, converter, and saver for different operations.                                                                                                                                                                                                                                                                   |
+| [bw_parser.py](https://github.com/flechtenberg/pulpo/blob/main/pulpo\utils\bw_parser.py)                     | The code in `bw_parser.py` provides functions for importing, saving, and retrieving life cycle inventory (LCI) data from the Ecoinvent database using the Brightway2 library. It includes functions for importing data, checking if data needs to be reloaded, performing LCA calculations, saving LCI data to files, and reading LCI data from files. Additionally, it provides functions for retrieving activities and environmental flows from the database based on specified criteria. |
+| [converter.py](https://github.com/flechtenberg/pulpo/blob/main/pulpo\utils\converter.py)                     | The code in pulpo\utils\converter.py combines various inputs into a dictionary for an optimization model. It converts sparse matrices to dictionaries, modifies the technosphere matrix, creates sets, specifies demand, limits, and supply, assigns weights, and assembles the final data dictionary for the model. This function serves as a crucial step in preparing the inputs for the optimization process.                                                                                                                                         |
+| [optimizer.py](https://github.com/flechtenberg/pulpo/blob/main/pulpo\utils\optimizer.py)                     | The code defines an optimization model using the pyomo package. It includes sets, parameters, variables, constraints, and an objective function. The model is created and solved using different solvers.                                                                                                                                                                                                                                                                                                                                                 |
+| [saver.py](https://github.com/flechtenberg/pulpo/blob/main/pulpo\utils\saver.py)                             | The code provides two main functionalities:1. save_results: Saves the results of a Pyomo model to an Excel file, including raw results, metadata, and constraints.2. summarize_results: Prints a summary of the model results, including demand, impacts, choices, and constraints.                                                                                                                                                                                                                                                                       |
 
 </details>
 
@@ -95,7 +67,7 @@ pip install pulpo-dev
 ### 🤖 Running pulpo
 See [pypi](https://pypi.org/project/pulpo-dev/) for a description of how to use PULPO via pip.
 
-Find example notebooks for a [hydrogen case](https://github.com/flechtenberg/pulpo/blob/master/notebooks/hydrogen_showcase.ipynb) and an [electricity case](https://github.com/flechtenberg/pulpo/blob/master/notebooks/electricity_showcase.ipynb) here.
+Find example notebooks for a [hydrogen case](https://github.com/flechtenberg/pulpo/blob/master/notebooks/hydrogen_showcase.ipynb), an [electricity case](https://github.com/flechtenberg/pulpo/blob/master/notebooks/electricity_showcase.ipynb), and a [plastic case](https://github.com/flechtenberg/pulpo/blob/master/notebooks/plastic_showcase.ipynb) here.
 
 ### 🧪 Tests
 
@@ -104,6 +76,36 @@ Calling from the package folder:
 ```sh
 python -m unittest discover -s tests
 ```
+
+### Updates 
+> **03.09.2024**
+>
+> **PULPO** now includes functions to generate the rice husk example database from the TCM paper by [Kätelhön et al. (2016)](https://pubs.acs.org/doi/10.1021/acs.est.6b04270). Additionally, you can create a **generic LCI database** with user-defined characteristics for feature testing purposes:
+>
+> **Functions:**
+> - `install_rice_husk_db()`: Sets up the rice husk example database.
+> - `install_generic_db()`: Configures a generic LCI database in Brightway2 with parameters such as number of products, processes, regions, and more.
+>
+> **Example Usage:**
+> ```python
+> import pulpo
+>
+> # Install a generic LCI database with custom parameters
+> project = "my_custom_project"
+> database = "my_custom_db"
+> n_prod = 10   # Number of products
+> n_proc = 5    # Max number of processes per product
+> n_reg = 4     # Number of regions
+> n_inputs = 6  # Max number of inputs per process
+> n_flows = 8   # Number of environmental flows
+> n_methods = 3 # Number of impact assessment methods
+> seed = 42     # Seed for reproducibility
+>
+> pulpo.install_generic_db(project=project, database=database, n_prod=n_prod, n_proc=n_proc, 
+>                          n_reg=n_reg, n_inputs=n_inputs, n_flows=n_flows, n_methods=n_methods, seed=seed)
+>  ```
+> A workshop demonstrating the use of PULPO with these two non-commercial/testing databases will be presented at Brightcon 2024 in Hamburg (23.09-27.09.2024). Once the workshop is concluded, the corresponding notebooks will be made available and linked here.
+
 
 ---
 
@@ -143,7 +145,7 @@ The project maintainers will review your changes and provide feedback or merge t
 ## 📄 License
 
 This project is licensed under the `ℹ️  BSD 3-Clause` License. See the [LICENSE](LICENSE) file for additional info.
-Copyright (c) 2023, Fabian Lechtenberg. All rights reserved.
+Copyright (c) 2024, Fabian Lechtenberg. All rights reserved.
 
 ---
 
