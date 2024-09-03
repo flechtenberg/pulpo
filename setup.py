@@ -17,7 +17,7 @@ setup(
         "Operating System :: OS Independent",
     ],
     packages=find_packages(),
-    python_requires=">=3.9, <=3.10",
+    python_requires=">=3.8, <=3.12",
     install_requires=[
         "brightway2==2.4.3",
         "pyomo==6.6.1",
