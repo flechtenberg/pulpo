@@ -1,4 +1,5 @@
 import pyomo.environ as pyo
+from pyomo.contrib import appsi
 
 def create_model():
     """
@@ -188,27 +189,31 @@ def instantiate(model_data):
     return problem
 
 
-def solve_model(model_instance, gams_path, options=None):
+def solve_model(model_instance, gams_path=None, solver_name=None, options=None):
     """
     Solves the instance of the optimization model.
 
     Args:
         model_instance (ConcreteModel): The Pyomo model instance.
-        gams_path (str): Path to the GAMS solver.
-        options (list, optional): Additional options for the GAMS solver.
+        gams_path (str, optional): Path to the GAMS solver. If None, GAMS will not be used.
+        solver_name (str, optional): The solver to use ('highs', 'gams', or 'ipopt'). Defaults to 'highs' unless gams_path is provided.
+        options (list, optional): Additional options for the solver.
 
     Returns:
         tuple: Results of the optimization and the updated model instance.
     """
-    if gams_path is not False:
+    results = None
+
+    # Use GAMS if gams_path is specified
+    if gams_path and (solver_name is None or solver_name.lower() == 'gams'):
         pyo.pyomo.common.Executable('gams').set_path(gams_path)
         solver = pyo.SolverFactory('gams')
         print('GAMS solvers library availability:', solver.available())
         print('Solver path:', solver.executable())
 
         io_options = {
-            'mtype': 'lp',                      # Type of problem (lp, nlp, mip, minlp)
-            'solver': 'CPLEX',                  # Name of solver
+            'mtype': 'lp',  # Type of problem (lp, nlp, mip, minlp)
+            'solver': 'CPLEX',  # Name of solver
         }
 
         if options is None:
@@ -229,17 +234,31 @@ def solve_model(model_instance, gams_path, options=None):
             model_instance,
             keepfiles=True,
             symbolic_solver_labels=True,
-            tee=True,
-            report_timing=True,
+            tee=False,
+            report_timing=False,
             io_options=io_options,
             add_options=options
         )
 
         model_instance.solutions.load_from(results)
 
+    # Use IPOPT if explicitly specified
+    elif solver_name and solver_name.lower() == 'ipopt':
+        opt = pyo.SolverFactory('ipopt')
+        if options:
+            for option in options:
+                opt.options[option] = True
+        results = opt.solve(model_instance)
+
+    # Default to HiGHS if no solver specified or if solver_name is 'highs'
     else:
-        from pyomo.contrib import appsi
         opt = appsi.solvers.Highs()
         results = opt.solve(model_instance)
+
+    return results, model_instance
+
+
+    print('Optimization problem solved')
+    ## TODO: Add a check for infeasibility and other solver errors
 
     return results, model_instance
