@@ -44,7 +44,7 @@ tests.setup()
 ```
 This function mimics the development test functions and if all tests have passed you are good to go.
 
-To learn the PULPO workflow for more complex case studies, find example notebooks for a [hydrogen case](https://github.com/flechtenberg/pulpo/blob/master/notebooks/hydrogen_showcase.ipynb) and an [electricity case](https://github.com/flechtenberg/pulpo/blob/master/notebooks/electricity_showcase.ipynb) here.
+To learn the PULPO workflow for more complex case studies, find example notebooks for a [hydrogen case](https://github.com/flechtenberg/pulpo/blob/master/notebooks/hydrogen_showcase.ipynb), an [electricity case](https://github.com/flechtenberg/pulpo/blob/master/notebooks/electricity_showcase.ipynb), and a [plastic case](https://github.com/flechtenberg/pulpo/blob/master/notebooks/plastic_showcase.ipynb) here.
 
 You can also follow these notebooks locally with the shipped package by calling:
 ```sh
@@ -52,6 +52,7 @@ from pulpo import pulpo
 
 pulpo.electricity_showcase()
 pulpo.hydrogen_showcase()
+pulpo.plastic_showcase()
 ```
 
 It should be noted that to run these showcase it is necessary to install the ecoinvent cutoff38 system model via brightway2/activity-browser.
