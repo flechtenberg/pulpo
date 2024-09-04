@@ -147,7 +147,7 @@ def electricity_showcase():
     """
     Opens the electricity showcase notebook in the web browser.
     """
-    github_url = 'https://github.com/flechtenberg/pulpo/blob/develop/notebooks/electricity_showcase.ipynb'
+    github_url = 'https://github.com/flechtenberg/pulpo/blob/master/notebooks/electricity_showcase.ipynb'
     nbviewer_url = 'https://nbviewer.jupyter.org/github/' + github_url.split('github.com/')[1]
     webbrowser.open(nbviewer_url)
 
@@ -156,7 +156,7 @@ def hydrogen_showcase():
     """
     Opens the hydrogen showcase notebook in the web browser.
     """
-    github_url = 'https://github.com/flechtenberg/pulpo/blob/develop/notebooks/hydrogen_showcase.ipynb'
+    github_url = 'https://github.com/flechtenberg/pulpo/blob/master/notebooks/hydrogen_showcase.ipynb'
     nbviewer_url = 'https://nbviewer.jupyter.org/github/' + github_url.split('github.com/')[1]
     webbrowser.open(nbviewer_url)
 
@@ -165,7 +165,7 @@ def plastic_showcase():
     """
     Opens the plastic showcase notebook in the web browser.
     """
-    github_url = 'https://github.com/flechtenberg/pulpo/blob/develop/notebooks/plastic_showcase.ipynb'
+    github_url = 'https://github.com/flechtenberg/pulpo/blob/master/notebooks/plastic_showcase.ipynb'
     nbviewer_url = 'https://nbviewer.jupyter.org/github/' + github_url.split('github.com/')[1]
     webbrowser.open(nbviewer_url)
 
