@@ -40,7 +40,7 @@ def save_results(instance, project, database, choices, constraints, demand, proc
                 data = [(k, itervention_map[k], v) for k, v in v._data.items()]
             else:
                 data = [(k, process_map[k], v) for k, v in v._data.items()]
-            df = pd.DataFrame(data, columns=['ID', 'Activity', 'Value'])
+            df = pd.DataFrame(data, columns=['ID', 'Process', 'Value'])
         except:
             data = [(k, v) for k, v in v._data.items()]
             df = pd.DataFrame(data, columns=['Key', 'Value'])
@@ -57,9 +57,9 @@ def save_results(instance, project, database, choices, constraints, demand, proc
         for alt in choices[choice]:
             temp_dict.append((alt, i, instance.scaling_vector[process_map[alt.key]]))
             i+=1
-        metadata[(choice, 'Activity')] = {'Activity ' + str(i): process_map[process_map[alt.key]] for alt, i, val in temp_dict}
-        metadata[(choice, 'Capacity')] = {'Activity ' + str(i): choices[choice][alt] for alt, i, val in temp_dict}
-        metadata[(choice, 'Value')] = {'Activity ' + str(i): x for alt, i, x in temp_dict}
+        metadata[(choice, 'Process')] = {'Process ' + str(i): process_map[process_map[alt.key]] for alt, i, val in temp_dict}
+        metadata[(choice, 'Capacity')] = {'Process ' + str(i): choices[choice][alt] for alt, i, val in temp_dict}
+        metadata[(choice, 'Value')] = {'Process ' + str(i): x for alt, i, x in temp_dict}
 
     pd.DataFrame(metadata).to_excel(writer, sheet_name='choices')
 
@@ -111,7 +111,7 @@ def summarize_results(instance, choices, constraints, demand, process_map, zeroe
         if v.name == 'impacts':
             try:
                 data = [(k, process_map[k], v) for k, v in v._data.items()]
-                df = pd.DataFrame(data, columns=['ID', 'Activity', 'Value'])
+                df = pd.DataFrame(data, columns=['ID', 'Process', 'Value'])
             except:
                 data = [(k, v) for k, v in v._data.items()]
                 df = pd.DataFrame(data, columns=['Key', 'Value'])
@@ -122,7 +122,7 @@ def summarize_results(instance, choices, constraints, demand, process_map, zeroe
         if v.name == 'impacts_calculated':
             try:
                 data = [(k, process_map[k], v) for k, v in v._data.items()]
-                df = pd.DataFrame(data, columns=['ID', 'Activity', 'Value'])
+                df = pd.DataFrame(data, columns=['ID', 'Process', 'Value'])
             except:
                 data = [(k, v) for k, v in v._data.items()]
                 df = pd.DataFrame(data, columns=['Key', 'Value'])
@@ -139,9 +139,9 @@ def summarize_results(instance, choices, constraints, demand, process_map, zeroe
             if zeroes == False or instance.scaling_vector[process_map[alt.key]] != 0:
                 temp_dict.append((alt, i, instance.scaling_vector[process_map[alt.key]]))
                 i += 1
-        metadata[(choice, 'Activity')] = {'Activity ' + str(i): process_map[process_map[alt.key]] for alt, i, val in temp_dict}
-        metadata[(choice, 'Capacity')] = {'Activity ' + str(i): choices[choice][alt] for alt, i, val in temp_dict}
-        metadata[(choice, 'Value')] = {'Activity ' + str(i): x for alt, i, x in temp_dict}
+        metadata[(choice, 'Process')] = {'Process ' + str(i): process_map[process_map[alt.key]] for alt, i, val in temp_dict}
+        metadata[(choice, 'Capacity')] = {'Process ' + str(i): choices[choice][alt] for alt, i, val in temp_dict}
+        metadata[(choice, 'Value')] = {'Process ' + str(i): x for alt, i, x in temp_dict}
         print(choice)
         display(pd.DataFrame(metadata))
 
