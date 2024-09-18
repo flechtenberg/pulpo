@@ -69,6 +69,9 @@ See [pypi](https://pypi.org/project/pulpo-dev/) for a description of how to use 
 
 Find example notebooks for a [hydrogen case](https://github.com/flechtenberg/pulpo/blob/master/notebooks/hydrogen_showcase.ipynb), an [electricity case](https://github.com/flechtenberg/pulpo/blob/master/notebooks/electricity_showcase.ipynb), and a [plastic case](https://github.com/flechtenberg/pulpo/blob/master/notebooks/plastic_showcase.ipynb) here.
 
+There is also a "workshop" repository ([here](https://github.com/flechtenberg/pulpo_workshop)), which has been created for the Brightcon 2024 conference. It contains several notebooks that guide you through the PULPO package and its functionalities, as well as an exercise.
+
+
 ### 🧪 Tests
 
 Calling from the package folder: 
@@ -78,34 +81,7 @@ python -m unittest discover -s tests
 ```
 
 ### Updates 
-> **03.09.2024**
->
-> **PULPO** now includes functions to generate the rice husk example database from the TCM paper by [Kätelhön et al. (2016)](https://pubs.acs.org/doi/10.1021/acs.est.6b04270). Additionally, you can create a **generic LCI database** with user-defined characteristics for feature testing purposes:
->
-> **Functions:**
-> - `install_rice_husk_db()`: Sets up the rice husk example database.
-> - `install_generic_db()`: Configures a generic LCI database in Brightway2 with parameters such as number of products, processes, regions, and more.
->
-> **Example Usage:**
-> ```python
-> import pulpo
->
-> # Install a generic LCI database with custom parameters
-> project = "my_custom_project"
-> database = "my_custom_db"
-> n_prod = 10   # Number of products
-> n_proc = 5    # Max number of processes per product
-> n_reg = 4     # Number of regions
-> n_inputs = 6  # Max number of inputs per process
-> n_flows = 8   # Number of environmental flows
-> n_methods = 3 # Number of impact assessment methods
-> seed = 42     # Seed for reproducibility
->
-> pulpo.install_generic_db(project=project, database=database, n_prod=n_prod, n_proc=n_proc, 
->                          n_reg=n_reg, n_inputs=n_inputs, n_flows=n_flows, n_methods=n_methods, seed=seed)
->  ```
-> A workshop demonstrating the use of PULPO with these two non-commercial/testing databases will be presented at Brightcon 2024 in Hamburg (23.09-27.09.2024). Once the workshop is concluded, the corresponding notebooks will be made available and linked here.
-
+> - [ ] `ℹ️ The package is currently under development.`
 
 ---
 
