@@ -69,18 +69,26 @@ class PulpoOptimizer:
         self.instance = optimizer.calculate_inv_flows(self.instance, self.lci_data)
         return results
 
-    def retrieve_activities(self, keys=None, activities=None, reference_products=None, locations=None):
+    def retrieve_processes(self, keys=None, processes=None, reference_products=None, locations=None):
         """
-        Retrieves activities from the database based on given filters.
+        Retrieves processes from the database based on given filters.
 
         Args:
             keys (list): List of keys to filter activities.
-            activities (list): List of activities to filter.
+            processes (list): List of processes to filter.
             reference_products (list): List of reference products to filter.
             locations (list): List of locations to filter.
 
         Returns:
             activities: Filtered activities from the database.
+        """
+        processes = bw_parser.retrieve_processes(self.project, self.database, keys, processes, reference_products,
+                                                  locations)
+        return processes
+
+    def retrieve_activities(self, keys=None, activities=None, reference_products=None, locations=None):
+        """
+        Works the same as "retrieve_processes" but with a different name. Will be obsolete in future versions.
         """
         activities = bw_parser.retrieve_processes(self.project, self.database, keys, activities, reference_products,
                                                   locations)
