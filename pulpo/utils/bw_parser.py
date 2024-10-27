@@ -1,5 +1,6 @@
 from typing import List, Union, Dict, Any
-import brightway2 as bw
+import bw2calc as bc
+import bw2data as bd
 
 def import_data(project: str, database: str, method: Union[str, List[str], dict[str, int]],
                 intervention_matrix_name: str) -> Dict[str, Union[dict, Any]]:
@@ -17,8 +18,8 @@ def import_data(project: str, database: str, method: Union[str, List[str], dict[
     """
 
     # Set project and get database
-    bw.projects.set_current(project)
-    eidb = bw.Database(database)
+    bd.projects.set_current(project)
+    eidb = bd.Database(database)
 
     # Prepare methods
     if isinstance(method, str):
@@ -26,17 +27,23 @@ def import_data(project: str, database: str, method: Union[str, List[str], dict[
     method = sorted(method)
     methods = retrieve_methods(project, method)
 
-    # Get data
+    # Old
     characterization_matrices = {}
     rand_act = eidb.random()
     for method in methods:
-        lca = bw.LCA({rand_act: 1}, method)
-        lca.load_lci_data()
-        lca.load_lcia_data()
+        # Set up the LCA calculation with a functional unit of the random activity and the current method
+        lca = bc.LCA({rand_act: 1}, method)
+
+        # Load the LCI and LCIA data
+        lca.lci()
+        lca.lcia()
+
+        # Store the characterization (C) matrix for the method
         characterization_matrices[str(method)] = lca.characterization_matrix
 
-    technology_matrix = lca.technosphere_matrix
-    intervention_matrix = lca.biosphere_matrix
+    # Extract A (Technosphere) and B (Biosphere) matrices from the LCA
+    technology_matrix = lca.technosphere_matrix  # A matrix
+    intervention_matrix = lca.biosphere_matrix  # B matrix
 
     # Create activity map key --> ID | ID --> description
     process_map = lca.product_dict
@@ -44,8 +51,8 @@ def import_data(project: str, database: str, method: Union[str, List[str], dict[
         process_map[process_map[act.key]] = str(act['name']) + ' | ' + str(act['reference product']) + ' | ' + str(
             act['location'])
 
-    if intervention_matrix_name in bw.databases:
-        eidb_bio = bw.Database(intervention_matrix_name)
+    if intervention_matrix_name in bd.databases:
+        eidb_bio = bd.Database(intervention_matrix_name)
         intervention_map = lca.biosphere_dict
         for act in eidb_bio:
             if act.key in intervention_map:
@@ -84,8 +91,8 @@ def retrieve_processes(project: str, database: str, keys=None, activities=None, 
     """
 
     # Set project and get database
-    bw.projects.set_current(project)
-    eidb = bw.Database(database)
+    bd.projects.set_current(project)
+    eidb = bd.Database(database)
 
     # Filter by keys if provided
     if keys is not None:
@@ -126,8 +133,8 @@ def retrieve_env_interventions(project: str = '', intervention_matrix: str = 'bi
     """
 
     # Set project and get database
-    bw.projects.set_current(project)
-    eidb = bw.Database(intervention_matrix)
+    bd.projects.set_current(project)
+    eidb = bd.Database(intervention_matrix)
 
     # Filter by keys if provided
     if keys is not None:
@@ -161,5 +168,5 @@ def retrieve_methods(project: str, sub_string: List[str]) -> List[str]:
     Returns:
         List[str]: List of methods that match the substrings.
     """
-    bw.projects.set_current(project)
-    return [method for method in bw.methods if any([x.lower() in str(method).lower() for x in sub_string])]
+    bd.projects.set_current(project)
+    return [method for method in bd.methods if any([x.lower() in str(method).lower() for x in sub_string])]

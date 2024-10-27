@@ -1,12 +1,12 @@
-import brightway2 as bw
 import copy
 import numpy as np
+import bw2data as bd
 
 np.NaN = np.nan  # Ensures compatibility with the latest NumPy versions
 
 def setup_rice_husk_db():
     # Set the current project to "rice_husk_example"
-    bw.projects.set_current("rice_husk_example")
+    bd.projects.set_current("rice_husk_example")
 
     # Biosphere keys
     co2_key = ('biosphere3', 'CO2')
@@ -14,8 +14,8 @@ def setup_rice_husk_db():
     ef_key = ('biosphere3', 'EF')
 
     # Define biosphere flows and create the 'biosphere3' database if it doesn't exist
-    if 'biosphere3' not in bw.databases:
-        biosphere_db = bw.Database('biosphere3')
+    if 'biosphere3' not in bd.databases:
+        biosphere_db = bd.Database('biosphere3')
         biosphere_data = {
             ('biosphere3', 'CO2'): {
                 'name': 'Carbon dioxide, fossil',
@@ -59,8 +59,8 @@ def setup_rice_husk_db():
     transportation_key = ('rice_husk_example_db', 'Transportation by truck')
 
     # Create the "rice_husk_example_db" database if it doesn't exist
-    if 'rice_husk_example_db' not in bw.databases:
-        rice_husk_db = bw.Database('rice_husk_example_db')
+    if 'rice_husk_example_db' not in bd.databases:
+        rice_husk_db = bd.Database('rice_husk_example_db')
         rice_husk_db.write({})
 
         process_data = [
@@ -150,10 +150,10 @@ def setup_rice_husk_db():
 
         # Loop through the list of methods and deregister each one
         # Create a copy of the methods list
-        methods_copy = copy.deepcopy(bw.methods)
+        methods_copy = copy.deepcopy(bd.methods)
         # Loop through the copy of methods and deregister each one
         for method in methods_copy:
-            bw.Method(method).deregister()
+            bd.Method(method).deregister()
 
         # Define LCIA methods and CFs
         methods_data = [
@@ -164,7 +164,7 @@ def setup_rice_husk_db():
         ]
 
         for method_name, unit, num_cfs, abbreviation, description, filename, flow_code, flow_list in methods_data:
-            method = bw.Method(('my project', method_name))
+            method = bd.Method(('my project', method_name))
             method.register(**{
                 'unit': unit,
                 'num_cfs': num_cfs,
