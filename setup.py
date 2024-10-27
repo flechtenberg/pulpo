@@ -6,7 +6,7 @@ with open('README_pypi.md', 'r', encoding='utf-8') as readme_file:
 
 setup(
     name="pulpo-dev",
-    version="0.1.1",
+    version="0.1.2",
     description="pulpo package for optimization in LCI databases",
     author="Fabian Lechtenberg",
     author_email="fabian.lechtenberg@upc.edu",
