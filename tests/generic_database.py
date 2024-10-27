@@ -1,7 +1,7 @@
-import brightway2 as bw
 import copy
 import numpy as np
 np.NaN = np.nan
+import bw2data as bd
 
 # Helper function to convert integers to Latin letters
 def int_to_latin(num):
@@ -308,8 +308,8 @@ def setup_biosphere_db(flow_ids):
     """Setup or update the biosphere database with environmental flows."""
 
     # Create biosphere database if it doesn't exist
-    if 'biosphere3' not in bw.databases:
-        biosphere_db = bw.Database('biosphere3')
+    if 'biosphere3' not in bd.databases:
+        biosphere_db = bd.Database('biosphere3')
         biosphere_data = {}
 
         # Define environmental flows
@@ -328,8 +328,8 @@ def setup_biosphere_db(flow_ids):
 
 def setup_technosphere_db(database, processes, markets):
     """Setup the technosphere database with generated processes and markets."""
-    if 'generated_technosphere_db' not in bw.databases:
-        technosphere_db = bw.Database(database)
+    if 'generated_technosphere_db' not in bd.databases:
+        technosphere_db = bd.Database(database)
         technosphere_db.write({})
 
         # Register each process
@@ -358,8 +358,8 @@ def setup_technosphere_db(database, processes, markets):
 
 def add_exchanges_to_db(database, processes, markets):
     """Add exchanges to the technosphere and market activities in the database."""
-    technosphere_db = bw.Database(database)
-    biosphere_db = bw.Database('biosphere3')
+    technosphere_db = bd.Database(database)
+    biosphere_db = bd.Database('biosphere3')
 
     # Add exchanges for processes
     for proc in processes:
@@ -393,13 +393,13 @@ def add_exchanges_to_db(database, processes, markets):
 def setup_lcia_methods(characterization_factors, methods):
     """Setup LCIA methods based on generated characterization factors."""
     # Deregister existing methods
-    methods_copy = copy.deepcopy(bw.methods)
+    methods_copy = copy.deepcopy(bd.methods)
     for method in methods_copy:
-        bw.Method(method).deregister()
+        bd.Method(method).deregister()
 
     # Register new LCIA methods
     for method_id in methods:
-        method = bw.Method(('generated_system_example', method_id))
+        method = bd.Method(('generated_system_example', method_id))
         method.register()
 
         cfs = []
@@ -414,14 +414,11 @@ def setup_lcia_methods(characterization_factors, methods):
 
 def setup_generated_system(project, database, processes, markets, flow_ids, characterization_factors, methods):
     """Main function to set up the entire Brightway2 database."""
-    bw.projects.set_current(project)
+    bd.projects.set_current(project)
     setup_biosphere_db(flow_ids)
     setup_technosphere_db(database, processes, markets)
     add_exchanges_to_db(database, processes, markets)
     setup_lcia_methods(characterization_factors, methods)
-
-
-import brightway2 as bw
 
 
 def setup_generic_db(project, database, n_prod, n_proc, n_reg, n_inputs, n_flows, n_methods, seed=None,
@@ -450,15 +447,15 @@ def setup_generic_db(project, database, n_prod, n_proc, n_reg, n_inputs, n_flows
     """
 
     # Set the project, deleting existing databases if the project exists
-    if project in bw.projects:
-        bw.projects.set_current(project)
+    if project in bd.projects:
+        bd.projects.set_current(project)
         print(f"Project '{project}' already exists. Deleting existing databases.")
-        if database in bw.databases:
-            del bw.databases[database]
-        if 'biosphere3' in bw.databases:
-            del bw.databases['biosphere3']
+        if database in bd.databases:
+            del bd.databases[database]
+        if 'biosphere3' in bd.databases:
+            del bd.databases['biosphere3']
     else:
-        bw.projects.set_current(project)
+        bd.projects.set_current(project)
         print(f"Project '{project}' does not exist. Creating new project.")
 
     print("Proceeding with creating both technosphere and biosphere databases.")
