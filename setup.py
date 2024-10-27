@@ -6,7 +6,7 @@ with open('README_pypi.md', 'r', encoding='utf-8') as readme_file:
 
 setup(
     name="pulpo-dev",
-    version="0.0.2",
+    version="0.1.2",
     description="pulpo package for optimization in LCI databases",
     author="Fabian Lechtenberg",
     author_email="fabian.lechtenberg@upc.edu",
@@ -17,11 +17,12 @@ setup(
         "Operating System :: OS Independent",
     ],
     packages=find_packages(),
-    python_requires=">=3.9, <=3.10",
+    python_requires=">=3.10, <=3.12",
     install_requires=[
-        "brightway2==2.4.3",
-        "pyomo==6.6.1",
-        "highspy==1.5.3",
+        "bw2data==3.6.6",
+        "fs==2.4.16",
+        "pyomo<=6.6.2",
+        "highspy==1.8.0",
         "ipython==8.14.0",
         "jupyterlab",
         "tqdm",

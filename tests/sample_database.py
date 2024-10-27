@@ -1,10 +1,10 @@
-from brightway2 import Database, projects, Method, databases, methods
-import brightway2 as bw
+import bw2data as bd
+import bw2calc as bc
 import copy
 
 def setup_test_db():
     # Set the current project to "sample_project"
-    projects.set_current("sample_project")
+    bd.projects.set_current("sample_project")
 
     # Keys
     # Biosphere
@@ -20,8 +20,8 @@ def setup_test_db():
     e_car_key = ('technosphere', 'e-Car')
 
     # Define biosphere flows and create the "biosphere" database if it doesn't exist
-    if "biosphere" not in databases:
-        biosphere_db = Database("biosphere")
+    if "biosphere" not in bd.databases:
+        biosphere_db = bd.Database("biosphere")
         biosphere_data = {
             ("biosphere", "CO2"): {
                 "name": "Carbon dioxide, fossil",
@@ -51,8 +51,8 @@ def setup_test_db():
         biosphere_db.write(biosphere_data)
 
     # Create the "technosphere" database if it doesn't exist
-    if "technosphere" not in databases:
-        technosphere_db = Database("technosphere")
+    if "technosphere" not in bd.databases:
+        technosphere_db = bd.Database("technosphere")
         technosphere_db.write({})
         process_data = [
             ("oil extraction", "kg", "GLO", "oil"),
@@ -100,10 +100,10 @@ def setup_test_db():
 
     # Loop through the list of methods and deregister each one
     # Create a copy of the methods list
-    methods_copy = copy.deepcopy(methods)
+    methods_copy = copy.deepcopy(bd.methods)
     # Loop through the copy of methods and deregister each one
     for method in methods_copy:
-        Method(method).deregister()
+        bd.Method(method).deregister()
 
     # Define LCIA methods and CFs
     methods_data = [
@@ -113,7 +113,7 @@ def setup_test_db():
     ]
 
     for method_name, unit, num_cfs, abbreviation, description, filename, flow_code, flow_list in methods_data:
-        method = Method(("my project", method_name))
+        method = bd.Method(("my project", method_name))
         method.register(**{
             "unit": unit,
             "num_cfs": num_cfs,
@@ -125,13 +125,13 @@ def setup_test_db():
 
 def sample_lcia():
     # Load the technosphere database
-    bw.projects.set_current('sample_project')
-    technosphere_db = bw.Database("technosphere")
+    bd.projects.set_current('sample_project')
+    technosphere_db = bd.Database("technosphere")
     # Perform LCA with FU 1 for all activities
     act = {act.key: 1 for act in technosphere_db}
     # Perform Multi-LCA
-    bw.calculation_setups['multiLCA'] = {'inv': [act], 'ia': list(methods)}
-    myMultiLCA = bw.MultiLCA('multiLCA')
+    bd.calculation_setups['multiLCA'] = {'inv': [act], 'ia': list(bd.methods)}
+    myMultiLCA = bc.MultiLCA('multiLCA')
     results = [round(x, 5) for x in myMultiLCA.results[0]]
     return results
 

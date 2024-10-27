@@ -1,13 +1,12 @@
-from brightway2 import Database, projects, Method, databases, methods
-import brightway2 as bw
+import bw2data as bd
 import copy
 import pulpo as pulpo
-from pulpo.utils.bw_parser import import_data, retrieve_methods, retrieve_envflows, retrieve_activities
+from pulpo.utils.bw_parser import import_data, retrieve_methods, retrieve_env_interventions, retrieve_processes
 from pulpo import pulpo
 
 def setup_test_db():
     # Set the current project to "sample_project"
-    projects.set_current("sample_project")
+    bd.projects.set_current("sample_project")
 
     # Keys
     # Biosphere
@@ -23,8 +22,8 @@ def setup_test_db():
     e_car_key = ('technosphere', 'e-Car')
 
     # Define biosphere flows and create the "biosphere" database if it doesn't exist
-    if "biosphere" not in databases:
-        biosphere_db = Database("biosphere")
+    if "biosphere" not in bd.databases:
+        biosphere_db = bd.Database("biosphere")
         biosphere_data = {
             ("biosphere", "CO2"): {
                 "name": "Carbon dioxide, fossil",
@@ -54,8 +53,8 @@ def setup_test_db():
         biosphere_db.write(biosphere_data)
 
     # Create the "technosphere" database if it doesn't exist
-    if "technosphere" not in databases:
-        technosphere_db = Database("technosphere")
+    if "technosphere" not in bd.databases:
+        technosphere_db = bd.Database("technosphere")
         technosphere_db.write({})
         process_data = [
             ("oil extraction", "kg", "GLO", "oil"),
@@ -103,10 +102,10 @@ def setup_test_db():
 
     # Loop through the list of methods and deregister each one
     # Create a copy of the methods list
-    methods_copy = copy.deepcopy(methods)
+    methods_copy = copy.deepcopy(bd.methods)
     # Loop through the copy of methods and deregister each one
     for method in methods_copy:
-        Method(method).deregister()
+        bd.Method(method).deregister()
 
     # Define LCIA methods and CFs
     methods_data = [
@@ -116,7 +115,7 @@ def setup_test_db():
     ]
 
     for method_name, unit, num_cfs, abbreviation, description, filename, flow_code, flow_list in methods_data:
-        method = Method(("my project", method_name))
+        method = bd.Method(("my project", method_name))
         method.register(**{
             "unit": unit,
             "num_cfs": num_cfs,
@@ -128,13 +127,13 @@ def setup_test_db():
 
 def sample_lcia():
     # Load the technosphere database
-    bw.projects.set_current('sample_project')
-    technosphere_db = bw.Database("technosphere")
+    bd.projects.set_current('sample_project')
+    technosphere_db = bd.Database("technosphere")
     # Perform LCA with FU 1 for all activities
     act = {act.key: 1 for act in technosphere_db}
     # Perform Multi-LCA
-    bw.calculation_setups['multiLCA'] = {'inv': [act], 'ia': list(methods)}
-    myMultiLCA = bw.MultiLCA('multiLCA')
+    bd.calculation_setups['multiLCA'] = {'inv': [act], 'ia': list(bd.methods)}
+    myMultiLCA = bd.MultiLCA('multiLCA')
     results = [round(x, 5) for x in myMultiLCA.results[0]]
     return results
 
@@ -150,17 +149,17 @@ def test_import_data():
         "('my project', 'resources')": 1,
     }
 
-    result = import_data('sample_project', 'technosphere', methods)
+    result = import_data('sample_project', 'technosphere', methods, 'biosphere')
 
-    assert [idx for idx in result] == ['matrices', 'biosphere', 'technosphere', 'activity_map']
-    assert result['technosphere'].shape == (5, 5)
-    assert result['biosphere'].shape == (4, 5)
-    assert result['activity_map'] == {('technosphere', 'oil extraction'): 0, ('technosphere', 'lignite extraction'): 1, ('technosphere', 'steam cycle'): 2, ('technosphere', 'wind turbine'): 3, ('technosphere', 'e-Car'): 4, 2: 'steam cycle | electricity | GLO', 1: 'lignite extraction | lignite | GLO', 0: 'oil extraction | oil | GLO', 3: 'wind turbine | electricity | GLO', 4: 'e-Car | transport | GLO'}
+    assert [idx for idx in result] == ['matrices', 'intervention_matrix', 'technology_matrix', 'process_map', 'intervention_map']
+    assert result['technology_matrix'].shape == (5, 5)
+    assert result['intervention_matrix'].shape == (4, 5)
+    assert result['process_map'] == {('technosphere', 'oil extraction'): 0, ('technosphere', 'lignite extraction'): 1, ('technosphere', 'steam cycle'): 2, ('technosphere', 'wind turbine'): 3, ('technosphere', 'e-Car'): 4, 2: 'steam cycle | electricity | GLO', 1: 'lignite extraction | lignite | GLO', 0: 'oil extraction | oil | GLO', 3: 'wind turbine | electricity | GLO', 4: 'e-Car | transport | GLO'}
 
 def test_retrieve_activities():
-    key = retrieve_activities('sample_project', 'technosphere', keys=["('technosphere', 'wind turbine')"])
-    name = retrieve_activities('sample_project', 'technosphere', activities=['e-Car'])
-    location = retrieve_activities('sample_project', 'technosphere', locations=['GLO'])
+    key = retrieve_processes('sample_project', 'technosphere', keys=["('technosphere', 'wind turbine')"])
+    name = retrieve_processes('sample_project', 'technosphere', activities=['e-Car'])
+    location = retrieve_processes('sample_project', 'technosphere', locations=['GLO'])
     assert key[0]['name'] == "wind turbine"
     assert name[0]['name'] == "e-Car"
     assert len(location) == 5
@@ -172,7 +171,7 @@ def test_retrieve_methods():
     assert multi_result == [('my project', 'climate change'), ('my project', 'air quality'), ('my project', 'resources')]
 
 def test_retrieve_envflows():
-    result = retrieve_envflows('sample_project', biosphere='biosphere', keys="('biosphere', 'PM')")
+    result = retrieve_env_interventions('sample_project', intervention_matrix='biosphere', keys="('biosphere', 'PM')")
     assert result[0]['name'] == 'Particulate matter, industrial'
 
 def test_pulpo():
@@ -183,6 +182,7 @@ def test_pulpo():
                "('my project', 'resources')": 0}
 
     worker = pulpo.PulpoOptimizer(project, database, methods, '')
+    worker.intervention_matrix = 'biosphere'
     worker.get_lci_data()
     eCar = worker.retrieve_activities(reference_products='transport')
     demand = {eCar[0]: 1}
