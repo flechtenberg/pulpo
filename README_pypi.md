@@ -18,9 +18,7 @@
 
 ## 📍 Overview
 
-The project, "pulpo," is a life cycle assessment (LCA) optimization tool that aims to import, optimize, solve, retrieve, save, and summarize LCA results. It provides functionalities for data import from the Ecoinvent database, conversion of inputs into a dictionary for the optimization model, definition and solving of the optimization model using the pyomo package, and saving and summarizing of the model results. The tool's value lies in streamlining LCA processes, enabling optimization and analysis of environmental impacts, and facilitating the decision-making process for sustainable solutions.
-
-
+Pulpo is a comprehensive Life Cycle Optimization (LCO) tool designed to streamline the optimization of environmental impacts across the entire lifecycle of products. It facilitates the import of data from the LCI databases accessed via brightway, converts inputs into optimization-ready formats, defines and solves optimization models using the Pyomo package, and saves and summarizes results. Pulpo empowers users to efficiently optimize and analyze environmental impacts, supporting sustainable decision-making through lifecycle-based strategies.
 
 ---
 
@@ -46,7 +44,7 @@ tests.setup()
 ```
 This function mimics the development test functions and if all tests have passed you are good to go.
 
-To learn the PULPO workflow for more complex case studies, find example notebooks for a [hydrogen case](https://github.com/flechtenberg/pulpo/blob/master/notebooks/hydrogen_showcase.ipynb) and an [electricity case](https://github.com/flechtenberg/pulpo/blob/master/notebooks/electricity_showcase.ipynb) here.
+To learn the PULPO workflow for more complex case studies, find example notebooks for a [hydrogen case](https://github.com/flechtenberg/pulpo/blob/master/notebooks/hydrogen_showcase.ipynb), an [electricity case](https://github.com/flechtenberg/pulpo/blob/master/notebooks/electricity_showcase.ipynb), and a [plastic case](https://github.com/flechtenberg/pulpo/blob/master/notebooks/plastic_showcase.ipynb) here.
 
 You can also follow these notebooks locally with the shipped package by calling:
 ```sh
@@ -54,6 +52,7 @@ from pulpo import pulpo
 
 pulpo.electricity_showcase()
 pulpo.hydrogen_showcase()
+pulpo.plastic_showcase()
 ```
 
 It should be noted that to run these showcase it is necessary to install the ecoinvent cutoff38 system model via brightway2/activity-browser.

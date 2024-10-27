@@ -1,6 +1,8 @@
-brightway2==2.4.3
-pyomo==6.6.1
-highspy==1.5.3
+bw2calc==1.8.2
+bw2data==3.6.6
+fs==2.4.16
+pyomo<=6.6.2
+highspy==1.8.0
 ipython==8.14.0
-jupyterlab
+jupyter
 tqdm

@@ -1,7 +1,13 @@
 import pyomo.environ as pyo
+from pyomo.contrib import appsi
 
 def create_model():
-    """Builds an abstract model on top of the ecoinvent database."""
+    """
+    Builds an abstract model on top of the ecoinvent database.
+
+    Returns:
+        AbstractModel: The Pyomo abstract model for optimization.
+    """
     model = pyo.AbstractModel()
 
     # Sets
@@ -22,7 +28,8 @@ def create_model():
     # Parameters
     model.UPPER_LIMIT = pyo.Param(model.PROCESS, mutable=True, within=pyo.Reals, doc='Maximum production capacity of process j')
     model.LOWER_LIMIT = pyo.Param(model.PROCESS, mutable=True, within=pyo.Reals, doc='Minimum production capacity of process j')
-    model.UPPER_INV_LIMIT = pyo.Param(model.INV, mutable=True, within=pyo.Reals, doc='Maximum intervention flow flow g')
+    model.UPPER_INV_LIMIT = pyo.Param(model.INV, mutable=True, within=pyo.Reals, doc='Maximum intervention flow g')
+    model.UPPER_IMP_LIMIT = pyo.Param(model.INDICATOR, mutable=True, within=pyo.Reals, doc='Maximum impact on category h')
     model.ENV_COST_MATRIX = pyo.Param(model.ENV_COST_PROCESS, mutable=True, doc='Enviornmental cost matrix Q*B describing the environmental cost flows e associated to process j')
     model.INV_MATRIX = pyo.Param(model.INV_PROCESS, mutable=True, doc='Intervention matrix B describing the intervention flow g entering/leaving process j')
     model.FINAL_DEMAND = pyo.Param(model.PRODUCT, mutable=True, within=pyo.Reals, doc='Final demand of intermediate product flows (i.e., functional unit)')
@@ -49,6 +56,7 @@ def create_model():
     model.LOWER_CNSTR = pyo.Constraint(model.PROCESS, rule=lower_constraint)
     model.SLACK_CNSTR = pyo.Constraint(model.PRODUCT, rule=slack_constraint)
     model.INV_CNSTR = pyo.Constraint(model.INV, rule=upper_env_constraint)
+    model.IMP_CNSTR = pyo.Constraint(model.INDICATOR, rule=upper_imp_constraint)
 
     # Objective function
     model.OBJ = pyo.Objective(sense=pyo.minimize, rule=objective_function)
@@ -80,7 +88,6 @@ def demand_constraint(model, i):
     """Fixes a value in the demand vector"""
     return sum(model.TECH_MATRIX[i, j] * model.scaling_vector[j] for j in model.PROCESS_OUT[i]) == model.FINAL_DEMAND[i] + model.slack[i]
 
-
 def impact_constraint(model, h):
     """Calculates all the impact categories"""
     return model.impacts[h] == sum(sum(model.ENV_COST_MATRIX[i, j, h] * model.scaling_vector[j] for j in model.ENV_COST_OUT[i, h]) for i in model.ENV_COST_IN[h])
@@ -89,11 +96,9 @@ def inventory_constraint(model, g):
     """Calculates the environmental flows"""
     return model.inv_vector[g] == sum(model.INV_MATRIX[g, j] * model.scaling_vector[j] for j in model.INV_OUT[g])
 
-
 def upper_constraint(model, j):
     """Ensures that variables are within capacities (Maximum production constraint) """
     return model.scaling_vector[j] <= model.UPPER_LIMIT[j]
-
 
 def lower_constraint(model, j):
     """ Minimum production constraint """
@@ -103,19 +108,31 @@ def upper_env_constraint(model, g):
     """Ensures that variables are within capacities (Maximum production constraint) """
     return model.inv_vector[g] <= model.UPPER_INV_LIMIT[g]
 
+def upper_imp_constraint(model, h):
+    """ Imposes upper limits on selected impact categories """
+    return model.impacts[h] <= model.UPPER_IMP_LIMIT[h]
+
+
 def slack_constraint(model, j):
     """ Slack variable upper limit for activities where supply is specified instead of demand """
     return model.slack[j] <= 1e20 * model.SUPPLY[j]
-
 
 def objective_function(model):
     """Objective is a sum over all indicators with weights. Typically, the indicator of study has weight 1, the rest 0"""
     return sum(model.impacts[h] * model.WEIGHTS[h] for h in model.INDICATOR)
 
 def calculate_methods(instance, lci_data, methods):
-    '''
-    This function calculates the impacts if a method with weight 0 has been specified
-    '''
+    """
+    Calculates the impacts if a method with weight 0 has been specified.
+
+    Args:
+        instance: The Pyomo model instance.
+        lci_data (dict): LCI data containing matrices and mappings.
+        methods (dict): Methods for environmental impact assessment.
+
+    Returns:
+        instance: The updated Pyomo model instance with calculated impacts.
+    """
     import scipy.sparse as sparse
     import numpy as np
     matrices = lci_data['matrices']
@@ -133,9 +150,16 @@ def calculate_methods(instance, lci_data, methods):
     return instance
 
 def calculate_inv_flows(instance, lci_data):
-    '''
-    This function calculates elementary flows post-optimization
-    '''
+    """
+    Calculates elementary flows post-optimization.
+
+    Args:
+        instance: The Pyomo model instance.
+        lci_data (dict): LCI data containing matrices and mappings.
+
+    Returns:
+        instance: The updated Pyomo model instance with calculated intervention flows.
+    """
     import numpy as np
     intervention_matrix = lci_data['intervention_matrix']
     try:
@@ -149,7 +173,15 @@ def calculate_inv_flows(instance, lci_data):
 
 
 def instantiate(model_data):
-    """ This function builds an instance of the optimization model with specific data and objective function"""
+    """
+    Builds an instance of the optimization model with specific data and objective function.
+
+    Args:
+        model_data (dict): Data dictionary for the optimization model.
+
+    Returns:
+        ConcreteModel: The instantiated Pyomo model.
+    """
     print('Creating Instance')
     model = create_model()
     problem = model.create_instance(model_data, report_timing=False)
@@ -157,17 +189,31 @@ def instantiate(model_data):
     return problem
 
 
-def solve_model(model_instance, gams_path, options=None):
-    """Solves the instance of the optimization model. """
-    if gams_path is not False:
+def solve_model(model_instance, gams_path=None, solver_name=None, options=None):
+    """
+    Solves the instance of the optimization model.
+
+    Args:
+        model_instance (ConcreteModel): The Pyomo model instance.
+        gams_path (str, optional): Path to the GAMS solver. If None, GAMS will not be used.
+        solver_name (str, optional): The solver to use ('highs', 'gams', or 'ipopt'). Defaults to 'highs' unless gams_path is provided.
+        options (list, optional): Additional options for the solver.
+
+    Returns:
+        tuple: Results of the optimization and the updated model instance.
+    """
+    results = None
+
+    # Use GAMS if gams_path is specified
+    if gams_path and (solver_name is None or solver_name.lower() == 'gams'):
         pyo.pyomo.common.Executable('gams').set_path(gams_path)
         solver = pyo.SolverFactory('gams')
         print('GAMS solvers library availability:', solver.available())
         print('Solver path:', solver.executable())
 
         io_options = {
-            'mtype': 'lp',                      # Type of problem (lp, nlp, mip, minlp)
-            'solver': 'CPLEX',                  # Name of solver
+            'mtype': 'lp',  # Type of problem (lp, nlp, mip, minlp)
+            'solver': 'CPLEX',  # Name of solver
         }
 
         if options is None:
@@ -188,17 +234,31 @@ def solve_model(model_instance, gams_path, options=None):
             model_instance,
             keepfiles=True,
             symbolic_solver_labels=True,
-            tee=True,
-            report_timing=True,
+            tee=False,
+            report_timing=False,
             io_options=io_options,
             add_options=options
         )
 
         model_instance.solutions.load_from(results)
 
+    # Use IPOPT if explicitly specified
+    elif solver_name and solver_name.lower() == 'ipopt':
+        opt = pyo.SolverFactory('ipopt')
+        if options:
+            for option in options:
+                opt.options[option] = True
+        results = opt.solve(model_instance)
+
+    # Default to HiGHS if no solver specified or if solver_name is 'highs'
     else:
-        from pyomo.contrib import appsi
         opt = appsi.solvers.Highs()
         results = opt.solve(model_instance)
+
+    return results, model_instance
+
+
+    print('Optimization problem solved')
+    ## TODO: Add a check for infeasibility and other solver errors
 
     return results, model_instance

@@ -5,8 +5,21 @@ from pathlib import Path
 from IPython.display import display
 
 def save_results(instance, project, database, choices, constraints, demand, process_map, itervention_map, directory, name):
-    """ TODO Imporve readability and structure ...
-    There must be a better way to save the outputs of a pyomo model than this code I developed in 2020 """
+    """
+    Saves the results of a Pyomo optimization model to an Excel file.
+
+    Args:
+        instance: The Pyomo model instance.
+        project (str): Name of the project.
+        database (str): Name of the database.
+        choices (dict): Choices for the model.
+        constraints (dict): Constraints applied during optimization.
+        demand (dict): Demand data used in optimization.
+        process_map (dict): Mapping of process IDs to descriptions.
+        itervention_map (dict): Mapping of intervention IDs to descriptions.
+        directory (str): Directory to save the results file.
+        name (str): Name of the results file.
+    """
     # Check if data/results folder exists, if not create it
     Path(directory + '/results').mkdir(parents=True, exist_ok=True)
 
@@ -27,7 +40,7 @@ def save_results(instance, project, database, choices, constraints, demand, proc
                 data = [(k, itervention_map[k], v) for k, v in v._data.items()]
             else:
                 data = [(k, process_map[k], v) for k, v in v._data.items()]
-            df = pd.DataFrame(data, columns=['ID', 'Activity', 'Value'])
+            df = pd.DataFrame(data, columns=['ID', 'Process', 'Value'])
         except:
             data = [(k, v) for k, v in v._data.items()]
             df = pd.DataFrame(data, columns=['Key', 'Value'])
@@ -44,14 +57,17 @@ def save_results(instance, project, database, choices, constraints, demand, proc
         for alt in choices[choice]:
             temp_dict.append((alt, i, instance.scaling_vector[process_map[alt.key]]))
             i+=1
-        metadata[(choice, 'Activity')] = {'Activity ' + str(i): process_map[process_map[alt.key]] for alt, i, val in temp_dict}
-        metadata[(choice, 'Capacity')] = {'Activity ' + str(i): choices[choice][alt] for alt, i, val in temp_dict}
-        metadata[(choice, 'Value')] = {'Activity ' + str(i): x for alt, i, x in temp_dict}
+        metadata[(choice, 'Process')] = {'Process ' + str(i): process_map[process_map[alt.key]] for alt, i, val in temp_dict}
+        metadata[(choice, 'Capacity')] = {'Process ' + str(i): choices[choice][alt] for alt, i, val in temp_dict}
+        metadata[(choice, 'Value')] = {'Process ' + str(i): x for alt, i, x in temp_dict}
 
     pd.DataFrame(metadata).to_excel(writer, sheet_name='choices')
 
     metadata = {}
-    metadata['Demand'] = {process_map[process_map[key]]: demand[key] for key in demand}
+    metadata['Demand'] = {
+        process_map[process_map[key]] if key in process_map else key: demand[key]
+        for key in demand
+    }
     pd.DataFrame(metadata).to_excel(writer, sheet_name='demand')
 
     metadata = {}
@@ -62,9 +78,24 @@ def save_results(instance, project, database, choices, constraints, demand, proc
     writer.close()
     return
 
-def summarize_results(instance, project, database, choices, constraints, demand, process_map, zeroes):
+def summarize_results(instance, choices, constraints, demand, process_map, zeroes):
+    """
+    Summarizes the results of the optimization and prints them to the console.
+
+    Args:
+        instance: The Pyomo model instance.
+        choices (dict): Choices for the model.
+        constraints (dict): Constraints applied during optimization.
+        demand (dict): Demand data used in optimization.
+        process_map (dict): Mapping of process IDs to descriptions.
+        zeroes (bool): Whether to include zero values in the summary.
+    """
     metadata = {}
-    metadata['Demand'] = {process_map[process_map[key]]: demand[key] for key in demand}
+    metadata['Demand'] = {
+        process_map[process_map[key]] if key in process_map else key: demand[key]
+        for key in demand
+    }
+
     print('The following demand / functional unit has been specified: ')
     display(pd.DataFrame(metadata))
 
@@ -80,7 +111,7 @@ def summarize_results(instance, project, database, choices, constraints, demand,
         if v.name == 'impacts':
             try:
                 data = [(k, process_map[k], v) for k, v in v._data.items()]
-                df = pd.DataFrame(data, columns=['ID', 'Activity', 'Value'])
+                df = pd.DataFrame(data, columns=['ID', 'Process', 'Value'])
             except:
                 data = [(k, v) for k, v in v._data.items()]
                 df = pd.DataFrame(data, columns=['Key', 'Value'])
@@ -91,7 +122,7 @@ def summarize_results(instance, project, database, choices, constraints, demand,
         if v.name == 'impacts_calculated':
             try:
                 data = [(k, process_map[k], v) for k, v in v._data.items()]
-                df = pd.DataFrame(data, columns=['ID', 'Activity', 'Value'])
+                df = pd.DataFrame(data, columns=['ID', 'Process', 'Value'])
             except:
                 data = [(k, v) for k, v in v._data.items()]
                 df = pd.DataFrame(data, columns=['Key', 'Value'])
@@ -108,9 +139,9 @@ def summarize_results(instance, project, database, choices, constraints, demand,
             if zeroes == False or instance.scaling_vector[process_map[alt.key]] != 0:
                 temp_dict.append((alt, i, instance.scaling_vector[process_map[alt.key]]))
                 i += 1
-        metadata[(choice, 'Activity')] = {'Activity ' + str(i): process_map[process_map[alt.key]] for alt, i, val in temp_dict}
-        metadata[(choice, 'Capacity')] = {'Activity ' + str(i): choices[choice][alt] for alt, i, val in temp_dict}
-        metadata[(choice, 'Value')] = {'Activity ' + str(i): x for alt, i, x in temp_dict}
+        metadata[(choice, 'Process')] = {'Process ' + str(i): process_map[process_map[alt.key]] for alt, i, val in temp_dict}
+        metadata[(choice, 'Capacity')] = {'Process ' + str(i): choices[choice][alt] for alt, i, val in temp_dict}
+        metadata[(choice, 'Value')] = {'Process ' + str(i): x for alt, i, x in temp_dict}
         print(choice)
         display(pd.DataFrame(metadata))
 
