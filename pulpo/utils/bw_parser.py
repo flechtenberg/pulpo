@@ -30,25 +30,35 @@ def import_data(project: str, database: str, method: Union[str, List[str], dict[
     # Old
     characterization_matrices = {}
     rand_act = eidb.random()
-    for method in methods:
-        # Set up the LCA calculation with a functional unit of the random activity and the current method
-        lca = bc.LCA({rand_act: 1}, method)
 
-        # Load the LCI and LCIA data
-        lca.lci()
-        lca.lcia()
 
-        # Store the characterization (C) matrix for the method
-        characterization_matrices[str(method)] = lca.characterization_matrix
+    functional_units_1 = {
+        "act1": {rand_act.id: 1},
+    }
+    config_1 = {
+        "impact_categories": methods
+    }
+
+    data_objs_1 = bd.get_multilca_data_objs(functional_units=functional_units_1, method_config=config_1)
+
+    lca = bc.MultiLCA(demands=functional_units_1, method_config=config_1, data_objs=data_objs_1)
+    lca.lci()
+    lca.lcia()
+
+    # Store the characterization (C) matrix for the method
+    characterization_matrices = {str(method): lca.characterization_matrices[method] for method in methods}
 
     # Extract A (Technosphere) and B (Biosphere) matrices from the LCA
     technology_matrix = lca.technosphere_matrix  # A matrix
     intervention_matrix = lca.biosphere_matrix  # B matrix
 
     # Create activity map key --> ID | ID --> description
-    process_map = lca.product_dict
+    process_map = lca.dicts.product
     for act in eidb:
-        process_map[process_map[act.key]] = str(act['name']) + ' | ' + str(act['reference product']) + ' | ' + str(
+        print(process_map)
+        print(act.id)
+        print(process_map[act.id])
+        process_map[process_map[act.id]] = str(act['name']) + ' | ' + str(act['reference product']) + ' | ' + str(
             act['location'])
 
     if intervention_matrix_name in bd.databases:
@@ -170,3 +180,12 @@ def retrieve_methods(project: str, sub_string: List[str]) -> List[str]:
     """
     bd.projects.set_current(project)
     return [method for method in bd.methods if any([x.lower() in str(method).lower() for x in sub_string])]
+
+if __name__ == '__main__':
+    project = "pulpo"
+    database = "cutoff38"
+    methods = {"('IPCC 2013', 'climate change', 'GWP 100a')": 1,
+               "('IPCC 2013', 'climate change', 'GWP 20a')": 0,
+               }
+
+    import_data(project, database, methods, 'biosphere3')

@@ -1,8 +1,9 @@
 bw2calc==1.8.2
 bw2data==3.6.6
 fs==2.4.16
-pyomo<=6.6.2
+pyomo==6.8.2
 highspy==1.8.0
 ipython==8.14.0
 jupyter
 tqdm
+xlsxwriter
