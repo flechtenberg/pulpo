@@ -53,17 +53,15 @@ def import_data(project: str, database: str, method: Union[str, List[str], dict[
     intervention_matrix = lca.biosphere_matrix  # B matrix
 
     # Create activity map key --> ID | ID --> description
-    process_map = lca.dicts.product
+    process_map = {act.key: lca.dicts.product[act.id] for act in eidb} # TODO: This is adherring to old ways of storring data with keys ... how to work with IDs instead?
+
     for act in eidb:
-        print(process_map)
-        print(act.id)
-        print(process_map[act.id])
-        process_map[process_map[act.id]] = str(act['name']) + ' | ' + str(act['reference product']) + ' | ' + str(
+        process_map[process_map[act.key]] = str(act['name']) + ' | ' + str(act['reference product']) + ' | ' + str(
             act['location'])
 
     if intervention_matrix_name in bd.databases:
         eidb_bio = bd.Database(intervention_matrix_name)
-        intervention_map = lca.biosphere_dict
+        intervention_map = lca.dicts.biosphere
         for act in eidb_bio:
             if act.key in intervention_map:
                 intervention_map[intervention_map[act.key]] = act['name'] + ' | ' + str(act['categories'])
@@ -182,10 +180,10 @@ def retrieve_methods(project: str, sub_string: List[str]) -> List[str]:
     return [method for method in bd.methods if any([x.lower() in str(method).lower() for x in sub_string])]
 
 if __name__ == '__main__':
-    project = "pulpo"
-    database = "cutoff38"
-    methods = {"('IPCC 2013', 'climate change', 'GWP 100a')": 1,
-               "('IPCC 2013', 'climate change', 'GWP 20a')": 0,
+    project = "pulpo_bw25"
+    database = "ecoinvent-3.8-cutoff"
+    methods = {"('ecoinvent-3.8', 'IPCC 2013', 'climate change', 'GWP 100a')": 1,
+               "('ecoinvent-3.8', 'IPCC 2013', 'climate change', 'GWP 20a')": 0,
                }
 
-    import_data(project, database, methods, 'biosphere3')
+    import_data(project, database, methods, 'ecoinvent-3.8-biosphere')
