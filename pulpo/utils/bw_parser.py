@@ -42,8 +42,8 @@ def import_data(project: str, database: str, method: Union[str, List[str], dict[
     data_objs_1 = bd.get_multilca_data_objs(functional_units=functional_units_1, method_config=config_1)
 
     lca = bc.MultiLCA(demands=functional_units_1, method_config=config_1, data_objs=data_objs_1)
-    lca.lci()
-    lca.lcia()
+    lca.load_lci_data()
+    lca.load_lcia_data()
 
     # Store the characterization (C) matrix for the method
     characterization_matrices = {str(method): lca.characterization_matrices[method] for method in methods}
