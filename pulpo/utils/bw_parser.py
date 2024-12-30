@@ -76,7 +76,7 @@ def import_data(project: str, database: str, method: Union[str, List[str], dict[
     if intervention_matrix_name in bd.databases:
         eidb_bio = bd.Database(intervention_matrix_name)
         if bw25:
-            intervention_map = lca.dicts.biosphere
+            intervention_map = {act.key: lca.dicts.biosphere[act.id] for act in eidb_bio if act.id in lca.dicts.biosphere}  # TODO: This is adherring to old ways of storring data with keys ... how to work with IDs instead?
         else:
             intervention_map = lca.biosphere_dict
         for act in eidb_bio:
@@ -196,21 +196,21 @@ def retrieve_methods(project: str, sub_string: List[str]) -> List[str]:
     bd.projects.set_current(project)
     return [method for method in bd.methods if any([x.lower() in str(method).lower() for x in sub_string])]
 
-if __name__ == '__main__':
-    if is_bw25():
-        project = "pulpo_bw25"
-        biosphere = "ecoinvent-3.8-biosphere"
-        methods = {"('ecoinvent-3.8', 'IPCC 2013', 'climate change', 'GWP 100a')": 1,
-                   "('ecoinvent-3.8', 'IPCC 2013', 'climate change', 'GWP 20a')": 0,
-                   }
-    else:
-        project = "pulpo"
-        biosphere = "biosphere3"
-        methods = {"('IPCC 2013', 'climate change', 'GWP 100a')": 1,
-                   "('IPCC 2013', 'climate change', 'GWP 20a')": 0,
-                   }
-
-    database = "ecoinvent-3.8-cutoff"
-
-
-    import_data(project, database, methods, intervention_matrix_name=biosphere)
+#if __name__ == '__main__':
+#    if is_bw25():
+#        project = "pulpo_bw25"
+#        biosphere = "ecoinvent-3.8-biosphere"
+#        methods = {"('ecoinvent-3.8', 'IPCC 2013', 'climate change', 'GWP 100a')": 1,
+#                   "('ecoinvent-3.8', 'IPCC 2013', 'climate change', 'GWP 20a')": 0,
+#                   }
+#    else:
+#        project = "pulpo"
+#        biosphere = "biosphere3"
+#        methods = {"('IPCC 2013', 'climate change', 'GWP 100a')": 1,
+#                   "('IPCC 2013', 'climate change', 'GWP 20a')": 0,
+#                   }
+#
+#    database = "ecoinvent-3.8-cutoff"
+#
+#
+#    import_data(project, database, methods, intervention_matrix_name=biosphere)
