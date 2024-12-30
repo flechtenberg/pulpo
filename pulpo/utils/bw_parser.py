@@ -1,7 +1,7 @@
 from typing import List, Union, Dict, Any
 import bw2calc as bc
 import bw2data as bd
-from pulpo.utils.tests import is_bw25
+from pulpo.utils.utils import is_bw25
 
 def import_data(project: str, database: str, method: Union[str, List[str], dict[str, int]],
                 intervention_matrix_name: str) -> Dict[str, Union[dict, Any]]:
