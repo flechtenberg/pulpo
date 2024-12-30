@@ -1,6 +1,26 @@
 from typing import List, Union, Dict, Any
 import bw2calc as bc
 import bw2data as bd
+from packaging import version
+
+# Define version thresholds
+THRESHOLDS = {
+    "bw2calc": "2.0.dev5",
+    "bw2data": "4.0.dev11",
+}
+
+def is_bw25():
+    """Check if the installed Brightway packages adhere to bw25 versions."""
+    try:
+        for pkg, threshold in {"bw2calc": bc, "bw2data": bd}.items():
+            pkg_version = ".".join(map(str, threshold.__version__)) if isinstance(threshold.__version__,
+                                                                                  tuple) else str(
+                threshold.__version__)
+            if version.parse(pkg_version) < version.parse(THRESHOLDS[pkg]):
+                return False
+        return True
+    except Exception as e:
+        raise RuntimeError(f"Error checking Brightway versions: {e}")
 
 def import_data(project: str, database: str, method: Union[str, List[str], dict[str, int]],
                 intervention_matrix_name: str) -> Dict[str, Union[dict, Any]]:
@@ -27,33 +47,46 @@ def import_data(project: str, database: str, method: Union[str, List[str], dict[
     method = sorted(method)
     methods = retrieve_methods(project, method)
 
-    # Old
-    characterization_matrices = {}
     rand_act = eidb.random()
 
+    bw25 = is_bw25()
+    if bw25:
+        # Process with bw25 logic
+        functional_units_1 = {"act1": {rand_act.id: 1}}
+        config_1 = {"impact_categories": methods}
 
-    functional_units_1 = {
-        "act1": {rand_act.id: 1},
-    }
-    config_1 = {
-        "impact_categories": methods
-    }
+        data_objs_1 = bd.get_multilca_data_objs(functional_units=functional_units_1, method_config=config_1)
 
-    data_objs_1 = bd.get_multilca_data_objs(functional_units=functional_units_1, method_config=config_1)
+        lca = bc.MultiLCA(demands=functional_units_1, method_config=config_1, data_objs=data_objs_1)
 
-    lca = bc.MultiLCA(demands=functional_units_1, method_config=config_1, data_objs=data_objs_1)
-    lca.load_lci_data()
-    lca.load_lcia_data()
+        lca.load_lci_data()
+        lca.load_lcia_data()
 
-    # Store the characterization (C) matrix for the method
-    characterization_matrices = {str(method): lca.characterization_matrices[method] for method in methods}
+        # Store the characterization (C) matrix for the method
+        characterization_matrices = {str(method): lca.characterization_matrices[method] for method in methods}
+
+    else:
+        characterization_matrices = {}
+        for method in methods:
+            # Set up the LCA calculation with a functional unit of the random activity and the current method
+            lca = bc.LCA({rand_act: 1}, method)
+
+            # Load the LCI and LCIA data
+            lca.lci()
+            lca.lcia()
+
+            # Store the characterization (C) matrix for the method
+            characterization_matrices[str(method)] = lca.characterization_matrix
 
     # Extract A (Technosphere) and B (Biosphere) matrices from the LCA
     technology_matrix = lca.technosphere_matrix  # A matrix
     intervention_matrix = lca.biosphere_matrix  # B matrix
 
-    # Create activity map key --> ID | ID --> description
-    process_map = {act.key: lca.dicts.product[act.id] for act in eidb} # TODO: This is adherring to old ways of storring data with keys ... how to work with IDs instead?
+    if bw25:
+        # Create activity map key --> ID | ID --> description
+        process_map = {act.key: lca.dicts.product[act.id] for act in eidb}  # TODO: This is adherring to old ways of storring data with keys ... how to work with IDs instead?
+    else:
+        process_map = lca.product_dict
 
     for act in eidb:
         process_map[process_map[act.key]] = str(act['name']) + ' | ' + str(act['reference product']) + ' | ' + str(
@@ -61,7 +94,10 @@ def import_data(project: str, database: str, method: Union[str, List[str], dict[
 
     if intervention_matrix_name in bd.databases:
         eidb_bio = bd.Database(intervention_matrix_name)
-        intervention_map = lca.dicts.biosphere
+        if bw25:
+            intervention_map = lca.dicts.biosphere
+        else:
+            intervention_map = lca.biosphere_dict
         for act in eidb_bio:
             if act.key in intervention_map:
                 intervention_map[intervention_map[act.key]] = act['name'] + ' | ' + str(act['categories'])
@@ -180,10 +216,20 @@ def retrieve_methods(project: str, sub_string: List[str]) -> List[str]:
     return [method for method in bd.methods if any([x.lower() in str(method).lower() for x in sub_string])]
 
 if __name__ == '__main__':
-    project = "pulpo_bw25"
-    database = "ecoinvent-3.8-cutoff"
-    methods = {"('ecoinvent-3.8', 'IPCC 2013', 'climate change', 'GWP 100a')": 1,
-               "('ecoinvent-3.8', 'IPCC 2013', 'climate change', 'GWP 20a')": 0,
-               }
+    if is_bw25():
+        project = "pulpo_bw25"
+        biosphere = "ecoinvent-3.8-biosphere"
+        methods = {"('ecoinvent-3.8', 'IPCC 2013', 'climate change', 'GWP 100a')": 1,
+                   "('ecoinvent-3.8', 'IPCC 2013', 'climate change', 'GWP 20a')": 0,
+                   }
+    else:
+        project = "pulpo"
+        biosphere = "biosphere3"
+        methods = {"('IPCC 2013', 'climate change', 'GWP 100a')": 1,
+                   "('IPCC 2013', 'climate change', 'GWP 20a')": 0,
+                   }
 
-    import_data(project, database, methods, 'ecoinvent-3.8-biosphere')
+    database = "ecoinvent-3.8-cutoff"
+
+
+    import_data(project, database, methods, intervention_matrix_name=biosphere)
