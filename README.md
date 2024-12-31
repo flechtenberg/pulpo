@@ -1,72 +1,70 @@
 <div align="center">
-<h1 align="center">
-<img src="https://github.com/flechtenberg/flechtenberg_images/blob/main/Pulpo-Logo_INKSCAPE.png?raw=true" width="300" />
-<h3>◦ Python-based User-defined Lifecycle Production Optimization!</h3>
-<h3>◦ Developed with the software and tools below.</h3>
 
-<p align="center">
-<img src="https://img.shields.io/badge/Jupyter-F37626.svg?style&logo=Jupyter&logoColor=white" alt="Jupyter" />
-<img src="https://img.shields.io/badge/Python-3776AB.svg?style&logo=Python&logoColor=white" alt="Python" />
-<img src="https://img.shields.io/badge/Markdown-000000.svg?style&logo=Markdown&logoColor=white" alt="Markdown" />
-</p>
-<img src="https://img.shields.io/github/license/flechtenberg/pulpo?style=flat&color=5D6D7E" alt="GitHub license" />
-<img src="https://img.shields.io/github/last-commit/flechtenberg/pulpo?style=flat&color=5D6D7E" alt="git-last-commit" />
-<img src="https://img.shields.io/github/commit-activity/m/flechtenberg/pulpo?style=flat&color=5D6D7E" alt="GitHub commit activity" />
-<img src="https://img.shields.io/github/languages/top/flechtenberg/pulpo?style=flat&color=5D6D7E" alt="GitHub top language" />
+<img src="https://github.com/flechtenberg/flechtenberg_images/blob/main/Pulpo-Logo_INKSCAPE.png?raw=true" width="300" />
+
+<h3>Python-based User-defined Lifecycle Production Optimization</h3>
+
+<!-- Development Tools -->
+[![Jupyter](https://img.shields.io/badge/Jupyter-F37626.svg?style=flat&logo=Jupyter&logoColor=white)](https://jupyter.org/)
+[![Python](https://img.shields.io/badge/Python-3776AB.svg?style=flat&logo=Python&logoColor=white)](https://www.python.org/)
+[![Markdown](https://img.shields.io/badge/Markdown-000000.svg?style=flat&logo=Markdown&logoColor=white)](https://www.markdownguide.org/)
+
+<!-- Project Metadata -->
+[![License](https://img.shields.io/github/license/flechtenberg/pulpo?style=flat&color=5D6D7E)](https://github.com/flechtenberg/pulpo/blob/main/LICENSE)
+[![Last Commit](https://img.shields.io/github/last-commit/flechtenberg/pulpo?style=flat&color=5D6D7E)](https://github.com/flechtenberg/pulpo/commits/main)
+[![Commit Activity](https://img.shields.io/github/commit-activity/m/flechtenberg/pulpo?style=flat&color=5D6D7E)](https://github.com/flechtenberg/pulpo/pulse)
+[![Top Language](https://img.shields.io/github/languages/top/flechtenberg/pulpo?style=flat&color=5D6D7E)](https://github.com/flechtenberg/pulpo)
+
+<!-- Additional -->
+[![PyPI - Version](https://img.shields.io/pypi/v/pulpo-dev?color=%2300549f)](https://pypi.org/project/pulpo-dev/)
+[![GitHub Stars](https://img.shields.io/github/stars/flechtenberg/pulpo?style=flat&color=FFD700)](https://github.com/flechtenberg/pulpo/stargazers)
+
 </div>
 
 ---
 
-## 📖 Table of Contents
-- [📍 Overview](#-overview)
-- [⚙️ Modules](#modules)
-- [🚀 Getting Started](#-getting-started)
-    - [🔧 Installation](#-installation)
-    - [🤖 Running pulpo](#-running-pulpo)
-    - [🧪 Tests](#-tests)
-- [🛣 Roadmap](#-roadmap)
-- [🤝 Contributing](#-contributing)
-- [📄 License](#-license)
-- [👏 Acknowledgments](#-acknowledgments)
-
----
-
-
 ## 📍 Overview
 
-Pulpo is a comprehensive Life Cycle Optimization (LCO) tool designed to streamline the optimization of environmental impacts across the entire lifecycle of products. It facilitates the import of data from the LCI databases accessed via brightway, converts inputs into optimization-ready formats, defines and solves optimization models using the Pyomo package, and saves and summarizes results. Pulpo empowers users to efficiently optimize and analyze environmental impacts, supporting sustainable decision-making through lifecycle-based strategies.
+This is a python package for **[Life Cycle Optimization (LCO)](https://onlinelibrary.wiley.com/doi/full/10.1111/jiec.13561)** based on life cycle inventories. `pulpo` is intended to serve as a platform for optimization tasks of varying complexity.   
+
+The package builds on top of the **[Brightway LCA framework](https://docs.brightway.dev/en/latest)** as well as the **[optimization modeling framework Pyomo](https://www.pyomo.org/)**.
 
 ---
 
-## ⚙️ Modules
+## ✨ Capabilities
 
-<details closed><summary>Root</summary>
+Applying optimization is recommended when the system of study has (1) many degrees of freedoms which would prompt the manual assessment of a manifold of scenarios, although only the "optimal" one is of interest and/or (2) any of the following capabilities makes sense within the goal and scope of the study:
 
-| File                                                                                                         | Summary                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| ---                                                                                                          | ---                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-| [.gitconfig](https://github.com/flechtenberg/pulpo/blob/main/.gitconfig)                                     | This code fragment configures a git filter to clean Jupyter Notebook files in the.gitconfig file. It uses the Jupyter nbconvert command to remove the output cells and smudge to display the file's contents.                                                                                                                                                                                                                                                                                                                                             |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
-| [pulpo.py](https://github.com/flechtenberg/pulpo/blob/main/pulpo\pulpo.py)                                   | The code implements a PulpoOptimizer class that provides functionalities for data import, optimization, solving, retrieval, saving and summarizing results related to life cycle assessments. It uses modules like optimizer, bw_parser, converter, and saver for different operations.                                                                                                                                                                                                                                                                   |
-| [bw_parser.py](https://github.com/flechtenberg/pulpo/blob/main/pulpo\utils\bw_parser.py)                     | The code in `bw_parser.py` provides functions for importing, saving, and retrieving life cycle inventory (LCI) data from the Ecoinvent database using the Brightway2 library. It includes functions for importing data, checking if data needs to be reloaded, performing LCA calculations, saving LCI data to files, and reading LCI data from files. Additionally, it provides functions for retrieving activities and environmental flows from the database based on specified criteria. |
-| [converter.py](https://github.com/flechtenberg/pulpo/blob/main/pulpo\utils\converter.py)                     | The code in pulpo\utils\converter.py combines various inputs into a dictionary for an optimization model. It converts sparse matrices to dictionaries, modifies the technosphere matrix, creates sets, specifies demand, limits, and supply, assigns weights, and assembles the final data dictionary for the model. This function serves as a crucial step in preparing the inputs for the optimization process.                                                                                                                                         |
-| [optimizer.py](https://github.com/flechtenberg/pulpo/blob/main/pulpo\utils\optimizer.py)                     | The code defines an optimization model using the pyomo package. It includes sets, parameters, variables, constraints, and an objective function. The model is created and solved using different solvers.                                                                                                                                                                                                                                                                                                                                                 |
-| [saver.py](https://github.com/flechtenberg/pulpo/blob/main/pulpo\utils\saver.py)                             | The code provides two main functionalities:1. save_results: Saves the results of a Pyomo model to an Excel file, including raw results, metadata, and constraints.2. summarize_results: Prints a summary of the model results, including demand, impacts, choices, and constraints.                                                                                                                                                                                                                                                                       |
+- **Specify technology and regional choices** throughout the entire supply chain (i.e. fore- and background), such as choices for the production technology of electricity or origin of metal resources. Consistently accounting for changes in the background in "large scale" decisions [can be significant](https://www.sciencedirect.com/science/article/pii/S2352550924002422). 
+- **Specify constraints** on any activity in the life cycle inventories, which can be interpreted as tangible limitations such as raw material availability, production capacity, or environmental regulations.
+- **Optimize for or constrain any impact category** for which the **characterization factors** are available.
+- **Specify supply values** instead of final demands, which can become relevant if only production values are available (e.g. [here](https://www.pnas.org/doi/10.1073/pnas.1821029116)).
 
-</details>
+The following features are currently under development:
+
+> - [ ] `ℹ️  Optimization under uncertainty [chance-constraints, stochastic optimization ...]`
+> - [ ] `ℹ️  Multi-objective optimization [bi-objective epsilon constrained, goal programming ...]`
+> - [ ] `ℹ️  Integration of economic and social indicators in the optimization problem formulation`
+
+> - [ ] `ℹ️  Development of a GUI for simple optimization tasks`
+> - [X] `ℹ️  Enable PULPO to work on both bw2 and bw25 projects`
+> - [ ] `ℹ️  Thorough documentation to be hosted in the docs.brightway.dev`
+
+Feature requests are more than welcome!
 
 ---
-
-## 🚀 Getting Started
 
 ### 🔧 Installation
-PULPO has been deployed to the pypi index and can now be installed via:
+PULPO has been deployed to the pypi index. Depending on the version of brightway projects you want to work on, install either the bw2 or bw25 version via:
 ```sh
-pip install pulpo-dev
+pip install pulpo-dev[bw2]
+```
+or
+```sh
+pip install pulpo-dev[bw25]
 ```
 
-
 ### 🤖 Running pulpo
-See [pypi](https://pypi.org/project/pulpo-dev/) for a description of how to use PULPO via pip.
-
 Find example notebooks for a [hydrogen case](https://github.com/flechtenberg/pulpo/blob/master/notebooks/hydrogen_showcase.ipynb), an [electricity case](https://github.com/flechtenberg/pulpo/blob/master/notebooks/electricity_showcase.ipynb), and a [plastic case](https://github.com/flechtenberg/pulpo/blob/master/notebooks/plastic_showcase.ipynb) here.
 
 There is also a "workshop" repository ([here](https://github.com/flechtenberg/pulpo_workshop)), which has been created for the Brightcon 2024 conference. It contains several notebooks that guide you through the PULPO package and its functionalities, as well as an exercise.
@@ -80,41 +78,14 @@ Calling from the package folder:
 python -m unittest discover -s tests
 ```
 
-### Updates 
-> - [ ] `ℹ️ The package is currently under development.`
-
 ---
-
-
-## 🛣 Roadmap
-
-> - [ ] `ℹ️  Task 1: Implement integer cuts to allow a fast calculation of a ranked list of best options`
-> - [ ] `ℹ️  Task 2: Implement functionality to treat uncertainty in the optimization problem (robust)`
-> - [ ] `ℹ️ ... Requests are welcome.`
-
+## What's wew in 0.1.3?
+- Enable users to work on both bw2 and bw25 projects.
 
 ---
 
 ## 🤝 Contributing
-
-Contributions are always welcome! Please follow these steps:
-1. Fork the project repository. This creates a copy of the project on your account that you can modify without affecting the original project.
-2. Clone the forked repository to your local machine using a Git client like Git or GitHub Desktop.
-3. Create a new branch with a descriptive name (e.g., `new-feature-branch` or `bugfix-issue-123`).
-```sh
-git checkout -b new-feature-branch
-```
-4. Make changes to the project's codebase.
-5. Commit your changes to your local branch with a clear commit message that explains the changes you've made.
-```sh
-git commit -m 'Implemented new feature.'
-```
-6. Push your changes to your forked repository on GitHub using the following command
-```sh
-git push origin new-feature-branch
-```
-7. Create a new pull request to the original project repository. In the pull request, describe the changes you've made and why they're necessary.
-The project maintainers will review your changes and provide feedback or merge them into the main branch.
+Contributions are very welcome. If you would like to request a feature or report a bug please [open an Issue](https://github.com/flechtenberg/pulpo/issues). If you are confident in your coding skills don't hesitate to implement your suggestions and [send a Pull Request](https://github.com/flechtenberg/pulpo/pulls).
 
 ---
 
@@ -123,13 +94,32 @@ The project maintainers will review your changes and provide feedback or merge t
 This project is licensed under the `ℹ️  BSD 3-Clause` License. See the [LICENSE](LICENSE) file for additional info.
 Copyright (c) 2024, Fabian Lechtenberg. All rights reserved.
 
+
 ---
 
 ## 👏 Acknowledgments
 
-We would like to acknowledge the authors and contributors of these main packages that pulpo is based on:
- - [pyomo](https://github.com/Pyomo/pyomo)
- - [brightway2](https://github.com/brightway-lca/brightway2)
+We would like to express our gratitude to the authors and contributors of the following main packages that **PULPO** is based on:
+
+- [**pyomo**](https://github.com/Pyomo/pyomo)
+- [**brightway2**](https://github.com/brightway-lca/brightway2)
+
+In addition, we acknowledge the pioneering ideas and contributions from the following works:
+
+- **[Computational Structure of LCA](http://link.springer.com/10.1007/978-94-015-9900-9)**
+- **[Technology Choice Model](https://pubs.acs.org/doi/10.1021/acs.est.6b04270)**
+- **[Modular LCA](http://link.springer.com/10.1007/s11367-015-1015-3)**
+
+Follow-up work, incorporating features such as top-down matrix construction for the use of entire life cycle inventory databases and supply specification, was implemented in **PULPO** and culminated in the following publication, which details the approach and outlines its implementation:
+
+> **Fabian Lechtenberg, Robert Istrate, Victor Tulus, Antonio Espuña, Moisès Graells, and Gonzalo Guillén‐Gosálbez.**  
+> “PULPO: A Framework for Efficient Integration of Life Cycle Inventory Models into Life Cycle Product Optimization.”  
+> *Journal of Industrial Ecology*, October 10, 2024.  
+> [https://doi.org/10.1111/jiec.13561](https://doi.org/10.1111/jiec.13561)
+
+
+This article is to be cited / referred to if PULPO is used to derive results of a publication or project.
+
 ---
 ## Authors
 - [@flechtenberg](https://www.github.com/flechtenberg)

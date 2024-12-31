@@ -1,8 +1,8 @@
 import bw2data as bd
+import bw2calc as bc
 import copy
 import pulpo as pulpo
 from pulpo.utils.bw_parser import import_data, retrieve_methods, retrieve_env_interventions, retrieve_processes
-from pulpo import pulpo
 
 def setup_test_db():
     # Set the current project to "sample_project"
