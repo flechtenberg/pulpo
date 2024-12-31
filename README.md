@@ -79,7 +79,7 @@ python -m unittest discover -s tests
 ```
 
 ---
-## What's wew in 0.1.3?
+## What's new in 0.1.3?
 - Enable users to work on both bw2 and bw25 projects.
 
 ---
