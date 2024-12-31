@@ -1,7 +1,7 @@
 import bw2data as bd
 import bw2calc as bc
 import copy
-from pulpo.utils.tests import is_bw25
+from pulpo.utils.utils import is_bw25
 
 def setup_test_db():
     # Set the current project to "sample_project"
