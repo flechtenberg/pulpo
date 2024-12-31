@@ -5,7 +5,7 @@ from pulpo.utils.utils import is_bw25
 
 def setup_test_db():
     # Set the current project to "sample_project"
-    bd.projects.set_current("sample_project_bw2" if is_bw25() else "sample_project")
+    bd.projects.set_current("sample_project_bw25" if is_bw25() else "sample_project")
 
     # Keys
     # Biosphere
