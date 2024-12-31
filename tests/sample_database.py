@@ -1,10 +1,11 @@
 import bw2data as bd
 import bw2calc as bc
 import copy
+from pulpo.utils.utils import is_bw25
 
 def setup_test_db():
     # Set the current project to "sample_project"
-    bd.projects.set_current("sample_project")
+    bd.projects.set_current("sample_project_bw25" if is_bw25() else "sample_project")
 
     # Keys
     # Biosphere
@@ -124,15 +125,22 @@ def setup_test_db():
         method.write(flow_list)
 
 def sample_lcia():
-    # Load the technosphere database
-    bd.projects.set_current('sample_project')
+    bd.projects.set_current("sample_project_bw25" if is_bw25() else "sample_project")
     technosphere_db = bd.Database("technosphere")
-    # Perform LCA with FU 1 for all activities
-    act = {act.key: 1 for act in technosphere_db}
-    # Perform Multi-LCA
-    bd.calculation_setups['multiLCA'] = {'inv': [act], 'ia': list(bd.methods)}
-    myMultiLCA = bc.MultiLCA('multiLCA')
-    results = [round(x, 5) for x in myMultiLCA.results[0]]
+
+    if is_bw25():
+        functional_units = {"act": {act.id: 1 for act in technosphere_db}}
+        config = {"impact_categories": list(bd.methods)}
+        data_objs = bd.get_multilca_data_objs(functional_units=functional_units, method_config=config)
+        myMultiLCA = bc.MultiLCA(demands=functional_units, method_config=config, data_objs=data_objs)
+        myMultiLCA.lci()
+        myMultiLCA.lcia()
+        results = [round(myMultiLCA.scores[x], 5) for x in myMultiLCA.scores]
+    else:
+        act = {act.key: 1 for act in technosphere_db}
+        bd.calculation_setups['multiLCA'] = {'inv': [act], 'ia': list(bd.methods)}
+        myMultiLCA = bc.MultiLCA('multiLCA')
+        results = [round(x, 5) for x in myMultiLCA.results[0]]
     return results
 
 def main():
