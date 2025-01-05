@@ -6,7 +6,7 @@ with open('README.md', 'r', encoding='utf-8') as readme_file:
 
 setup(
     name="pulpo-dev",
-    version="0.1.3",
+    version="0.1.4",
     description="Pulpo package for optimization in LCI databases",
     author="Fabian Lechtenberg",
     author_email="fabian.lechtenberg@chem.ethz.ch",
@@ -26,6 +26,7 @@ setup(
         "jupyterlab",
         "numpy<2.0.0",
         "pandas",
+        "scipy<=1.14.1",
         "tqdm",
         "xlsxwriter",
     ],
