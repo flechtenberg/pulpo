@@ -167,7 +167,15 @@ def calculate_inv_flows(instance, lci_data):
     except:
         scaling_vector = np.array([instance.scaling_vector[x] for x in instance.scaling_vector])
     flows = intervention_matrix.dot(scaling_vector)
-    instance.inv_flows = pyo.Var(range(0, intervention_matrix.shape[0]), initialize=flows)
+    # Check if inv_flows already exists in the model
+    # @TODO: Consider adding "inv_flows" directly as variable to the model and skip this check.
+    if hasattr(instance, 'inv_flows'):
+        # Update the values of the existing variable
+        for i in range(intervention_matrix.shape[0]):
+            instance.inv_flows[i].value = flows[i]
+    else:
+        # Create the variable if it does not exist
+        instance.inv_flows = pyo.Var(range(0, intervention_matrix.shape[0]), initialize=dict(enumerate(flows)))
     return instance
 
 
