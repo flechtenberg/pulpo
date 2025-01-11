@@ -18,15 +18,32 @@ def import_data(project: str, database: str, method: Union[str, List[str], dict[
         Dict[str, Union[dict, Any]]: Dictionary containing imported LCI data.
     """
 
-    # Set project and get database
+    # Set project and check if it exists
+    if project not in bd.projects:
+        raise ValueError(f"Project '{project}' does not exist. Please check the project name.")
+
     bd.projects.set_current(project)
+
+    # Check if the database exists
+    if database not in bd.databases:
+        raise ValueError(
+            f"Database '{database}' does not exist in the project '{project}'. Available databases: {list(bd.databases.keys())}")
+
     eidb = bd.Database(database)
 
     # Prepare methods
     if isinstance(method, str):
         method = [method]  # Convert single string to list of strings
     method = sorted(method)
+
     methods = retrieve_methods(project, method)
+
+    # Validate retrieved methods
+    invalid_methods = [m for m in method if m not in [str(mt) for mt in bd.methods]]
+    if invalid_methods:
+        raise ValueError(
+            f"The following methods do not exist in the project '{project}': {invalid_methods}. "
+        )
 
     rand_act = eidb.random()
 
@@ -58,6 +75,7 @@ def import_data(project: str, database: str, method: Union[str, List[str], dict[
 
             # Store the characterization (C) matrix for the method
             characterization_matrices[str(method)] = lca.characterization_matrix
+
 
     # Extract A (Technosphere) and B (Biosphere) matrices from the LCA
     technology_matrix = lca.technosphere_matrix  # A matrix
@@ -114,7 +132,7 @@ def retrieve_processes(project: str, database: str, keys=None, activities=None, 
     Returns:
         list: List of matching activities from the database.
     """
-
+    #@TODO: Allow searching in linked databases
     # Set project and get database
     bd.projects.set_current(project)
     eidb = bd.Database(database)
