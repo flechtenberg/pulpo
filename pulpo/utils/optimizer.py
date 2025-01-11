@@ -41,7 +41,7 @@ def create_model():
     model.impacts = pyo.Var(model.INDICATOR, bounds=(-1e24, 1e24), doc='Environmental impact on indicator h evaluated with the established LCIA method')
     model.scaling_vector = pyo.Var(model.PROCESS, bounds=(-1e24, 1e24), doc='Activity level of each process to meet the final demand')
     model.inv_vector = pyo.Var(model.INV, bounds=(-1e24, 1e24), doc='Intervention flows')
-    model.slack = pyo.Var(model.PRODUCT, bounds=(0, 1e24), doc='Supply slack variables')
+    model.slack = pyo.Var(model.PRODUCT, bounds=(-1e24, 1e24), doc='Supply slack variables')
 
     # Building rules for sets
     model.Env_in_out = pyo.BuildAction(rule=populate_env)
@@ -54,7 +54,8 @@ def create_model():
     model.INVENTORY_CNSTR = pyo.Constraint(model.INV, rule=inventory_constraint)
     model.UPPER_CNSTR = pyo.Constraint(model.PROCESS, rule=upper_constraint)
     model.LOWER_CNSTR = pyo.Constraint(model.PROCESS, rule=lower_constraint)
-    model.SLACK_CNSTR = pyo.Constraint(model.PRODUCT, rule=slack_constraint)
+    model.SLACK_UPPER_CNSTR = pyo.Constraint(model.PRODUCT, rule=slack_upper_constraint)
+    model.SLACK_LOWER_CNSTR = pyo.Constraint(model.PRODUCT, rule=slack_lower_constraint)
     model.INV_CNSTR = pyo.Constraint(model.INV, rule=upper_env_constraint)
     model.IMP_CNSTR = pyo.Constraint(model.INDICATOR, rule=upper_imp_constraint)
 
@@ -113,9 +114,13 @@ def upper_imp_constraint(model, h):
     return model.impacts[h] <= model.UPPER_IMP_LIMIT[h]
 
 
-def slack_constraint(model, j):
+def slack_upper_constraint(model, j):
     """ Slack variable upper limit for activities where supply is specified instead of demand """
     return model.slack[j] <= 1e20 * model.SUPPLY[j]
+
+def slack_lower_constraint(model, j):
+    """ Slack variable upper limit for activities where supply is specified instead of demand """
+    return model.slack[j] >= -1e20 * model.SUPPLY[j]
 
 def objective_function(model):
     """Objective is a sum over all indicators with weights. Typically, the indicator of study has weight 1, the rest 0"""
