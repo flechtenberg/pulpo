@@ -26,6 +26,25 @@ class TestParser(unittest.TestCase):
         self.assertEqual(result['intervention_matrix'].shape, (4, 5))
         self.assertEqual(result['process_map'], {('technosphere', 'oil extraction'): 0, ('technosphere', 'lignite extraction'): 1, ('technosphere', 'steam cycle'): 2, ('technosphere', 'wind turbine'): 3, ('technosphere', 'e-Car'): 4, 2: 'steam cycle | electricity | GLO', 1: 'lignite extraction | lignite | GLO', 0: 'oil extraction | oil | GLO', 3: 'wind turbine | electricity | GLO', 4: 'e-Car | transport | GLO'})
 
+        # Test invalid database
+        with self.assertRaises(ValueError) as context:
+            import_data('sample_project', 'nothing', methods, 'biosphere')
+        self.assertIn("Database 'nothing' does not exist", str(context.exception))
+
+        # Test invalid project
+        with self.assertRaises(ValueError) as context:
+            import_data('nonexistent_project', 'technosphere', methods, 'biosphere')
+        self.assertIn("Project 'nonexistent_project' does not exist", str(context.exception))
+
+        # Test invalid method
+        invalid_methods = {
+            "('my project', 'nonexistent method')": 1,
+            "('my project', 'air quality')": 1,
+        }
+        with self.assertRaises(ValueError) as context:
+            import_data('sample_project', 'technosphere', invalid_methods, 'biosphere')
+        self.assertIn("The following methods do not exist", str(context.exception))
+
     def test_retrieve_activities(self):
         key = retrieve_processes('sample_project', 'technosphere', keys=["('technosphere', 'wind turbine')"])
         name = retrieve_processes('sample_project', 'technosphere', activities=['e-Car'])
