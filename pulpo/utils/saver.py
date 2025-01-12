@@ -47,8 +47,13 @@ def save_results(instance, project, database, choices, constraints, demand, proc
         df.sort_values(by=['Value'], inplace=True, ascending=False)
         df.to_excel(writer, sheet_name=v.name, index=False)
 
+    # Normalize database to a list if it is a string
+    if isinstance(database, str):
+        database = [database]
+
     # Store the metadata
-    pd.DataFrame([project + '__' + database]).to_excel(writer, sheet_name='project and db')
+    metadata = [f"{project}__{db}" for db in database]
+    pd.DataFrame(metadata).to_excel(writer, sheet_name='project and db')
 
     metadata = {}
     for choice in choices:
