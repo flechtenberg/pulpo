@@ -6,7 +6,7 @@ with open('README.md', 'r', encoding='utf-8') as readme_file:
 
 setup(
     name="pulpo-dev",
-    version="0.1.4",
+    version="0.1.5",
     description="Pulpo package for optimization in LCI databases",
     author="Fabian Lechtenberg",
     author_email="fabian.lechtenberg@chem.ethz.ch",
