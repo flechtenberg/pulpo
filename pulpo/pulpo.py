@@ -5,13 +5,14 @@ from tests.rice_database import setup_rice_husk_db
 from tests.generic_database import setup_generic_db
 
 class PulpoOptimizer:
-    def __init__(self, project: str, database: str, method: Union[str, List[str], dict], directory: str):
+    def __init__(self, project: str, database: Union[str, List[str]], method: Union[str, List[str], dict], directory: str):
         """
-        Initializes the PulpoOptimizer with project, database, method, and directory.
+        Initializes the PulpoOptimizer with project, databases, method, and directory.
 
         Args:
             project (str): Name of the project.
-            database (str): Name of the database.
+            database (Union[str, List[str]]): Name of the database or list of two databases
+                                               (e.g. foreground and linked background).
             method (Union[str, List[str], dict]): Method(s) for optimization.
             directory (str): Directory for saving results.
         """

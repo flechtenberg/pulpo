@@ -99,6 +99,8 @@ def setup_test_db():
             act.new_exchange(amount=amount, input=input, type=type).save()
             act.save()
 
+    # @TODO: Add another "foreground" database, to test the import of two dbs.
+
     # Loop through the list of methods and deregister each one
     # Create a copy of the methods list
     methods_copy = copy.deepcopy(bd.methods)
