@@ -148,10 +148,19 @@ def calculate_methods(instance, lci_data, methods):
         scaling_vector = np.array([instance.scaling_vector[x].value for x in instance.scaling_vector])
     except:
         scaling_vector = np.array([instance.scaling_vector[x] for x in instance.scaling_vector])
+
     impacts = {}
     for h in matrices:
         impacts[h] = sum(env_cost[h].dot(scaling_vector))
-    instance.impacts_calculated = pyo.Var([h for h in impacts], initialize=impacts)
+
+    # Check if instance.impacts_calculated exists
+    if hasattr(instance, 'impacts_calculated'):
+        # Update values if it already exists
+        for h in impacts:
+            instance.impacts_calculated[h].value = impacts[h]
+    else:
+        # Create instance.impacts_calculated
+        instance.impacts_calculated = pyo.Var([h for h in impacts], initialize=impacts)
     return instance
 
 def calculate_inv_flows(instance, lci_data):
