@@ -27,30 +27,30 @@ For simple problems, such as the example shown later in this section, graphical 
 
 ### LCA to Optimization
 
-The computational structure of LCA can be integrated into a linear program, as shown by the **[Technology Choice Model (TCM)](https://pubs.acs.org/doi/10.1021/acs.est.6b04270)** approach. Leveraging the system's linearity, the resulting optimization problem is formulated as:
+The [computational structure of LCA](https://link.springer.com/book/10.1007/978-94-015-9900-9) can be converted to a linear program, as shown by the **[Technology Choice Model (TCM)](https://pubs.acs.org/doi/10.1021/acs.est.6b04270)** approach. Leveraging the system's linearity, the resulting optimization problem is formulated as:
 
 $$
 \begin{aligned}
 & \min_{s} & QBs \\
-& \text{s.t.} & As = y \\
+& \text{s.t.} & As = f \\
 &            & s \geq 0
 \end{aligned}
 $$
 
 Here:
 - $QBs$: The objective function, where $Q$ is a vector of characterization factors, $B$ is the inventory matrix, and $s$ is the activity scaling vector.
-- $As = y$: System constraints, where $A$ is the technology matrix, $y$ is the demand vector, and $s$ represents activity scaling.
+- $As = f$: System constraints, where $A$ is the technology matrix, $f$ is the demand vector, and $s$ represents activity scaling.
 - $s \geq 0$: Non-negativity constraint ensuring scaling variables remain realistic.
 
 The matrices $A$, $B$, and $Q$ are derived from the LCA database, while the user specifies the demand vector $y$. The optimization identifies the scaling vector $s$ that minimizes the objective function while satisfying the constraints. 
 
-When $A$ is square and invertible, the system constraints yield a unique solution, equivalent to a standard LCA with no degrees of freedom. Optimization is applied when $A$ is not square—i.e., there are more activities than products—introducing degrees of freedom. The user defines these degrees of freedom by converting the original square $A$ matrix into a rectangular matrix $A^*$, which is handled in PULPO using a top-down approach, as shown below.
+When $A$ is square and invertible, the system constraints yield a unique solution, equivalent to a standard LCA with no degrees of freedom. Optimization is applied when $A$ is not square—i.e., there are more activities than products—introducing degrees of freedom. The user defines these degrees of freedom by converting the original square $A$ matrix into a rectangular matrix $A^*$, which is created in PULPO using a top-down approach, as shown below.
 
 
-#### Top-Down Approach
+#### Rectangular Matrix Construction
 Starting with a square technosphere matrix, choices can be introduced to the system by summing rows of functionally equivalent products. For instance, electricity used by a subsequent process may not need to be differentiated by its production process—whether it originates from coal or wind power. In a traditional LCA, however, these products would be treated as distinct. 
 
-By summing the rows corresponding to functionally equivalent products, all activities that previously relied on individual products must now choose between or use a mix of the available options. This approach enables a system-wide integration of choices, shifting the focus from specific production pathways to broader decision-making. 
+By summing the rows corresponding to functionally equivalent products, all activities that previously relied on individual products must now choose between or use a mix of the available options. This approach enables a system-wide integration of choices. 
 
 This concept is similar to the **[modular LCA](http://link.springer.com/10.1007/s11367-015-1015-3)**. The illustration below contrasts this **top-down row elimination** approach with the traditional **bottom-up** method of constructing the rectangular technosphere matrix.
 
@@ -126,19 +126,11 @@ The matrix $ \mathbf{A} $ below represents a minimal system producing electricit
 
 $$
 A =
-\begin{array}{c}
-\text{electricity market} \quad \text{coal} \quad \text{wind} \\
-\begin{pmatrix}
-1 & -0.1 & -0.05 \\
--0.5 & 1 & 0 \\
--0.5 & 0 & 1 \\
-\end{pmatrix}
-\end{array}
-\begin{array}{c}
-\\
-\text{electricity (from market)} \, [\text{kWh}] \\
-\text{electricity (from coal)} \, [\text{kWh}] \\
-\text{electricity (from wind)} \, [\text{kWh}]
+\begin{array}{l c c c}
+    & \text{electricity market} & \text{coal} & \text{wind} \\[1ex]
+    \text{electricity (from market) [kWh]} & 1 & -0.1 & -0.05 \\
+    \text{electricity (from coal) [kWh]} & -0.5 & 1 & 0 \\
+    \text{electricity (from wind) [kWh]} & -0.5 & 0 & 1 \\
 \end{array}
 $$
 
@@ -178,19 +170,13 @@ Following the top-down approach, this requires summing the rows "electricity (fr
 
 $$
 A^* =
-\begin{array}{c}
-\text{electricity market} \quad \text{coal} \quad \text{wind} \\
-\begin{pmatrix}
-1 & -0.1 & -0.05 \\
--1 & 1 & 1 \\
-\end{pmatrix}
-\end{array}
-\begin{array}{c}
-\\
-\text{electricity (from market)} \, [\text{kWh}] \\
-\text{electricity}^* \, [\text{kWh}]
+\begin{array}{l c c c}
+    & \text{electricity market} & \text{coal} & \text{wind} \\[1ex]
+    \text{electricity (from market) [kWh]} & 1 & -0.1 & -0.05 \\
+    \text{electricity}^* \, [\text{kWh}] & -1 & 1 & 1 \\
 \end{array}
 $$
+
 
 The resulting system of equations is now underdetermined, meaning the solution to $A^* \cdot s = f$ is no longer unique. By plugging this rectangularized matrix into the PULPO optimization problem and solving it, the optimal values for $s$ can be determined. These values represent the appropriate share of coal and wind power plants supplying the market, based on the specifications (objective, constraints, etc.) defined by the user.
 
@@ -250,34 +236,3 @@ $$
 $$
 
 Here, $s_2 + s_3 = 1$ ensures the total production meets supply. The unconstrained solution again favors wind power, with a GWP of 0.05 kg CO$_2$eq and a slack of 0.95 kWh due to internal electricity consumption.
-
-Updating the biosphere matrix with aggregated impacts from a static background yields:
-
-$$
-\mathbf{B}^* = 
-\begin{pmatrix}
-0 & 1.055 & 0.037
-\end{pmatrix}
-\quad \text{kg CO}_2 \text{, in air}
-$$
-
-The increased per-unit impacts account for feedback effects from internal electricity consumption. With the updated technosphere matrix:
-
-$$
-A^* =
-\begin{array}{c}
-\text{electricity market} \quad \text{coal} \quad \text{wind} \\
-\begin{pmatrix}
-1 & 0 & 0 \\
--1 & 1 & 1 \\
-\end{pmatrix}
-\end{array}
-\begin{array}{c}
-\\
-\text{electricity (from market)} \, [\text{kWh}] \\
-\text{electricity}^* \, [\text{kWh}]
-\end{array}
-$$
-
-The optimization still chooses wind power, but the total GWP is 0.0370 kg CO$_2$eq, higher than the initial 0.0105 kg CO$_2$eq when the background was optimized dynamically. This highlights the importance of feedback effects in background optimization.
-
