@@ -1,6 +1,6 @@
 # Getting Started
 
-This section will guide you through the workflow of `pulpo`, starting from the very basics. The illustration below shows the required user inputs to define the optimization problem, as well as how `pulpo` converts this information to be used in interconnected packages to resolve the optimization problem.
+This section will guide you through the workflow of `pulpo`, starting from the very basics. The illustration below shows the required user inputs to define an optimization problem, as well as how `pulpo` converts this information to be used in interconnected packages to resolve the optimization problem.
 
 ```{image} ../data/PULPO_infogram_new_light.svg
 :class: only-light
