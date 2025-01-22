@@ -8,6 +8,7 @@ __pycache__/
 # Distribution / packaging
 .Python
 env/
+_build/
 build/
 develop-eggs/
 dist/
@@ -23,6 +24,8 @@ test_ignore/
 *.egg-info/
 .installed.cfg
 *.egg
+
+desktop.ini
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
