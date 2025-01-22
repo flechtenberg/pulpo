@@ -1,6 +1,6 @@
 # Installation
 
-`pulpo` is a Python software package available via [`pip`](https://pypi.org/project/pip/).
+`pulpo` is available as Python software package installable via [`pip`](https://pypi.org/project/pip/).
 
 ```{note}
 `pulpo` supports both Brightway2 (`bw2`) and Brightway25 (`bw25`). However, these dependencies must be installed in separate environments to avoid conflicts. You can use either `conda` or `venv` to manage your environments.
