@@ -1,0 +1,93 @@
+:py:mod:`pulpo.utils.bw_parser`
+===============================
+
+.. py:module:: pulpo.utils.bw_parser
+
+
+Module Contents
+---------------
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   pulpo.utils.bw_parser.import_data
+   pulpo.utils.bw_parser.retrieve_processes
+   pulpo.utils.bw_parser.retrieve_env_interventions
+   pulpo.utils.bw_parser.retrieve_methods
+
+
+
+.. py:function:: import_data(project: str, databases: Union[str, List[str]], method: Union[str, List[str], Dict[str, int]], intervention_matrix_name: str) -> Dict[str, Union[dict, Any]]
+
+   Main function to import LCI data for a project from one or more databases.
+
+   :param project: Name of the project.
+   :type project: str
+   :param databases: Name of the primary database or a list of databases
+                     (foreground, background).
+   :type databases: Union[str, List[str]]
+   :param method: Method(s) for data retrieval.
+   :type method: Union[str, List[str], Dict[str, int]]
+   :param intervention_matrix_name: Name of the intervention matrix.
+   :type intervention_matrix_name: str
+
+   :returns: Dictionary containing imported LCI data.
+   :rtype: Dict[str, Union[dict, Any]]
+
+
+.. py:function:: retrieve_processes(project: str, databases: Union[str, List[str]], keys=None, activities=None, reference_products=None, locations=None)
+
+   Retrieve activities from one or more databases based on specified keys, activities, reference products, and locations.
+
+   :param project: Name of the project.
+   :type project: str
+   :param databases: Name of the primary database or a list of databases (foreground, background).
+   :type databases: Union[str, List[str]]
+   :param keys: List of keys to filter activities.
+   :type keys: list, optional
+   :param activities: List of activity names to filter.
+   :type activities: list, optional
+   :param reference_products: List of reference products to filter.
+   :type reference_products: list, optional
+   :param locations: List of locations to filter.
+   :type locations: list, optional
+
+   :returns: List of matching activities from the specified databases.
+   :rtype: list
+
+
+.. py:function:: retrieve_env_interventions(project: str = '', intervention_matrix: str = 'biosphere3', keys=None, activities=None, categories=None)
+
+   Retrieve environmental flows from the biosphere database based on specified keys, activities, and categories.
+
+   :param project: Name of the project.
+   :type project: str, optional
+   :param intervention_matrix: Name of the intervention matrix.
+   :type intervention_matrix: str
+   :param keys: List of keys to filter environmental flows.
+   :type keys: list, optional
+   :param activities: List of activity names to filter.
+   :type activities: list, optional
+   :param categories: List of categories to filter.
+   :type categories: list, optional
+
+   :returns: List of matching environmental flows from the database.
+   :rtype: list
+
+
+.. py:function:: retrieve_methods(project: str, sub_string: List[str]) -> List[str]
+
+   Retrieve all methods that contain the specified list of substrings.
+
+   :param project: Name of the project.
+   :type project: str
+   :param sub_string: List of substrings to search for in method names.
+   :type sub_string: List[str]
+
+   :returns: List of methods that match the substrings.
+   :rtype: List[str]
+
+

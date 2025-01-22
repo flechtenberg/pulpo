@@ -1,0 +1,24 @@
+:py:mod:`pulpo.utils.utils`
+===========================
+
+.. py:module:: pulpo.utils.utils
+
+
+Module Contents
+---------------
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   pulpo.utils.utils.is_bw25
+
+
+
+.. py:function:: is_bw25()
+
+   Check if the installed Brightway packages adhere to bw25 versions.
+
+

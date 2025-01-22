@@ -1,0 +1,1228 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="../../_static/favicon.svg" type="image/svg+xml">
+    <link rel="icon" sizes="144x144" href="../../_static/favicon-144.png" type="image/png">
+    <link rel="mask-icon" href="../../_static/favicon_mask-icon.svg" color="#222832" type="image/svg+xml">
+    <link rel="apple-touch-icon" sizes="500x500" href="../../_static/favicon-500.png" type="image/png">
+    <title>Rice Example &#8212; pulpo  documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+<link href="../../_static/styles/bootstrap.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+
+  
+  <link href="../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+    <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=913d6465" />
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341" />
+  <script src="../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=3ee479438cf8b5e0d341"></script>
+
+    <script src="../../_static/documentation_options.js?v=8a448e45"></script>
+    <script src="../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../_static/design-tabs.js?v=36754332"></script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'content/examples/rice_example';</script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="API Reference" href="../api/index.html" />
+    <link rel="prev" title="PULPO Electricity Showcase" href="electricity_showcase.html" />
+<meta name="google-site-verification" content="Fb3YVU81AToFlPNhlaQf6LLq1SMrHPbY-RtFsgZkw9Q" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../_static/pulpo_logo_big.svg" class="logo__image only-light" alt="pulpo  documentation - Home"/>
+    <script>document.write(`<img src="../../_static/pulpo_logo_big.svg" class="logo__image only-dark" alt="pulpo  documentation - Home"/>`);</script>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav class="navbar-nav">
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../getting_started/index.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../theory.html">
+    Theory
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../api/index.html">
+    API
+  </a>
+</li>
+
+            <li class="nav-item dropdown pst-header-nav-item">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="../contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="../codeofconduct.html">
+    Code of Conduct
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="../license.html">
+    License
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="../changelog.html">
+    Changelog
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  </button>
+`);
+</script></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links navbar-nav"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/flechtenberg/pulpo" title="Open this Repo on GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fab fa-brands fa-github fa-lg" aria-hidden="true"></i></span>
+            <span class="sr-only">Open this Repo on GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+    </div>
+  
+
+  
+    <button class="sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav class="navbar-nav">
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../getting_started/index.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../theory.html">
+    Theory
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../api/index.html">
+    API
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../codeofconduct.html">
+    Code of Conduct
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../license.html">
+    License
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../changelog.html">
+    Changelog
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  </button>
+`);
+</script></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links navbar-nav"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/flechtenberg/pulpo" title="Open this Repo on GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fab fa-brands fa-github fa-lg" aria-hidden="true"></i></span>
+            <span class="sr-only">Open this Repo on GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="index.html">Example Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="electricity_showcase.html">PULPO Electricity Showcase</a></li>
+
+
+
+
+
+
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Rice Example</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">Example Collection</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page">Rice Example</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <div style="border: 2px solid #FFA500; padding: 10px; border-radius: 5px; background-color: #FFFACD; color: black; text-align: center;">
+  <h1 style="margin: 0;">Rice Husk Example 🌾</h1>
+</div><p>This example is based on the following publication: <a class="reference external" href="https://doi.org/10.1021/acs.est.6b04270">Kätelhön et al. (2016)</a>. The original example used for introducing the TCM deals with a simultaneous technology 🔨 and regional 🌐 choice problem. It can also be solved with PULPO. The superstructure can be seen below:</p>
+<p><img alt="Image Alt Text" src="../../_images/system_boundaries_rice-superstructure_neutral.svg" /></p>
+<section class="tex2jax_ignore mathjax_ignore" id="rice-example">
+<h1>Rice Example<a class="headerlink" href="#rice-example" title="Link to this heading">#</a></h1>
+<section id="problem-formulation">
+<h2>Problem Formulation<a class="headerlink" href="#problem-formulation" title="Link to this heading">#</a></h2>
+<p>The original problem formulation deals with an economic objective function, using factor constraints. With PULPO, the intention is to solve LCO problems with environmental objectives, but a function for economic factors could be considered for implementation as well, if data availability allows so.</p>
+<p>Hence, the adapted problem formulation can be stated as follows:</p>
+<div style="background-color: #f9f9f9; padding: 20px; border: 2px solid #ccc; border-radius: 10px; font-family: Arial, sans-serif;">
+  <h2 style="color: #0073e6;">Goal and Scope</h2>
+  <p>Find the optimal system configuration, minimizing the global warming potential. First, in an <b>unconstrained system</b>.</p>
+  <div style="background-color: #f0f8ff; padding: 15px; margin: 15px 0; border-left: 4px solid #0073e6;">
+    <h3 style="color: #0073e6;">📦 Functional Unit</h3>
+    <p>For demonstration purposes, a final demand of <b>1 Mt of processed rice</b> is specified.</p>
+  </div>
+  <div style="background-color: #fffae6; padding: 15px; margin: 15px 0; border-left: 4px solid #ffcc00;">
+    <h3 style="color: #ffcc00;">🎯 Objective Function</h3>
+    <p><b>Primary objective:</b> Global warming potential (GWP).</p>
+  </div>
+  <div style="background-color: #e6ffe6; padding: 15px; margin: 15px 0; border-left: 4px solid #228b22;">
+    <h3 style="color: #228b22;">🔄 Possible Choices</h3>
+    <ul>
+      <li><b>Regional</b> 🌐: (Rice husk collection 1 / Rice husk collection 2 / ... / Rice husk collection 5)</li>
+      <li><b>Technology</b> 🔨: (Rice husk boiler / Natural gas boiler / Wood pellet boiler)</li>
+    </ul>
+  </div>
+  <div style="background-color: #fbe9e7; padding: 15px; margin: 15px 0; border-left: 4px solid #d32f2f;">
+    <h3 style="color: #d32f2f;">⚙️ Additional Constraints</h3>
+    <p>None.</p>
+  </div>
+</div>
+<section id="technosphere-matrix-a">
+<h3><strong><u>Technosphere Matrix A</u></strong><a class="headerlink" href="#technosphere-matrix-a" title="Link to this heading">#</a></h3>
+<p>In the Technosphere, new choices are added in a <strong>bottom-up</strong> fashion, extending the square matrix:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\scriptsize
+\begin{array}{|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|}
+\hline
+ &amp; \text{Rice} &amp; \text{Rice} &amp; \text{Natural gas} &amp; \text{natural} &amp; \text{Power} &amp; \text{Transportation} &amp; \textcolor{darkorange}{\text{Rice husk}} &amp; \textcolor{darkorange}{\text{Rice husk}} &amp; \textcolor{darkorange}{\text{Rice husk}} &amp; \textcolor{darkorange}{\text{Rice husk}} &amp; \textcolor{darkorange}{\text{Rice husk}} &amp; \textcolor{darkorange}{\text{Wood pellet}} &amp; \textcolor{darkorange}{\text{Burning of}} &amp; \textcolor{orange}{\text{Rice husk}} &amp; \textcolor{orange}{\text{Wood pellet}} \\
+ &amp; \text{factory} &amp; \text{farming} &amp; \text{boiler} &amp; \text{gas supply} &amp; \text{plant} &amp; \text{by truck} &amp; \textcolor{darkorange}{\text{collection 1}} &amp; \textcolor{darkorange}{\text{collection 2}} &amp; \textcolor{darkorange}{\text{collection 3}} &amp; \textcolor{darkorange}{\text{collection 4}} &amp; \textcolor{darkorange}{\text{collection 5}} &amp; \textcolor{darkorange}{\text{supply}} &amp; \textcolor{darkorange}{\text{rice husk}} &amp; \textcolor{orange}{\text{boiler}} &amp; \textcolor{orange}{\text{boiler}} \\
+\hline
+\text{Processed rice (in Mt)} &amp; 1 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; \textcolor{LightSalmon}{0} &amp; \textcolor{LightSalmon}{0} &amp; \textcolor{LightSalmon}{0} &amp; \textcolor{LightSalmon}{0} &amp; \textcolor{LightSalmon}{0} &amp; \textcolor{LightSalmon}{0} &amp; \textcolor{LightSalmon}{0} &amp; \textcolor{PeachPuff}{0} &amp; \textcolor{PeachPuff}{0} \\
+\hline
+\text{Unprocessed rice (in Mt)} &amp; -1.15 &amp; 1 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; \textcolor{LightSalmon}{0} &amp; \textcolor{LightSalmon}{0} &amp; \textcolor{LightSalmon}{0} &amp; \textcolor{LightSalmon}{0} &amp; \textcolor{LightSalmon}{0} &amp; \textcolor{LightSalmon}{0} &amp; \textcolor{LightSalmon}{0} &amp; \textcolor{PeachPuff}{0} &amp; \textcolor{PeachPuff}{0} \\
+\hline
+\text{Thermal energy (in TWh)} &amp; -2.2 &amp; 0 &amp; \cellcolor{orange}\textcolor{white}{1} &amp; 0 &amp; 0 &amp; 0 &amp; \textcolor{LightSalmon}{0} &amp; \textcolor{LightSalmon}{0} &amp; \textcolor{LightSalmon}{0} &amp; \textcolor{LightSalmon}{0} &amp; \textcolor{LightSalmon}{0} &amp; \textcolor{LightSalmon}{0} &amp; \textcolor{LightSalmon}{0} &amp; \cellcolor{orange}\textcolor{white}{1} &amp; \cellcolor{orange}\textcolor{white}{1} \\
+\hline
+\text{Natural gas (in TWh)} &amp; 0 &amp; 0 &amp; -1.11 &amp; 1 &amp; 0 &amp; 0 &amp; \textcolor{LightSalmon}{0} &amp; \textcolor{LightSalmon}{0} &amp; \textcolor{LightSalmon}{0} &amp; \textcolor{LightSalmon}{0} &amp; \textcolor{LightSalmon}{0} &amp; \textcolor{LightSalmon}{0} &amp; \textcolor{LightSalmon}{0} &amp; \textcolor{PeachPuff}{0} &amp; \textcolor{PeachPuff}{0} \\
+\hline
+\text{Electricity (in TWh)} &amp; -0.08 &amp; 0 &amp; 0 &amp; 0 &amp; 1 &amp; 0 &amp; \textcolor{LightSalmon}{0} &amp; \textcolor{LightSalmon}{0} &amp; \textcolor{LightSalmon}{0} &amp; \textcolor{LightSalmon}{0} &amp; \textcolor{LightSalmon}{0} &amp; \textcolor{darkorange}{-0.02} &amp; \textcolor{LightSalmon}{0} &amp; \textcolor{PeachPuff}{0} &amp; \textcolor{PeachPuff}{0} \\
+\hline
+\text{Transportation (in Gt*km)} &amp; -0.35 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; 1 &amp; \textcolor{darkorange}{-0.12} &amp; \textcolor{darkorange}{-0.24} &amp; \textcolor{darkorange}{-0.36} &amp; \textcolor{darkorange}{-0.48} &amp; \textcolor{darkorange}{-0.6} &amp; \textcolor{darkorange}{-0.1} &amp; \textcolor{LightSalmon}{0} &amp; \textcolor{PeachPuff}{0} &amp; \textcolor{PeachPuff}{0} \\
+\hline
+\textcolor{DodgerBlue}{\text{Rice husk at factory (in Mt)}} &amp; \textcolor{lightblue}{0} &amp; \textcolor{lightblue}{0} &amp; \textcolor{lightblue}{0} &amp; \textcolor{lightblue}{0} &amp; \textcolor{lightblue}{0} &amp; \textcolor{lightblue}{0} &amp; \cellcolor{MediumOrchid}\textcolor{white}{1} &amp; \cellcolor{MediumOrchid}\textcolor{white}{1} &amp; \cellcolor{MediumOrchid}\textcolor{white}{1} &amp; \cellcolor{MediumOrchid}\textcolor{white}{1} &amp; \cellcolor{MediumOrchid}\textcolor{white}{1} &amp; \textcolor{Thistle}{0} &amp; \textcolor{Thistle}{0} &amp; \textcolor{MediumOrchid}{-0.23} &amp; \textcolor{Thistle}{0} \\
+\hline
+\textcolor{DodgerBlue}{\text{Rice husk at farm (in Mt)}} &amp; \textcolor{lightblue}{0} &amp; \textcolor{DodgerBlue}{0.6} &amp; \textcolor{lightblue}{0} &amp; \textcolor{lightblue}{0} &amp; \textcolor{lightblue}{0} &amp; \textcolor{lightblue}{0} &amp; \textcolor{MediumOrchid}{-1} &amp; \textcolor{MediumOrchid}{-1} &amp; \textcolor{MediumOrchid}{-1} &amp; \textcolor{MediumOrchid}{-1} &amp; \textcolor{MediumOrchid}{-1} &amp; \textcolor{Thistle}{0} &amp; \textcolor{MediumOrchid}{-1} &amp; \textcolor{Thistle}{0} &amp; \textcolor{Thistle}{0} \\
+\hline
+\textcolor{DodgerBlue}{\text{Wood pellets (in Mt)}} &amp; \textcolor{lightblue}{0} &amp; \textcolor{lightblue}{0} &amp; \textcolor{lightblue}{0} &amp; \textcolor{lightblue}{0} &amp; \textcolor{lightblue}{0} &amp; \textcolor{lightblue}{0} &amp; \textcolor{Thistle}{0} &amp; \textcolor{Thistle}{0} &amp; \textcolor{Thistle}{0} &amp; \textcolor{Thistle}{0} &amp; \textcolor{Thistle}{0} &amp; \textcolor{MediumOrchid}{1} &amp; \textcolor{Thistle}{0} &amp; \textcolor{Thistle}{0} &amp; \textcolor{MediumOrchid}{-0.25} \\
+\hline
+\end{array}
+\end{split}\]</div>
+</section>
+<section id="biosphere-matrix-b">
+<h3><u>Biosphere Matrix B</u><a class="headerlink" href="#biosphere-matrix-b" title="Link to this heading">#</a></h3>
+<p>In the Biosphere, the corresponding elementary flows need to be added:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\scriptsize
+\begin{array}{|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|}
+\hline
+ &amp; \text{Rice} &amp; \text{Rice} &amp; \text{Natural gas} &amp; \text{natural} &amp; \text{Power} &amp; \text{Transportation} &amp; \textcolor{darkorange}{\text{Rice husk}} &amp; \textcolor{darkorange}{\text{Rice husk}} &amp; \textcolor{darkorange}{\text{Rice husk}} &amp; \textcolor{darkorange}{\text{Rice husk}} &amp; \textcolor{darkorange}{\text{Rice husk}} &amp; \textcolor{darkorange}{\text{Wood pellet}} &amp; \textcolor{darkorange}{\text{Burning of}} &amp; \textcolor{orange}{\text{Rice husk}} &amp; \textcolor{orange}{\text{Wood pellet}} \\
+ &amp; \text{factory} &amp; \text{farming} &amp; \text{boiler} &amp; \text{gas supply} &amp; \text{plant} &amp; \text{by truck} &amp; \textcolor{darkorange}{\text{collection 1}} &amp; \textcolor{darkorange}{\text{collection 2}} &amp; \textcolor{darkorange}{\text{collection 3}} &amp; \textcolor{darkorange}{\text{collection 4}} &amp; \textcolor{darkorange}{\text{collection 5}} &amp; \textcolor{darkorange}{\text{supply}} &amp; \textcolor{darkorange}{\text{rice husk}} &amp; \textcolor{orange}{\text{boiler}} &amp; \textcolor{orange}{\text{boiler}} \\
+\hline
+\text{CO2 (in Mt)} &amp; 0 &amp; 6.14 \times 10^{-1} &amp; 2.27 \times 10^{-1} &amp; 3.21 \times 10^{-2} &amp; 1.10 \times 10^{0} &amp; 5.76 \times 10^{-2} &amp; \textcolor{LightSalmon}{0} &amp; \textcolor{LightSalmon}{0} &amp; \textcolor{LightSalmon}{0} &amp; \textcolor{LightSalmon}{0} &amp; \textcolor{LightSalmon}{0} &amp; \textcolor{darkorange}{1.50 \times 10^{-1}} &amp; \textcolor{LightSalmon}{0} &amp; \textcolor{PeachPuff}{0} &amp; \textcolor{PeachPuff}{0} \\
+\hline
+\text{CH4 (in Mt)} &amp; 0 &amp; 1.33 \times 10^{-3} &amp; 1.47 \times 10^{-4} &amp; 1.50 \times 10^{-3} &amp; 9.15 \times 10^{-4} &amp; 6.97 \times 10^{-5} &amp; \textcolor{LightSalmon}{0} &amp; \textcolor{LightSalmon}{0} &amp; \textcolor{LightSalmon}{0} &amp; \textcolor{LightSalmon}{0} &amp; \textcolor{LightSalmon}{0} &amp; \textcolor{darkorange}{2.56 \times 10^{-4}} &amp; \textcolor{LightSalmon}{0} &amp; \textcolor{PeachPuff}{0} &amp; \textcolor{PeachPuff}{0} \\
+\hline
+\textcolor{FireBrick}{\text{Economic flows (in million \$)}} &amp; \textcolor{FireBrick}{50} &amp; \textcolor{FireBrick}{360} &amp; \textcolor{LightCoral}{0} &amp; \textcolor{FireBrick}{13} &amp; \textcolor{FireBrick}{65} &amp; \textcolor{FireBrick}{170} &amp; \textcolor{FireBrick}{45} &amp; \textcolor{FireBrick}{36} &amp; \textcolor{FireBrick}{29} &amp; \textcolor{FireBrick}{23} &amp; \textcolor{FireBrick}{18} &amp; \textcolor{FireBrick}{72} &amp; \textcolor{LightCoral}{0} &amp; \textcolor{LightCoral}{0} &amp; \textcolor{LightCoral}{0} \\ \hline
+\end{array}
+\end{split}\]</div>
+<p>The final row for <span class="math notranslate nohighlight">\(\textcolor{FireBrick}{\text{economic flows}}\)</span> is derived from the factor requirements matrix and the factor price vector from the original example. Only the cost for natural gas has been lowered slightly (16 –&gt; 13), to enforce the economic competitiveness of the NG boiler. Although integrating economic flows into the biosphere matrix is unconventional, this approach will later be useful for demonstrating a multi-objective trade-off assessment, without the need to introduce additional elements to account for economic impacts.</p>
+</section>
+<section id="characterization-factor-matrix-q">
+<h3><u>Characterization Factor Matrix Q</u><a class="headerlink" href="#characterization-factor-matrix-q" title="Link to this heading">#</a></h3>
+<p>The characterization factors are extended with a row for <span class="math notranslate nohighlight">\(\textcolor{FireBrick}{\text{Cost (in million \$)}}\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\scriptsize
+\begin{array}{|c|c|c|c|}
+\hline
+ &amp; \text{CO2} &amp; \text{CH4} &amp; \textcolor{FireBrick}{\text{Economic flows (in million \$)}}  \\
+\hline
+\text{GWP100 (in kg CO2e per kg)} &amp; 1 &amp; 25 &amp; \textcolor{LightCoral}{0} \\
+\hline
+\textcolor{FireBrick}{\text{Cost (in million \$)}} &amp; \textcolor{LightCoral}{0} &amp; \textcolor{LightCoral}{0} &amp; \textcolor{FireBrick}{1} \\
+\hline
+\end{array}
+\end{split}\]</div>
+<hr class="docutils" />
+<p>The whole system can be explored in <a class="reference external" href="https://github.com/LCA-ActivityBrowser/activity-browser">activity-browser</a>:</p>
+<p><img alt="Image Alt Text" src="../../_images/rice_husk_database.png" /></p>
+<p><img alt="Image Alt Text" src="../../_images/rice_impact_categories.png" /></p>
+<div style="border: 2px solid #FF6347; padding: 10px; border-radius: 5px; background-color: #FFE4E1; color: black; text-align: center;">
+  <h2 style="margin: 0;">Resolution with PULPO 🐙</h2>
+</div><p>Import the necessary libraries</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pulpo</span><span class="w"> </span><span class="kn">import</span> <span class="n">pulpo</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">plot_functions</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="n">np</span><span class="o">.</span><span class="n">NaN</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">copy</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>Set the project, database and method (<strong>objective function</strong>). In this example, the rice husk case study is used, which can be installed via a PULPO function (<code class="docutils literal notranslate"><span class="pre">install_rice_husk_db</span></code>).</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">pulpo</span><span class="o">.</span><span class="n">install_rice_husk_db</span><span class="p">()</span>
+<span class="n">project</span> <span class="o">=</span> <span class="s2">&quot;rice_husk_example&quot;</span> 
+<span class="n">database</span> <span class="o">=</span> <span class="s2">&quot;rice_husk_example_db&quot;</span>
+<span class="n">method</span> <span class="o">=</span> <span class="s2">&quot;(&#39;my project&#39;, &#39;climate change&#39;)&quot;</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>Substitute with your working directory of choice. This directory will be used to store the results.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">notebook_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">())</span>
+<span class="n">directory</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">notebook_dir</span><span class="p">,</span> <span class="s1">&#39;data&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>Create a <strong>PulpoOptimizer</strong> instance. This class is used to interact with the LCI database and solve the optimization problem. It is specified by the project, database, method and directory.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">pulpo_worker</span> <span class="o">=</span> <span class="n">pulpo</span><span class="o">.</span><span class="n">PulpoOptimizer</span><span class="p">(</span><span class="n">project</span><span class="p">,</span> <span class="n">database</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="n">directory</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>Import LCI data. After initializing the PulpoOptimizer instance, the LCI data is imported from the database.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">pulpo_worker</span><span class="o">.</span><span class="n">get_lci_data</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>Specify the <strong>functional unit</strong>. In this case, the functional unit is 1 Mt of processed rice. PULPO implements a search function (<code class="docutils literal notranslate"><span class="pre">retrieve_processes</span></code>) to find the processes that match the specified reference products (alternatively: keys, process name, region).</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">rice_factory</span> <span class="o">=</span> <span class="n">pulpo_worker</span><span class="o">.</span><span class="n">retrieve_processes</span><span class="p">(</span><span class="n">reference_products</span><span class="o">=</span><span class="s1">&#39;Processed rice (in Mt)&#39;</span><span class="p">)</span>
+
+<span class="n">demand</span> <span class="o">=</span> <span class="p">{</span><span class="n">rice_factory</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span> <span class="mi">1</span><span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>Specify the <strong>choices</strong>. Here, the choices are regional 🌐 choices for rise husk collections, and technological ⛏ choices for boiler type selection.</p>
+<p>The auxiliar choices are needed to resolve the issue that rice, when not used in the boiler must be burned instead.</p>
+<p>(<em>At this point, just accept. If you are curious about how this multi-functionality is technically adressed, refer to the paper, or reach out.</em>)</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1">## Rise husk collection</span>
+<span class="n">rice_husk_processes</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Rice husk collection 1&quot;</span><span class="p">,</span>
+              <span class="s2">&quot;Rice husk collection 2&quot;</span><span class="p">,</span>
+              <span class="s2">&quot;Rice husk collection 3&quot;</span><span class="p">,</span>
+              <span class="s2">&quot;Rice husk collection 4&quot;</span><span class="p">,</span>
+              <span class="s2">&quot;Rice husk collection 5&quot;</span><span class="p">,]</span>
+<span class="n">rice_husk_collections</span> <span class="o">=</span> <span class="n">pulpo_worker</span><span class="o">.</span><span class="n">retrieve_processes</span><span class="p">(</span><span class="n">processes</span><span class="o">=</span><span class="n">rice_husk_processes</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1">## Boilers</span>
+<span class="n">boiler_processes</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Natural gas boiler&quot;</span><span class="p">,</span>
+                     <span class="s2">&quot;Wood pellet boiler&quot;</span><span class="p">,</span>
+                     <span class="s2">&quot;Rice husk boiler&quot;</span><span class="p">]</span>
+<span class="n">boilers</span> <span class="o">=</span> <span class="n">pulpo_worker</span><span class="o">.</span><span class="n">retrieve_processes</span><span class="p">(</span><span class="n">processes</span><span class="o">=</span><span class="n">boiler_processes</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1">## Auxiliar (Ignore for now!)</span>
+<span class="n">auxiliar_processes</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Rice husk market&quot;</span><span class="p">,</span>
+                       <span class="s2">&quot;Burning of rice husk&quot;</span><span class="p">]</span>
+<span class="n">auxiliar</span> <span class="o">=</span> <span class="n">pulpo_worker</span><span class="o">.</span><span class="n">retrieve_processes</span><span class="p">(</span><span class="n">processes</span><span class="o">=</span><span class="n">auxiliar_processes</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1">## Combine to create the choices dictionary</span>
+<span class="c1">## For each kind of choice, assign a &#39;label&#39; (e.g. &#39;boilers&#39;)</span>
+<span class="c1">## To each possible choice, assign a process capacity. In the &#39;unconstrained&#39; case, set this value very high (e.g. 1e10, but depends on the scale of the functional unit)</span>
+<span class="n">choices</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Rice Husk (Mt)&#39;</span><span class="p">:</span> <span class="p">{</span><span class="n">rice_husk_collections</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span> <span class="mf">1e10</span><span class="p">,</span>
+                              <span class="n">rice_husk_collections</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span> <span class="mf">1e10</span><span class="p">,</span>
+                              <span class="n">rice_husk_collections</span><span class="p">[</span><span class="mi">2</span><span class="p">]:</span> <span class="mf">1e10</span><span class="p">,</span>
+                              <span class="n">rice_husk_collections</span><span class="p">[</span><span class="mi">3</span><span class="p">]:</span> <span class="mf">1e10</span><span class="p">,</span>
+                              <span class="n">rice_husk_collections</span><span class="p">[</span><span class="mi">4</span><span class="p">]:</span> <span class="mf">1e10</span><span class="p">},</span>
+           <span class="s1">&#39;Thermal Energy (TWh)&#39;</span><span class="p">:</span> <span class="p">{</span><span class="n">boilers</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span> <span class="mf">1e10</span><span class="p">,</span>
+                                    <span class="n">boilers</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span> <span class="mf">1e10</span><span class="p">,</span>
+                                    <span class="n">boilers</span><span class="p">[</span><span class="mi">2</span><span class="p">]:</span> <span class="mf">1e10</span><span class="p">},</span>
+           <span class="s1">&#39;Auxiliar&#39;</span><span class="p">:</span> <span class="p">{</span><span class="n">auxiliar</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span> <span class="mf">1e10</span><span class="p">,</span>
+                        <span class="n">auxiliar</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span> <span class="mf">1e10</span><span class="p">}}</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p><strong>Instantiate</strong> and <strong>solve</strong> the optimization model</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">pulpo_worker</span><span class="o">.</span><span class="n">instantiate</span><span class="p">(</span><span class="n">choices</span><span class="o">=</span><span class="n">choices</span><span class="p">,</span> <span class="n">demand</span><span class="o">=</span><span class="n">demand</span><span class="p">)</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">pulpo_worker</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p><strong>Save</strong> and <strong>summarize</strong> the results</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">pulpo_worker</span><span class="o">.</span><span class="n">save_results</span><span class="p">(</span><span class="n">choices</span><span class="o">=</span><span class="n">choices</span><span class="p">,</span> <span class="n">demand</span><span class="o">=</span><span class="n">demand</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;rice_example_unconstrained.xlsx&#39;</span><span class="p">)</span>
+<span class="n">pulpo_worker</span><span class="o">.</span><span class="n">summarize_results</span><span class="p">(</span><span class="n">choices</span><span class="o">=</span><span class="n">choices</span><span class="p">,</span> <span class="n">demand</span><span class="o">=</span><span class="n">demand</span><span class="p">,</span> <span class="n">zeroes</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>It can be seen that, in the unconstrained case minimizing the GWP, the optimal solution is to use the rice husk boiler and the rice husk collection 1. The minimum GWP is <strong>0.859</strong> Mt CO2-eq per Mt of processed rice. Let us store the relevant results:</p>
+<p>So far, we said that the case is <em>unconstrained</em>. This means that we don’t consider any relevant capacity constraints on any of the processes. Let’s now move to the constrained case!</p>
+<div style="border: 2px solid #A9A9A9; padding: 10px; border-radius: 5px; background-color: #DCDCDC; color: black; text-align: center;">
+  <h3 style="margin: 0;">Constrained Case 🔏</h3>
+</div><p>We will consider three different simple constrained cases:</p>
+<p><img alt="Image Alt Text" src="../../_images/superstructure_constrained.svg" /></p>
+</section>
+</section>
+<section id="choice-capacity-constraints">
+<h2>Choice Capacity Constraints ↔<a class="headerlink" href="#choice-capacity-constraints" title="Link to this heading">#</a></h2>
+  <div style="background-color: #fbe9e7; padding: 15px; margin: 15px 0; border-left: 4px solid #d32f2f;">
+    <h3 style="color: #d32f2f;">⚙️ Additional Constraints</h3>
+    <p>Add a constraint to the rice husk collection of 0.03 Mt per zone.</p>
+  </div><div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">choices_constrained</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">choices</span><span class="p">)</span>
+<span class="n">choices_constrained</span><span class="p">[</span><span class="s1">&#39;Rice Husk (Mt)&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">rice_husk_collections</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span> <span class="mf">0.03</span><span class="p">,</span>
+                                         <span class="n">rice_husk_collections</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span> <span class="mf">0.03</span><span class="p">,</span>
+                                         <span class="n">rice_husk_collections</span><span class="p">[</span><span class="mi">2</span><span class="p">]:</span> <span class="mf">0.03</span><span class="p">,</span>
+                                         <span class="n">rice_husk_collections</span><span class="p">[</span><span class="mi">3</span><span class="p">]:</span> <span class="mf">0.03</span><span class="p">,</span>
+                                         <span class="n">rice_husk_collections</span><span class="p">[</span><span class="mi">4</span><span class="p">]:</span> <span class="mf">0.03</span><span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>Repeat the solution steps …</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">pulpo_worker</span><span class="o">.</span><span class="n">instantiate</span><span class="p">(</span><span class="n">choices</span><span class="o">=</span><span class="n">choices_constrained</span><span class="p">,</span> <span class="n">demand</span><span class="o">=</span><span class="n">demand</span><span class="p">)</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">pulpo_worker</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">pulpo_worker</span><span class="o">.</span><span class="n">summarize_results</span><span class="p">(</span><span class="n">choices</span><span class="o">=</span><span class="n">choices_constrained</span><span class="p">,</span> <span class="n">demand</span><span class="o">=</span><span class="n">demand</span><span class="p">,</span> <span class="n">zeroes</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>When constraints are specified on the availability of rice husk, the optimizer chooses to use all the available rice husk that can be transported from every zone. The remaining thermal energy is provided by the wood pellet boiler.</p>
+<section id="upper-limits">
+<h3>Upper Limits ⬆<a class="headerlink" href="#upper-limits" title="Link to this heading">#</a></h3>
+<p>Upper limits can be enforced as well on processes that are not part of the choices. This can be done using the <code class="docutils literal notranslate"><span class="pre">upper_limit</span></code> parameter in the <code class="docutils literal notranslate"><span class="pre">instantiate</span></code> method. Let’s see an example, where we limit the transportation process to 0.37 Gt*km (<em>This value has no rational meaning, and is just an example to demonstrate the upper limit functionality</em>):</p>
+  <div style="background-color: #fbe9e7; padding: 15px; margin: 15px 0; border-left: 4px solid #d32f2f;">
+    <h3 style="color: #d32f2f;">⚙️ Additional Constraints</h3>
+    <p>Add a constraint of 0.37 Gt*km to the availability of transportation.</p>
+  </div><div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Retrieve the transport process</span>
+<span class="n">transportation</span> <span class="o">=</span> <span class="n">pulpo_worker</span><span class="o">.</span><span class="n">retrieve_processes</span><span class="p">(</span><span class="n">processes</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Transportation by truck&quot;</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">upper_limit</span> <span class="o">=</span> <span class="p">{</span><span class="n">transportation</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span> <span class="mf">0.37</span><span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>Repeat the solution steps, specifying now the “upper_limit” parameter during instantiation …</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">pulpo_worker</span><span class="o">.</span><span class="n">instantiate</span><span class="p">(</span><span class="n">choices</span><span class="o">=</span><span class="n">choices_constrained</span><span class="p">,</span> <span class="n">demand</span><span class="o">=</span><span class="n">demand</span><span class="p">,</span> <span class="n">upper_limit</span><span class="o">=</span><span class="n">upper_limit</span><span class="p">)</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">pulpo_worker</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">pulpo_worker</span><span class="o">.</span><span class="n">summarize_results</span><span class="p">(</span><span class="n">choices</span><span class="o">=</span><span class="n">choices_constrained</span><span class="p">,</span> <span class="n">demand</span><span class="o">=</span><span class="n">demand</span><span class="p">,</span> <span class="n">zeroes</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>It can be seen that the optimizer chooses to source rice husk from zones 1-3 and the remaining demand for thermal heat is supplied by the wood pellet boiler.</p>
+</section>
+<section id="upper-limit-on-wood-pellet-boiler">
+<h3>Upper Limit on Wood Pellet Boiler<a class="headerlink" href="#upper-limit-on-wood-pellet-boiler" title="Link to this heading">#</a></h3>
+  <div style="background-color: #fbe9e7; padding: 15px; margin: 15px 0; border-left: 4px solid #d32f2f;">
+    <h3 style="color: #d32f2f;">⚙️ Additional Constraints</h3>
+    <p>Add a constraint of 0.1 Mt to the supply of wood pellets.</p>
+  </div><div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">wood_pellet_supply</span> <span class="o">=</span> <span class="n">pulpo_worker</span><span class="o">.</span><span class="n">retrieve_processes</span><span class="p">(</span><span class="n">processes</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Wood pellet supply&quot;</span><span class="p">])</span>
+<span class="n">upper_limit</span> <span class="o">=</span> <span class="p">{</span><span class="n">wood_pellet_supply</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span> <span class="mf">0.1</span><span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">pulpo_worker</span><span class="o">.</span><span class="n">instantiate</span><span class="p">(</span><span class="n">choices</span><span class="o">=</span><span class="n">choices_constrained</span><span class="p">,</span> <span class="n">demand</span><span class="o">=</span><span class="n">demand</span><span class="p">,</span> <span class="n">upper_limit</span><span class="o">=</span><span class="n">upper_limit</span><span class="p">)</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">pulpo_worker</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">pulpo_worker</span><span class="o">.</span><span class="n">summarize_results</span><span class="p">(</span><span class="n">choices</span><span class="o">=</span><span class="n">choices_constrained</span><span class="p">,</span> <span class="n">demand</span><span class="o">=</span><span class="n">demand</span><span class="p">,</span> <span class="n">zeroes</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="summary-of-cases">
+<h3>Summary of Cases:<a class="headerlink" href="#summary-of-cases" title="Link to this heading">#</a></h3>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">plot_functions</span><span class="o">.</span><span class="n">plot_cases</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div style="border: 2px solid #0073e6; padding: 8px; border-radius: 5px; background-color: #f0f8ff; color: black; text-align: center;">
+  <h2 style="margin: 0;">Final Demand Variation 📦</h2>
+</div><p>In this section, we are varying the final demand and observe the consequence on the total GWP impact, as well as the technology and regional composition.</p>
+<p>The following code performs a loop over various demand values ranging from 0.05 Mt to 1.00 Mt of rice.</p>
+<blockquote>
+<div><p><strong>Disclaimer</strong>:<br />
+The syntax used here to access the internal variables of the optimization problem is not as intuitive and requires profound knowledge of the data structures of PULPO (e.g., the process map). We are working on simplifying this, to make it easier for users to access these variables outside the “summarize” and “save” functions.</p>
+</div></blockquote>
+  <div style="background-color: #f0f8ff; padding: 15px; margin: 15px 0; border-left: 4px solid #0073e6;">
+    <h3 style="color: #0073e6;">📦 Functional Unit</h3>
+    <p>A final demand range of <b>0.05 to 1.00 Mt of processed rice</b> is specified.</p>
+  </div><div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># List of final demand values</span>
+<span class="n">final_demand_values</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="o">*</span> <span class="mf">0.05</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">21</span><span class="p">)]</span>
+
+<span class="c1"># Define the entries to be analysed</span>
+<span class="n">process_map</span> <span class="o">=</span> <span class="n">pulpo_worker</span><span class="o">.</span><span class="n">lci_data</span><span class="p">[</span><span class="s1">&#39;process_map&#39;</span><span class="p">]</span>
+<span class="n">boilers</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Natural gas boiler&#39;</span><span class="p">,</span> <span class="s1">&#39;Wood pellet boiler&#39;</span><span class="p">,</span> <span class="s1">&#39;Rice husk boiler&#39;</span><span class="p">]</span>
+<span class="n">zones</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s1">&#39;Rice husk collection </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s1">&#39;</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">6</span><span class="p">)]</span>
+
+<span class="c1"># Mapping process IDs</span>
+<span class="n">boiler_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">process_map</span><span class="p">[(</span><span class="s1">&#39;rice_husk_example_db&#39;</span><span class="p">,</span> <span class="n">boiler</span><span class="p">)]</span> <span class="k">for</span> <span class="n">boiler</span> <span class="ow">in</span> <span class="n">boilers</span><span class="p">]</span>
+<span class="n">zone_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">process_map</span><span class="p">[(</span><span class="s1">&#39;rice_husk_example_db&#39;</span><span class="p">,</span> <span class="n">zone</span><span class="p">)]</span> <span class="k">for</span> <span class="n">zone</span> <span class="ow">in</span> <span class="n">zones</span><span class="p">]</span>
+
+<span class="c1"># Initialize results dictionary</span>
+<span class="n">results_list</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;demand&#39;</span><span class="p">:</span> <span class="p">[],</span>
+    <span class="s1">&#39;impact&#39;</span><span class="p">:</span> <span class="p">[],</span>
+    <span class="s1">&#39;natural_gas_boiler&#39;</span><span class="p">:</span> <span class="p">[],</span>
+    <span class="s1">&#39;wood_pellet_boiler&#39;</span><span class="p">:</span> <span class="p">[],</span>
+    <span class="s1">&#39;rice_husk_boiler&#39;</span><span class="p">:</span> <span class="p">[],</span>
+    <span class="o">**</span><span class="p">{</span><span class="sa">f</span><span class="s1">&#39;rice_husk_zone_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">:</span> <span class="p">[]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">6</span><span class="p">)}</span>
+<span class="p">}</span>
+
+<span class="k">for</span> <span class="n">demand_value</span> <span class="ow">in</span> <span class="n">final_demand_values</span><span class="p">:</span>
+    <span class="c1"># Set the demand for processed rice</span>
+    <span class="n">demand_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">rice_factory</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span> <span class="n">demand_value</span><span class="p">}</span>
+    
+    <span class="c1"># Instantiate and solve the optimization model</span>
+    <span class="n">pulpo_worker</span><span class="o">.</span><span class="n">instantiate</span><span class="p">(</span><span class="n">choices</span><span class="o">=</span><span class="n">choices_constrained</span><span class="p">,</span> <span class="n">demand</span><span class="o">=</span><span class="n">demand_dict</span><span class="p">,</span> <span class="n">upper_limit</span><span class="o">=</span><span class="n">upper_limit</span><span class="p">)</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="n">pulpo_worker</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">()</span>
+    
+    <span class="c1"># Append the results to the list</span>
+    <span class="n">results_list</span><span class="p">[</span><span class="s1">&#39;demand&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">demand_value</span><span class="p">)</span>
+    <span class="n">results_list</span><span class="p">[</span><span class="s1">&#39;impact&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pulpo_worker</span><span class="o">.</span><span class="n">instance</span><span class="o">.</span><span class="n">OBJ</span><span class="p">())</span>
+
+    <span class="c1"># Normalize and append boiler results</span>
+    <span class="n">total_boilers</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">pulpo_worker</span><span class="o">.</span><span class="n">instance</span><span class="o">.</span><span class="n">scaling_vector</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">boiler_ids</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">boiler</span><span class="p">,</span> <span class="n">boiler_id</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">boilers</span><span class="p">,</span> <span class="n">boiler_ids</span><span class="p">):</span>
+        <span class="n">results_list</span><span class="p">[</span><span class="n">boiler</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">)]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="n">pulpo_worker</span><span class="o">.</span><span class="n">instance</span><span class="o">.</span><span class="n">scaling_vector</span><span class="p">[</span><span class="n">boiler_id</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">/</span> <span class="n">total_boilers</span>
+        <span class="p">)</span>
+
+    <span class="c1"># Normalize and append zone results</span>
+    <span class="n">total_zones</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">pulpo_worker</span><span class="o">.</span><span class="n">instance</span><span class="o">.</span><span class="n">scaling_vector</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">zone_ids</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">zone_id</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">zone_ids</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+        <span class="n">results_list</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;rice_husk_zone_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="n">pulpo_worker</span><span class="o">.</span><span class="n">instance</span><span class="o">.</span><span class="n">scaling_vector</span><span class="p">[</span><span class="n">zone_id</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">/</span> <span class="n">total_zones</span>
+        <span class="p">)</span>
+
+<span class="c1"># Convert the results_list dictionary to a pandas DataFrame</span>
+<span class="n">results_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">results_list</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>Plot the results in a bar chart. While this approach works, the visualization of results could benefit from standardized plots, which we are planning to implement. Currently, users need to manually extract the relevant values and create the visualizations that best meet their needs.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">plot_functions</span><span class="o">.</span><span class="n">plot_demand</span><span class="p">(</span><span class="n">results_df</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div style="border: 2px solid #00CED1; padding: 10px; border-radius: 5px; background-color: #E0FFFF; color: black;"> 
+  🛠️ This could be implemented as a standard function in <strong>PULPO</strong>.
+</div><div style="border: 2px solid #ffcc00; padding: 8px; border-radius: 5px; background-color: #fffae6; color: black; text-align: center;">
+  <h2 style="margin: 0;">Multi-Objective / Trade-off 🎯</h2>
+</div><p>In this section, we will first optimize the system using the <span class="math notranslate nohighlight">\(\textcolor{FireBrick}{\text{economic flows}}\)</span> as objective, and then analyse the trade-off. To that end, we will create a new pulpo_worker, which imports both impact categories. For now, we specify a weight of 0 for the environmental and a weight of 1 for the economic objective:</p>
+  <div style="background-color: #fffae6; padding: 15px; margin: 15px 0; border-left: 4px solid #ffcc00;">
+    <h3 style="color: #ffcc00;">🎯 Objective Function</h3>
+    <p><b>Primary objective:</b> Cost.</p>
+  </div><div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">methods</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;(&#39;my project&#39;, &#39;climate change&#39;)&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;(&#39;my project&#39;, &#39;economic flow&#39;)&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">pulpo_worker_multi</span> <span class="o">=</span> <span class="n">pulpo</span><span class="o">.</span><span class="n">PulpoOptimizer</span><span class="p">(</span><span class="n">project</span><span class="p">,</span> <span class="n">database</span><span class="p">,</span> <span class="n">methods</span><span class="p">,</span> <span class="n">directory</span><span class="p">)</span>
+<span class="n">pulpo_worker_multi</span><span class="o">.</span><span class="n">get_lci_data</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>With the worker created, we can proceed to instantiate and solve the problem, now with the economic objective function:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">pulpo_worker_multi</span><span class="o">.</span><span class="n">instantiate</span><span class="p">(</span><span class="n">choices</span><span class="o">=</span><span class="n">choices_constrained</span><span class="p">,</span> <span class="n">demand</span><span class="o">=</span><span class="n">demand</span><span class="p">,</span> <span class="n">upper_limit</span><span class="o">=</span><span class="n">upper_limit</span><span class="p">)</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">pulpo_worker_multi</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">pulpo_worker_multi</span><span class="o">.</span><span class="n">summarize_results</span><span class="p">(</span><span class="n">choices</span><span class="o">=</span><span class="n">choices</span><span class="p">,</span> <span class="n">demand</span><span class="o">=</span><span class="n">demand</span><span class="p">,</span> <span class="n">zeroes</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>As anticipated, the natural gas option minimizes costs (0.56 $/kg processed rice). However, this cost reduction leads to a significant increase in the climate change impact (1.20 → 1.60 kg CO2e/kg processed rice). Given these trade-offs, how does the Pareto front appear? For that purpose, we are going to use the epsilon-constrained method, constraining the environmental objective between the values corresponding to the environmental optimum and the economic optimum:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">lower_impact</span> <span class="o">=</span> <span class="n">pulpo_worker</span><span class="o">.</span><span class="n">instance</span><span class="o">.</span><span class="n">impacts</span><span class="p">[</span><span class="s2">&quot;(&#39;my project&#39;, &#39;climate change&#39;)&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+<span class="n">upper_impact</span> <span class="o">=</span> <span class="n">pulpo_worker_multi</span><span class="o">.</span><span class="n">instance</span><span class="o">.</span><span class="n">impacts_calculated</span><span class="p">[</span><span class="s2">&quot;(&#39;my project&#39;, &#39;climate change&#39;)&quot;</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">epsilon_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">lower_impact</span><span class="p">,</span> <span class="n">upper_impact</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>Indicator constraints can be specified in PULPO using the <code class="docutils literal notranslate"><span class="pre">upper_imp_limit</span></code> parameter of the instantiate function, as can be seen in the loop below:</p>
+  <div style="background-color: #fffae6; padding: 15px; margin: 15px 0; border-left: 4px solid #ffcc00;">
+    <h3 style="color: #ffcc00;">🎯 Objective Function</h3>
+    <p><b>Primary objective:</b> Cost.</p>
+    <p><b>Secondary objective:</b> Global warming potential (GWP) --> Constrainted in relevant range via "upper_imp_limit".</p>
+  </div><div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Initialize an empty list to store the Pareto front data</span>
+<span class="n">pareto_front</span> <span class="o">=</span> <span class="p">[]</span>
+
+<span class="n">gw_category</span> <span class="o">=</span> <span class="s2">&quot;(&#39;my project&#39;, &#39;climate change&#39;)&quot;</span>
+<span class="n">ef_category</span> <span class="o">=</span> <span class="s2">&quot;(&#39;my project&#39;, &#39;economic flow&#39;)&quot;</span>
+
+<span class="k">for</span> <span class="n">epsilon</span> <span class="ow">in</span> <span class="n">epsilon_list</span><span class="p">:</span>
+    <span class="c1"># Adjust the internal objective weights</span>
+    <span class="n">epsilon_constraint</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;(&#39;my project&#39;, &#39;climate change&#39;)&quot;</span><span class="p">:</span> <span class="n">epsilon</span><span class="p">}</span>
+    <span class="n">pulpo_worker_multi</span><span class="o">.</span><span class="n">instantiate</span><span class="p">(</span><span class="n">choices</span><span class="o">=</span><span class="n">choices_constrained</span><span class="p">,</span> <span class="n">demand</span><span class="o">=</span><span class="n">demand</span><span class="p">,</span> <span class="n">upper_limit</span><span class="o">=</span><span class="n">upper_limit</span><span class="p">,</span> <span class="n">upper_imp_limit</span><span class="o">=</span><span class="n">epsilon_constraint</span><span class="p">)</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="n">pulpo_worker_multi</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
+
+    <span class="c1"># Calculate the impacts</span>
+    <span class="n">impacts</span> <span class="o">=</span> <span class="p">{</span><span class="n">x</span><span class="p">:</span> <span class="n">pulpo_worker_multi</span><span class="o">.</span><span class="n">instance</span><span class="o">.</span><span class="n">impacts</span><span class="p">[</span><span class="n">x</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">pulpo_worker_multi</span><span class="o">.</span><span class="n">instance</span><span class="o">.</span><span class="n">impacts</span><span class="p">}</span>
+    
+    <span class="c1"># Save the impacts in the Pareto front list (cost divided by 1000)</span>
+    <span class="n">pareto_front</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">impacts</span><span class="p">[</span><span class="n">ef_category</span><span class="p">]</span><span class="o">/</span><span class="mi">1000</span><span class="p">,</span> <span class="n">impacts</span><span class="p">[</span><span class="n">gw_category</span><span class="p">]))</span>
+    
+    <span class="c1"># Print the impacts for each iteration</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Cost [$/kg processed rice]:</span><span class="si">{</span><span class="n">impacts</span><span class="p">[</span><span class="n">ef_category</span><span class="p">]</span><span class="o">/</span><span class="mi">1000</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;GWP [kg CO2-eq/kg processed rice]: </span><span class="si">{</span><span class="n">impacts</span><span class="p">[</span><span class="n">gw_category</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">plot_functions</span><span class="o">.</span><span class="n">plot_pareto</span><span class="p">(</span><span class="n">pareto_front</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>This type of (<em>constrained</em>) trade-off assessment highlights the inherent compromises involved in designing a production system with multiple criteria. In this example, the two extreme points (known as <strong>anchor</strong> points) demonstrate that a significant reduction in GWP (from 1.60 to 1.25 kg CO2-eq) can be achieved with only a slight increase in cost (from 0.560 to 0.566 $). The Pareto front, defined by the 10 points shown, illustrates how balanced solutions can be realized.</p>
+<div style="border: 2px solid #00CED1; padding: 10px; border-radius: 5px; background-color: #E0FFFF; color: black;"> 
+  🛠️ This could be implemented as a standard function in <strong>PULPO</strong>.
+</div><hr class="docutils" />
+<div style="border: 2px solid #B0B0B0; padding: 8px; border-radius: 5px; background-color: #E0E0E0; color: black; text-align: center;">
+  <h3 style="margin: 0;">Internal Constraint due to Multi-Functionality</h3>
+</div><p>Following the notion highlighted at the end of the previous section, let’s investigate what happens if more thermal energy is required than the one that can be provided by the rice husk. This is done by adding another demand for the functional unit:</p>
+<div style="
+    background-color: var(--background-highlight, #f0f8ff);
+    padding: 15px;
+    margin: 15px 0;
+    border-left: 4px solid var(--accent-color, #0073e6);
+">
+    <h3 style="color: var(--accent-color, #0073e6);">📦 Functional Unit</h3>
+    <p>A final demand range of <b>1.00 Mt of processed rice</b> is specified, in addition to <b>10 TWh of thermal energy</b>.</p>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">demand_thermal</span> <span class="o">=</span> <span class="p">{</span><span class="n">rice_factory</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span> <span class="mi">1</span><span class="p">,</span>
+          <span class="s1">&#39;Thermal Energy (TWh)&#39;</span><span class="p">:</span> <span class="mi">10</span><span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">pulpo_worker</span><span class="o">.</span><span class="n">instantiate</span><span class="p">(</span><span class="n">choices</span><span class="o">=</span><span class="n">choices</span><span class="p">,</span> <span class="n">demand</span><span class="o">=</span><span class="n">demand_thermal</span><span class="p">)</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">pulpo_worker</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">pulpo_worker</span><span class="o">.</span><span class="n">summarize_results</span><span class="p">(</span><span class="n">choices</span><span class="o">=</span><span class="n">choices</span><span class="p">,</span> <span class="n">demand</span><span class="o">=</span><span class="n">demand_thermal</span><span class="p">,</span> <span class="n">zeroes</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>As can be seen from the choices made by the optimizer, the rice husk boiler is used to its full capacity, conditioned by the demand for rice:</p>
+<div class="math notranslate nohighlight">
+\[
+1 \, \text{Mt processed rice} \times 1.15 \frac{\text{Mt unprocessed rice}}{\text{Mt processed rice}} \times 0.6 \frac{\text{Mt Rice husk}}{\text{Mt unprocessed rice}} = 0.69 \, \text{Mt Rice husk} 
+\]</div>
+<p>The rest of the thermal energy is provided by the wood pellet boiler.</p>
+</section>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="electricity_showcase.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">PULPO Electricity Showcase</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="../api/index.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">API Reference</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#problem-formulation">Problem Formulation</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#technosphere-matrix-a"><strong><u>Technosphere Matrix A</u></strong></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#biosphere-matrix-b"><u>Biosphere Matrix B</u></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#characterization-factor-matrix-q"><u>Characterization Factor Matrix Q</u></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#choice-capacity-constraints">Choice Capacity Constraints ↔</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#upper-limits">Upper Limits ⬆</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#upper-limit-on-wood-pellet-boiler">Upper Limit on Wood Pellet Boiler</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#summary-of-cases">Summary of Cases:</a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  
+  <div class="tocsection editthispage">
+    <a href="https://github.com/flechtenberg/pulpo/edit/master/docs/content/examples/rice_example.ipynb">
+      <i class="fa-solid fa-pencil"></i>
+      
+      
+        
+          Edit on GitHub
+        
+      
+    </a>
+  </div>
+</div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="../../_sources/content/examples/rice_example.ipynb.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+  <div class="sidebar-secondary-item">
+<div class="tocsection supportbutton">
+
+    <a href=" latest/../../../content/other/support.html">
+      <i class="far fa-heart"></i> Support Brightway
+    </a>
+</div></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341"></script>
+<script src="../../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2025 pulpo developers.
+      <br/>
+    
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item"><p>🌿🐛 Found a bug? Something not working? Frustrated? <a href=" latest/../../../content/contributing.html">Please report it!</a></p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

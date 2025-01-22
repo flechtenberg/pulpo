@@ -1,0 +1,215 @@
+:py:mod:`pulpo.pulpo`
+=====================
+
+.. py:module:: pulpo.pulpo
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   pulpo.pulpo.PulpoOptimizer
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   pulpo.pulpo.electricity_showcase
+   pulpo.pulpo.hydrogen_showcase
+   pulpo.pulpo.plastic_showcase
+   pulpo.pulpo.install_rice_husk_db
+   pulpo.pulpo.install_generic_db
+
+
+
+.. py:class:: PulpoOptimizer(project: str, database: Union[str, List[str]], method: Union[str, List[str], dict], directory: str)
+
+
+   
+   Initializes the PulpoOptimizer with project, databases, method, and directory.
+
+   :param project: Name of the project.
+   :type project: str
+   :param database: Name of the database or list of two databases
+                    (e.g. foreground and linked background).
+   :type database: Union[str, List[str]]
+   :param method: Method(s) for optimization.
+   :type method: Union[str, List[str], dict]
+   :param directory: Directory for saving results.
+   :type directory: str
+
+   .. py:method:: get_lci_data()
+
+      Imports LCI data for the project using the specified database and method.
+
+
+   .. py:method:: instantiate(choices={}, demand={}, upper_limit={}, lower_limit={}, upper_elem_limit={}, upper_imp_limit={})
+
+      Combines inputs and instantiates the optimization model.
+
+      :param choices: Choices for the model.
+      :type choices: dict
+      :param demand: Demand data.
+      :type demand: dict
+      :param upper_limit: Upper limit constraints.
+      :type upper_limit: dict
+      :param lower_limit: Lower limit constraints.
+      :type lower_limit: dict
+      :param upper_elem_limit: Upper elemental limit constraints.
+      :type upper_elem_limit: dict
+      :param upper_imp_limit: Upper impact limit constraints.
+      :type upper_imp_limit: dict
+
+
+   .. py:method:: solve(GAMS_PATH=False, solver_name=None, options=None)
+
+      Solves the optimization model and calculates additional methods and inventory flows if needed.
+
+      :param GAMS_PATH: Path to GAMS if needed.
+      :type GAMS_PATH: bool
+      :param options: Additional options for the solver.
+      :type options: dict
+
+      :returns: Results of the optimization.
+      :rtype: results
+
+
+   .. py:method:: retrieve_processes(keys=None, processes=None, reference_products=None, locations=None)
+
+      Retrieves processes from the database based on given filters.
+
+      :param keys: List of keys to filter activities.
+      :type keys: list
+      :param processes: List of processes to filter.
+      :type processes: list
+      :param reference_products: List of reference products to filter.
+      :type reference_products: list
+      :param locations: List of locations to filter.
+      :type locations: list
+
+      :returns: Filtered activities from the database.
+      :rtype: activities
+
+
+   .. py:method:: retrieve_activities(keys=None, activities=None, reference_products=None, locations=None)
+
+      Works the same as "retrieve_processes" but with a different name. Will be obsolete in future versions.
+
+
+   .. py:method:: retrieve_envflows(keys=None, activities=None, categories=None)
+
+      Retrieves environmental flows from the database based on given filters.
+
+      :param keys: List of keys to filter environmental flows.
+      :type keys: list
+      :param activities: List of activities to filter.
+      :type activities: list
+      :param categories: List of categories to filter.
+      :type categories: list
+
+      :returns: Filtered environmental flows from the database.
+      :rtype: activities
+
+
+   .. py:method:: retrieve_methods(string='')
+
+      Retrieves methods from the database based on a search string.
+
+      :param string: Search string for methods.
+      :type string: str
+
+      :returns: List of methods that match the search string.
+      :rtype: methods
+
+
+   .. py:method:: save_results(choices={}, constraints={}, demand={}, name='results.xlxs')
+
+      Saves the results of the optimization to a file.
+
+      :param choices: Choices for the model.
+      :type choices: dict
+      :param constraints: Constraints applied during optimization.
+      :type constraints: dict
+      :param demand: Demand data used in optimization.
+      :type demand: dict
+      :param name: Name of the file to save results.
+      :type name: str
+
+
+   .. py:method:: summarize_results(choices={}, constraints={}, demand={}, zeroes=False)
+
+      Summarizes the results of the optimization.
+
+      :param choices: Choices for the model.
+      :type choices: dict
+      :param constraints: Constraints applied during optimization.
+      :type constraints: dict
+      :param demand: Demand data used in optimization.
+      :type demand: dict
+      :param zeroes: Whether to include zero values in the summary.
+      :type zeroes: bool
+
+
+
+.. py:function:: electricity_showcase()
+
+   Opens the electricity showcase notebook in the web browser.
+
+
+.. py:function:: hydrogen_showcase()
+
+   Opens the hydrogen showcase notebook in the web browser.
+
+
+.. py:function:: plastic_showcase()
+
+   Opens the plastic showcase notebook in the web browser.
+
+
+.. py:function:: install_rice_husk_db()
+
+   Sets up the rice husk example database.
+
+
+.. py:function:: install_generic_db(project='generic_db_project', database='generic_db', n_prod=5, n_proc=3, n_reg=3, n_inputs=4, n_flows=4, n_methods=2, seed=None, return_data=False)
+
+   Sets up the generic LCI database in Brightway2 with specified parameters.
+
+   :param project: Name of the Brightway2 project to create or use. Defaults to "generic_db_project".
+   :type project: str
+   :param database: Name of the database to create or use. Defaults to "generic_db".
+   :type database: str
+   :param n_prod: Number of products to generate. Defaults to 5.
+   :type n_prod: int
+   :param n_proc: Maximum number of processes per product. Defaults to 3.
+   :type n_proc: int
+   :param n_reg: Number of regions where processes can be active. Defaults to 3.
+   :type n_reg: int
+   :param n_inputs: Maximum number of inputs per process. Defaults to 4.
+   :type n_inputs: int
+   :param n_flows: Number of environmental flows to generate. Defaults to 4.
+   :type n_flows: int
+   :param n_methods: Number of impact assessment methods to create. Defaults to 2.
+   :type n_methods: int
+   :param seed: Seed for reproducibility of random data generation. Defaults to None.
+   :type seed: int, optional
+   :param return_data: If True, returns the generated matrices (technosphere, biosphere, and
+                       characterization). Defaults to False.
+   :type return_data: bool
+
+   :returns:
+
+             If `return_data` is True, returns a tuple containing:
+                 - technosphere_matrix (np.ndarray): The technosphere matrix.
+                 - biosphere_matrix (np.ndarray): The biosphere matrix.
+                 - characterization_matrices (dict): A dictionary of characterization factor matrices.
+   :rtype: tuple
+
+

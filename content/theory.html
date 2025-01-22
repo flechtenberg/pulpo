@@ -1,0 +1,808 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="../_static/favicon.svg" type="image/svg+xml">
+    <link rel="icon" sizes="144x144" href="../_static/favicon-144.png" type="image/png">
+    <link rel="mask-icon" href="../_static/favicon_mask-icon.svg" color="#222832" type="image/svg+xml">
+    <link rel="apple-touch-icon" sizes="500x500" href="../_static/favicon-500.png" type="image/png">
+    <title>Theory &#8212; pulpo  documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+
+  
+  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=913d6465" />
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341" />
+  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=3ee479438cf8b5e0d341"></script>
+
+    <script src="../_static/documentation_options.js?v=8a448e45"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/design-tabs.js?v=36754332"></script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'content/theory';</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Example Collection" href="examples/index.html" />
+    <link rel="prev" title="Optimize and Interpret Results" href="getting_started/optimize_and_interpret.html" />
+<meta name="google-site-verification" content="Fb3YVU81AToFlPNhlaQf6LLq1SMrHPbY-RtFsgZkw9Q" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/pulpo_logo_big.svg" class="logo__image only-light" alt="pulpo  documentation - Home"/>
+    <script>document.write(`<img src="../_static/pulpo_logo_big.svg" class="logo__image only-dark" alt="pulpo  documentation - Home"/>`);</script>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav class="navbar-nav">
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="getting_started/index.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item current active">
+  <a class="nav-link nav-internal" href="#">
+    Theory
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="examples/index.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="api/index.html">
+    API
+  </a>
+</li>
+
+            <li class="nav-item dropdown pst-header-nav-item">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="codeofconduct.html">
+    Code of Conduct
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="license.html">
+    License
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="changelog.html">
+    Changelog
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  </button>
+`);
+</script></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links navbar-nav"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/flechtenberg/pulpo" title="Open this Repo on GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fab fa-brands fa-github fa-lg" aria-hidden="true"></i></span>
+            <span class="sr-only">Open this Repo on GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+    </div>
+  
+
+  
+    <button class="sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav class="navbar-nav">
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="getting_started/index.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item current active">
+  <a class="nav-link nav-internal" href="#">
+    Theory
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="examples/index.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="api/index.html">
+    API
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="codeofconduct.html">
+    Code of Conduct
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="license.html">
+    License
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="changelog.html">
+    Changelog
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  </button>
+`);
+</script></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links navbar-nav"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/flechtenberg/pulpo" title="Open this Repo on GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fab fa-brands fa-github fa-lg" aria-hidden="true"></i></span>
+            <span class="sr-only">Open this Repo on GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    <li class="breadcrumb-item active" aria-current="page">Theory</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="theory">
+<h1>Theory<a class="headerlink" href="#theory" title="Link to this heading">#</a></h1>
+<section id="optimization">
+<h2>Optimization<a class="headerlink" href="#optimization" title="Link to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">pulpo</span></code> integrates life cycle thinking and data with optimization techniques. Its vision is to provide a versatile platform for LCA practitioners, enabling them to tackle a wide range of optimization tasks. By simplifying complex analyses and uncovering previously inaccessible insights, <code class="docutils literal notranslate"><span class="pre">pulpo</span></code> empowers users to explore new solutions and make data-driven decisions with greater ease.</p>
+<section id="linear-programming">
+<h3>Linear Programming<a class="headerlink" href="#linear-programming" title="Link to this heading">#</a></h3>
+<p><strong><a class="reference external" href="https://neos-guide.org/guide/types/">Optimization problems</a></strong> can be defined in various ways, depending on the types of equations, constraints, variables, and parameters. Among these, problems involving linear equations and constraints with continuous variables are the simplest to solve and are known as <strong><a class="reference external" href="https://www.geeksforgeeks.org/linear-programming/">linear programming</a></strong>.</p>
+<p>A general formulation of a linear program (<strong>LP</strong>) is as follows:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\begin{aligned}
+&amp; \min_{x} &amp; c^T x \\
+&amp; \text{s.t.} &amp; Ax \leq b \\
+&amp;            &amp; x \geq 0
+\end{aligned}
+\end{split}\]</div>
+<p>Here:</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(c^T x\)</span>: The objective function, where <span class="math notranslate nohighlight">\(c\)</span> is a vector of coefficients and <span class="math notranslate nohighlight">\(x\)</span> is the vector of decision variables.</p></li>
+<li><p><span class="math notranslate nohighlight">\(x\)</span>: The vector of continuous decision variables.</p></li>
+<li><p><span class="math notranslate nohighlight">\(Ax \leq b\)</span>: The system of linear constraints.</p></li>
+<li><p><span class="math notranslate nohighlight">\(x \geq 0\)</span>: Non-negativity constraints ensuring all variables are non-negative.</p></li>
+</ul>
+<p>For simple problems, such as the example shown later in this section, graphical methods can be used to find the solution. However, for more complex problems involving thousands or even millions of variables and constraints—common in many life cycle optimization problems—efficient numerical methods like the simplex algorithm are required.</p>
+</section>
+<section id="lca-to-optimization">
+<h3>LCA to Optimization<a class="headerlink" href="#lca-to-optimization" title="Link to this heading">#</a></h3>
+<p>The <a class="reference external" href="https://link.springer.com/book/10.1007/978-94-015-9900-9">computational structure of LCA</a> can be converted to a linear program, as shown by the <strong><a class="reference external" href="https://pubs.acs.org/doi/10.1021/acs.est.6b04270">Technology Choice Model (TCM)</a></strong> approach. Leveraging the system’s linearity, the resulting optimization problem is formulated as:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\begin{aligned}
+&amp; \min_{s} &amp; QBs \\
+&amp; \text{s.t.} &amp; As = f \\
+&amp;            &amp; s \geq 0
+\end{aligned}
+\end{split}\]</div>
+<p>Here:</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(QBs\)</span>: The objective function, where <span class="math notranslate nohighlight">\(Q\)</span> is a vector of characterization factors, <span class="math notranslate nohighlight">\(B\)</span> is the inventory matrix, and <span class="math notranslate nohighlight">\(s\)</span> is the activity scaling vector.</p></li>
+<li><p><span class="math notranslate nohighlight">\(As = f\)</span>: System constraints, where <span class="math notranslate nohighlight">\(A\)</span> is the technology matrix, <span class="math notranslate nohighlight">\(f\)</span> is the demand vector, and <span class="math notranslate nohighlight">\(s\)</span> represents activity scaling.</p></li>
+<li><p><span class="math notranslate nohighlight">\(s \geq 0\)</span>: Non-negativity constraint ensuring scaling variables remain realistic.</p></li>
+</ul>
+<p>The matrices <span class="math notranslate nohighlight">\(A\)</span>, <span class="math notranslate nohighlight">\(B\)</span>, and <span class="math notranslate nohighlight">\(Q\)</span> are derived from the LCA database, while the user specifies the demand vector <span class="math notranslate nohighlight">\(y\)</span>. The optimization identifies the scaling vector <span class="math notranslate nohighlight">\(s\)</span> that minimizes the objective function while satisfying the constraints.</p>
+<p>When <span class="math notranslate nohighlight">\(A\)</span> is square and invertible, the system constraints yield a unique solution, equivalent to a standard LCA with no degrees of freedom. Optimization is applied when <span class="math notranslate nohighlight">\(A\)</span> is not square—i.e., there are more activities than products—introducing degrees of freedom. The user defines these degrees of freedom by converting the original square <span class="math notranslate nohighlight">\(A\)</span> matrix into a rectangular matrix <span class="math notranslate nohighlight">\(A^*\)</span>, which is created in PULPO using a top-down approach, as shown below.</p>
+<section id="rectangular-matrix-construction">
+<h4>Rectangular Matrix Construction<a class="headerlink" href="#rectangular-matrix-construction" title="Link to this heading">#</a></h4>
+<p>Starting with a square technosphere matrix, choices can be introduced to the system by summing rows of functionally equivalent products. For instance, electricity used by a subsequent process may not need to be differentiated by its production process—whether it originates from coal or wind power. In a traditional LCA, however, these products would be treated as distinct.</p>
+<p>By summing the rows corresponding to functionally equivalent products, all activities that previously relied on individual products must now choose between or use a mix of the available options. This approach enables a system-wide integration of choices.</p>
+<p>This concept is similar to the <strong><a class="reference external" href="http://link.springer.com/10.1007/s11367-015-1015-3">modular LCA</a></strong>. The illustration below contrasts this <strong>top-down row elimination</strong> approach with the traditional <strong>bottom-up</strong> method of constructing the rectangular technosphere matrix.</p>
+<div class="sd-tab-set docutils">
+<input checked="checked" id="sd-tab-item-0" name="sd-tab-set-0" type="radio">
+</input><label class="sd-tab-label" for="sd-tab-item-0">
+Bottom-Up</label><div class="sd-tab-content docutils">
+<a class="only-light reference internal image-reference" href="../_images/bottom_up_light.svg"><img alt="../_images/bottom_up_light.svg" class="only-light align-center" src="../_images/bottom_up_light.svg" width="80%" /></a>
+<a class="only-dark reference internal image-reference" href="../_images/bottom_up_dark.svg"><img alt="../_images/bottom_up_dark.svg" class="only-dark align-center" src="../_images/bottom_up_dark.svg" width="80%" /></a>
+</div>
+<input id="sd-tab-item-1" name="sd-tab-set-0" type="radio">
+</input><label class="sd-tab-label" for="sd-tab-item-1">
+Top-Down</label><div class="sd-tab-content docutils">
+<a class="only-light reference internal image-reference" href="../_images/top_down_light.svg"><img alt="../_images/top_down_light.svg" class="only-light align-center" src="../_images/top_down_light.svg" width="80%" /></a>
+<a class="only-dark reference internal image-reference" href="../_images/top_down_dark.svg"><img alt="../_images/top_down_dark.svg" class="only-dark align-center" src="../_images/top_down_dark.svg" width="80%" /></a>
+</div>
+</div>
+</section>
+</section>
+<section id="full-nomenclature">
+<h3>Full Nomenclature<a class="headerlink" href="#full-nomenclature" title="Link to this heading">#</a></h3>
+<p>The currently implemented optimization problem formulation in <code class="docutils literal notranslate"><span class="pre">pulpo</span></code> is as follows:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\begin{align}
+\text{min} &amp; \quad \sum_h w_h \cdot z_h &amp; \label{eq:VII_OP1} \\
+\text{s.t.} &amp; \quad \sum_j (a_{ij} \cdot s_j) = f_i + \text{slack}_i \quad &amp; \forall i \label{eq:VII_constraint1} \\
+&amp; \quad s_j^{\text{low}} \leq s_j \leq s_j^{\text{high}} \quad &amp; \forall j \label{eq:VII_constraint2} \\
+&amp; \quad 0 \leq \text{slack}_i \leq \text{slack}_i^{\text{high}} \quad &amp; \forall i \label{eq:VII_constraint3} \\
+&amp; \quad z_h = \sum_e \sum_j (q_{he} \cdot b_{ej} \cdot s_j) \quad &amp; \forall h \label{eq:VII_constraint4} \\
+&amp; \quad z_h \leq z_h^{\text{high}} \quad &amp; \forall h \label{eq:VII_constraint5} \\
+&amp; \quad \sum_j (b_{ej} \cdot s_j) \leq b_e^{\text{high}} \quad &amp; \forall e \label{eq:VII_constraint6} 
+\end{align}
+\end{split}\]</div>
+<p>The calculation of the indicators <span class="math notranslate nohighlight">\(z_h\)</span> has been shifted from the objective function to an equality constraint. The current objective function uses a set of weighting parameters <span class="math notranslate nohighlight">\(w_h\)</span>, allowing users to emphasize different indicators—individually or simultaneously—depending on the analysis goals.</p>
+<p>An important addition to the base TCM formulation is the inclusion of slack variables. These variables relax the demand constraint, which is particularly useful when supply is specified instead of demand. This would have saved the solution of an auxiliar problem in <a class="reference external" href="https://www.science.org/doi/10.1126/science.abg9853">this study</a>, and has been used in the <a class="reference external" href="https://onlinelibrary.wiley.com/doi/full/10.1111/jiec.13561">paper introducing PULPO</a>.</p>
+<p>Additional additions include the specification of various constraints:</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(z_h^{\text{high}}\)</span>: Upper bounds for impact indicators.</p></li>
+<li><p><span class="math notranslate nohighlight">\(b_e^{\text{high}}\)</span>: Upper bounds for environmental flows.</p></li>
+<li><p><span class="math notranslate nohighlight">\(s_j^{\text{low}}\)</span> and <span class="math notranslate nohighlight">\(s_j^{\text{high}}\)</span>: Lower and upper bounds for technosphere / activity scaling variables.</p></li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This nomenclature will be expanded in the future to support additional functionalities, such as the integration of chance constraints, multi-objective optimization, and more.</p>
+</div>
+</section>
+</section>
+<section id="simple-example">
+<h2>Simple Example<a class="headerlink" href="#simple-example" title="Link to this heading">#</a></h2>
+<p>In this section we will walk through a minimal LCO example which can be solved by hand and illustrates the steps involved in getting from the departure data all the way to interpreting the results.</p>
+<p>The matrix <span class="math notranslate nohighlight">\( \mathbf{A} \)</span> below represents a minimal system producing electricity via coal and wind power, with a market offering electricity in equal shares. Each process (column) corresponds to a unique product (row), as indicated by the ones on the diagonal:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+A =
+\begin{array}{l c c c}
+    &amp; \text{electricity market} &amp; \text{coal} &amp; \text{wind} \\[1ex]
+    \text{electricity (from market) [kWh]} &amp; 1 &amp; -0.1 &amp; -0.05 \\
+    \text{electricity (from coal) [kWh]} &amp; -0.5 &amp; 1 &amp; 0 \\
+    \text{electricity (from wind) [kWh]} &amp; -0.5 &amp; 0 &amp; 1 \\
+\end{array}
+\end{split}\]</div>
+<p>For a standard LCA, supplying 1 kWh of electricity from the market involves solving <span class="math notranslate nohighlight">\( \mathbf{A} \cdot \mathbf{s} = \mathbf{f} \)</span>, where <span class="math notranslate nohighlight">\( \mathbf{f} \)</span> is the demand vector. The solution is obtained by inverting <span class="math notranslate nohighlight">\( \mathbf{A} \)</span> and multiplying by <span class="math notranslate nohighlight">\( \mathbf{f} \)</span>:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\mathbf{s} = \mathbf{A}^{-1} \cdot \mathbf{f} =
+\begin{pmatrix}
+1 &amp; -0.1 &amp; -0.05 \\
+-0.5 &amp; 1 &amp; 0 \\
+-0.5 &amp; 0 &amp; 1 
+\end{pmatrix}^{-1} 
+\cdot 
+\begin{pmatrix}
+1 \\
+0 \\
+0 
+\end{pmatrix} 
+=
+\begin{pmatrix}
+1.08108 \\
+0.54054 \\
+0.54054 
+\end{pmatrix}
+\begin{array}{c}
+\text{electricity market} \\
+\text{coal} \\
+\text{wind}
+\end{array}
+\end{split}\]</div>
+<p>To provide 1 kWh of electricity from the market, the electricity market process supplies 1.08 kWh, accounting for the self-consumption in coal and wind power plants. Impacts are obtained by multiplying the scaling vector <span class="math notranslate nohighlight">\( \mathbf{s} \)</span> with the biosphere matrix <span class="math notranslate nohighlight">\( \mathbf{B} \)</span> and the characterization factors <span class="math notranslate nohighlight">\( \mathbf{Q} \)</span>.</p>
+<p>Since the system is well-posed and square, inversion of <span class="math notranslate nohighlight">\( \mathbf{A} \)</span> is always possible. However, if the goal is to determine “which mix of technologies minimizes the GWP of 1 kWh of electricity output from the market,” optimization is required.</p>
+<p>Following the top-down approach, this requires summing the rows “electricity (from coal)” and “electricity (from wind)” to form the new row “electricity<span class="math notranslate nohighlight">\(^*\)</span>”:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+A^* =
+\begin{array}{l c c c}
+    &amp; \text{electricity market} &amp; \text{coal} &amp; \text{wind} \\[1ex]
+    \text{electricity (from market) [kWh]} &amp; 1 &amp; -0.1 &amp; -0.05 \\
+    \text{electricity}^* \, [\text{kWh}] &amp; -1 &amp; 1 &amp; 1 \\
+\end{array}
+\end{split}\]</div>
+<p>The resulting system of equations is now underdetermined, meaning the solution to <span class="math notranslate nohighlight">\(A^* \cdot s = f\)</span> is no longer unique. By plugging this rectangularized matrix into the PULPO optimization problem and solving it, the optimal values for <span class="math notranslate nohighlight">\(s\)</span> can be determined. These values represent the appropriate share of coal and wind power plants supplying the market, based on the specifications (objective, constraints, etc.) defined by the user.</p>
+<p>A minimal biosphere matrix for this system could look as follows:</p>
+<div class="math notranslate nohighlight">
+\[
+\mathbf{B} = 
+\begin{pmatrix}
+0 &amp; 1 &amp; 0.01
+\end{pmatrix}
+\quad \text{kg CO}_2 \text{, in air}
+\]</div>
+<p>The characterization factor <span class="math notranslate nohighlight">\(q\)</span> for this system is 1, representing <span class="math notranslate nohighlight">\(\frac{\text{kg CO}_2\text{eq}}{\text{kg CO}_2\text{, in air}}\)</span>. To focus solely on GWP, the weight <span class="math notranslate nohighlight">\(w\)</span> is set to 1. Assuming a final demand of 1 kWh from the electricity market, with no constraints on production capacities or impacts, the optimization problem simplifies as follows:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\begin{aligned}
+\text{min} &amp; \quad s_2 + 0.01 \cdot s_3 \\
+\text{s.t.} &amp; \quad 0.9s_2 + 0.95s_3 = 1 \\
+&amp; \quad 0 \leq s_2, s_3 \leq 1000
+\end{aligned}
+\end{split}\]</div>
+<p>The graphical solution to this problem is illustrated below:</p>
+<div class="sd-tab-set docutils">
+<input checked="checked" id="sd-tab-item-2" name="sd-tab-set-1" type="radio">
+</input><label class="sd-tab-label" for="sd-tab-item-2">
+Simple Example Resolution</label><div class="sd-tab-content docutils">
+<a class="only-light reference internal image-reference" href="../_images/simple_example_light.svg"><img alt="../_images/simple_example_light.svg" class="only-light align-center" src="../_images/simple_example_light.svg" width="50%" /></a>
+<a class="only-dark reference internal image-reference" href="../_images/simple_example_dark.svg"><img alt="../_images/simple_example_dark.svg" class="only-dark align-center" src="../_images/simple_example_dark.svg" width="50%" /></a>
+</div>
+</div>
+<p>The unconstrained optimum fulfills the demand entirely with wind power, yielding a minimal GWP of 0.0105 kg CO<span class="math notranslate nohighlight">\(_2\)</span>eq. However, introducing a capacity constraint of 0.5 kWh for wind power shifts the solution to a mix of coal and wind. The new optimum includes 0.5 kWh from wind and 0.583 kWh from coal, with a total GWP of 0.5883 kg CO<span class="math notranslate nohighlight">\(_2\)</span>eq.</p>
+<p>Switching from demand-based to supply-based optimization modifies the equations:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\begin{aligned}
+\text{min} &amp; \quad 1 \cdot z_{\text{GWP}} \\
+\text{s.t.} &amp; \quad 1 - 0.1s_2 - 0.05s_3 = \text{slack}_1 \\
+&amp; \quad -1 + s_2 + s_3 = 0 \\
+&amp; \quad 0 \leq s_2, s_3 \leq 1000 \\
+&amp; \quad z_{\text{GWP}} = 1 \cdot s_2 + 0.01 \cdot s_3
+\end{aligned}
+\end{split}\]</div>
+<p>Here, <span class="math notranslate nohighlight">\(s_2 + s_3 = 1\)</span> ensures the total production meets supply. The unconstrained solution again favors wind power, with a GWP of 0.05 kg CO<span class="math notranslate nohighlight">\(_2\)</span>eq and a slack of 0.95 kWh due to internal electricity consumption.</p>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="getting_started/optimize_and_interpret.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Optimize and Interpret Results</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="examples/index.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Example Collection</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#optimization">Optimization</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#linear-programming">Linear Programming</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#lca-to-optimization">LCA to Optimization</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#rectangular-matrix-construction">Rectangular Matrix Construction</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#full-nomenclature">Full Nomenclature</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#simple-example">Simple Example</a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  
+  <div class="tocsection editthispage">
+    <a href="https://github.com/flechtenberg/pulpo/edit/master/docs/content/theory.md">
+      <i class="fa-solid fa-pencil"></i>
+      
+      
+        
+          Edit on GitHub
+        
+      
+    </a>
+  </div>
+</div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="../_sources/content/theory.md.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+  <div class="sidebar-secondary-item">
+<div class="tocsection supportbutton">
+
+    <a href=" latest/../../content/other/support.html">
+      <i class="far fa-heart"></i> Support Brightway
+    </a>
+</div></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2025 pulpo developers.
+      <br/>
+    
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item"><p>🌿🐛 Found a bug? Something not working? Frustrated? <a href=" latest/../../content/contributing.html">Please report it!</a></p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

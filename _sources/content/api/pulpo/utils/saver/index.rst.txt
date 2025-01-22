@@ -1,0 +1,62 @@
+:py:mod:`pulpo.utils.saver`
+===========================
+
+.. py:module:: pulpo.utils.saver
+
+
+Module Contents
+---------------
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   pulpo.utils.saver.save_results
+   pulpo.utils.saver.summarize_results
+
+
+
+.. py:function:: save_results(instance, project, database, choices, constraints, demand, process_map, itervention_map, directory, name)
+
+   Saves the results of a Pyomo optimization model to an Excel file.
+
+   :param instance: The Pyomo model instance.
+   :param project: Name of the project.
+   :type project: str
+   :param database: Name of the database.
+   :type database: str
+   :param choices: Choices for the model.
+   :type choices: dict
+   :param constraints: Constraints applied during optimization.
+   :type constraints: dict
+   :param demand: Demand data used in optimization.
+   :type demand: dict
+   :param process_map: Mapping of process IDs to descriptions.
+   :type process_map: dict
+   :param itervention_map: Mapping of intervention IDs to descriptions.
+   :type itervention_map: dict
+   :param directory: Directory to save the results file.
+   :type directory: str
+   :param name: Name of the results file.
+   :type name: str
+
+
+.. py:function:: summarize_results(instance, choices, constraints, demand, process_map, zeroes)
+
+   Summarizes the results of the optimization and prints them to the console.
+
+   :param instance: The Pyomo model instance.
+   :param choices: Choices for the model.
+   :type choices: dict
+   :param constraints: Constraints applied during optimization.
+   :type constraints: dict
+   :param demand: Demand data used in optimization.
+   :type demand: dict
+   :param process_map: Mapping of process IDs to descriptions.
+   :type process_map: dict
+   :param zeroes: Whether to include zero values in the summary.
+   :type zeroes: bool
+
+

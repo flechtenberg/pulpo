@@ -1,0 +1,58 @@
+:py:mod:`pulpo.utils.converter`
+===============================
+
+.. py:module:: pulpo.utils.converter
+
+
+Module Contents
+---------------
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   pulpo.utils.converter.combine_inputs
+   pulpo.utils.converter.convert_to_dict
+
+
+
+.. py:function:: combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, upper_inv_limit, upper_imp_limit, methods)
+
+   Combines all the inputs into a dictionary as an input for the optimization model.
+
+   :param lci_data: LCI data containing matrices and mappings.
+   :type lci_data: dict
+   :param demand: Demand data.
+   :type demand: dict
+   :param choices: Choices for the model.
+   :type choices: dict
+   :param upper_limit: Upper limit constraints.
+   :type upper_limit: dict
+   :param lower_limit: Lower limit constraints.
+   :type lower_limit: dict
+   :param upper_inv_limit: Upper intervention limit constraints.
+   :type upper_inv_limit: dict
+   :param upper_imp_limit: Upper impact limit constraints.
+   :type upper_imp_limit: dict
+   :param methods: Methods for environmental impact assessment.
+   :type methods: dict
+
+   :returns: Combined data dictionary for the optimization model.
+   :rtype: dict
+
+
+.. py:function:: convert_to_dict(input_data)
+
+   Checks if the passed method is in the correct format and converts it accordingly.
+
+   :param input_data: Input data to be converted.
+   :type input_data: Union[str, list, dict]
+
+   :returns: Converted dictionary with methods and their weights.
+   :rtype: dict
+
+   :raises ValueError: If the input data is not in the expected format.
+
+

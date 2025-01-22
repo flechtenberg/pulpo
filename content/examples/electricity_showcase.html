@@ -1,0 +1,1247 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="../../_static/favicon.svg" type="image/svg+xml">
+    <link rel="icon" sizes="144x144" href="../../_static/favicon-144.png" type="image/png">
+    <link rel="mask-icon" href="../../_static/favicon_mask-icon.svg" color="#222832" type="image/svg+xml">
+    <link rel="apple-touch-icon" sizes="500x500" href="../../_static/favicon-500.png" type="image/png">
+    <title>PULPO Electricity Showcase &#8212; pulpo  documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+<link href="../../_static/styles/bootstrap.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+
+  
+  <link href="../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+    <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=913d6465" />
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341" />
+  <script src="../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=3ee479438cf8b5e0d341"></script>
+
+    <script src="../../_static/documentation_options.js?v=8a448e45"></script>
+    <script src="../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../_static/design-tabs.js?v=36754332"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'content/examples/electricity_showcase';</script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Rice Example" href="rice_example.html" />
+    <link rel="prev" title="Example Collection" href="index.html" />
+<meta name="google-site-verification" content="Fb3YVU81AToFlPNhlaQf6LLq1SMrHPbY-RtFsgZkw9Q" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../_static/pulpo_logo_big.svg" class="logo__image only-light" alt="pulpo  documentation - Home"/>
+    <script>document.write(`<img src="../../_static/pulpo_logo_big.svg" class="logo__image only-dark" alt="pulpo  documentation - Home"/>`);</script>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav class="navbar-nav">
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../getting_started/index.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../theory.html">
+    Theory
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../api/index.html">
+    API
+  </a>
+</li>
+
+            <li class="nav-item dropdown pst-header-nav-item">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="../contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="../codeofconduct.html">
+    Code of Conduct
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="../license.html">
+    License
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="../changelog.html">
+    Changelog
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  </button>
+`);
+</script></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links navbar-nav"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/flechtenberg/pulpo" title="Open this Repo on GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fab fa-brands fa-github fa-lg" aria-hidden="true"></i></span>
+            <span class="sr-only">Open this Repo on GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+    </div>
+  
+
+  
+    <button class="sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav class="navbar-nav">
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../getting_started/index.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../theory.html">
+    Theory
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../api/index.html">
+    API
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../codeofconduct.html">
+    Code of Conduct
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../license.html">
+    License
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../changelog.html">
+    Changelog
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  </button>
+`);
+</script></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links navbar-nav"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/flechtenberg/pulpo" title="Open this Repo on GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fab fa-brands fa-github fa-lg" aria-hidden="true"></i></span>
+            <span class="sr-only">Open this Repo on GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="index.html">Example Collection</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">PULPO Electricity Showcase</a></li>
+
+
+
+
+
+
+<li class="toctree-l1"><a class="reference internal" href="rice_example.html">Rice Example</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">Example Collection</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page">PULPO...</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <p><img alt="Image Alt Text" src="../../_images/PULPO_Infogram.png" /></p>
+<p>PULPO Tutorial. This notebook showcases the optimization of the German electricity mix. First, the basic functionalities are demonstrated. Advanced functionalities are also shown later in the notebook.</p>
+<p>Written by Fabian Lechtenberg, 18.09.2023
+Last Update: 15.12.2023</p>
+<div style="text-align: center; background-color: #f0f0f0; padding: 10px;">
+    <h2 style="font-family: 'Arial', sans-serif; font-weight: bold; color: #555;">(1) Selection of LCI Data</h2>
+</div><section id="pulpo-electricity-showcase">
+<h1>PULPO Electricity Showcase<a class="headerlink" href="#pulpo-electricity-showcase" title="Link to this heading">#</a></h1>
+<p>Import a couple of necessary Python packages. The “sys.path.append(‘../’)” is only necessary if you forked this repository.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;../&#39;</span><span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pulpo</span><span class="w"> </span><span class="kn">import</span> <span class="n">pulpo</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="n">pd</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="s1">&#39;display.max_colwidth&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="setup">
+<h1>Setup<a class="headerlink" href="#setup" title="Link to this heading">#</a></h1>
+<p>Specify the project, database and method to be used. Also indicate the folder where the working and results data should be stored. For this example to work, you need a project “<strong>pulpo</strong>” with a database “<strong>cutoff38</strong>”, which is the ecoinvent 3.8 cutoff system model.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Ask the user for input</span>
+<span class="n">version</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;Enter version (bw2 or bw25): &quot;</span><span class="p">)</span>
+
+<span class="c1"># Set variables based on user input</span>
+<span class="k">if</span> <span class="n">version</span> <span class="o">==</span> <span class="s2">&quot;bw2&quot;</span><span class="p">:</span>
+    <span class="n">project</span> <span class="o">=</span> <span class="s2">&quot;pulpo&quot;</span>
+    <span class="n">database</span> <span class="o">=</span> <span class="s2">&quot;cutoff38&quot;</span>
+    <span class="n">methods</span> <span class="o">=</span> <span class="s2">&quot;(&#39;IPCC 2013&#39;, &#39;climate change&#39;, &#39;GWP 100a&#39;)&quot;</span>
+<span class="k">elif</span> <span class="n">version</span> <span class="o">==</span> <span class="s2">&quot;bw25&quot;</span><span class="p">:</span>
+    <span class="n">project</span> <span class="o">=</span> <span class="s2">&quot;pulpo_bw25&quot;</span>
+    <span class="n">database</span> <span class="o">=</span> <span class="s2">&quot;ecoinvent-3.8-cutoff&quot;</span>
+    <span class="n">methods</span> <span class="o">=</span> <span class="s2">&quot;(&#39;ecoinvent-3.8&#39;, &#39;IPCC 2013&#39;, &#39;climate change&#39;, &#39;GWP 100a&#39;)&quot;</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid version specified. Please enter &#39;pulpo&#39; or &#39;pulpo_bw25&#39;.&quot;</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Set to: project=</span><span class="si">{</span><span class="n">project</span><span class="si">}</span><span class="s2">, database=</span><span class="si">{</span><span class="n">database</span><span class="si">}</span><span class="s2">, methods=</span><span class="si">{</span><span class="n">methods</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Set to: project=pulpo_bw25, database=ecoinvent-3.8-cutoff, methods=(&#39;ecoinvent-3.8&#39;, &#39;IPCC 2013&#39;, &#39;climate change&#39;, &#39;GWP 100a&#39;)
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Substitute with your working directory of choice</span>
+<span class="n">notebook_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">())</span>
+<span class="n">directory</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">notebook_dir</span><span class="p">,</span> <span class="s1">&#39;data&#39;</span><span class="p">)</span>
+
+<span class="c1"># Substitute with your GAMS path</span>
+<span class="n">GAMS_PATH</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;C:\APPS\GAMS\win64\40.1\gams.exe&quot;</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>Create a pulpo object called “pulpo_worker”. This object is an element of the class “PulpoOptimizer”, a class that links the different utilitiy modules containing code for retrieving, preparing and adjusting the data, preparing and running the optimization problem, as well as saving the results.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">pulpo_worker</span> <span class="o">=</span> <span class="n">pulpo</span><span class="o">.</span><span class="n">PulpoOptimizer</span><span class="p">(</span><span class="n">project</span><span class="p">,</span> <span class="n">database</span><span class="p">,</span> <span class="n">methods</span><span class="p">,</span> <span class="n">directory</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">version</span><span class="o">==</span><span class="s2">&quot;bw25&quot;</span><span class="p">:</span>
+    <span class="n">pulpo_worker</span><span class="o">.</span><span class="n">intervention_matrix</span><span class="o">=</span><span class="s2">&quot;ecoinvent-3.8-biosphere&quot;</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>Retrieve the data LCI data:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">pulpo_worker</span><span class="o">.</span><span class="n">get_lci_data</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div style="text-align: center; background-color: #f0f0f0; padding: 10px;">
+    <h2 style="font-family: 'Arial', sans-serif; font-weight: bold; color: #555;">(2) User Specifications</h2>
+</div><p><img alt="Image Alt Text" src="../../_images/electricity_showcase_1.png" /></p>
+</section>
+<section id="specify-the-functional-unit">
+<h1>Specify the <strong>functional unit</strong><a class="headerlink" href="#specify-the-functional-unit" title="Link to this heading">#</a></h1>
+<p>Retrieve the market activity for high voltage electricity in Germany. Use the function “<strong><span style="color: red;">retrieve_activities</span></strong>” for this purpose. The function takes 4 optional arguments:</p>
+<p>“keys” (🔑) –&gt; “activities” (⚙️) –&gt; “reference_products” (📦) –&gt; “locations” (🗺️).</p>
+<p>The activities are retrieved by this order.</p>
+<p>Since the key is unique, a single activity for each passed key will be returned. Activity names, reference_product and locations are not unique, so the best match for the passed data will be returned.</p>
+<section id="passing-keys">
+<h2>Passing keys  🔑<a class="headerlink" href="#passing-keys" title="Link to this heading">#</a></h2>
+<p>Keys can be obtained e.g. directly from <strong>activity browser</strong> and several keys can be passed at the same time.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">keys</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;(&#39;cutoff38&#39;, &#39;962727b9a36bcaa186f222b29b57f6a3&#39;)&quot;</span><span class="p">,</span> <span class="s2">&quot;(&#39;cutoff38&#39;, &#39;473d4bb488e8f903b58203f3e5161636&#39;)&quot;</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">pulpo_worker</span><span class="o">.</span><span class="n">retrieve_activities</span><span class="p">(</span><span class="n">keys</span><span class="o">=</span><span class="n">keys</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="passing-activity-name-reference-product-and-or-location">
+<h2>Passing activity  name (⚙️), reference_product (📦) and/or location (🗺️)<a class="headerlink" href="#passing-activity-name-reference-product-and-or-location" title="Link to this heading">#</a></h2>
+<p>Instead of passing the keys, a combination of activities, reference_products and locations can be passed. A best match (all existing combinations) will be returned.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">activities</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;market for electricity, high voltage&quot;</span><span class="p">]</span>
+<span class="n">reference_products</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;electricity, high voltage&quot;</span><span class="p">]</span>
+<span class="n">locations</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;DE&quot;</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>It is also possible to pass only partial information such as only reference product or only activity name:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">pulpo_worker</span><span class="o">.</span><span class="n">retrieve_activities</span><span class="p">(</span><span class="n">activities</span><span class="o">=</span><span class="n">activities</span><span class="p">)[</span><span class="mi">0</span><span class="p">:</span><span class="mi">5</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">pulpo_worker</span><span class="o">.</span><span class="n">retrieve_activities</span><span class="p">(</span><span class="n">reference_products</span><span class="o">=</span><span class="n">reference_products</span><span class="p">)[</span><span class="mi">0</span><span class="p">:</span><span class="mi">5</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>Let’s retrieve the activity of our functional unit and specify the demand as a dictionary:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">electricity_market</span> <span class="o">=</span> <span class="n">pulpo_worker</span><span class="o">.</span><span class="n">retrieve_activities</span><span class="p">(</span><span class="n">activities</span><span class="o">=</span><span class="n">activities</span><span class="p">,</span> <span class="n">reference_products</span><span class="o">=</span><span class="n">reference_products</span><span class="p">,</span> <span class="n">locations</span><span class="o">=</span><span class="n">locations</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">electricity_market</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>Setting a demand of 128,819.0 GWh of electricity according to <a class="reference external" href="https://www.destatis.de/EN/Themes/Society-Environment/Environment/Material-Energy-Flows/Tables/electricity-consumption-households.html">Germany electricity demand 2018</a></p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">demand</span> <span class="o">=</span> <span class="p">{</span><span class="n">electricity_market</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span> <span class="mf">1.28819e+11</span><span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="specify-the-choices">
+<h1>Specify the <strong>choices</strong><a class="headerlink" href="#specify-the-choices" title="Link to this heading">#</a></h1>
+<p>The choices are specified similar to the demand / functional unit. First, search for the processes with equivalent products:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">activities</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;electricity production, lignite&quot;</span><span class="p">,</span> 
+             <span class="s2">&quot;electricity production, hard coal&quot;</span><span class="p">,</span>
+             <span class="s2">&quot;electricity production, nuclear, pressure water reactor&quot;</span><span class="p">,</span>
+             <span class="s2">&quot;electricity production, wind, 1-3MW turbine, onshore&quot;</span><span class="p">]</span>
+<span class="n">reference_products</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;electricity, high voltage&quot;</span><span class="p">]</span>
+<span class="n">locations</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;DE&quot;</span><span class="p">]</span>
+
+<span class="n">electricity_activities</span> <span class="o">=</span> <span class="n">pulpo_worker</span><span class="o">.</span><span class="n">retrieve_activities</span><span class="p">(</span><span class="n">activities</span><span class="o">=</span><span class="n">activities</span><span class="p">,</span> <span class="n">reference_products</span><span class="o">=</span><span class="n">reference_products</span><span class="p">,</span> <span class="n">locations</span><span class="o">=</span><span class="n">locations</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">electricity_activities</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>These are the currently four most employed technologies for electricity production in Germany (lignite: 24.2%, wind: 15.4%, coal: 11.9%, nuclear: 10.6%) according to the “<em>market for electricity, high voltage (DE)</em>”</p>
+<p>Specify also the choices as a dictionary. Be aware, that this time we are dealing with a dictionary of dictionaries. Each inner dictionary corresponds to one type of choice in the background! Here, we only consider choices between electricity production activities, so we assign the key “electricity” to the equivalent product they produce.</p>
+<p>The assigned value in the inner dictionary is the capacity limit of this activity, which for now is set to a very high value, to consider an unconstrained situation.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">choices</span>  <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;electricity&#39;</span><span class="p">:</span> <span class="p">{</span><span class="n">electricity_activities</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span> <span class="mf">1e16</span><span class="p">,</span>
+                         <span class="n">electricity_activities</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span> <span class="mf">1e16</span><span class="p">,</span>
+                         <span class="n">electricity_activities</span><span class="p">[</span><span class="mi">2</span><span class="p">]:</span> <span class="mf">1e16</span><span class="p">,</span>
+                         <span class="n">electricity_activities</span><span class="p">[</span><span class="mi">3</span><span class="p">]:</span> <span class="mf">1e16</span><span class="p">}}</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div style="text-align: center; background-color: #f0f0f0; padding: 10px;">
+    <h2 style="font-family: 'Arial', sans-serif; font-weight: bold; color: #555;">(3) Solution</h2>
+</div></section>
+<section id="instantiate-the-worker">
+<h1>Instantiate the worker<a class="headerlink" href="#instantiate-the-worker" title="Link to this heading">#</a></h1>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">instance</span> <span class="o">=</span> <span class="n">pulpo_worker</span><span class="o">.</span><span class="n">instantiate</span><span class="p">(</span><span class="n">choices</span><span class="o">=</span><span class="n">choices</span><span class="p">,</span> <span class="n">demand</span><span class="o">=</span><span class="n">demand</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="solve-the-instance">
+<h1>Solve the instance<a class="headerlink" href="#solve-the-instance" title="Link to this heading">#</a></h1>
+<p>When specifying a valid GAMS_PATH with a licence for CPLEX, as shown below, CPLEX with fine-tuned parameters is automatically selected to solve the Linear Problem (<strong>LP</strong>).</p>
+<p>If no GAMS_PATH is specified, the “<a class="reference external" href="https://highs.dev/">HiGHS</a>” solver is automatically used. It has almost double the run time of “CPLEX” and fails to solve the problem in a couple of instances.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1">#results = pulpo_worker.solve()</span>
+<span class="c1"># Alternatively using GAMS (cplex) solvers:</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">pulpo_worker</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">GAMS_PATH</span><span class="o">=</span><span class="n">GAMS_PATH</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="save-and-summarize-the-results">
+<h1>Save and summarize the results 💾📈<a class="headerlink" href="#save-and-summarize-the-results" title="Link to this heading">#</a></h1>
+<p>The “<strong>save_results()</strong>” function will save the results in an processed format to an excel file in the data folder that has been specified at the beginning.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">pulpo_worker</span><span class="o">.</span><span class="n">save_results</span><span class="p">(</span><span class="n">choices</span><span class="o">=</span><span class="n">choices</span><span class="p">,</span> <span class="n">demand</span><span class="o">=</span><span class="n">demand</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;electricity_showcase_results.xlsx&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>You can inspect the generated excel file.</p>
+<p>There is another function to summarize the results in dataframe form within jupyter notbeooks called “summarize_results”. This function has similar inputs to the “save_results” function, but does not require the specification of a filename. Additionally, by specifying the “<em>zeroes</em>” parameter to “<em>True</em>” all the not-selected choices are omitted in the summary.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">pulpo_worker</span><span class="o">.</span><span class="n">summarize_results</span><span class="p">(</span><span class="n">choices</span><span class="o">=</span><span class="n">choices</span><span class="p">,</span> <span class="n">demand</span><span class="o">=</span><span class="n">demand</span><span class="p">,</span> <span class="n">zeroes</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>This is the end of the very basic PULPO functionalities using the electricity case study.</p>
+<p>The following sections will dive deeper into additional functionalities.</p>
+<div style="text-align: center; background-color: #f0f0f0; padding: 10px;">
+    <h2 style="font-family: 'Arial', sans-serif; font-weight: bold; color: #555;">Additional Constraints</h2>
+</div><p><img alt="Image Alt Text" src="../../_images/electricity_showcase_2.png" /></p>
+<section id="technosphere-flows">
+<h2>Technosphere Flows<a class="headerlink" href="#technosphere-flows" title="Link to this heading">#</a></h2>
+<p>Let’s assess what happens if the “<em>electricity production, nuclear, pressure water reactor | electricity, high voltage | DE</em>” activity is indirectly constrained trough a restriction on “<em>nuclear fuel element, for pressure water reactor, UO2 4.0% &amp; MOX</em>”</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">activities</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;market for nuclear fuel element, for pressure water reactor, UO2 4.0% &amp; MOX&quot;</span><span class="p">]</span>
+<span class="n">reference_products</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;nuclear fuel element, for pressure water reactor, UO2 4.0% &amp; MOX&quot;</span><span class="p">]</span>
+<span class="n">locations</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;GLO&quot;</span><span class="p">]</span>
+
+<span class="n">nuclear_fuel</span> <span class="o">=</span> <span class="n">pulpo_worker</span><span class="o">.</span><span class="n">retrieve_activities</span><span class="p">(</span><span class="n">activities</span><span class="o">=</span><span class="n">activities</span><span class="p">,</span> <span class="n">reference_products</span><span class="o">=</span><span class="n">reference_products</span><span class="p">,</span> <span class="n">locations</span><span class="o">=</span><span class="n">locations</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">nuclear_fuel</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">upper_limit</span> <span class="o">=</span> <span class="p">{</span><span class="n">nuclear_fuel</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span> <span class="mi">100000</span><span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>The rationale behind choosing this activity and this limit is based on inspection of the scaling vector of the previous results. This activity is limiting for the nuclear electricity activity but not for the others, so, to enforce a different result than before (for demonstration purpose), this activity is constrained.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">pulpo_worker</span><span class="o">.</span><span class="n">instantiate</span><span class="p">(</span><span class="n">choices</span><span class="o">=</span><span class="n">choices</span><span class="p">,</span> <span class="n">demand</span><span class="o">=</span><span class="n">demand</span><span class="p">,</span> <span class="n">upper_limit</span><span class="o">=</span><span class="n">upper_limit</span><span class="p">)</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">pulpo_worker</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">pulpo_worker</span><span class="o">.</span><span class="n">summarize_results</span><span class="p">(</span><span class="n">choices</span><span class="o">=</span><span class="n">choices</span><span class="p">,</span> <span class="n">demand</span><span class="o">=</span><span class="n">demand</span><span class="p">,</span> <span class="n">constraints</span><span class="o">=</span><span class="n">upper_limit</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>As can be seen from the summary above, part of the final electricity demand is supplied by the wind turbine processes, because the nuclear electricity process is constrained by the nuclear fuel process. It is also evident that the impact is higher than the previous one, as the GWP minimizing process (nuclear) can no longer supply the full demand.</p>
+</section>
+<section id="elementary-flows">
+<h2>Elementary Flows<a class="headerlink" href="#elementary-flows" title="Link to this heading">#</a></h2>
+<p>Apart from technosphere flows, elementary flows may also be constrained. This could be a limitation on the extraction of raw materials or the emission of a certain compound. In this case study, we limit the emission of Radon-22:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">elem</span> <span class="o">=</span> <span class="n">pulpo_worker</span><span class="o">.</span><span class="n">retrieve_envflows</span><span class="p">(</span><span class="n">activities</span><span class="o">=</span><span class="s1">&#39;Radon-222&#39;</span><span class="p">)</span>
+<span class="n">elem</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>As can be seen from the results of the previous assessment, the “low population density, long-term” emission is the largest elementary flow with 3.69x1E13 kg Becquerel. For testing purpose, we limit this emissio to 5.00x1E12 kg Becquerel:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">elem</span> <span class="o">=</span> <span class="p">[</span><span class="n">flow</span> <span class="k">for</span> <span class="n">flow</span> <span class="ow">in</span> <span class="n">elem</span> <span class="k">if</span> <span class="s1">&#39;long-term&#39;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">flow</span><span class="p">)]</span>
+<span class="n">elem_limit</span> <span class="o">=</span> <span class="p">{</span><span class="n">elem</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span> <span class="mf">5e12</span><span class="p">}</span>
+<span class="n">instance</span> <span class="o">=</span> <span class="n">pulpo_worker</span><span class="o">.</span><span class="n">instantiate</span><span class="p">(</span><span class="n">choices</span><span class="o">=</span><span class="n">choices</span><span class="p">,</span> <span class="n">demand</span><span class="o">=</span><span class="n">demand</span><span class="p">,</span> <span class="n">upper_elem_limit</span><span class="o">=</span><span class="n">elem_limit</span><span class="p">)</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">pulpo_worker</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span> 
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">pulpo_worker</span><span class="o">.</span><span class="n">save_results</span><span class="p">(</span><span class="n">choices</span><span class="o">=</span><span class="n">choices</span><span class="p">,</span> <span class="n">demand</span><span class="o">=</span><span class="n">demand</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;electricity_showcase_results_elem.xlsx&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">pulpo_worker</span><span class="o">.</span><span class="n">summarize_results</span><span class="p">(</span><span class="n">choices</span><span class="o">=</span><span class="n">choices</span><span class="p">,</span> <span class="n">demand</span><span class="o">=</span><span class="n">demand</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>As can be seen, the share of nuclear power is limited through the introduced elementary flow constraint.</p>
+<div style="text-align: center; background-color: #f0f0f0; padding: 10px;">
+    <h2 style="font-family: 'Arial', sans-serif; font-weight: bold; color: #555;">Additional Methods</h2>
+</div><p>Let’s see how to evaluate different methods and set them as objectives, in this case evaluating the ReCiPe endpoints, and setting the human health one as objective:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">methods</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="p">(</span><span class="sa">f</span><span class="s2">&quot;(&#39;ecoinvent-3.8&#39;, </span><span class="si">{</span><span class="n">k</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">if</span> <span class="n">version</span> <span class="o">==</span> <span class="s2">&quot;bw25&quot;</span> <span class="k">else</span> <span class="n">k</span><span class="p">):</span> <span class="p">(</span><span class="mi">1</span> <span class="k">if</span> <span class="n">k</span> <span class="o">==</span> <span class="s2">&quot;(&#39;ReCiPe Endpoint (E,A)&#39;, &#39;human health&#39;, &#39;total&#39;)&quot;</span> <span class="k">else</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">[</span>
+        <span class="s2">&quot;(&#39;IPCC 2013&#39;, &#39;climate change&#39;, &#39;GWP 100a&#39;)&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;(&#39;ReCiPe Endpoint (E,A)&#39;, &#39;resources&#39;, &#39;total&#39;)&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;(&#39;ReCiPe Endpoint (E,A)&#39;, &#39;human health&#39;, &#39;total&#39;)&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;(&#39;ReCiPe Endpoint (E,A)&#39;, &#39;ecosystem quality&#39;, &#39;total&#39;)&quot;</span>
+    <span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>With this, a new Pulpo worker must be created:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">pulpo_worker</span> <span class="o">=</span> <span class="n">pulpo</span><span class="o">.</span><span class="n">PulpoOptimizer</span><span class="p">(</span><span class="n">project</span><span class="p">,</span> <span class="n">database</span><span class="p">,</span> <span class="n">methods</span><span class="p">,</span> <span class="n">directory</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">version</span><span class="o">==</span><span class="s2">&quot;bw25&quot;</span><span class="p">:</span>
+    <span class="n">pulpo_worker</span><span class="o">.</span><span class="n">intervention_matrix</span><span class="o">=</span><span class="s2">&quot;ecoinvent-3.8-biosphere&quot;</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">pulpo_worker</span><span class="o">.</span><span class="n">get_lci_data</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">pulpo_worker</span><span class="o">.</span><span class="n">instantiate</span><span class="p">(</span><span class="n">choices</span><span class="o">=</span><span class="n">choices</span><span class="p">,</span> <span class="n">demand</span><span class="o">=</span><span class="n">demand</span><span class="p">)</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">pulpo_worker</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">pulpo_worker</span><span class="o">.</span><span class="n">summarize_results</span><span class="p">(</span><span class="n">choices</span><span class="o">=</span><span class="n">choices</span><span class="p">,</span> <span class="n">demand</span><span class="o">=</span><span class="n">demand</span><span class="p">,</span> <span class="n">zeroes</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>From the summary above, it can be seen that for the “<em>human health</em>” category, the nuclear process is not the most suitable anymore. With this objective, the wind turbine process is selected.</p>
+<p>As another category is minimized, the GWP has changed as well: previously, with nuclear electricity the total GWP was 1.599836e+10 while with wind electricity it is 1.739234e+10.</p>
+<div style="text-align: center; background-color: #f0f0f0; padding: 10px;">
+    <h2 style="font-family: 'Arial', sans-serif; font-weight: bold; color: #555;">Lower Level Decisions (Regional Choice)</h2>
+</div><p><img alt="Image Alt Text" src="../../_images/electricity_showcase_3.png" /></p>
+<p>In this case study, we would like to keep the current share of the electricity supplied by fossil sources the same. The choices that we consider on the electricity production level are between the coal and lignite activities:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">methods</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="p">(</span><span class="sa">f</span><span class="s2">&quot;(&#39;ecoinvent-3.8&#39;, </span><span class="si">{</span><span class="n">k</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">if</span> <span class="n">version</span> <span class="o">==</span> <span class="s2">&quot;bw25&quot;</span> <span class="k">else</span> <span class="n">k</span><span class="p">):</span> <span class="p">(</span><span class="mi">1</span> <span class="k">if</span> <span class="n">k</span> <span class="o">==</span> <span class="s2">&quot;(&#39;IPCC 2013&#39;, &#39;climate change&#39;, &#39;GWP 100a&#39;)&quot;</span> <span class="k">else</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">[</span>
+        <span class="s2">&quot;(&#39;IPCC 2013&#39;, &#39;climate change&#39;, &#39;GWP 100a&#39;)&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;(&#39;ReCiPe Endpoint (E,A)&#39;, &#39;resources&#39;, &#39;total&#39;)&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;(&#39;ReCiPe Endpoint (E,A)&#39;, &#39;human health&#39;, &#39;total&#39;)&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;(&#39;ReCiPe Endpoint (E,A)&#39;, &#39;ecosystem quality&#39;, &#39;total&#39;)&quot;</span>
+    <span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">pulpo_worker</span> <span class="o">=</span> <span class="n">pulpo</span><span class="o">.</span><span class="n">PulpoOptimizer</span><span class="p">(</span><span class="n">project</span><span class="p">,</span> <span class="n">database</span><span class="p">,</span> <span class="n">methods</span><span class="p">,</span> <span class="n">directory</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">version</span><span class="o">==</span><span class="s2">&quot;bw25&quot;</span><span class="p">:</span>
+    <span class="n">pulpo_worker</span><span class="o">.</span><span class="n">intervention_matrix</span><span class="o">=</span><span class="s2">&quot;ecoinvent-3.8-biosphere&quot;</span>
+<span class="n">pulpo_worker</span><span class="o">.</span><span class="n">get_lci_data</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">activities</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;electricity production, lignite&quot;</span><span class="p">,</span> 
+             <span class="s2">&quot;electricity production, hard coal&quot;</span><span class="p">]</span>
+<span class="n">reference_products</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;electricity, high voltage&quot;</span><span class="p">]</span>
+<span class="n">locations</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;DE&quot;</span><span class="p">]</span>
+
+<span class="n">electricity_activities</span> <span class="o">=</span> <span class="n">pulpo_worker</span><span class="o">.</span><span class="n">retrieve_activities</span><span class="p">(</span><span class="n">activities</span><span class="o">=</span><span class="n">activities</span><span class="p">,</span> <span class="n">reference_products</span><span class="o">=</span><span class="n">reference_products</span><span class="p">,</span> <span class="n">locations</span><span class="o">=</span><span class="n">locations</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>Instead of assessing only the <strong>technology</strong> choices, we are invetigating the best <strong>regional</strong> choice for the source of coal and lignite:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">coal_activities</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;market for hard coal&quot;</span><span class="p">]</span>
+<span class="n">lignite_activities</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;market for lignite&quot;</span><span class="p">]</span>
+
+<span class="n">coal_activities</span> <span class="o">=</span> <span class="n">pulpo_worker</span><span class="o">.</span><span class="n">retrieve_activities</span><span class="p">(</span><span class="n">activities</span><span class="o">=</span><span class="n">coal_activities</span><span class="p">)</span>
+<span class="n">lignite_activities</span> <span class="o">=</span> <span class="n">pulpo_worker</span><span class="o">.</span><span class="n">retrieve_activities</span><span class="p">(</span><span class="n">activities</span><span class="o">=</span><span class="n">lignite_activities</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>The updated choice dictionary looks like this:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">choices</span>  <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;electricity&#39;</span><span class="p">:</span> <span class="p">{</span><span class="n">elec</span><span class="p">:</span> <span class="mf">1e16</span> <span class="k">for</span> <span class="n">elec</span> <span class="ow">in</span> <span class="n">electricity_activities</span><span class="p">},</span>
+            <span class="s1">&#39;coal&#39;</span><span class="p">:</span> <span class="p">{</span><span class="n">coal</span><span class="p">:</span> <span class="mf">1e16</span> <span class="k">for</span> <span class="n">coal</span> <span class="ow">in</span> <span class="n">coal_activities</span><span class="p">},</span>
+            <span class="s1">&#39;lignite&#39;</span><span class="p">:</span> <span class="p">{</span><span class="n">lignite</span><span class="p">:</span> <span class="mf">1e16</span> <span class="k">for</span> <span class="n">lignite</span> <span class="ow">in</span> <span class="n">lignite_activities</span><span class="p">}}</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>Instantiating and solving the adapted problem:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">pulpo_worker</span><span class="o">.</span><span class="n">instantiate</span><span class="p">(</span><span class="n">choices</span><span class="o">=</span><span class="n">choices</span><span class="p">,</span> <span class="n">demand</span><span class="o">=</span><span class="n">demand</span><span class="p">)</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">pulpo_worker</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>Visualizing the results</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">pulpo_worker</span><span class="o">.</span><span class="n">summarize_results</span><span class="p">(</span><span class="n">choices</span><span class="o">=</span><span class="n">choices</span><span class="p">,</span> <span class="n">demand</span><span class="o">=</span><span class="n">demand</span><span class="p">,</span> <span class="n">zeroes</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>I can be seen that out of the fossil alternatives, the electricity from coal minimizes GWP when the coal comes from RLA [Latin America and the Caribbean] (omitting transport emissions). Moreover, it can be seen that the market for lignite is somewhere used upstream of the coal production activity. In the place where it is used, the RER market for lignite is the preferred one. The lignite consumption is one order of magnitude lower than the coal consumption.</p>
+<div style="text-align: center; background-color: #f0f0f0; padding: 10px;">
+    <h2 style="font-family: 'Arial', sans-serif; font-weight: bold; color: #555;">Supply vs. Demand Problem</h2>
+</div><p>Finally, let’s test and assess the functionality of PULPO to specify supply values rather than demand values. This can be done by setting the lower_limit and the upper_limit of activities to the same value. This will enforce the corresponding scaling vector entry of that activity to the specified value, and activates the slack variable to relax the demand value.</p>
+<p>This can simply be done by specifying the upper and lower limits rather than the demand (we continue with the choices from the previous section):</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">upper_limit</span> <span class="o">=</span> <span class="p">{</span><span class="n">electricity_market</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span> <span class="mf">1.28819e+11</span><span class="p">}</span>
+<span class="n">lower_limit</span> <span class="o">=</span> <span class="p">{</span><span class="n">electricity_market</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span> <span class="mf">1.28819e+11</span><span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">pulpo_worker</span><span class="o">.</span><span class="n">instantiate</span><span class="p">(</span><span class="n">choices</span><span class="o">=</span><span class="n">choices</span><span class="p">,</span> <span class="n">upper_limit</span><span class="o">=</span><span class="n">upper_limit</span><span class="p">,</span> <span class="n">lower_limit</span><span class="o">=</span><span class="n">lower_limit</span><span class="p">)</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">pulpo_worker</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">pulpo_worker</span><span class="o">.</span><span class="n">summarize_results</span><span class="p">(</span><span class="n">choices</span><span class="o">=</span><span class="n">choices</span><span class="p">,</span> <span class="n">demand</span><span class="o">=</span><span class="n">demand</span><span class="p">,</span> <span class="n">constraints</span><span class="o">=</span><span class="n">upper_limit</span><span class="p">,</span> <span class="n">zeroes</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>From the results it can be observed that the resulting GWP is <strong>considerably</strong> lower (6.191744e+10 vs. 5.920967e+10: ~4.4%) than in the previous section. Now, the production value (supply) of electricity is specified, so that electricity consumed in the background is accounted for in the specifications.</p>
+<p>Overall, when specifying supply values instead of demand values, the corresponding scaling vector entries are always smaller.</p>
+<div style="text-align: center; background-color: #f0f0f0; padding: 10px;">
+    <h2 style="font-family: 'Arial', sans-serif; font-weight: bold; color: #555;">Foreground vs. Background Modelling</h2>
+</div><p><img alt="Image Alt Text" src="../../_images/electricity_showcase_4.png" /></p>
+<p>In this final part of the electricity showcase, the difference between foreground and background modelling and optimization is demonstrated. For that purpose a foreground system must be created … this can be done either by hand or I can upload a folded foreground system for this case … in essence, a new database must be created (e.g. “<em>cutoff38_foreground</em>” where copies from the market and electricity production activites are duplicated to from the “<em>cutoff38</em>”. What this does is disconnecting this activities from their downstream.</p>
+<p>We are then replacing the original inputs in the electricity market with the duplicated processes from the foreground system, effectively disconnecting the choices made in the electricity market from the upstream of the electricity production technologies:</p>
+<p>With this in mind, we can set up the optimization as usual, importing the “<em>cutoff38_foreground</em>” database instead of the “<em>cutoff38</em>” database:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">project</span> <span class="o">=</span> <span class="s2">&quot;pulpo&quot;</span>
+<span class="n">database</span> <span class="o">=</span> <span class="s2">&quot;cutoff38_foreground&quot;</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">pulpo_worker</span> <span class="o">=</span> <span class="n">pulpo</span><span class="o">.</span><span class="n">PulpoOptimizer</span><span class="p">(</span><span class="n">project</span><span class="p">,</span> <span class="n">database</span><span class="p">,</span> <span class="n">methods</span><span class="p">,</span> <span class="n">directory</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">version</span><span class="o">==</span><span class="s2">&quot;bw25&quot;</span><span class="p">:</span>
+    <span class="n">pulpo_worker</span><span class="o">.</span><span class="n">intervention_matrix</span><span class="o">=</span><span class="s2">&quot;ecoinvent-3.8-biosphere&quot;</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">pulpo_worker</span><span class="o">.</span><span class="n">get_lci_data</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>Now, choose the foreground market for electricity:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">activities</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;market for electricity, high voltage, foreground&quot;</span><span class="p">]</span>
+<span class="n">reference_products</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;electricity, high voltage&quot;</span><span class="p">]</span>
+<span class="n">locations</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;DE&quot;</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">foreground_market</span> <span class="o">=</span> <span class="n">pulpo_worker</span><span class="o">.</span><span class="n">retrieve_activities</span><span class="p">(</span><span class="n">activities</span><span class="o">=</span><span class="n">activities</span><span class="p">,</span> <span class="n">reference_products</span><span class="o">=</span><span class="n">reference_products</span><span class="p">,</span> <span class="n">locations</span><span class="o">=</span><span class="n">locations</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">demand</span> <span class="o">=</span> <span class="p">{</span><span class="n">foreground_market</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span> <span class="mf">1.28819e+11</span><span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>And the foreground electricity production technologies:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">activities</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;electricity production, lignite, foreground&quot;</span><span class="p">,</span> 
+             <span class="s2">&quot;electricity production, hard coal, foreground&quot;</span><span class="p">,</span>
+             <span class="s2">&quot;electricity production, nuclear, pressure water reactor, foreground&quot;</span><span class="p">,</span>
+             <span class="s2">&quot;electricity production, wind, 1-3MW turbine, onshore, foreground&quot;</span><span class="p">]</span>
+<span class="n">reference_products</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;electricity, high voltage&quot;</span><span class="p">]</span>
+<span class="n">locations</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;DE&quot;</span><span class="p">]</span>
+
+<span class="n">electricity_activities</span> <span class="o">=</span> <span class="n">pulpo_worker</span><span class="o">.</span><span class="n">retrieve_activities</span><span class="p">(</span><span class="n">activities</span><span class="o">=</span><span class="n">activities</span><span class="p">,</span> <span class="n">reference_products</span><span class="o">=</span><span class="n">reference_products</span><span class="p">,</span> <span class="n">locations</span><span class="o">=</span><span class="n">locations</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">choices</span>  <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;electricity&#39;</span><span class="p">:</span> <span class="p">{</span><span class="n">electricity_activities</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span> <span class="mf">1e16</span><span class="p">,</span>
+                         <span class="n">electricity_activities</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span> <span class="mf">1e16</span><span class="p">,</span>
+                         <span class="n">electricity_activities</span><span class="p">[</span><span class="mi">2</span><span class="p">]:</span> <span class="mf">1e16</span><span class="p">,</span>
+                         <span class="n">electricity_activities</span><span class="p">[</span><span class="mi">3</span><span class="p">]:</span> <span class="mf">1e16</span><span class="p">}}</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>Create the instance and solve the problem:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">instance</span> <span class="o">=</span> <span class="n">pulpo_worker</span><span class="o">.</span><span class="n">instantiate</span><span class="p">(</span><span class="n">choices</span><span class="o">=</span><span class="n">choices</span><span class="p">,</span> <span class="n">demand</span><span class="o">=</span><span class="n">demand</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">results</span> <span class="o">=</span> <span class="n">pulpo_worker</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">pulpo_worker</span><span class="o">.</span><span class="n">summarize_results</span><span class="p">(</span><span class="n">choices</span><span class="o">=</span><span class="n">choices</span><span class="p">,</span> <span class="n">demand</span><span class="o">=</span><span class="n">demand</span><span class="p">,</span> <span class="n">zeroes</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>The result of this optimization is a minimum GWP of 1.764977e+10 kg CO2eq instead of 1.599836e+10 kg CO2eq from the initial calculations using the full LCI. This is a difference of <strong>8%</strong>!</p>
+<div style="text-align: center; background-color: #f0f0f0; padding: 10px;">
+    <h2 style="font-family: 'Arial', sans-serif; font-weight: bold; color: #555;">Integer Cuts</h2>
+</div><p>This functionality will be available in future versions of PULPO</p>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="index.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Example Collection</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="rice_example.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Rice Example</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">PULPO Electricity Showcase</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#setup">Setup</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#specify-the-functional-unit">Specify the <strong>functional unit</strong></a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#passing-keys">Passing keys  🔑</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#passing-activity-name-reference-product-and-or-location">Passing activity  name (⚙️), reference_product (📦) and/or location (🗺️)</a></li>
+</ul>
+</li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#specify-the-choices">Specify the <strong>choices</strong></a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#instantiate-the-worker">Instantiate the worker</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#solve-the-instance">Solve the instance</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#save-and-summarize-the-results">Save and summarize the results 💾📈</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#technosphere-flows">Technosphere Flows</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#elementary-flows">Elementary Flows</a></li>
+</ul>
+</li>
+</ul>
+
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  
+  <div class="tocsection editthispage">
+    <a href="https://github.com/flechtenberg/pulpo/edit/master/docs/content/examples/electricity_showcase.ipynb">
+      <i class="fa-solid fa-pencil"></i>
+      
+      
+        
+          Edit on GitHub
+        
+      
+    </a>
+  </div>
+</div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="../../_sources/content/examples/electricity_showcase.ipynb.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+  <div class="sidebar-secondary-item">
+<div class="tocsection supportbutton">
+
+    <a href=" latest/../../../content/other/support.html">
+      <i class="far fa-heart"></i> Support Brightway
+    </a>
+</div></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341"></script>
+<script src="../../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2025 pulpo developers.
+      <br/>
+    
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item"><p>🌿🐛 Found a bug? Something not working? Frustrated? <a href=" latest/../../../content/contributing.html">Please report it!</a></p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

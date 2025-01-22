@@ -1,0 +1,163 @@
+:py:mod:`pulpo.utils.optimizer`
+===============================
+
+.. py:module:: pulpo.utils.optimizer
+
+
+Module Contents
+---------------
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   pulpo.utils.optimizer.create_model
+   pulpo.utils.optimizer.populate_env
+   pulpo.utils.optimizer.populate_in_and_out
+   pulpo.utils.optimizer.populate_inv
+   pulpo.utils.optimizer.demand_constraint
+   pulpo.utils.optimizer.impact_constraint
+   pulpo.utils.optimizer.inventory_constraint
+   pulpo.utils.optimizer.upper_constraint
+   pulpo.utils.optimizer.lower_constraint
+   pulpo.utils.optimizer.upper_env_constraint
+   pulpo.utils.optimizer.upper_imp_constraint
+   pulpo.utils.optimizer.slack_upper_constraint
+   pulpo.utils.optimizer.slack_lower_constraint
+   pulpo.utils.optimizer.objective_function
+   pulpo.utils.optimizer.calculate_methods
+   pulpo.utils.optimizer.calculate_inv_flows
+   pulpo.utils.optimizer.instantiate
+   pulpo.utils.optimizer.solve_model
+
+
+
+.. py:function:: create_model()
+
+   Builds an abstract model on top of the ecoinvent database.
+
+   :returns: The Pyomo abstract model for optimization.
+   :rtype: AbstractModel
+
+
+.. py:function:: populate_env(model)
+
+   Relates the environmental flows to the processes.
+
+
+.. py:function:: populate_in_and_out(model)
+
+   Relates the inputs of an activity to its outputs.
+
+
+.. py:function:: populate_inv(model)
+
+   Relates the impacts to the environmental flows
+
+
+.. py:function:: demand_constraint(model, i)
+
+   Fixes a value in the demand vector
+
+
+.. py:function:: impact_constraint(model, h)
+
+   Calculates all the impact categories
+
+
+.. py:function:: inventory_constraint(model, g)
+
+   Calculates the environmental flows
+
+
+.. py:function:: upper_constraint(model, j)
+
+   Ensures that variables are within capacities (Maximum production constraint)
+
+
+.. py:function:: lower_constraint(model, j)
+
+   Minimum production constraint
+
+
+.. py:function:: upper_env_constraint(model, g)
+
+   Ensures that variables are within capacities (Maximum production constraint)
+
+
+.. py:function:: upper_imp_constraint(model, h)
+
+   Imposes upper limits on selected impact categories
+
+
+.. py:function:: slack_upper_constraint(model, j)
+
+   Slack variable upper limit for activities where supply is specified instead of demand
+
+
+.. py:function:: slack_lower_constraint(model, j)
+
+   Slack variable upper limit for activities where supply is specified instead of demand
+
+
+.. py:function:: objective_function(model)
+
+   Objective is a sum over all indicators with weights. Typically, the indicator of study has weight 1, the rest 0
+
+
+.. py:function:: calculate_methods(instance, lci_data, methods)
+
+   Calculates the impacts if a method with weight 0 has been specified.
+
+   :param instance: The Pyomo model instance.
+   :param lci_data: LCI data containing matrices and mappings.
+   :type lci_data: dict
+   :param methods: Methods for environmental impact assessment.
+   :type methods: dict
+
+   :returns: The updated Pyomo model instance with calculated impacts.
+   :rtype: instance
+
+
+.. py:function:: calculate_inv_flows(instance, lci_data)
+
+   Calculates elementary flows post-optimization.
+
+   :param instance: The Pyomo model instance.
+   :param lci_data: LCI data containing matrices and mappings.
+   :type lci_data: dict
+
+   :returns: The updated Pyomo model instance with calculated intervention flows.
+   :rtype: instance
+
+
+.. py:function:: instantiate(model_data)
+
+   Builds an instance of the optimization model with specific data and objective function.
+
+   :param model_data: Data dictionary for the optimization model.
+   :type model_data: dict
+
+   :returns: The instantiated Pyomo model.
+   :rtype: ConcreteModel
+
+
+.. py:function:: solve_model(model_instance, gams_path=None, solver_name=None, options=None)
+
+   Solves the instance of the optimization model.
+
+   :param model_instance: The Pyomo model instance.
+   :type model_instance: ConcreteModel
+   :param gams_path: Path to the GAMS solver. If None, GAMS will not be used.
+   :type gams_path: str, optional
+   :param solver_name: The solver to use ('highs', 'gams', or 'ipopt'). Defaults to 'highs' unless gams_path is provided.
+   :type solver_name: str, optional
+   :param options: Additional options for the solver.
+   :type options: list, optional
+
+   :returns: Results of the optimization and the updated model instance.
+   :rtype: tuple
+
+
