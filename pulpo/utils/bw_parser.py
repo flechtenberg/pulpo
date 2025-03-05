@@ -1,7 +1,7 @@
 from typing import List, Union, Dict, Any
 import bw2calc as bc
 import bw2data as bd
-from pulpo.utils.utils import is_bw25
+from pulpo.utils.utils import get_bw_version
 
 def import_data(project: str, databases: Union[str, List[str]], method: Union[str, List[str], Dict[str, int]],
                 intervention_matrix_name: str) -> Dict[str, Union[dict, Any]]:
@@ -47,95 +47,61 @@ def import_data(project: str, databases: Union[str, List[str]], method: Union[st
         )
 
     # Initialize database objects
-    eidb = bd.Database(databases[0])  # Foreground database
-    eidb_secondary = bd.Database(databases[1]) if len(databases) > 1 else None  # Secondary background database
+    eidbs = []
+    lcas = []
+    for database in databases:
+        eidbs.append(bd.Database(database))
 
-    rand_act = eidb.random()  # Random activity from foreground database
-
-    bw25 = is_bw25()
+    bw_version = get_bw_version()
     characterization_matrices = {}
-    secondary_lca = None  # Placeholder for secondary LCA object
-
-    if bw25:
-        # Process with bw25 logic for foreground database
-        functional_units_1 = {"act1": {rand_act.id: 1}}
-        config_1 = {"impact_categories": methods}
-        data_objs_1 = bd.get_multilca_data_objs(functional_units=functional_units_1, method_config=config_1)
-
-        lca = bc.MultiLCA(demands=functional_units_1, method_config=config_1, data_objs=data_objs_1)
-        lca.load_lci_data()
-        lca.load_lcia_data()
-
-        # Store the characterization matrices for methods
-        characterization_matrices = {str(method): lca.characterization_matrices[method] for method in methods}
-
-        # Perform LCA for the secondary database, if specified
-        if eidb_secondary:
-            functional_units_2 = {"act2": {eidb_secondary.random().id: 1}}
-            config_2 = {"impact_categories": methods}
-            data_objs_2 = bd.get_multilca_data_objs(functional_units=functional_units_2, method_config=config_2)
-
-            secondary_lca = bc.MultiLCA(demands=functional_units_2, method_config=config_2, data_objs=data_objs_2)
-            secondary_lca.load_lci_data()  # Only need the product dictionary
-            # secondary_lca.products_dict will be available later
-
-    else:
-        # Process with bw2 logic for foreground database
-        for method in methods:
-            lca = bc.LCA({rand_act: 1}, method)
-            lca.lci()
-            lca.lcia()
-            characterization_matrices[str(method)] = lca.characterization_matrix
-
-        # Perform LCA for the secondary database, if specified
-        if eidb_secondary:
-            rand_act_bg = eidb_secondary.random()
-            for method in methods:
-                secondary_lca = bc.LCA({rand_act_bg: 1}, method)
-                secondary_lca.lci()  # Load LCI to access product dictionary
-                # Stop after loading one method since we're only interested in secondary_lca.products_dict
-                break
-
-    # Extract A (Technosphere) and B (Biosphere) matrices from the LCA
-    technology_matrix = lca.technosphere_matrix  # A matrix
-    intervention_matrix = lca.biosphere_matrix  # B matrix
-
-    # Initialize the process map
     process_map = {}
-
-    if bw25:
-        # Create activity map for the primary database (eidb)
-        process_map.update({act.key: lca.dicts.product[act.id] for act in eidb})
-
-        # Add secondary database (secondary_eidb) activities, if available
-        if eidb_secondary and secondary_lca:
-            process_map.update({act.key: secondary_lca.dicts.product[act.id] for act in eidb_secondary})
-    else:
-        # Use product_dict for the primary database (eidb)
-        process_map.update(lca.product_dict)
-
-        # Add secondary database (secondary_eidb) product_dict, if available
-        if eidb_secondary and secondary_lca:
-            process_map.update(secondary_lca.product_dict)
+    
+    match bw_version:
+        case 'bw25':
+            for eidb in eidbs:
+                functional_units = {"act1": {eidb.random().id: 1}}
+                config = {"impact_categories": methods}
+                data_objs = bd.get_multilca_data_objs(functional_units=functional_units, method_config=config)
+                lca = bc.MultiLCA(demands=functional_units, method_config=config, data_objs=data_objs)
+                lca.load_lci_data()
+                lca.load_lcia_data()
+                # Store the characterization matrices for methods
+                characterization_matrices = {str(method): lca.characterization_matrices[method] for method in methods}
+                lcas.append(lca)
+                process_map.update({act.key: lca.dicts.product[act.id] for act in eidb})
+        case 'bw2':
+            for eidb in eidbs:
+                for method in methods:
+                    lca = bc.LCA({eidb.random(): 1}, method)
+                    lca.load_lci_data()
+                    lca.load_lcia_data()
+                    lcas.append(lca)
+                    characterization_matrices[str(method)] = lca.characterization_matrix
+                lcas.append(lca)
+                process_map.update(lca.product_dict)
+    # Extract A (Technosphere) and B (Biosphere) matrices from the LCA
+    technology_matrix = lcas[0].technosphere_matrix  # A matrix
+    intervention_matrix = lcas[0].biosphere_matrix  # B matrix
 
     # Add descriptive strings to the process map for both primary and secondary databases
-    for act in eidb:
-        process_map[process_map[act.key]] = (
-            f"{act['name']} | {act.get('reference product', '')} | {act.get('location', '')}"
-        )
-
-    if eidb_secondary:
-        for act in eidb_secondary:
+    # ATTN: BHL change to seperate variable
+    # process_map_metadata = {}
+    for eidb in eidbs:
+        for act in eidb:
             process_map[process_map[act.key]] = (
                 f"{act['name']} | {act.get('reference product', '')} | {act.get('location', '')}"
             )
 
+    # ATTN: BHL could probbly ask BW what the biosphere matrix is and then move this code into the cases further up
     if intervention_matrix_name in bd.databases:
         eidb_bio = bd.Database(intervention_matrix_name)
-        if bw25:
-            intervention_map = {act.key: lca.dicts.biosphere[act.id] for act in eidb_bio if act.id in lca.dicts.biosphere}  # TODO: This is adherring to old ways of storring data with keys ... how to work with IDs instead?
-        else:
-            intervention_map = lca.biosphere_dict
+        match bw_version:
+            case 'bw25':
+                intervention_map = {act.key: lca.dicts.biosphere[act.id] for act in eidb_bio if act.id in lca.dicts.biosphere}  # TODO: This is adherring to old ways of storring data with keys ... how to work with IDs instead?
+            case 'bw2':
+                intervention_map = lca.biosphere_dict
+        # ATTN: BHL change to seperate variable
+        # intervention_map_metadata = {}
         for act in eidb_bio:
             if act.key in intervention_map:
                 intervention_map[intervention_map[act.key]] = act['name'] + ' | ' + str(act['categories'])
@@ -150,6 +116,7 @@ def import_data(project: str, databases: Union[str, List[str]], method: Union[st
         'technology_matrix': technology_matrix,
         'process_map': process_map,
         'intervention_map': intervention_map,
+        # ATTN: BHL add the additional seperate variables as the next chane
     }
 
     return lci_data
