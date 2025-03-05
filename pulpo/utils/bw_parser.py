@@ -19,11 +19,6 @@ def import_data(project: str, databases: Union[str, List[str]], method: Union[st
         Dict[str, Union[dict, Any]]: Dictionary containing imported LCI data.
     """
 
-    # Set project and check if it exists
-    if project not in bd.projects:
-        raise ValueError(f"Project '{project}' does not exist. Please check the project name.")
-
-    bd.projects.set_current(project)
 
     # Normalize databases input to a list
     if isinstance(databases, str):

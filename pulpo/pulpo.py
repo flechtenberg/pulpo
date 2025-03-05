@@ -1,4 +1,5 @@
 from pulpo.utils import optimizer, bw_parser, converter, saver
+import bw2data as bd
 from typing import List, Union
 import webbrowser
 from tests.rice_database import setup_rice_husk_db
@@ -23,6 +24,12 @@ class PulpoOptimizer:
         self.directory = directory
         self.lci_data = None
         self.instance = None
+
+        # Set project and check if it exists
+        if project not in bd.projects:
+            raise ValueError(f"Project '{project}' does not exist. Please check the project name.")
+        bd.projects.set_current(project)
+
 
     def get_lci_data(self):
         """

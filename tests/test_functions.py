@@ -31,11 +31,6 @@ class TestParser(unittest.TestCase):
             import_data('sample_project', 'nothing', methods, 'biosphere')
         self.assertIn("Database 'nothing' does not exist", str(context.exception))
 
-        # Test invalid project
-        with self.assertRaises(ValueError) as context:
-            import_data('nonexistent_project', 'technosphere', methods, 'biosphere')
-        self.assertIn("Project 'nonexistent_project' does not exist", str(context.exception))
-
         # Test invalid method
         invalid_methods = {
             "('my project', 'nonexistent method')": 1,
@@ -72,6 +67,9 @@ class TestPULPO(unittest.TestCase):
                    "('my project', 'air quality')": 1,
                    "('my project', 'resources')": 0}
         # Test basic PULPO:
+        with self.assertRaises(ValueError) as context:
+            pulpo.PulpoOptimizer("not_an_existing_project", database, methods, '')
+        self.assertIn("Project 'not_an_existing_project' does not exist", str(context.exception))
         worker = pulpo.PulpoOptimizer(project, database, methods, '')
         worker.intervention_matrix = 'biosphere'
         worker.get_lci_data()
