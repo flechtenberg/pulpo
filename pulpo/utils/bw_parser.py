@@ -84,11 +84,10 @@ def import_data(project: str, databases: Union[str, List[str]], method: Union[st
     intervention_matrix = lcas[0].biosphere_matrix  # B matrix
 
     # Add descriptive strings to the process map for both primary and secondary databases
-    # ATTN: BHL change to seperate variable
-    # process_map_metadata = {}
+    process_map_metadata = {}
     for eidb in eidbs:
         for act in eidb:
-            process_map[process_map[act.key]] = (
+            process_map_metadata[process_map[act.key]] = (
                 f"{act['name']} | {act.get('reference product', '')} | {act.get('location', '')}"
             )
 
@@ -100,11 +99,10 @@ def import_data(project: str, databases: Union[str, List[str]], method: Union[st
                 intervention_map = {act.key: lca.dicts.biosphere[act.id] for act in eidb_bio if act.id in lca.dicts.biosphere}  # TODO: This is adherring to old ways of storring data with keys ... how to work with IDs instead?
             case 'bw2':
                 intervention_map = lca.biosphere_dict
-        # ATTN: BHL change to seperate variable
-        # intervention_map_metadata = {}
+        intervention_map_metadata = {}
         for act in eidb_bio:
             if act.key in intervention_map:
-                intervention_map[intervention_map[act.key]] = act['name'] + ' | ' + str(act['categories'])
+                intervention_map_metadata[intervention_map[act.key]] = act['name'] + ' | ' + str(act['categories'])
     else:
         print(
             "The name of the biosphere is not '" + intervention_matrix_name + "'. Please specify the correct biosphere.")
@@ -116,7 +114,8 @@ def import_data(project: str, databases: Union[str, List[str]], method: Union[st
         'technology_matrix': technology_matrix,
         'process_map': process_map,
         'intervention_map': intervention_map,
-        # ATTN: BHL add the additional seperate variables as the next chane
+        'intervention_map_metadata':intervention_map_metadata,
+        'process_map_metadata':process_map_metadata,
     }
 
     return lci_data
