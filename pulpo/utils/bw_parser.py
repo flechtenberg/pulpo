@@ -54,6 +54,7 @@ def import_data(project: str, databases: Union[str, List[str]], method: Union[st
 
     bw_version = get_bw_version()
     characterization_matrices = {}
+    characterization_params = {}
     process_map = {}
     
     match bw_version:
@@ -77,6 +78,7 @@ def import_data(project: str, databases: Union[str, List[str]], method: Union[st
                     lca.load_lcia_data()
                     lcas.append(lca)
                     characterization_matrices[str(method)] = lca.characterization_matrix
+                    characterization_params[str(method)] = lca.cf_params
                 lcas.append(lca)
                 process_map.update(lca.product_dict)
     # Extract A (Technosphere) and B (Biosphere) matrices from the LCA
@@ -113,6 +115,8 @@ def import_data(project: str, databases: Union[str, List[str]], method: Union[st
         'intervention_matrix': intervention_matrix,
         'technology_matrix': technology_matrix,
         'process_map': process_map,
+        'intervention_params': lca.bio_params,
+        'characterization_params': characterization_params,
         'intervention_map': intervention_map,
         'intervention_map_metadata':intervention_map_metadata,
         'process_map_metadata':process_map_metadata,
