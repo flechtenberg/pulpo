@@ -132,7 +132,7 @@ class PulpoOptimizer:
         methods = bw_parser.retrieve_methods(self.project, string)
         return methods
 
-    def save_results(self, choices={}, constraints={}, demand={}, name='results.xlxs'):
+    def save_results(self, choices={}, constraints={}, demand={}, name='results'):
         """
         Saves the results of the optimization to a file.
 
@@ -142,8 +142,10 @@ class PulpoOptimizer:
             demand (dict): Demand data used in optimization.
             name (str): Name of the file to save results.
         """
-        saver.save_results(self.instance, self.project, self.database, choices, constraints, demand,
-                           self.lci_data['process_map'], self.lci_data['intervention_map'], self.directory, name)
+        results_data = saver.extract_results(self.instance, self.project, self.database, choices, constraints, demand,
+                           self.lci_data['process_map'], self.lci_data['process_map_metadata'], self.lci_data['intervention_map'],
+                           self.lci_data['intervention_map_metadata'])
+        saver.save_results(results_data, self.directory, name)
 
     def summarize_results(self, choices={}, constraints={}, demand={}, zeroes=False):
         """
@@ -155,8 +157,11 @@ class PulpoOptimizer:
             demand (dict): Demand data used in optimization.
             zeroes (bool): Whether to include zero values in the summary.
         """
-        saver.summarize_results(self.instance, choices, constraints, demand,
-                                self.lci_data['process_map'], zeroes)
+        results_data = saver.extract_results(self.instance, self.project, self.database, choices, constraints, demand,
+                           self.lci_data['process_map'], self.lci_data['process_map_metadata'], self.lci_data['intervention_map'],
+                           self.lci_data['intervention_map_metadata'])
+        
+        saver.summarize_results(results_data, zeroes)
 
 
 def electricity_showcase():

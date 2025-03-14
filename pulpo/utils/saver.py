@@ -4,10 +4,8 @@ import pandas as pd
 from pathlib import Path
 from IPython.display import display
 
-def save_results(instance, project, database, choices, constraints, demand, process_map, itervention_map, directory, name):
+def extract_results(instance, project, database, choices, constraints, demand, process_map, process_map_metadata, itervention_map, itervention_map_metadata):
     """
-    Saves the results of a Pyomo optimization model to an Excel file.
-
     Args:
         instance: The Pyomo model instance.
         project (str): Name of the project.
@@ -16,13 +14,12 @@ def save_results(instance, project, database, choices, constraints, demand, proc
         constraints (dict): Constraints applied during optimization.
         demand (dict): Demand data used in optimization.
         process_map (dict): Mapping of process IDs to descriptions.
+        process_map_metadata (dict): Metadata to the process_map
         itervention_map (dict): Mapping of intervention IDs to descriptions.
+        itervention_map_metadata (dict): Metadata of the itervention_map.
         directory (str): Directory to save the results file.
         name (str): Name of the results file.
     """
-    # Check if data/results folder exists, if not create it
-    Path(directory + '/results').mkdir(parents=True, exist_ok=True)
-
     # Recover dictionary values
     list_of_vars = []
     for v in instance.component_objects(ctype=pyo.Var, active=True, descend_into=True):
@@ -30,131 +27,99 @@ def save_results(instance, project, database, choices, constraints, demand, proc
             v._data[e] = value(v[e])
         list_of_vars.append(v)
 
-    # Open xlsx writer
-    writer = pd.ExcelWriter(directory + '/results/' + name, engine='xlsxwriter')
-
+    result_data = {}
+    inverse_process_map = dict((v, k) for k, v in process_map.items())
+    inverse_itervention_map = dict((v, k) for k, v in itervention_map.items())
     # Raw results
     for v in list_of_vars:
         try:
             if str(v) == 'inv_flows' or str(v) == 'inv_vector':
-                data = [(k, itervention_map[k], v) for k, v in v._data.items()]
+                data = [(k, inverse_itervention_map[k], itervention_map_metadata[k], v) for k, v in v._data.items()]
             else:
-                data = [(k, process_map[k], v) for k, v in v._data.items()]
-            df = pd.DataFrame(data, columns=['ID', 'Process', 'Value'])
+                data = [(k, inverse_process_map[k], process_map_metadata[k], v) for k, v in v._data.items()]
+            df = pd.DataFrame(data, columns=['ID', 'Process name', "Process metadata", 'Value'])
         except:
             data = [(k, v) for k, v in v._data.items()]
             df = pd.DataFrame(data, columns=['Key', 'Value'])
         df.sort_values(by=['Value'], inplace=True, ascending=False)
-        df.to_excel(writer, sheet_name=v.name, index=False)
+        result_data[v.name] = df
 
     # Normalize database to a list if it is a string
     if isinstance(database, str):
         database = [database]
 
     # Store the metadata
-    metadata = [f"{project}__{db}" for db in database]
-    pd.DataFrame(metadata).to_excel(writer, sheet_name='project and db')
+    result_data["project and db"] = pd.DataFrame([f"{project}__{db}" for db in database])
 
-    metadata = {}
+    choices_data = {}
     for choice in choices:
         i = 0
         temp_dict = []
         for alt in choices[choice]:
             temp_dict.append((alt, i, instance.scaling_vector[process_map[alt.key]]))
             i+=1
-        metadata[(choice, 'Process')] = {'Process ' + str(i): process_map[process_map[alt.key]] for alt, i, val in temp_dict}
-        metadata[(choice, 'Capacity')] = {'Process ' + str(i): choices[choice][alt] for alt, i, val in temp_dict}
-        metadata[(choice, 'Value')] = {'Process ' + str(i): x for alt, i, x in temp_dict}
+        choices_data[(choice, 'Process')] = {'Process ' + str(i): process_map_metadata[process_map[alt.key]] for alt, i, val in temp_dict}
+        choices_data[(choice, 'Capacity')] = {'Process ' + str(i): choices[choice][alt] for alt, i, val in temp_dict}
+        choices_data[(choice, 'Value')] = {'Process ' + str(i): x for alt, i, x in temp_dict}
+    result_data["choices"] = pd.DataFrame(choices_data)
 
-    pd.DataFrame(metadata).to_excel(writer, sheet_name='choices')
-
-    metadata = {}
-    metadata['Demand'] = {
-        process_map[process_map[key]] if key in process_map else key: demand[key]
+    result_data["demand"] = pd.DataFrame({"demand":{
+        process_map_metadata[process_map[key]] if key in process_map else key: demand[key]
         for key in demand
-    }
-    pd.DataFrame(metadata).to_excel(writer, sheet_name='demand')
+    }})
+    result_data["constraints"] = pd.DataFrame({"Demand": {process_map_metadata[process_map[key]]: constraints[key] for key in constraints}})
 
-    metadata = {}
-    metadata['Demand'] = {process_map[process_map[key]]: constraints[key] for key in constraints}
-    pd.DataFrame(metadata).to_excel(writer, sheet_name='constraints')
+    return result_data
 
-    # Save xlsx file
-    writer.close()
-    return
 
-def summarize_results(instance, choices, constraints, demand, process_map, zeroes):
+def save_results(result_data, directory, file_name):
+    with pd.ExcelWriter(f"{directory}/results/{file_name}.xlsx") as writer:
+        for sheet_name, dataframe in result_data.items():
+            dataframe.to_excel(writer, sheet_name=sheet_name)
+
+
+def _display_dataframe(df):
+    """
+    Helper function to display a DataFrame if it is not empty.
+
+    Args:
+        df (pd.DataFrame): The DataFrame to display.
+    """
+    if not df.empty:
+        display(df)
+    else:
+        print('No data available.')
+
+
+def summarize_results(results_data, zeroes):
     """
     Summarizes the results of the optimization and prints them to the console.
 
     Args:
-        instance: The Pyomo model instance.
-        choices (dict): Choices for the model.
-        constraints (dict): Constraints applied during optimization.
-        demand (dict): Demand data used in optimization.
-        process_map (dict): Mapping of process IDs to descriptions.
+        results_data (dict): Dictionary containing extracted results, assumed to be precomputed.
         zeroes (bool): Whether to include zero values in the summary.
     """
-    metadata = {}
-    metadata['Demand'] = {
-        process_map[process_map[key]] if key in process_map else key: demand[key]
-        for key in demand
-    }
+    # Display demand
+    print('\nThe following demand / functional unit has been specified:')
+    _display_dataframe(results_data.get("demand", pd.DataFrame()))
 
-    print('The following demand / functional unit has been specified: ')
-    display(pd.DataFrame(metadata))
-
-    # Recover dictionary values
-    list_of_vars = []
-    for v in instance.component_objects(ctype=pyo.Var, active=True, descend_into=True):
-        for e in v._data:
-            v._data[e] = value(v[e])
-        list_of_vars.append(v)
-
-    # Raw results
-    for v in list_of_vars:
-        if v.name == 'impacts':
-            try:
-                data = [(k, process_map[k], v) for k, v in v._data.items()]
-                df = pd.DataFrame(data, columns=['ID', 'Process', 'Value'])
-            except:
-                data = [(k, v) for k, v in v._data.items()]
-                df = pd.DataFrame(data, columns=['Key', 'Value'])
-            df.sort_values(by=['Value'], inplace=True, ascending=False)
-            print('\nThese are the impacts contained in the objective:')
-            display(df)
-
-        if v.name == 'impacts_calculated':
-            try:
-                data = [(k, process_map[k], v) for k, v in v._data.items()]
-                df = pd.DataFrame(data, columns=['ID', 'Process', 'Value'])
-            except:
-                data = [(k, v) for k, v in v._data.items()]
-                df = pd.DataFrame(data, columns=['Key', 'Value'])
-            df.sort_values(by=['Value'], inplace=True, ascending=False)
-            print('\nThe following impacts were calculated: ')
-            display(df)
-
-    print('\nThe following choices were made: ')
-    for choice in choices:
-        metadata = {}
-        i = 0
-        temp_dict = []
-        for alt in choices[choice]:
-            if zeroes == False or instance.scaling_vector[process_map[alt.key]] != 0:
-                temp_dict.append((alt, i, instance.scaling_vector[process_map[alt.key]]))
-                i += 1
-        metadata[(choice, 'Process')] = {'Process ' + str(i): process_map[process_map[alt.key]] for alt, i, val in temp_dict}
-        metadata[(choice, 'Capacity')] = {'Process ' + str(i): choices[choice][alt] for alt, i, val in temp_dict}
-        metadata[(choice, 'Value')] = {'Process ' + str(i): x for alt, i, x in temp_dict}
-        print(choice)
-        display(pd.DataFrame(metadata))
-
-    if constraints == {}:
-        print('No additional constraints have been passed.')
+    # Display constraints (if any)
+    if "constraints" in results_data and not results_data["constraints"].empty:
+        print('\nThe following constraints were implemented and obliged:')
+        _display_dataframe(results_data["constraints"])
     else:
-        metadata = {}
-        metadata['Constraints'] = {process_map[process_map[key]]: constraints[key] for key in constraints}
-        print('\nThe following constraints were implemented and oblieged: ')
-        display(pd.DataFrame(metadata))
+        print('No additional constraints have been passed.')
+
+    # Display impact results (if they exist)
+    for impact_name in ['impacts', 'impacts_calculated']:
+        if impact_name in results_data and not results_data[impact_name].empty:
+            print(f'\n{impact_name.replace("_", " ").title()} contained in the objective:')
+            _display_dataframe(results_data[impact_name])
+
+    # Display choices
+    if "choices" in results_data and not results_data["choices"].empty:
+        print('\nThe following choices were made:')
+        display(results_data["choices"])
+    else:
+        print('\nNo choices were recorded.')
 
