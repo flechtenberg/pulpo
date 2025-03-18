@@ -151,7 +151,7 @@ def test_import_data():
 
     result = import_data('sample_project', 'technosphere', methods, 'biosphere')
 
-    assert [idx for idx in result] == ['matrices', 'intervention_matrix', 'technology_matrix', 'process_map', 'intervention_map']
+    assert [idx for idx in result] == ['matrices', 'intervention_matrix', 'technology_matrix', 'process_map', 'intervention_map', 'intervention_params', 'characterization_params', 'intervention_map_metadata', 'process_map_metadata']    
     assert result['technology_matrix'].shape == (5, 5)
     assert result['intervention_matrix'].shape == (4, 5)
     assert result['process_map'] == {('technosphere', 'oil extraction'): 0, ('technosphere', 'lignite extraction'): 1, ('technosphere', 'steam cycle'): 2, ('technosphere', 'wind turbine'): 3, ('technosphere', 'e-Car'): 4, 2: 'steam cycle | electricity | GLO', 1: 'lignite extraction | lignite | GLO', 0: 'oil extraction | oil | GLO', 3: 'wind turbine | electricity | GLO', 4: 'e-Car | transport | GLO'}
