@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pulpo-dev"
-version = "0.1.5"
+version = "0.1.6"
 description = "Pulpo package for optimization in LCI databases"
 authors = [
   { name="Fabian Lechtenberg", email="fabian.lechtenberg@chem.ethz.ch" }
@@ -22,7 +22,7 @@ classifiers = [
 ]
 dependencies = [
     "fs==2.4.16",
-    "pyomo<=6.6.2",
+    "pyomo<=6.5.0",
     "highspy==1.8.0",
     "ipython==8.14.0",
     "jupyterlab",
