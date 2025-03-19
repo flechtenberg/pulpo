@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pulpo-dev"
-version = "0.1.5"
+version = "1.3.0"
 description = "Pulpo package for optimization in LCI databases"
 authors = [
   { name="Fabian Lechtenberg", email="fabian.lechtenberg@chem.ethz.ch" }
@@ -22,7 +22,7 @@ classifiers = [
 ]
 dependencies = [
     "fs==2.4.16",
-    "pyomo<=6.6.2",
+    "pyomo<=6.5.0",
     "highspy==1.8.0",
     "ipython==8.14.0",
     "jupyterlab",
@@ -47,9 +47,8 @@ bw25 = [
 homepage = "https://github.com/flechtenberg/pulpo"
 repository = "https://github.com/flechtenberg/pulpo"
 
-[tool.setuptools]
-include-package-data = true
-packages = ["pulpo"]
+[tool.setuptools.packages.find]
+include = ["pulpo*", "utils*", "tests*"]
 
 [tool.flake8]
 max_line_length = 88
