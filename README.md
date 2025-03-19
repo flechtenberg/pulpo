@@ -48,7 +48,7 @@ The following features are currently under development:
 
 > - [ ] `ℹ️  Development of a GUI for simple optimization tasks`
 > - [X] `ℹ️  Enable PULPO to work on both bw2 and bw25 projects`
-> - [ ] `ℹ️  Thorough documentation to be hosted in the docs.brightway.dev`
+> - [X] `ℹ️  Thorough documentation hosted on flechtenberg.github.io/pulpo/`
 
 Feature requests are more than welcome!
 
@@ -79,8 +79,8 @@ python -m unittest discover -s tests
 ```
 
 ---
-## What's new in 0.1.3?
-- Enable users to work on both bw2 and bw25 projects.
+## What's new in 1.3.0?
+- Switch packaging logic from setup.py to pyproject.toml and align pypi with Github versioning number
 
 ---
 
