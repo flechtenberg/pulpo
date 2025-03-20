@@ -1,6 +1,7 @@
 from typing import List, Union, Dict, Any
 import bw2calc as bc
 import bw2data as bd
+import numpy as np
 from pulpo.utils.utils import get_bw_version
 
 def import_data(project: str, databases: Union[str, List[str]], method: Union[str, List[str], Dict[str, int]],
@@ -84,6 +85,7 @@ def import_data(project: str, databases: Union[str, List[str]], method: Union[st
     # Extract A (Technosphere) and B (Biosphere) matrices from the LCA
     technology_matrix = lcas[0].technosphere_matrix  # A matrix
     intervention_matrix = lcas[0].biosphere_matrix  # B matrix
+    intervention_params = lcas[0].bio_params
 
     # Add descriptive strings to the process map for both primary and secondary databases
     process_map_metadata = {}
@@ -115,7 +117,7 @@ def import_data(project: str, databases: Union[str, List[str]], method: Union[st
         'intervention_matrix': intervention_matrix,
         'technology_matrix': technology_matrix,
         'process_map': process_map,
-        'intervention_params': lca.bio_params,
+        'intervention_params': intervention_params,
         'characterization_params': characterization_params,
         'intervention_map': intervention_map,
         'intervention_map_metadata':intervention_map_metadata,
