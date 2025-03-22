@@ -20,3 +20,9 @@ def is_bw25():
         return True
     except Exception as e:
         raise RuntimeError(f"Error checking Brightway versions: {e}")
+    
+def get_bw_version():
+    if is_bw25():
+        return "bw25"
+    else:
+        return "bw2"

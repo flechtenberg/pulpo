@@ -21,20 +21,41 @@ class TestParser(unittest.TestCase):
 
         result = import_data('sample_project', 'technosphere', methods, 'biosphere')
 
-        self.assertEqual([idx for idx in result], ['matrices', 'intervention_matrix', 'technology_matrix', 'process_map', 'intervention_map'])
+        # Define the expected keys
+        expected_keys = [
+            'matrices',
+            'intervention_matrix',
+            'technology_matrix',
+            'process_map',
+            'intervention_map',
+            'intervention_params',
+            'characterization_params',
+            'intervention_map_metadata',
+            'process_map_metadata'
+        ]
+
+        # Assert that the keys in the result match the expected keys
+        self.assertEqual(sorted(result.keys()), sorted(expected_keys))
+
+        # Assert the shapes of specific matrices
         self.assertEqual(result['technology_matrix'].shape, (5, 5))
         self.assertEqual(result['intervention_matrix'].shape, (4, 5))
-        self.assertEqual(result['process_map'], {('technosphere', 'oil extraction'): 0, ('technosphere', 'lignite extraction'): 1, ('technosphere', 'steam cycle'): 2, ('technosphere', 'wind turbine'): 3, ('technosphere', 'e-Car'): 4, 2: 'steam cycle | electricity | GLO', 1: 'lignite extraction | lignite | GLO', 0: 'oil extraction | oil | GLO', 3: 'wind turbine | electricity | GLO', 4: 'e-Car | transport | GLO'})
+
+        # Assert the process map
+        expected_process_map = {
+            ('technosphere', 'oil extraction'): 0,
+            ('technosphere', 'lignite extraction'): 1,
+            ('technosphere', 'steam cycle'): 2,
+            ('technosphere', 'wind turbine'): 3,
+            ('technosphere', 'e-Car'): 4,
+        }
+
+        self.assertEqual(result['process_map'], expected_process_map)
 
         # Test invalid database
         with self.assertRaises(ValueError) as context:
             import_data('sample_project', 'nothing', methods, 'biosphere')
         self.assertIn("Database 'nothing' does not exist", str(context.exception))
-
-        # Test invalid project
-        with self.assertRaises(ValueError) as context:
-            import_data('nonexistent_project', 'technosphere', methods, 'biosphere')
-        self.assertIn("Project 'nonexistent_project' does not exist", str(context.exception))
 
         # Test invalid method
         invalid_methods = {
@@ -71,6 +92,12 @@ class TestPULPO(unittest.TestCase):
         methods = {"('my project', 'climate change')": 1,
                    "('my project', 'air quality')": 1,
                    "('my project', 'resources')": 0}
+        
+        # Test invalid project
+        with self.assertRaises(ValueError) as context:
+            pulpo.PulpoOptimizer('nonexistent_project', database, methods, '')
+        self.assertIn("Project 'nonexistent_project' does not exist", str(context.exception))
+
         # Test basic PULPO:
         worker = pulpo.PulpoOptimizer(project, database, methods, '')
         worker.intervention_matrix = 'biosphere'
