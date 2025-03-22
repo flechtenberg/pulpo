@@ -24,6 +24,12 @@ class PulpoOptimizer:
         self.directory = directory
         self.lci_data = None
         self.instance = None
+        self.choices = {}
+        self.demand = {}
+        self.upper_limit = {}
+        self.lower_limit = {}
+        self.upper_elem_limit = {}
+        self.upper_imp_limit = {}
 
         # Set project and check if it exists
         if project not in bd.projects:
@@ -55,6 +61,13 @@ class PulpoOptimizer:
         data = converter.combine_inputs(self.lci_data, demand, choices, upper_limit, lower_limit, upper_elem_limit,
                                         upper_imp_limit, methods)
         self.instance = optimizer.instantiate(data)
+        self.choices = choices
+        self.demand = demand
+        self.upper_limit = upper_limit
+        self.lower_limit = lower_limit
+        self.upper_elem_limit = upper_elem_limit
+        self.upper_imp_limit = upper_imp_limit
+
 
     def solve(self, GAMS_PATH=False, solver_name=None, options=None):
         """
@@ -132,36 +145,20 @@ class PulpoOptimizer:
         methods = bw_parser.retrieve_methods(self.project, string)
         return methods
 
-    def save_results(self, choices={}, constraints={}, demand={}, name='results'):
+    def save_results(self, name='results'):
         """
         Saves the results of the optimization to a file.
 
         Args:
-            choices (dict): Choices for the model.
-            constraints (dict): Constraints applied during optimization.
-            demand (dict): Demand data used in optimization.
             name (str): Name of the file to save results.
         """
-        results_data = saver.extract_results(self.instance, self.project, self.database, choices, constraints, demand,
-                           self.lci_data['process_map'], self.lci_data['process_map_metadata'], self.lci_data['intervention_map'],
-                           self.lci_data['intervention_map_metadata'])
-        saver.save_results(results_data, self.directory, name)
+        saver.save_results(self, name)
 
-    def summarize_results(self, choices={}, constraints={}, demand={}, zeroes=False):
+    def summarize_results(self, zeroes=False):
         """
         Summarizes the results of the optimization.
-
-        Args:
-            choices (dict): Choices for the model.
-            constraints (dict): Constraints applied during optimization.
-            demand (dict): Demand data used in optimization.
-            zeroes (bool): Whether to include zero values in the summary.
         """
-        results_data = saver.extract_results(self.instance, self.project, self.database, choices, constraints, demand,
-                           self.lci_data['process_map'], self.lci_data['process_map_metadata'], self.lci_data['intervention_map'],
-                           self.lci_data['intervention_map_metadata'])
-        
-        saver.summarize_results(results_data, zeroes)
+        saver.summarize_results(self, zeroes)
 
 
 def electricity_showcase():

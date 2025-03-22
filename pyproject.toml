@@ -27,6 +27,7 @@ dependencies = [
     "ipython==8.14.0",
     "jupyterlab",
     "numpy<2.0.0",
+    "openyxl",
     "pandas",
     "scipy<=1.14.1",
     "tqdm",
@@ -47,9 +48,8 @@ bw25 = [
 homepage = "https://github.com/flechtenberg/pulpo"
 repository = "https://github.com/flechtenberg/pulpo"
 
-[tool.setuptools]
-include-package-data = true
-packages = ["pulpo"]
+[tool.setuptools.packages.find]
+include = ["pulpo*", "utils*", "tests*"]
 
 [tool.flake8]
 max_line_length = 88
