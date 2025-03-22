@@ -24,6 +24,8 @@ class PulpoOptimizer:
         self.lci_data = None
         self.instance = None
 
+        bw_parser.set_project(project)
+
     def get_lci_data(self):
         """
         Imports LCI data for the project using the specified database and method.
