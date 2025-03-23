@@ -100,21 +100,23 @@ class TestParser(unittest.TestCase):
 ###############################
 
 class TestPULPO(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.project = 'sample_project'
+        cls.database = 'technosphere'
+        cls.methods = {
+            "('my project', 'climate change')": 1,
+            "('my project', 'air quality')": 1,
+            "('my project', 'resources')": 0
+        }
 
-    def test_pulpo(self):
-        project = 'sample_project'
-        database = 'technosphere'
-        methods = {"('my project', 'climate change')": 1,
-                   "('my project', 'air quality')": 1,
-                   "('my project', 'resources')": 0}
-        
-        # Test invalid project
+    def test_invalid_project(self):
         with self.assertRaises(ValueError) as context:
-            pulpo.PulpoOptimizer('nonexistent_project', database, methods, '')
+            pulpo.PulpoOptimizer('nonexistent_project', self.database, self.methods, '')
         self.assertIn("Project 'nonexistent_project' does not exist", str(context.exception))
 
-        # Test basic PULPO:
-        worker = pulpo.PulpoOptimizer(project, database, methods, '')
+    def test_basic_pulpo(self):
+        worker = pulpo.PulpoOptimizer(self.project, self.database, self.methods, '')
         worker.intervention_matrix = 'biosphere'
         worker.get_lci_data()
         eCar = worker.retrieve_activities(reference_products='transport')
@@ -127,7 +129,14 @@ class TestPULPO(unittest.TestCase):
         result_aux = round(worker.instance.impacts_calculated["('my project', 'resources')"].value, 5)
         self.assertEqual(result_obj, 0.103093)
         self.assertEqual(result_aux, 5.25773)
-        # Test supply specification:
+
+    def test_supply_specification(self):
+        worker = pulpo.PulpoOptimizer(self.project, self.database, self.methods, '')
+        worker.intervention_matrix = 'biosphere'
+        worker.get_lci_data()
+        eCar = worker.retrieve_activities(reference_products='transport')
+        elec = worker.retrieve_activities(reference_products='electricity')
+        choices = {'electricity': {elec[0]: 100, elec[1]: 100}}
         upper_limit = {eCar[0]: 1}
         lower_limit = {eCar[0]: 1}
         worker.instantiate(choices=choices, upper_limit=upper_limit, lower_limit=lower_limit)
@@ -136,7 +145,15 @@ class TestPULPO(unittest.TestCase):
         result_aux = round(worker.instance.impacts_calculated["('my project', 'resources')"].value, 5)
         self.assertEqual(result_obj, 0.1)
         self.assertEqual(result_aux, 5.1)
-        # Test elementary / intervention flow constraint:
+
+    def test_elementary_intervention_flow_constraint(self):
+        worker = pulpo.PulpoOptimizer(self.project, self.database, self.methods, '')
+        worker.intervention_matrix = 'biosphere'
+        worker.get_lci_data()
+        eCar = worker.retrieve_activities(reference_products='transport')
+        demand = {eCar[0]: 1}
+        elec = worker.retrieve_activities(reference_products='electricity')
+        choices = {'electricity': {elec[0]: 100, elec[1]: 100}}
         water = worker.retrieve_envflows(activities="Water, irrigation")
         upper_elem_limit = {water[0]: 5.2}
         worker.instantiate(choices=choices, demand=demand, upper_elem_limit=upper_elem_limit)
@@ -145,6 +162,8 @@ class TestPULPO(unittest.TestCase):
         result_aux = round(worker.instance.impacts_calculated["('my project', 'resources')"].value, 5)
         self.assertEqual(result_obj, 0.14237)
         self.assertEqual(result_aux, 5.2)
+        self.assertEqual(round(worker.instance.inv_flows[3].value, 3), 5.200)
+        self.assertEqual(round(worker.instance.inv_flows[2].value, 3), 1.659)
 
 
 ##########################
