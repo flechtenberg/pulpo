@@ -1,5 +1,6 @@
 import pyomo.environ as pyo
 from pyomo.contrib import appsi
+from .saver import extract_flows
 
 def create_model():
     """
@@ -73,7 +74,6 @@ def populate_env(model):
             model.ENV_COST_IN[h].add(i)
         model.ENV_COST_OUT[i, h].add(j)
 
-
 def populate_in_and_out(model):
     """Relates the inputs of an activity to its outputs."""
     for i, j in model.PRODUCT_PROCESS:
@@ -113,7 +113,6 @@ def upper_imp_constraint(model, h):
     """ Imposes upper limits on selected impact categories """
     return model.impacts[h] <= model.UPPER_IMP_LIMIT[h]
 
-
 def slack_upper_constraint(model, j):
     """ Slack variable upper limit for activities where supply is specified instead of demand """
     return model.slack[j] <= 1e20 * model.SUPPLY[j]
@@ -125,6 +124,7 @@ def slack_lower_constraint(model, j):
 def objective_function(model):
     """Objective is a sum over all indicators with weights. Typically, the indicator of study has weight 1, the rest 0"""
     return sum(model.impacts[h] * model.WEIGHTS[h] for h in model.INDICATOR)
+
 
 def calculate_methods(instance, lci_data, methods):
     """
@@ -138,30 +138,29 @@ def calculate_methods(instance, lci_data, methods):
     Returns:
         instance: The updated Pyomo model instance with calculated impacts.
     """
-    import scipy.sparse as sparse
-    import numpy as np
-    matrices = lci_data['matrices']
+    # Filter matrices for specified methods
+    matrices = {h: lci_data['matrices'][h] for h in lci_data['matrices'] if str(h) in methods}
     intervention_matrix = lci_data['intervention_matrix']
-    matrices = {h: matrices[h] for h in matrices if str(h) in methods}
-    env_cost = {h: sparse.csr_matrix.dot(matrices[h], intervention_matrix) for h in matrices}
-    try:
-        scaling_vector = np.array([instance.scaling_vector[x].value for x in instance.scaling_vector])
-    except:
-        scaling_vector = np.array([instance.scaling_vector[x] for x in instance.scaling_vector])
 
-    impacts = {}
-    for h in matrices:
-        impacts[h] = sum(env_cost[h].dot(scaling_vector))
+    # Calculate environmental costs
+    env_cost = {h: matrices[h] @ intervention_matrix for h in matrices}
 
-    # Check if instance.impacts_calculated exists
+    # Extract scaling vector
+    scaling_vector = extract_flows(instance, lci_data['process_map'], lci_data['process_map_metadata'], 'scaling').sort_index()
+    scaling_values = scaling_vector['Value'].to_numpy()
+
+    # Calculate impacts
+    impacts = {h: (env_cost[h] @ scaling_values).sum() for h in matrices}
+
+    # Update or create impacts_calculated variable
     if hasattr(instance, 'impacts_calculated'):
-        # Update values if it already exists
-        for h in impacts:
-            instance.impacts_calculated[h].value = impacts[h]
+        for h, value in impacts.items():
+            instance.impacts_calculated[h].value = value
     else:
-        # Create instance.impacts_calculated
-        instance.impacts_calculated = pyo.Var([h for h in impacts], initialize=impacts)
+        instance.impacts_calculated = pyo.Var(impacts.keys(), initialize=impacts)
+
     return instance
+
 
 def calculate_inv_flows(instance, lci_data):
     """
@@ -174,24 +173,22 @@ def calculate_inv_flows(instance, lci_data):
     Returns:
         instance: The updated Pyomo model instance with calculated intervention flows.
     """
-    import numpy as np
+    # Extract intervention matrix and scaling vector
     intervention_matrix = lci_data['intervention_matrix']
-    try:
-        scaling_vector = np.array([instance.scaling_vector[x].value for x in instance.scaling_vector])
-    except:
-        scaling_vector = np.array([instance.scaling_vector[x] for x in instance.scaling_vector])
-    flows = intervention_matrix.dot(scaling_vector)
-    # Check if inv_flows already exists in the model
-    # @TODO: Consider adding "inv_flows" directly as variable to the model and skip this check.
-    if hasattr(instance, 'inv_flows'):
-        # Update the values of the existing variable
-        for i in range(intervention_matrix.shape[0]):
-            instance.inv_flows[i].value = flows[i]
-    else:
-        # Create the variable if it does not exist
-        instance.inv_flows = pyo.Var(range(0, intervention_matrix.shape[0]), initialize=dict(enumerate(flows)))
-    return instance
+    scaling_vector = extract_flows(instance, lci_data['process_map'], lci_data['process_map_metadata'], 'scaling').sort_index()
+    scaling_values = scaling_vector['Value'].to_numpy()
 
+    # Calculate intervention flows
+    flows = intervention_matrix @ scaling_values
+
+    # Update or create inv_flows variable
+    if hasattr(instance, 'inv_flows'):
+        for i, flow_value in enumerate(flows):
+            instance.inv_flows[i].value = flow_value
+    else:
+        instance.inv_flows = pyo.Var(range(len(flows)), initialize=dict(enumerate(flows)))
+
+    return instance
 
 
 def instantiate(model_data):
