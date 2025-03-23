@@ -287,7 +287,7 @@ def solve_model(model_instance, gams_path=False, solver_name=None, options=None)
     Args:
         model_instance (ConcreteModel): The Pyomo model instance.
         gams_path (str or bool, optional): Path to the GAMS solver or True to use the environment variable.
-        solver_name (str, optional): The solver to use ('highs', 'gams', or 'ipopt').
+        solver_name (str, optional): The solver to use (e.g. 'cplex', 'baron', or 'xpress').
         options (list, optional): Additional options for the solver.
 
     Returns:
