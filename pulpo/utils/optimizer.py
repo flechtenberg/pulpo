@@ -17,9 +17,8 @@ def create_model():
     model.ENV_COST = pyo.Set(doc='Set of environmental cost flows, indexed by e')
     model.INDICATOR = pyo.Set(doc='Set of impact assessment indicators, indexed by h')
     model.INV = pyo.Set(doc='Set of intervention flows, indexed by g')
-    model.ENV_COST_PROCESS = pyo.Set(within=model.ENV_COST * model.PROCESS * model.INDICATOR, doc='Relation set between environmental cost flows and processes')
+    model.ENV_COST_PROCESS = pyo.Set(within=model.PROCESS * model.INDICATOR, doc='Relation set between environmental cost flows and processes')
     model.ENV_COST_IN = pyo.Set(model.INDICATOR, within=model.ENV_COST)
-    model.ENV_COST_OUT = pyo.Set(model.ENV_COST * model.INDICATOR, within=model.PROCESS)
     model.PROCESS_IN = pyo.Set(model.PROCESS, within=model.PRODUCT)
     model.PROCESS_OUT = pyo.Set(model.PRODUCT, within=model.PROCESS)
     model.PRODUCT_PROCESS = pyo.Set(within=model.PRODUCT * model.PROCESS, doc='Relation set between intermediate products and processes')
@@ -69,10 +68,9 @@ def create_model():
 # Rule functions
 def populate_env(model):
     """Relates the environmental flows to the processes."""
-    for i, j, h in model.ENV_COST_PROCESS:
-        if i not in model.ENV_COST_IN[h]:
-            model.ENV_COST_IN[h].add(i)
-        model.ENV_COST_OUT[i, h].add(j)
+    for j, h in model.ENV_COST_PROCESS:
+        if j not in model.ENV_COST_IN[h]:
+            model.ENV_COST_IN[h].add(j)
 
 def populate_in_and_out(model):
     """Relates the inputs of an activity to its outputs."""
@@ -91,7 +89,7 @@ def demand_constraint(model, i):
 
 def impact_constraint(model, h):
     """Calculates all the impact categories"""
-    return model.impacts[h] == sum(sum(model.ENV_COST_MATRIX[i, j, h] * model.scaling_vector[j] for j in model.ENV_COST_OUT[i, h]) for i in model.ENV_COST_IN[h])
+    return model.impacts[h] == sum(model.ENV_COST_MATRIX[j, h] * model.scaling_vector[j] for j in model.ENV_COST_IN[h])
 
 def inventory_constraint(model, g):
     """Calculates the environmental flows"""
