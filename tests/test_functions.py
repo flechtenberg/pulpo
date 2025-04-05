@@ -164,7 +164,63 @@ class TestPULPO(unittest.TestCase):
         self.assertEqual(result_aux, 5.2)
         self.assertEqual(round(worker.instance.inv_flows[3].value, 3), 5.200)
         self.assertEqual(round(worker.instance.inv_flows[2].value, 3), 1.659)
+    
+    def test_gams_solver(self):
+        """Test solving the optimization problem using the GAMS solver."""
+        gams_path = os.getenv('GAMS_PULPO')  # Ensure GAMS_PULPO is set in the environment
+        print(gams_path)
+        if not gams_path:
+            self.skipTest(
+                "GAMS_PULPO environment variable is not set. Skipping GAMS test. "
+                "To set it:\n"
+                "- On Windows: Run 'setx GAMS_PULPO \"C:\\path\\to\\gams\"' in Command Prompt (requires reopening the terminal).\n"
+                "- On macOS/Linux: Run 'export GAMS_PULPO=/path/to/gams' in the terminal."
+            )
 
+        worker = pulpo.PulpoOptimizer(self.project, self.database, self.methods, '')
+        worker.intervention_matrix = 'biosphere'
+        worker.get_lci_data()
+        eCar = worker.retrieve_activities(reference_products='transport')
+        demand = {eCar[0]: 1}
+        elec = worker.retrieve_activities(reference_products='electricity')
+        choices = {'electricity': {elec[0]: 100, elec[1]: 100}}
+        worker.instantiate(choices=choices, demand=demand)
+
+        # Subtests for different solvers
+        for solver_name in ['cplex', 'baron', 'xpress']:
+            with self.subTest(solver=solver_name):
+                # Solve using GAMS with the specified solver
+                if solver_name == 'cplex':
+                    worker.solve(GAMS_PATH=gams_path)
+                else:
+                    worker.solve(GAMS_PATH=gams_path, solver_name=solver_name)
+
+                # Assert the objective value
+                result_obj = round(worker.instance.OBJ(), 6)
+                self.assertEqual(result_obj, 0.103093)
+
+    def test_neos_solver(self):
+        """Test solving the optimization problem using the NEOS solver."""
+        if 'NEOS_EMAIL' not in os.environ:
+            self.skipTest(
+                "NEOS_EMAIL environment variable is not set. Skipping NEOS test. "
+                "To set it follow instructions on: https://www.twilio.com/en-us/blog/how-to-set-environment-variables-html"
+            )
+        worker = pulpo.PulpoOptimizer(self.project, self.database, self.methods, '')
+        worker.intervention_matrix = 'biosphere'
+        worker.get_lci_data()
+        eCar = worker.retrieve_activities(reference_products='transport')
+        demand = {eCar[0]: 1}
+        elec = worker.retrieve_activities(reference_products='electricity')
+        choices = {'electricity': {elec[0]: 100, elec[1]: 100}}
+        worker.instantiate(choices=choices, demand=demand)
+
+        # Solve using GAMS
+        worker.solve(solver_name='cplex')
+
+        # Assert the objective value
+        result_obj = round(worker.instance.OBJ(), 6)
+        self.assertEqual(result_obj, 0.103093)
 
 ##########################
 #### Test the SAVER  #####
@@ -330,4 +386,7 @@ class TestSaver(unittest.TestCase):
             for sheet_name in expected_sheets:
                 # Read the sheet
                 df = pd.read_excel(file_name, sheet_name=sheet_name, index_col=0)
+                # Check if the sheet is empty
+                if df.empty:
+                    self.fail(f"The sheet '{sheet_name}' is empty.")
 
