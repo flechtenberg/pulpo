@@ -2,6 +2,7 @@ from typing import List, Union, Dict, Any
 import bw2calc as bc
 import bw2data as bd
 from pulpo.utils.utils import get_bw_version
+from stats_arrays.random import MCRandomNumberGenerator
 
 def set_project(project: str):
     # Set project and check if it exists
@@ -10,7 +11,7 @@ def set_project(project: str):
     bd.projects.set_current(project)
 
 def import_data(project: str, databases: Union[str, List[str]], method: Union[str, List[str], Dict[str, int]],
-                intervention_matrix_name: str) -> Dict[str, Union[dict, Any]]:
+                intervention_matrix_name: str, seed: Union[None, int] = None) -> Dict[str, Union[dict, Any]]:
     """
     Main function to import LCI data for a project from one or more databases.
 
@@ -54,7 +55,6 @@ def import_data(project: str, databases: Union[str, List[str]], method: Union[st
 
     # Initialize database objects
     eidbs = []
-    lcas = []
     for database in databases:
         eidbs.append(bd.Database(database))
 
@@ -75,7 +75,6 @@ def import_data(project: str, databases: Union[str, List[str]], method: Union[st
                 # Store the characterization matrices for methods
                 characterization_matrices = {str(method): lca.characterization_matrices[method] for method in methods}
                 characterization_params = {} # ATTN: Figure out how to get bio_params, as in bw2 in order to proceed with uncertainty
-                lcas.append(lca)
                 process_map.update({act.key: lca.dicts.product[act.id] for act in eidb})
                 intervention_params = {} # ATTN: Figure out how to get bio_params, as in bw2 in order to proceed with uncertainty
         case 'bw2':
@@ -84,16 +83,22 @@ def import_data(project: str, databases: Union[str, List[str]], method: Union[st
                     lca = bc.LCA({eidb.random(): 1}, method)
                     lca.load_lci_data()
                     lca.load_lcia_data()
-                    lcas.append(lca)
-                    characterization_matrices[str(method)] = lca.characterization_matrix
                     characterization_params[str(method)] = lca.cf_params
-                lcas.append(lca)
+                    if seed is not None:
+                        cf_rng = MCRandomNumberGenerator(lca.cf_params, seed=seed)
+                        lca.rebuild_characterization_matrix(cf_rng.next())
+                    characterization_matrices[str(method)] = lca.characterization_matrix
                 process_map.update(lca.product_dict)
-                intervention_params = lcas[0].bio_params  # B parameters (uncertainty etc.)
+                intervention_params = lca.bio_params  # B parameters (uncertainty etc.)
+                if seed is not None:
+                    tech_rng = MCRandomNumberGenerator(lca.tech_params, seed=seed)
+                    bio_rng = MCRandomNumberGenerator(lca.bio_params, seed=seed)
+                    lca.rebuild_technosphere_matrix(tech_rng.next())
+                    lca.rebuild_biosphere_matrix(bio_rng.next())
 
     # Extract A (Technosphere) and B (Biosphere) matrices from the LCA
-    technology_matrix = lcas[0].technosphere_matrix  # A matrix
-    intervention_matrix = lcas[0].biosphere_matrix   # B matrix
+    technology_matrix = lca.technosphere_matrix  # A matrix
+    intervention_matrix = lca.biosphere_matrix   # B matrix
     
 
     # Add descriptive strings to the process map for both primary and secondary databases
@@ -132,6 +137,21 @@ def import_data(project: str, databases: Union[str, List[str]], method: Union[st
         'intervention_map_metadata':intervention_map_metadata,
         'process_map_metadata':process_map_metadata,
     }
+
+    return lci_data
+
+
+def update_lci_data(lci_data: Dict[str, Any], seed: int) -> Dict[str, Any]:
+    """
+    Update the LCI data dictionary with new data. For that, c
+
+    Args:
+        lci_data (Dict[str, Any]): Original LCI data dictionary.
+        new_data (Dict[str, Any]): New data to be added to the LCI data dictionary.
+
+    Returns:
+        Dict[str, Any]: Updated LCI data dictionary.
+    """
 
     return lci_data
 
