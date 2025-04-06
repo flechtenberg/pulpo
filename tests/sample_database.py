@@ -3,6 +3,8 @@ import bw2calc as bc
 import copy
 from pulpo.utils.utils import is_bw25
 
+from stats_arrays import NormalUncertainty
+
 def setup_test_db():
     # Set the current project to "sample_project"
     bd.projects.set_current("sample_project_bw25" if is_bw25() else "sample_project")
@@ -98,6 +100,14 @@ def setup_test_db():
             act = [act for act in technosphere_db if act.key==target][0]
             act.new_exchange(amount=amount, input=input, type=type).save()
             act.save()
+        
+        # Add naive uncertainty to all exchanges in the technosphere and biosphere database
+        for act in technosphere_db:
+            for exc in act.exchanges():
+                    exc['uncertainty type'] = NormalUncertainty.id
+                    exc['loc'] = exc['amount']
+                    exc['scale'] = 0.1 * exc['amount']
+                    exc.save()
 
     # @TODO: Add another "foreground" database, to test the import of two dbs.
 
