@@ -77,6 +77,21 @@ class TestParser(unittest.TestCase):
             import_data('sample_project', 'technosphere', invalid_methods, 'biosphere')
         self.assertIn("The following methods do not exist", str(context.exception))
 
+    def test_uncertainty_import(self):
+        # Test if the uncertainty import works
+        methods = {
+            "('my project', 'climate change')": 1,
+            "('my project', 'air quality')": 1,
+            "('my project', 'resources')": 1,
+        }
+
+        result = import_data('sample_project', 'technosphere', methods, 'biosphere', seed=42)
+
+        # Check one element in each matrix
+        self.assertAlmostEqual(result['technology_matrix'][0, 0], 1.0, places=6)
+        self.assertAlmostEqual(result['intervention_matrix'][0, 2], 1.0647688547752003, places=6)
+        self.assertAlmostEqual(result['matrices']["('my project', 'climate change')"][0, 0], 1.049671416041285, places=6)
+
     def test_retrieve_activities(self):
         key = retrieve_processes('sample_project', 'technosphere', keys=["('technosphere', 'wind turbine')"])
         name = retrieve_processes('sample_project', 'technosphere', activities=['e-Car'])

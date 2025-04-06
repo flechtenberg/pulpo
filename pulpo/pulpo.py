@@ -32,11 +32,11 @@ class PulpoOptimizer:
 
         bw_parser.set_project(project)
 
-    def get_lci_data(self):
+    def get_lci_data(self, seed=None):
         """
         Imports LCI data for the project using the specified database and method.
         """
-        self.lci_data = bw_parser.import_data(self.project, self.database, self.method, self.intervention_matrix)
+        self.lci_data = bw_parser.import_data(self.project, self.database, self.method, self.intervention_matrix, seed)
 
     def instantiate(self, choices={}, demand={}, upper_limit={}, lower_limit={}, upper_elem_limit={},
                     upper_imp_limit={}):
