@@ -236,6 +236,21 @@ class TestPULPO(unittest.TestCase):
         # Assert the objective value
         result_obj = round(worker.instance.OBJ(), 6)
         self.assertEqual(result_obj, 0.103093)
+    
+    def test_monte_carlo(self):
+        """Test the Monte Carlo simulation."""
+        worker = pulpo.PulpoOptimizer(self.project, self.database, self.methods, '')
+        worker.intervention_matrix = 'biosphere'
+        worker.get_lci_data()
+        eCar = worker.retrieve_activities(reference_products='transport')
+        demand = {eCar[0]: 1}
+        elec = worker.retrieve_activities(reference_products='electricity')
+        choices = {'electricity': {elec[0]: 100, elec[1]: 100}}
+        worker.instantiate(choices=choices, demand=demand)
+
+        # Run Monte Carlo simulation
+        results = worker.solve_MC(n_it=10)
+        self.assertEqual(sum(results)/10, 0.10873105853659046)
 
 ##########################
 #### Test the SAVER  #####
