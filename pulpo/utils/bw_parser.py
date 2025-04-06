@@ -21,6 +21,7 @@ def import_data(project: str, databases: Union[str, List[str]], method: Union[st
                                            (foreground, background).
         method (Union[str, List[str], Dict[str, int]]): Method(s) for data retrieval.
         intervention_matrix_name (str): Name of the intervention matrix.
+        seed (Union[None, int], optional): Seed for RNG. If None, the default A, B, and Q matrices are used.
 
     Returns:
         Dict[str, Union[dict, Any]]: Dictionary containing imported LCI data.
