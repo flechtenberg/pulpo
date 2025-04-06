@@ -4,6 +4,7 @@ import copy
 from pulpo.utils.utils import is_bw25
 
 from stats_arrays import NormalUncertainty
+import numpy as np
 
 def setup_test_db():
     # Set the current project to "sample_project"
@@ -105,7 +106,7 @@ def setup_test_db():
         for act in technosphere_db:
             for exc in act.exchanges():
                     exc['uncertainty type'] = NormalUncertainty.id
-                    exc['loc'] = exc['amount']
+                    exc['loc'] = np.log(exc['amount'])
                     exc['scale'] = 0.1 * exc['amount']
                     exc.save()
 
@@ -126,7 +127,7 @@ def setup_test_db():
     ]
 
     for method_name, unit, num_cfs, abbreviation, description, filename, flow_code, flow_list in methods_data:
-        method = bd.Method(("my project", method_name))
+        method = bd.Method([("my project", method_name)])
         method.register(**{
             "unit": unit,
             "num_cfs": num_cfs,
