@@ -127,7 +127,7 @@ def setup_test_db():
     ]
 
     for method_name, unit, num_cfs, abbreviation, description, filename, flow_code, flow_list in methods_data:
-        method = bd.Method([("my project", method_name)])
+        method = bd.Method(("my project", method_name))
         method.register(**{
             "unit": unit,
             "num_cfs": num_cfs,
