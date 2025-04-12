@@ -1,3 +1,5 @@
+from pulpo.utils import saver
+
 def solve_model_MC(worker, n_it=100, gams_path=False, solver_name=None, options=None):
     """
     Perform very simple Monte Carlo (MC) simulations to solve a model multiple times, each time sampling A, B, and Q again.
@@ -20,3 +22,10 @@ def solve_model_MC(worker, n_it=100, gams_path=False, solver_name=None, options=
         worker.solve(gams_path, solver_name=solver_name, options=options)
         results.append(worker.instance.OBJ())
     return results
+
+def run_gsa(worker):
+    1+1
+
+
+
+

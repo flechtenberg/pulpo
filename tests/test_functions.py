@@ -251,6 +251,19 @@ class TestPULPO(unittest.TestCase):
         # Run Monte Carlo simulation
         results = worker.solve_MC(n_it=10)
         self.assertEqual(sum(results)/10, 0.10873105853659046)
+    
+    def test_gsa(self):
+        worker = pulpo.PulpoOptimizer(self.project, self.database, self.methods, '')
+        worker.intervention_matrix = 'biosphere'
+        worker.get_lci_data()
+        eCar = worker.retrieve_activities(reference_products='transport')
+        demand = {eCar[0]: 1}
+        elec = worker.retrieve_activities(reference_products='electricity')
+        choices = {'electricity': {elec[0]: 100, elec[1]: 100}}
+        worker.instantiate(choices=choices, demand=demand)
+        worker.solve()
+        worker.run_gsa()
+        
 
 ##########################
 #### Test the SAVER  #####
