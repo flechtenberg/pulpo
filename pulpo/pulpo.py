@@ -101,6 +101,16 @@ class PulpoOptimizer:
 
         return results
 
+    def run_gsa(self):
+        """
+        Runs a global sensitivity analysis on the optimization model.
+
+        Returns:
+            results: Results of the sensitivity analysis.
+        """
+        results = uncertainty.run_gsa(self)
+        return results
+    
     def retrieve_processes(self, keys=None, processes=None, reference_products=None, locations=None):
         """
         Retrieves processes from the database based on given filters.
