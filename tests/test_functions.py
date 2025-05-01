@@ -13,6 +13,9 @@ import unittest
 
 setup_test_db()
 
+from pulpo.utils.utils import is_bw25
+project_name = "sample_project_bw25" if is_bw25() else "sample_project"
+
 ###########################
 #### Test the PARSER  #####
 ###########################
@@ -30,7 +33,7 @@ class TestParser(unittest.TestCase):
             "('my project', 'resources')": 1,
         }
 
-        result = import_data('sample_project', 'technosphere', methods, 'biosphere')
+        result = import_data(project_name, 'technosphere', methods, 'biosphere')
 
         # Define the expected keys
         expected_keys = [
@@ -65,7 +68,7 @@ class TestParser(unittest.TestCase):
 
         # Test invalid database
         with self.assertRaises(ValueError) as context:
-            import_data('sample_project', 'nothing', methods, 'biosphere')
+            import_data(project_name, 'nothing', methods, 'biosphere')
         self.assertIn("Database 'nothing' does not exist", str(context.exception))
 
         # Test invalid method
@@ -74,7 +77,7 @@ class TestParser(unittest.TestCase):
             "('my project', 'air quality')": 1,
         }
         with self.assertRaises(ValueError) as context:
-            import_data('sample_project', 'technosphere', invalid_methods, 'biosphere')
+            import_data(project_name, 'technosphere', invalid_methods, 'biosphere')
         self.assertIn("The following methods do not exist", str(context.exception))
 
     def test_uncertainty_import(self):
@@ -85,7 +88,7 @@ class TestParser(unittest.TestCase):
             "('my project', 'resources')": 1,
         }
 
-        result = import_data('sample_project', 'technosphere', methods, 'biosphere', seed=42)
+        result = import_data(project_name, 'technosphere', methods, 'biosphere', seed=42)
 
         # Check one element in each matrix
         self.assertAlmostEqual(result['technology_matrix'][0, 0], 1.0, places=6)
@@ -93,21 +96,21 @@ class TestParser(unittest.TestCase):
         self.assertAlmostEqual(result['matrices']["('my project', 'climate change')"][0, 0], 1.049671416041285, places=6)
 
     def test_retrieve_activities(self):
-        key = retrieve_processes('sample_project', 'technosphere', keys=["('technosphere', 'wind turbine')"])
-        name = retrieve_processes('sample_project', 'technosphere', activities=['e-Car'])
-        location = retrieve_processes('sample_project', 'technosphere', locations=['GLO'])
+        key = retrieve_processes(project_name, 'technosphere', keys=["('technosphere', 'wind turbine')"])
+        name = retrieve_processes(project_name, 'technosphere', activities=['e-Car'])
+        location = retrieve_processes(project_name, 'technosphere', locations=['GLO'])
         self.assertEqual(key[0]['name'], "wind turbine")
         self.assertEqual(name[0]['name'], "e-Car")
         self.assertEqual(len(location), 5)
 
     def test_retrieve_methods(self):
-        single_result = retrieve_methods('sample_project', ['climate'])
-        multi_result = retrieve_methods('sample_project', ['project'])
+        single_result = retrieve_methods(project_name, ['climate'])
+        multi_result = retrieve_methods(project_name, ['project'])
         self.assertEqual(single_result, [('my project', 'climate change')])
         self.assertEqual(multi_result, [('my project', 'climate change'), ('my project', 'air quality'), ('my project', 'resources')])
 
     def test_retrieve_envflows(self):
-        result = retrieve_env_interventions('sample_project', intervention_matrix='biosphere', keys="('biosphere', 'PM')")
+        result = retrieve_env_interventions(project_name, intervention_matrix='biosphere', keys="('biosphere', 'PM')")
         self.assertEqual(result[0]['name'], 'Particulate matter, industrial')
 
 ###############################
@@ -117,7 +120,7 @@ class TestParser(unittest.TestCase):
 class TestPULPO(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.project = 'sample_project'
+        cls.project = project_name
         cls.database = 'technosphere'
         cls.methods = {
             "('my project', 'climate change')": 1,
@@ -273,7 +276,7 @@ class TestSaver(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         # Use the same worker object as in test_pulpo
-        project = 'sample_project'
+        project = project_name
         database = 'technosphere'
         methods = {"('my project', 'climate change')": 1,
                    "('my project', 'air quality')": 1,
