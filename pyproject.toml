@@ -30,7 +30,8 @@ dependencies = [
     "pandas",
     "scipy<=1.14.1",
     "tqdm",
-    "xlsxwriter"
+    "xlsxwriter",
+    "openpyxl"
 ]
 
 [project.optional-dependencies]
