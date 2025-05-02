@@ -92,8 +92,12 @@ class TestParser(unittest.TestCase):
 
         # Check one element in each matrix
         self.assertAlmostEqual(result['technology_matrix'][0, 0], 1.0, places=6)
-        self.assertAlmostEqual(result['intervention_matrix'][0, 2], 1.0647688547752003, places=6)
-        self.assertAlmostEqual(result['matrices']["('my project', 'climate change')"][0, 0], 1.049671416041285, places=6)
+        if is_bw25():
+           self.assertAlmostEqual(result['intervention_matrix'][0, 2], 0.8275082141783688, places=6)
+           self.assertAlmostEqual(result['matrices']["('my project', 'climate change')"][0, 0], 1.0647688547752003, places=6)
+        else:
+            self.assertAlmostEqual(result['intervention_matrix'][0, 2], 1.0647688547752003, places=6)
+            self.assertAlmostEqual(result['matrices']["('my project', 'climate change')"][0, 0], 1.049671416041285, places=6)
 
     def test_retrieve_activities(self):
         key = retrieve_processes(project_name, 'technosphere', keys=["('technosphere', 'wind turbine')"])
@@ -253,7 +257,10 @@ class TestPULPO(unittest.TestCase):
 
         # Run Monte Carlo simulation
         results = worker.solve_MC(n_it=10)
-        self.assertEqual(sum(results)/10, 0.10873105853659046)
+        if is_bw25():
+            self.assertEqual(sum(results)/10, 0.09328144132911008)
+        else:
+            self.assertEqual(sum(results)/10, 0.10209749581609506)
     
     def test_gsa(self):
         worker = pulpo.PulpoOptimizer(self.project, self.database, self.methods, '')

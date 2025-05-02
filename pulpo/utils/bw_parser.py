@@ -64,43 +64,67 @@ def import_data(project: str, databases: Union[str, List[str]], method: Union[st
     characterization_params = {}
     process_map = {}
     
+    dist = seed is not None
+
     match bw_version:
         case 'bw25':
             for eidb in eidbs:
-                functional_units = {"act1": {eidb.random().id: 1}}
-                config = {"impact_categories": methods}
-                data_objs = bd.get_multilca_data_objs(functional_units=functional_units, method_config=config)
-                lca = bc.MultiLCA(demands=functional_units, method_config=config, data_objs=data_objs) # ATTN: Consider going through "use_distribution=True" for uncertainty ...
-                lca.load_lci_data()
-                lca.load_lcia_data()
-                # Store the characterization matrices for methods
-                characterization_matrices = {str(method): lca.characterization_matrices[method] for method in methods}
-                characterization_params = {} # ATTN: Figure out how to get bio_params, as in bw2 in order to proceed with uncertainty
+                for method in methods:
+                    # prepare LCA
+                    fu, data_objs, _ = bd.prepare_lca_inputs({eidb.random(): 1}, method=method)
+                    lca = bc.LCA(demand=fu, data_objs=data_objs, use_distributions=dist, seed_override=seed)
+                    lca.load_lci_data(); lca.load_lcia_data()
+
+                    # characterization
+                    m = str(method)
+                    cf_base = data_objs[2].data[2]
+                    characterization_params[m] = cf_base
+                    if dist:
+                        next(lca.characterization_mm)
+                        lca.characterization_matrix = lca.characterization_mm.matrix
+                    characterization_matrices[m] = lca.characterization_matrix
+
+                    # extract tech/bio & any extra CF hacks
+                    for obj in data_objs:
+                        name = obj.metadata['name']
+                        if name == 'technosphere':
+                            tech_params, bio_params = obj.data[4], obj.data[7]
+                        elif name != 'biosphere':
+                            characterization_params[m] = obj.data[2]
+
+                # process map + final matrices
                 process_map.update({act.key: lca.dicts.product[act.id] for act in eidb})
-                intervention_params = {} # ATTN: Figure out how to get bio_params, as in bw2 in order to proceed with uncertainty
+                if dist:
+                    next(lca.technosphere_mm); next(lca.biosphere_mm)
+                    lca.technosphere_matrix = lca.technosphere_mm.matrix
+                    lca.biosphere_matrix   = lca.biosphere_mm.matrix
+
         case 'bw2':
             for eidb in eidbs:
                 for method in methods:
                     lca = bc.LCA({eidb.random(): 1}, method)
-                    lca.load_lci_data()
-                    lca.load_lcia_data()
-                    characterization_params[str(method)] = lca.cf_params
-                    if seed is not None:
-                        cf_rng = MCRandomNumberGenerator(lca.cf_params, seed=seed)
-                        lca.rebuild_characterization_matrix(cf_rng.next())
-                    characterization_matrices[str(method)] = lca.characterization_matrix
-                process_map.update(lca.product_dict)
-                intervention_params = lca.bio_params  # B parameters (uncertainty etc.)
-                if seed is not None:
-                    tech_rng = MCRandomNumberGenerator(lca.tech_params, seed=seed)
-                    bio_rng = MCRandomNumberGenerator(lca.bio_params, seed=seed)
-                    lca.rebuild_technosphere_matrix(tech_rng.next())
-                    lca.rebuild_biosphere_matrix(bio_rng.next())
+                    lca.load_lci_data(); lca.load_lcia_data()
 
-    # Extract A (Technosphere) and B (Biosphere) matrices from the LCA
-    technology_matrix = lca.technosphere_matrix  # A matrix
-    intervention_matrix = lca.biosphere_matrix   # B matrix
-    
+                    m = str(method)
+                    characterization_params[m] = lca.cf_params
+                    if dist:
+                        rng = MCRandomNumberGenerator(lca.cf_params, seed=seed)
+                        lca.rebuild_characterization_matrix(rng.next())
+                    characterization_matrices[m] = lca.characterization_matrix
+
+                process_map.update(lca.product_dict)
+                tech_params, bio_params = lca.tech_params, lca.bio_params
+
+            if dist:
+                tech_rng = MCRandomNumberGenerator(tech_params, seed=seed)
+                bio_rng  = MCRandomNumberGenerator(bio_params,  seed=seed)
+                lca.rebuild_technosphere_matrix(tech_rng.next())
+                lca.rebuild_biosphere_matrix(   bio_rng.next())
+
+    # final A & B matrices
+    technology_matrix   = lca.technosphere_matrix
+    intervention_matrix = lca.biosphere_matrix
+
 
     # Add descriptive strings to the process map for both primary and secondary databases
     process_map_metadata = {}
@@ -132,7 +156,7 @@ def import_data(project: str, databases: Union[str, List[str]], method: Union[st
         'intervention_matrix': intervention_matrix,
         'technology_matrix': technology_matrix,
         'process_map': process_map,
-        'intervention_params': intervention_params,
+        'intervention_params': bio_params,
         'characterization_params': characterization_params,
         'intervention_map': intervention_map,
         'intervention_map_metadata':intervention_map_metadata,
