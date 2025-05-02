@@ -17,7 +17,7 @@ def solve_model_MC(worker, n_it=100, gams_path=False, solver_name=None, options=
     
     results = []
     for i in range(n_it):
-        worker.get_lci_data(seed=i)
+        worker.get_lci_data(seed=i+1)
         worker.instantiate(choices=worker.choices, demand=worker.demand, upper_limit=worker.upper_limit, lower_limit=worker.lower_limit, upper_elem_limit=worker.upper_elem_limit, upper_imp_limit=worker.upper_imp_limit)   
         worker.solve(gams_path, solver_name=solver_name, options=options)
         results.append(worker.instance.OBJ())
