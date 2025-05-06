@@ -30,12 +30,8 @@ def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, upper_in
     matrices = {h: matrices[h] for h in matrices if str(h) in methods}
 
     # Prepare the environmental impact matrices Q[h]*B
-    env_cost = {h: sparse.csr_matrix.dot(matrices[h], intervention_matrix) for h in matrices}
-
-    # Convert sparse csr biosphere impact matrix to dictionary
-    env_cost_dict = {(i - 1, env_cost[h].indices[j], h): env_cost[h].data[j]
-                     for h in matrices for i in range(1, intervention_matrix.shape[0] + 1)
-                     for j in range(env_cost[h].indptr[i - 1], env_cost[h].indptr[i])}
+    env_cost = {h: matrices[h].diagonal() @ intervention_matrix for h in matrices}
+    env_cost_dict = {(j, h): env_cost[h][j] for h in matrices for j in range(len(env_cost[h]))}
 
     # Convert sparse csr technology matrix to dictionary
     technology_matrix_dict = {(i - 1, technology_matrix.indices[j]): technology_matrix.data[j]

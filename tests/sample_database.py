@@ -3,6 +3,9 @@ import bw2calc as bc
 import copy
 from pulpo.utils.utils import is_bw25
 
+from stats_arrays import NormalUncertainty
+import numpy as np
+
 def setup_test_db():
     # Set the current project to "sample_project"
     bd.projects.set_current("sample_project_bw25" if is_bw25() else "sample_project")
@@ -98,6 +101,15 @@ def setup_test_db():
             act = [act for act in technosphere_db if act.key==target][0]
             act.new_exchange(amount=amount, input=input, type=type).save()
             act.save()
+        
+        # Add naive uncertainty to all exchanges in the technosphere and biosphere database
+        for act in technosphere_db:
+            for exc in act.exchanges():
+                if str(exc['input']) != str(exc['output']):
+                    exc['uncertainty type'] = NormalUncertainty.id
+                    exc['loc'] = exc['amount']
+                    exc['scale'] = 0.1 * exc['amount']
+                    exc.save()
 
     # @TODO: Add another "foreground" database, to test the import of two dbs.
 
@@ -110,9 +122,21 @@ def setup_test_db():
 
     # Define LCIA methods and CFs
     methods_data = [
-        ("climate change", "kg CO2eq", 2, "cc", "climate change CFs", "climate_change", "CO2", [(co2_key, 1), (ch4_key, 29.7)]),
-        ("air quality", "ppm", 1, "aq", "air quality CFs", "air_quality", "PM", [(ch4_key, 29.7)]),
-        ("resources", "m3", 1, "rc", "resource CFs", "resources", "H2O_irrigation", [(h2o_irrigation_key,1)]),
+        # Climate Change Method
+        ("climate change", "kg CO2eq", 2, "cc", "climate change CFs", "climate_change", "CO2", [
+            (co2_key, {'uncertainty type': 3, 'loc': 1, 'scale': 0.1, 'shape': np.nan, 'minimum': np.nan, 'maximum': np.nan, 'negative': False, 'amount': 1}),
+            (ch4_key, {'uncertainty type': 3, 'loc': 29.7, 'scale': 0.2, 'shape': np.nan, 'minimum': np.nan, 'maximum': np.nan, 'negative': False, 'amount': 29.7}),
+        ]),
+    
+        # Air Quality Method
+        ("air quality", "ppm", 1, "aq", "air quality CFs", "air_quality", "PM", [
+            (('biosphere', 'CH4'), {'uncertainty type': 3, 'loc': 29.7, 'scale': 0.2, 'shape': np.nan, 'minimum': np.nan, 'maximum': np.nan, 'negative': False, 'amount': 29.7}),
+        ]),
+    
+        # Resources Method
+        ("resources", "m3", 1, "rc", "resource CFs", "resources", "H2O_irrigation", [
+            (h2o_irrigation_key, {'uncertainty type': 3, 'loc': 1, 'scale': 0.1, 'shape': np.nan, 'minimum': np.nan, 'maximum': np.nan, 'negative': False, 'amount': 1}),
+        ]),
     ]
 
     for method_name, unit, num_cfs, abbreviation, description, filename, flow_code, flow_list in methods_data:
