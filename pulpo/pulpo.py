@@ -1,4 +1,4 @@
-from pulpo.utils import optimizer, bw_parser, converter, saver
+from pulpo.utils import optimizer, bw_parser, converter, saver, uncertainty
 from typing import List, Union
 import webbrowser
 from tests.rice_database import setup_rice_husk_db
@@ -32,11 +32,11 @@ class PulpoOptimizer:
 
         bw_parser.set_project(project)
 
-    def get_lci_data(self):
+    def get_lci_data(self, seed=None):
         """
         Imports LCI data for the project using the specified database and method.
         """
-        self.lci_data = bw_parser.import_data(self.project, self.database, self.method, self.intervention_matrix)
+        self.lci_data = bw_parser.import_data(self.project, self.database, self.method, self.intervention_matrix, seed)
 
     def instantiate(self, choices={}, demand={}, upper_limit={}, lower_limit={}, upper_elem_limit={},
                     upper_imp_limit={}):
@@ -83,7 +83,34 @@ class PulpoOptimizer:
 
         self.instance = optimizer.calculate_inv_flows(self.instance, self.lci_data)
         return results
+    
+    def solve_MC(self, n_it=100, GAMS_PATH=False, solver_name=None, options=None):
+        """
+        Solves the optimization model using Monte Carlo simulation.
 
+        Args:
+            n_it (int): Number of Monte Carlo iterations.
+            GAMS_PATH (bool): Path to GAMS if needed.
+            options (dict): Additional options for the solver.
+
+        Returns:
+            results: Results of the optimization.
+        """
+        # TODO: Analyse also the choices made in each iteration, parallelize? ...
+        results = uncertainty.solve_model_MC(self, n_it, GAMS_PATH, solver_name=solver_name, options=options)
+
+        return results
+
+    def run_gsa(self):
+        """
+        Runs a global sensitivity analysis on the optimization model.
+
+        Returns:
+            results: Results of the sensitivity analysis.
+        """
+        results = uncertainty.run_gsa(self)
+        return results
+    
     def retrieve_processes(self, keys=None, processes=None, reference_products=None, locations=None):
         """
         Retrieves processes from the database based on given filters.
