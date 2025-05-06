@@ -13,11 +13,11 @@
 [![License](https://img.shields.io/github/license/flechtenberg/pulpo?style=flat&color=5D6D7E)](https://github.com/flechtenberg/pulpo/blob/main/LICENSE)
 [![Last Commit](https://img.shields.io/github/last-commit/flechtenberg/pulpo?style=flat&color=5D6D7E)](https://github.com/flechtenberg/pulpo/commits/main)
 [![Commit Activity](https://img.shields.io/github/commit-activity/m/flechtenberg/pulpo?style=flat&color=5D6D7E)](https://github.com/flechtenberg/pulpo/pulse)
-[![Top Language](https://img.shields.io/github/languages/top/flechtenberg/pulpo?style=flat&color=5D6D7E)](https://github.com/flechtenberg/pulpo)
 
 <!-- Additional -->
 [![PyPI - Version](https://img.shields.io/pypi/v/pulpo-dev?color=%2300549f)](https://pypi.org/project/pulpo-dev/)
 [![GitHub Stars](https://img.shields.io/github/stars/flechtenberg/pulpo?style=flat&color=FFD700)](https://github.com/flechtenberg/pulpo/stargazers)
+[![launch - renku](https://renkulab.io/renku-badge.svg)](https://renkulab.io/v2/projects/fabian/pulpo-test/sessions/01JRM54S4NKMS84Y6BAYT832WH/start)
 
 </div>
 
@@ -65,9 +65,13 @@ pip install pulpo-dev[bw25]
 ```
 
 ### 🤖 Running pulpo
-Find example notebooks for a [hydrogen case](https://github.com/flechtenberg/pulpo/blob/master/notebooks/hydrogen_showcase.ipynb), an [electricity case](https://github.com/flechtenberg/pulpo/blob/master/notebooks/electricity_showcase.ipynb), and a [plastic case](https://github.com/flechtenberg/pulpo/blob/master/notebooks/plastic_showcase.ipynb) here.
 
-There is also a "workshop" repository ([here](https://github.com/flechtenberg/pulpo_workshop)), which has been created for the Brightcon 2024 conference. It contains several notebooks that guide you through the PULPO package and its functionalities, as well as an exercise.
+Use this link to start a session and test PULPO
+[![launch - renku](https://renkulab.io/renku-badge.svg)](https://renkulab.io/v2/projects/fabian/pulpo-test/sessions/01JRM54S4NKMS84Y6BAYT832WH/start)
+
+Find further example notebooks for a [hydrogen case](https://github.com/flechtenberg/pulpo/blob/master/notebooks/hydrogen_showcase.ipynb), an [electricity case](https://github.com/flechtenberg/pulpo/blob/master/notebooks/electricity_showcase.ipynb), and a [plastic case](https://github.com/flechtenberg/pulpo/blob/master/notebooks/plastic_showcase.ipynb) here.
+
+There is also a workshop repository ([here](https://github.com/flechtenberg/pulpo_workshop)), which has been created for the Brightcon 2024 conference. It contains several notebooks that guide you through the PULPO package and its functionalities, as well as an exercise.
 
 
 ### 🧪 Tests
@@ -92,7 +96,7 @@ Contributions are very welcome. If you would like to request a feature or report
 ## 📄 License
 
 This project is licensed under the `ℹ️  BSD 3-Clause` License. See the [LICENSE](LICENSE) file for additional info.
-Copyright (c) 2024, Fabian Lechtenberg. All rights reserved.
+Copyright (c) 2025, Fabian Lechtenberg. All rights reserved.
 
 
 ---
