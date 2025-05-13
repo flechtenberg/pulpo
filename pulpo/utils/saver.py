@@ -17,32 +17,30 @@ def extract_results(instance, project, database, choices, constraints, demand, p
         process_map_metadata (dict): Metadata to the process_map
         itervention_map (dict): Mapping of intervention IDs to descriptions.
         itervention_map_metadata (dict): Metadata of the itervention_map.
-        directory (str): Directory to save the results file.
-        name (str): Name of the results file.
     """
-    # Recover dictionary values
-    list_of_vars = []
-    for v in instance.component_objects(ctype=pyo.Var, active=True, descend_into=True):
-        for e in v._data:
-            v._data[e] = value(v[e])
-        list_of_vars.append(v)
-
     result_data = {}
-    inverse_process_map = dict((v, k) for k, v in process_map.items())
-    inverse_itervention_map = dict((v, k) for k, v in itervention_map.items())
+    process_map_df = pd.DataFrame.from_dict(process_map, orient='index', columns=['process_id']).reset_index(names='Process name').set_index('process_id')
+    process_map_df['Process metadata'] = process_map_df.index.map(process_map_metadata)
+    itervention_map_df = pd.DataFrame.from_dict(itervention_map, orient='index', columns=['intervention_id']).reset_index(names='Intervention name').set_index('intervention_id')
+    itervention_map_df['Invervention metadata'] = itervention_map_df.index.map(itervention_map_metadata)
     # Raw results
-    for v in list_of_vars:
-        try:
-            if str(v) == 'inv_flows' or str(v) == 'inv_vector':
-                data = [(k, inverse_itervention_map[k], itervention_map_metadata[k], v) for k, v in v._data.items()]
-            else:
-                data = [(k, inverse_process_map[k], process_map_metadata[k], v) for k, v in v._data.items()]
-            df = pd.DataFrame(data, columns=['ID', 'Process name', "Process metadata", 'Value'])
-        except:
-            data = [(k, v) for k, v in v._data.items()]
-            df = pd.DataFrame(data, columns=['Key', 'Value'])
-        df.sort_values(by=['Value'], inplace=True, ascending=False)
+    for v in instance.component_objects(ctype=pyo.Var, active=True, descend_into=True):
+        df = pd.DataFrame.from_dict(v.get_values(), orient='index', columns=['Value']).sort_values('Value', ascending=False)
+        match v.name:
+            case 'inv_flows' | 'inv_vector':
+                df = df.join(itervention_map_df, how='left').reset_index(names='ID')          
+            case 'scaling_vector':
+                df = df.join(process_map_df, how='left').reset_index(names='ID')
+            case 'impacts' | 'slack' | 'impacts_calculated':
+                df = df.reset_index(names='Key')
         result_data[v.name] = df
+
+    # Store the emvironmental costs
+    result_data[instance.ENV_COST_MATRIX.name] = pd.DataFrame.from_dict(
+        instance.ENV_COST_MATRIX.extract_values(), orient='index', 
+        columns=[str(instance.ENV_COST_MATRIX)]
+        )
+
 
     # Normalize database to a list if it is a string
     if isinstance(database, str):
@@ -51,16 +49,15 @@ def extract_results(instance, project, database, choices, constraints, demand, p
     # Store the metadata
     result_data["project and db"] = pd.DataFrame([f"{project}__{db}" for db in database])
 
+    # ATTN: BHL: This needs to be rewritten, it is very convoluted and can be more clear
     choices_data = {}
-    for choice in choices:
-        i = 0
+    for choice, alternatives in choices.items():
         temp_dict = []
-        for alt in choices[choice]:
-            temp_dict.append((alt, i, instance.scaling_vector[process_map[alt.key]]))
-            i+=1
-        choices_data[(choice, 'Process')] = {'Process ' + str(i): process_map_metadata[process_map[alt.key]] for alt, i, val in temp_dict}
-        choices_data[(choice, 'Capacity')] = {'Process ' + str(i): choices[choice][alt] for alt, i, val in temp_dict}
-        choices_data[(choice, 'Value')] = {'Process ' + str(i): x for alt, i, x in temp_dict}
+        for i_alt, alt in enumerate(alternatives):
+            temp_dict.append((alt, i_alt, instance.scaling_vector.get_values()[process_map[alt.key]]))
+        choices_data[(choice, 'Process')] = {f'Process {i}': process_map_metadata[process_map[alt.key]] for alt, i, _ in temp_dict}
+        choices_data[(choice, 'Capacity')] = {f'Process {i}': alternatives[alt] for alt, i, val in temp_dict}
+        choices_data[(choice, 'Value')] = {f'Process {i}': x for _, i, x in temp_dict}
     result_data["choices"] = pd.DataFrame(choices_data)
 
     result_data["demand"] = pd.DataFrame({"demand":{
