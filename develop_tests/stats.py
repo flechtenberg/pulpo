@@ -1037,7 +1037,8 @@ class GlobalSensitivityAnalysis:
         cf_metadata_df: pd.DataFrame,
         sampler,
         analyser,
-        sample_size: int
+        sample_size: int,
+        method:str
     ):
         """
         Initialize the global sensitivity analysis.
@@ -1061,7 +1062,7 @@ class GlobalSensitivityAnalysis:
                 Number of samples to generate for the analysis.
         """
         self.result_data = result_data # This is the optimization solution at which we compute the GSA
-        self.method = self.result_data['impacts']['Key'][0] # ATTN: This might generate errors in the future
+        self.method = method # ATTN: This might generate errors in the future
         self.lci_data = lci_data # from pulpo_worker
         self.cf_metadata_df = cf_metadata_df
         if (if_metadata_df.uncertainty_type == 0).any():
@@ -1184,14 +1185,14 @@ class GlobalSensitivityAnalysis:
         """
         # Compute the environmental impact using a dot product of the reindex scaling vector
         # Set the columns values to match the intervention columns
-        scaling_vector_expanded = self.result_data['scaling_vector']['Value'].reindex(sample_env_cost.columns)
+        scaling_vector_expanded = self.result_data['scaling_vector'].set_index('ID')['Value'].reindex(sample_env_cost.columns)
         sample_characterized_inventories = sample_env_cost * scaling_vector_expanded
         sample_impacts = sample_env_cost @ scaling_vector_expanded
         return sample_characterized_inventories, sample_impacts
     
     def run_model(self, sample_data_if:pd.DataFrame, sample_data_cf:pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
         """
-        Execute the environmental model over all samples.
+        Compute the LCI and LCIA for all samples.
 
         Performs cost & impact calculations, prints summary stats, and plots distribution.
 
@@ -1282,14 +1283,14 @@ class GlobalSensitivityAnalysis:
         plot_contribution_barplot_with_err(data=top_total_Si, metadata=top_total_Si_metadata, colormap=colormap_SA_barplot, bbox_to_anchor_center=1.7, bbox_to_anchor_lower=-.6)
         return colormap_base, colormap_SA_barplot
         
-def plot_total_env_impact_contribution(
-        self,
-        sample_characterized_inventories: pd.DataFrame,
-        total_Si_metadata: pd.DataFrame,
-        top_amount: int = 10,
-        colormap_base: pd.Series = pd.Series([]),
-        colormap_SA_barplot: pd.Series = pd.Series([])
-    ) -> pd.DataFrame:
+    def plot_total_env_impact_contribution(
+            self,
+            sample_characterized_inventories: pd.DataFrame,
+            total_Si_metadata: pd.DataFrame,
+            top_amount: int = 10,
+            colormap_base: pd.Series = pd.Series([]),
+            colormap_SA_barplot: pd.Series = pd.Series([])
+        ) -> pd.DataFrame:
         """
         Plot each process's share of the total environmental impact.
 
@@ -1689,7 +1690,7 @@ class BaseParetoSolver:
         data_QBs_list = []
         for lamnda_QBs, result_data in result_data_CC.items():
             environmental_cost_mean = {env_cost_index[0]: env_cost for env_cost_index, env_cost in result_data_CC[lamnda_QBs]['ENV_COST_MATRIX']['ENV_COST_MATRIX'].items()}
-            QBs = result_data['scaling_vector'].set_index('ID')['Value'] * pd.Series(environmental_cost_mean).reindex(result_data['scaling_vector']['Value'].index)
+            QBs = result_data['scaling_vector'].set_index('ID')['Value'] * pd.Series(environmental_cost_mean).reindex(result_data['scaling_vector'].set_index('ID')['Value'].index)
             QBs_main = QBs[QBs.abs() > cutoff_value*QBs.abs().sum()]
             QBs_main.name = lamnda_QBs
             data_QBs_list.append(QBs_main)
