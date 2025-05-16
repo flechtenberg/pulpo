@@ -394,16 +394,25 @@ class TestSaver(unittest.TestCase):
 
 
     def test_extract_demand(self):
-        # Call the function
+        # --- Test case 1: Brightway activity as demand key ---
         result = extract_demand(self.worker.demand)
-
-        # Define the expected DataFrame
-        expected = pd.DataFrame({"Value": [1.0]}, index=pd.MultiIndex.from_tuples([("transport", "e-Car", "GLO")], names=["Reference Product", "Activity Name", "Location"]))
-
-        # Ensure the dtypes match
+        expected_index = pd.MultiIndex.from_tuples(
+            [("transport", "e-Car", "GLO")],
+            names=["Reference Product", "Activity Name", "Location"]
+        )
+        expected = pd.DataFrame({"Value": [1.0]}, index=expected_index)
         expected["Value"] = expected["Value"].astype(result["Value"].dtype)
+        assert_frame_equal(result, expected, check_exact=False, rtol=1e-5)
 
-        # Assert the result matches the expected DataFrame
+        # --- Test case 2: Simple string as demand key ---
+        self.worker.demand = {"electricity": 1}
+        result = extract_demand(self.worker.demand)
+        expected_index = pd.MultiIndex.from_tuples(
+            [("electricity", "electricity", "Unknown")],
+            names=["Reference Product", "Activity Name", "Location"]
+        )
+        expected = pd.DataFrame({"Value": [1.0]}, index=expected_index)
+        expected["Value"] = expected["Value"].astype(result["Value"].dtype)
         assert_frame_equal(result, expected, check_exact=False, rtol=1e-5)
 
 

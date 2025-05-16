@@ -85,12 +85,13 @@ def extract_choices(instance: ConcreteModel, choices: Dict[str, Dict[Any, float]
 def extract_demand(demand: Dict[Any, float]) -> pd.DataFrame:
     """
     Converts demand data into a structured DataFrame.
+    Supports both Brightway Activities and string keys.
     """
     data = [
         {
-            "Reference Product": e.get("reference product", "Unknown"),
-            "Activity Name": e.get("name", "Unknown"),
-            "Location": e.get("location", "Unknown"),
+            "Reference Product": e.get("reference product", "Unknown") if hasattr(e, "get") else str(e),
+            "Activity Name": e.get("name", "Unknown") if hasattr(e, "get") else str(e),
+            "Location": e.get("location", "Unknown") if hasattr(e, "get") else "Unknown",
             "Value": v
         }
         for e, v in demand.items()
