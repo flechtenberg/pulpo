@@ -161,8 +161,8 @@ def save_results(worker: Any, file_name: str) -> None:
 
     # Prepare output path
     output_dir = os.path.dirname(file_name)
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)  # Create the directory if it doesn't exist
+    if output_dir and not os.path.exists(output_dir):
+        os.makedirs(output_dir)
 
     # Save data to Excel
     with pd.ExcelWriter(file_name, engine='xlsxwriter') as writer:
