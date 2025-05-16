@@ -85,12 +85,13 @@ def extract_choices(instance: ConcreteModel, choices: Dict[str, Dict[Any, float]
 def extract_demand(demand: Dict[Any, float]) -> pd.DataFrame:
     """
     Converts demand data into a structured DataFrame.
+    Supports both Brightway Activities and string keys.
     """
     data = [
         {
-            "Reference Product": e.get("reference product", "Unknown"),
-            "Activity Name": e.get("name", "Unknown"),
-            "Location": e.get("location", "Unknown"),
+            "Reference Product": e.get("reference product", "Unknown") if hasattr(e, "get") else str(e),
+            "Activity Name": e.get("name", "Unknown") if hasattr(e, "get") else str(e),
+            "Location": e.get("location", "Unknown") if hasattr(e, "get") else "Unknown",
             "Value": v
         }
         for e, v in demand.items()
@@ -161,8 +162,8 @@ def save_results(worker: Any, file_name: str) -> None:
 
     # Prepare output path
     output_dir = os.path.dirname(file_name)
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)  # Create the directory if it doesn't exist
+    if output_dir and not os.path.exists(output_dir):
+        os.makedirs(output_dir)
 
     # Save data to Excel
     with pd.ExcelWriter(file_name, engine='xlsxwriter') as writer:

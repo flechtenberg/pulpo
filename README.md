@@ -83,6 +83,11 @@ python -m unittest discover -s tests
 ```
 
 ---
+## What's new in 1.4.0?
+- Enable the use of NEOS solver (commercial solvers without license)
+- Enable Monte-Carlo sampling feature 
+- Retrieve uncertainty information to `lci_data` for future use
+
 ## What's new in 1.3.0?
 - Switch packaging logic from setup.py to pyproject.toml and align pypi with Github versioning number
 
