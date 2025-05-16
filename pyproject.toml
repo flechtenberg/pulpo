@@ -14,10 +14,10 @@ maintainers = [
 ]
 readme = "README.md"
 requires-python = ">=3.10,<=3.12"
-license = { text = "BSD License" }
+license = "BSD-3-Clause"
+license-files = ["LICENSE"]
 classifiers = [
     "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: BSD License",
     "Operating System :: OS Independent"
 ]
 dependencies = [
