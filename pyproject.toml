@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pulpo-dev"
-version = "1.4.0"
+version = "1.4.1"
 description = "Pulpo package for optimization in LCI databases"
 authors = [
   { name="Fabian Lechtenberg", email="fabian.lechtenberg@chem.ethz.ch" }
