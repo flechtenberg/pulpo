@@ -27,7 +27,7 @@ import bw2data
 import bw2calc
 import ast
 import array
-from typing import Union, List, Optional
+from typing import Union, List, Optional, Dict
 
 # === Plots ===
 def set_size(width, height, fraction=1):
@@ -182,8 +182,8 @@ def plot_CC_pareto_solution_bar_plots(data:pd.DataFrame, y_label:str, bbox_to_an
     """
     
     # set figure and plot
-    width = 6
-    height = 6
+    width = 6.
+    height = 6.
     _, ax = plt.subplots(1, 1, figsize=(width,height))
 
     data_cleaned = data.copy()
@@ -242,8 +242,8 @@ class BaseCaseStudy:
         self.database = database
         self.method = method
         self.directory = directory
-        self.demand = {}
-        self.choices = {}
+        self.demand:dict = {}
+        self.choices:dict = {}
 
     def create_pulpo_worker(self):
         """
@@ -398,88 +398,102 @@ class ElectricityCase(BaseCaseStudy):
 
 class AmmoniaCase(BaseCaseStudy):
     """
-    Case study for Ammonia case study.
+    Case study for the reducts Ammonia case study.
 
-    Defines the functional unit (processed rice), choice sets
-    (husk supply, boilers, auxiliary), and instantiates the PULPO model.
+    Defines the functional unit, choice sets, and instantiates the PULPO model.
     """
     def __init__(self):
         """
         Set up default project, database, method, and directory
         for the Ammonia case study.
         """
-        self.project = "pulpo-ammonia"
-        self.database = ["nc-inventories-ei310-all", "ecoinvent-3.10-cutoff"]
-        self.method = {"('IPCC 2021', 'climate change', 'GWP 100a, incl. H and bio CO2')":1}
+        self.project = "ammonia_reduced"
+        self.database = ["ammonia-reduced", "ecoinvent-3.10-cutoff"]
+        self.method = "('IPCC 2021', 'climate change', 'GWP 100a, incl. H and bio CO2')"
         self.directory = os.path.join(os.path.dirname(os.getcwd()), 'develop_tests/data')
+
+    def create_pulpo_worker(self):
+        """
+        Instantiate a PulpoOptimizer and import LCI data.
+
+        Creates `self.pulpo_worker` and calls its get_lci_data() to load
+        life cycle inventory matrices and metadata.
+        """
+        # Create a **PulpoOptimizer** instance. This class is used to interact with the LCI database and solve the optimization problem. It is specified by the project, database, method and directory.
+        self.pulpo_worker = pulpo.PulpoOptimizer(self.project, self.database, self.method, self.directory)
+        self.pulpo_worker.intervention_matrix="ecoinvent-3.10-biosphere"
+        # Import LCI data. After initializing the PulpoOptimizer instance, the LCI data is imported from the database.
+        self.pulpo_worker.get_lci_data()
 
     def define_problem(self):
         """
         Specify the functional unit, define choice options and capacities,
         and instantiate the PULPO model with self.pulpo_worker.instantiate().
         """
-        choices_biogas = [
-            "anaerobic digestion of animal manure, with biogenic carbon uptake",
-            "anaerobic digestion of agricultural residues, with biogenic carbon uptake",
-            "treatment of sewage sludge by anaerobic digestion, cut-off with biogenic carbon uptake",
-            "treatment of industrial wastewater by anaerobic digestion, cut-off with biogenic carbon uptake",
-            "treatment of biowaste by anaerobic digestion, cut-off with biogenic carbon uptake",
-            "anaerobic digestion of sequential crop, with biogenic carbon uptake"
-        ]
-        choices_hydrogen = [
-            "hydrogen production, biomass gasification",
-            "hydrogen production, biomass gasification, with CCS",
-            "hydrogen production, steam methane reforming of biomethane",
-            "hydrogen production, steam methane reforming of biomethane, with CCS",
-            "hydrogen production, steam methane reforming of natural gas, with CCS",
-            "hydrogen production, PEM electrolysis, green",
-            "green hydrogen",
-            "hydrogen production, plastics gasification",
-            "hydrogen production, plastics gasification, with CCS"
-        ]
-        choices_heat = [
-            "heat from biomethane",
-            "heat from biomethane, with CCS",
-            "heat from hydrogen",
-            "heat from natural gas, with CCS"
-        ]
-        choices_ammonia = [
-            "ammonia production, steam methane reforming of biomethane",
-            "ammonia production, steam methane reforming of biomethane, with CCS",
-            "ammonia production, steam methane reforming of natural gas, with CCS",
-            "ammonia production, from nitrogen and hydrogen"
-        ]
         choices_biomethane = [
             "biogas upgrading to biomethane, chemical scrubbing",
             "biogas upgrading to biomethane, chemical scrubbing w/ CCS",
-            "biogas upgrading to biomethane, membrane",
-            "biogas upgrading to biomethane, membrane w/ CCS",
-            "biogas upgrading to biomethane, pressure swing adsorption",
-            "biogas upgrading to biomethane, pressure swing adsorption w/ CCS",
             "biogas upgrading to biomethane, water scrubbing",
             "biogas upgrading to biomethane, water scrubbing w/ CCS"
         ]
 
-        # Retrieve activities for each category
-        biogas_activities = self.pulpo_worker.retrieve_activities(activities=choices_biogas)
-        hydrogen_activities = self.pulpo_worker.retrieve_activities(activities=choices_hydrogen)
-        heat_activities = self.pulpo_worker.retrieve_activities(activities=choices_heat)
-        biomethane_activities = self.pulpo_worker.retrieve_activities(activities=choices_biomethane)
+        choices_methane_market = [
+            "market for methane",
+            "market group for natural gas, high pressure"
+        ]
 
-        ammonia_activities = self.pulpo_worker.retrieve_activities(activities=choices_ammonia)
-        # Add BAU Ammonia from ecoinvent as choice
-        ammonia_activities.append(self.pulpo_worker.retrieve_activities(reference_products="ammonia, anhydrous, liquid", activities="ammonia production, steam reforming, liquid", locations="RER w/o RU")[0])
-        # Choices
+        choices_hydrogen = [
+            "hydrogen production, steam methane reforming fg",
+            "hydrogen production, steam methane reforming, w/ CCS",
+            "hydrogen production, PEM electrolysis, yellow",
+            "hydrogen production, plastics gasification",
+            "hydrogen production, plastics gasification, w/ CCS"
+        ]
+
+        choices_hydrogen_market = [
+            "market for hydrogen",
+            "market for hydrogen, gaseous, low pressure"
+        ]
+
+        choices_heat = [
+            "heat from hydrogen",
+            "heat from methane, w/ CCS",
+            "heat from methane",
+        ]
+
+        choices_ammonia = [
+            "ammonia production, steam methane reforming",
+            "ammonia production, steam methane reforming, w/ CCS",
+            "ammonia production, from nitrogen and hydrogen"
+        ]
+
+        choices_ammonia_market = [
+            "market for ammonia",
+            "market for ammonia, anhydrous, liquid"
+        ]
+
+        # Retrieve activities for each category
+        # Retrieve activities for each category and assign to appropriately named variables
+        biomethane_activities = self.pulpo_worker.retrieve_activities(activities=choices_biomethane, locations=["RER", "Europe without Switzerland"])
+        methane_market_activities = self.pulpo_worker.retrieve_activities(activities=choices_methane_market, locations=["RER", "Europe without Switzerland"])
+        hydrogen_activities = self.pulpo_worker.retrieve_activities(activities=choices_hydrogen, locations=["RER", "Europe without Switzerland"])
+        hydrogen_market_activities = self.pulpo_worker.retrieve_activities(activities=choices_hydrogen_market, locations=["RER", "Europe without Switzerland"])
+        heat_activities = self.pulpo_worker.retrieve_activities(activities=choices_heat, locations=["RER", "Europe without Switzerland"])
+        ammonia_activities = self.pulpo_worker.retrieve_activities(activities=choices_ammonia, locations=["RER", "Europe without Switzerland"])
+        ammonia_market_activities = self.pulpo_worker.retrieve_activities(activities=choices_ammonia_market, locations=["RER", "Europe without Switzerland"])
+         # Choices
         self.choices = {
-            "biogas": {x: 1e10 for x in biogas_activities},
             "hydrogen": {x: 1e10 for x in hydrogen_activities},
             "heat": {x: 1e10 for x in heat_activities},
             "biomethane": {x: 1e10 for x in biomethane_activities},
             "ammonia": {x: 1e10 for x in ammonia_activities},
+            "methane_market": {x: 1e10 for x in methane_market_activities},
+            "hydrogen_market": {x: 1e10 for x in hydrogen_market_activities},
+            "ammonia_market": {x: 1e10 for x in ammonia_market_activities},
         }
         # Demand
-        ammonia_market = self.pulpo_worker.retrieve_activities(activities="new market for ammonia")
-        self.demand = {ammonia_market[0]: 1}
+        ammonia_market = self.pulpo_worker.retrieve_activities(activities="market for ammonia")
+        self.demand = {"ammonia_market": 3e9} # Ammonia production capacity Germany
         self.pulpo_worker.instantiate(choices=self.choices, demand=self.demand)
 
 
@@ -1012,10 +1026,8 @@ class GlobalSensitivityAnalysis:
             Deterministic PULPO results, including 'impacts' and 'scaling_vector'.
         lci_data (dict):
             Life-Cycle Inventory matrices and metadata for processes and interventions.
-        if_metadata_df (pd.DataFrame):
-            Uncertainty metadata for intervention flows (must have no undefined types).
-        cf_metadata_df (pd.DataFrame):
-            Uncertainty metadata for characterization factors (must have no undefined types).
+        unc_metadata (dict[str:pd.DataFrame]):
+            Uncertainty metadata containing uncertainty informtaion for characterization factors and intervention flows (must have no undefined types).
         sampler:
             SALib sampling function (e.g., saltelli.sample).
         analyser:
@@ -1033,8 +1045,7 @@ class GlobalSensitivityAnalysis:
         self,
         result_data: dict,
         lci_data: dict,
-        if_metadata_df: pd.DataFrame,
-        cf_metadata_df: pd.DataFrame,
+        unc_metadata: dict,
         sampler,
         analyser,
         sample_size: int,
@@ -1050,10 +1061,9 @@ class GlobalSensitivityAnalysis:
             lci_data (dict):
                 Contains 'process_map_metadata' and 'intervention_map_metadata'
                 for reconstructing labels in plots.
-            if_metadata_df (pd.DataFrame):
-                Metadata for intervention-flow uncertainties (no zeros allowed).
-            cf_metadata_df (pd.DataFrame):
-                Metadata for characterization-factor uncertainties (no zeros allowed).
+            unc_metadata (dict[str:pd.DataFrame]):
+                Uncertainty metadata containing uncertainty informtaion for characterization factors 
+                and intervention flows (must have no undefined types), contains "cf" and "if" keys.
             sampler:
                 SALib sampling function (e.g., SALib.sample.saltelli).
             analyser:
@@ -1064,11 +1074,10 @@ class GlobalSensitivityAnalysis:
         self.result_data = result_data # This is the optimization solution at which we compute the GSA
         self.method = method # ATTN: This might generate errors in the future
         self.lci_data = lci_data # from pulpo_worker
-        self.cf_metadata_df = cf_metadata_df
-        if (if_metadata_df.uncertainty_type == 0).any():
+        self.unc_metadata = unc_metadata
+        if (unc_metadata["if"].uncertainty_type == 0).any():
             raise Exception('There are still intervention flows with undefined uncertainty information')
-        self.if_metadata_df = if_metadata_df
-        if (cf_metadata_df.uncertainty_type == 0).any():
+        if (unc_metadata["cf"].uncertainty_type == 0).any():
             raise Exception('There are still characterization factors with undefined uncertainty information')
         self.sampler = sampler # from SALib.sample
         self.analyser = analyser # from SALib.analyze
@@ -1089,8 +1098,8 @@ class GlobalSensitivityAnalysis:
                 - if_bounds: mapping IF parameter names → {'lower', 'upper', 'mean', 'median', 'amount'}
                 - cf_bounds: mapping CF parameter names → same structure
         """
-        if_bounds = UncertaintyProcessor.compute_bounds(self.if_metadata_df.T.to_dict(), return_type='dict')
-        cf_bounds = UncertaintyProcessor.compute_bounds(self.cf_metadata_df.T.to_dict(), return_type='dict')
+        if_bounds = UncertaintyProcessor.compute_bounds(self.unc_metadata['if'].T.to_dict(), return_type='dict')
+        cf_bounds = UncertaintyProcessor.compute_bounds(self.unc_metadata["cf"].T.to_dict(), return_type='dict')
         return if_bounds, cf_bounds
 
     def define_problem(self) -> tuple[dict, dict]:
@@ -1331,9 +1340,7 @@ class CCFormulationBase:
     """
     def __init__(self,
                  # ATTN: Maybe make the metadata_df quasi arguments with zeros as default value, to allow different formulations
-                 cf_metadata_df: pd.DataFrame,
-                 if_metadata_df: pd.DataFrame,
-                 # ATTN: Add bounds uncertainty here probably
+                 unc_metadata: Dict[str,pd.DataFrame],
                  pulpo_worker,
                  method:str,
                  choices:dict,
@@ -1347,10 +1354,9 @@ class CCFormulationBase:
         then calls `formulate` to assemble the base model.
 
         Args:
-            cf_metadata_df (pd.DataFrame):
-                Uncertainty metadata for characterization factors.
-            if_metadata_df (pd.DataFrame):
-                Uncertainty metadata for intervention flows.
+            unc_metadata (dict[str:pd.DataFrame]):
+                Uncertainty metadata containing uncertainty informtaion for paramters in chance constaints
+            (must have no undefined types)
             pulpo_worker:
                 Factory or callable that constructs the deterministic Pyomo model.
             method (str):
@@ -1360,8 +1366,7 @@ class CCFormulationBase:
             demand (dict):
                 Demand vector mapping each intervention flow to its required amount.
         """
-        self.cf_metadata_df = cf_metadata_df
-        self.if_metadata_df = if_metadata_df
+        self.unc_metadata = unc_metadata
         self.method = method
         self.pulpo_worker = pulpo_worker
         self.choices = choices
@@ -1394,9 +1399,9 @@ class CCFormulationBase:
         """
         pass
 
-class CCFormulationIndividualNormalL1(CCFormulationBase):
+class CCFormulationObjIndividualNormalL1(CCFormulationBase):
     """
-    Implements an individual chance‐constraint formulation using the L1 norm on normally distributed uncertainties.
+    Implements an individual chance‐constraint formulation on the objective using the L1 norm on normally distributed uncertainties.
 
     This subclass approximates all uncertain intervention flows and characterization factors as Normal(μ,σ²),
     computes the aggregated standard deviation of total environmental cost under an L1 norm, and then
@@ -1412,13 +1417,13 @@ class CCFormulationIndividualNormalL1(CCFormulationBase):
         3. Compute the mean environmental cost.
         4. Check that the variance‐based z‐values are within acceptable bounds.
         """
-        cf_normal_metadata_df, if_normal_metadata_df = self.transform_to_normal()
-        self.envcost_std = self.compute_envcost_variance(cf_normal_metadata_df, if_normal_metadata_df)
+        normal_metadata = self.transform_to_normal()
+        self.envcost_std = self.compute_envcost_variance(normal_metadata['cf'], normal_metadata['if'])
         self.envcost_mean = self.compute_envcost_mean()
         self.check_envcost_variance(self.envcost_std)
 
 
-    def transform_to_normal(self) -> tuple[pd.DataFrame, pd.DataFrame]:
+    def transform_to_normal(self) -> Dict[str,pd.DataFrame]:
         """
         Fit Normal distributions to all CF and IF uncertainty metadata.
 
@@ -1426,15 +1431,14 @@ class CCFormulationIndividualNormalL1(CCFormulationBase):
         definitions into equivalent Normal distributions.
 
         Returns:
-            cf_normal_metadata_df (pd.DataFrame): Fitted Normal loc/scale for CFs.
-            if_normal_metadata_df (pd.DataFrame): Fitted Normal loc/scale for IFs.
+            normal_metadata (Dict[str,pd.DataFrame]): Fitted Normal loc/scale for parameters in chance constaints (e.g., "cf", "if").
         """
-        cf_normal_metadata_df = UncertaintyProcessor.fit_normals(self.cf_metadata_df)
-        if_normal_metadata_df = UncertaintyProcessor.fit_normals(self.if_metadata_df)
-        # ATTN: Add the fit_normals for the bound uncertainty
+        normal_metadata = {}
+        for var_name, metadata_df in self.unc_metadata.items():
+            normal_metadata[var_name] = UncertaintyProcessor.fit_normals(metadata_df)
         # ATTN: Check if the fit_normals runs through with 0 as standard deviations
-        return cf_normal_metadata_df, if_normal_metadata_df
-        
+        return normal_metadata
+
 
     def _extract_process_ids_and_intervention_flows_for_env_cost_variance(self) -> tuple[array.array, pd.DataFrame]:
         """
@@ -1451,14 +1455,14 @@ class CCFormulationIndividualNormalL1(CCFormulationBase):
         """
         # To Compute the variance of the environmental costs we must extract all processes which contain:
         # - an uncertain intervention flow
-        process_id_uncertain_if = self.if_metadata_df.index.get_level_values(1).values
+        process_id_uncertain_if = self.unc_metadata["if"].index.get_level_values(1).values
         # - an intervention flow associated with an uncertain characterization factor
-        process_id_associated_cf = self.pulpo_worker.lci_data['intervention_matrix'][self.cf_metadata_df.index,:].nonzero()[1]
+        process_id_associated_cf = self.pulpo_worker.lci_data['intervention_matrix'][self.unc_metadata["cf"].index,:].nonzero()[1]
         process_ids = np.unique(np.append(process_id_associated_cf, process_id_uncertain_if))
         # Get the intervention flows to the uncertain characterization factors
         intervention_flows_extracted = pd.DataFrame.sparse.from_spmatrix(
-            self.pulpo_worker.lci_data['intervention_matrix'][self.cf_metadata_df.index.values,:][:,process_ids],
-            index=self.cf_metadata_df.index,
+            self.pulpo_worker.lci_data['intervention_matrix'][self.unc_metadata["cf"].index.values,:][:,process_ids],
+            index=self.unc_metadata["cf"].index,
             columns=process_ids
         )
         return process_ids, intervention_flows_extracted
@@ -1475,8 +1479,14 @@ class CCFormulationIndividualNormalL1(CCFormulationBase):
         \sigma_{q_hb_j} =\sqrt{\sum_e \big(\mu_{q_{h,e}}^2\sigma_{b_{e,j}}^2 + \mu_{b_{e,j}}^2\sigma_{q_{h,e}}^2 + \sigma_{b_{e,j}}^2 \sigma_{q_{h,e}}^2\big)}
         $$
 
+        Args:
+            cf_normal_metadata_df (pd.DataFrame):
+                normal distribution information of the characterization factors from "unc_metadata['cf']"
+            if_normal_metadata_df (pd.DataFrame):
+                normal distribution information of the inventory flows from "unc_metadata['if']"      
+
         Returns:
-            pd.Series:
+            envcost_std (pd.Series):
                 Indexed by process ID, with each value equal to the standard deviation
                 of that process’s total cost contribution.
         """
@@ -1570,7 +1580,17 @@ class CCFormulationIndividualNormalL1(CCFormulationBase):
         environmental_cost_updated = {(process_id, self.method): self.envcost_mean[process_id] + ppf_lambda_QB * self.envcost_std[process_id] for process_id in self.envcost_std.keys()}
         self.pulpo_worker.instance.ENV_COST_MATRIX.store_values(environmental_cost_updated, check=True)
 
-class CCFormulationIndividualNormalL2(CCFormulationBase):
+class CCFormulationObjVBIndividualNormalL1(CCFormulationObjIndividualNormalL1):
+    """
+    Implements an individual chance‐constraint formulation on the objective using the L1 norm and 
+    on the variable bounds with normally distributed uncertainties.
+
+    This subclass approximates all uncertain intervention flows, characterization factors, and variable bounds as Normal(μ,σ²),
+    computes the aggregated standard deviation of total environmental cost under an L1 norm, and then
+    traces Pareto‐optimal solutions by varying the confidence level (λ).
+    """
+
+class CCFormulationObjIndividualNormalL2(CCFormulationBase):
 
     def formulate(self):
         """
