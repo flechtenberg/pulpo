@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pulpo-dev"
-version = "0.1.5"
+version = "1.4.1"
 description = "Pulpo package for optimization in LCI databases"
 authors = [
   { name="Fabian Lechtenberg", email="fabian.lechtenberg@chem.ethz.ch" }
@@ -14,15 +14,15 @@ maintainers = [
 ]
 readme = "README.md"
 requires-python = ">=3.10,<=3.12"
-license = { text = "BSD License" }
+license = "BSD-3-Clause"
+license-files = ["LICENSE"]
 classifiers = [
     "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: BSD License",
     "Operating System :: OS Independent"
 ]
 dependencies = [
     "fs==2.4.16",
-    "pyomo<=6.6.2",
+    "pyomo<=6.5.0",
     "highspy==1.8.0",
     "ipython==8.14.0",
     "jupyterlab",
@@ -30,7 +30,8 @@ dependencies = [
     "pandas",
     "scipy<=1.14.1",
     "tqdm",
-    "xlsxwriter"
+    "xlsxwriter",
+    "openpyxl"
 ]
 
 [project.optional-dependencies]
@@ -47,9 +48,8 @@ bw25 = [
 homepage = "https://github.com/flechtenberg/pulpo"
 repository = "https://github.com/flechtenberg/pulpo"
 
-[tool.setuptools]
-include-package-data = true
-packages = ["pulpo"]
+[tool.setuptools.packages.find]
+include = ["pulpo*", "utils*", "tests*"]
 
 [tool.flake8]
 max_line_length = 88

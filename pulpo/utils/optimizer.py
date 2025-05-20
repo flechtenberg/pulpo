@@ -1,5 +1,7 @@
 import pyomo.environ as pyo
 from pyomo.contrib import appsi
+from .saver import extract_flows
+import os
 
 def create_model():
     """
@@ -16,7 +18,7 @@ def create_model():
     model.INDICATOR = pyo.Set(doc='Set of impact assessment indicators, indexed by h')
     model.INV = pyo.Set(doc='Set of intervention flows, indexed by g')
     model.ENV_COST_PROCESS = pyo.Set(within=model.PROCESS * model.INDICATOR, doc='Relation set between environmental cost flows and processes')
-    model.ENV_COST_IN = pyo.Set(model.INDICATOR, within=model.PROCESS)
+    model.ENV_COST_IN = pyo.Set(model.INDICATOR, within=model.ENV_COST)
     model.PROCESS_IN = pyo.Set(model.PROCESS, within=model.PRODUCT)
     model.PROCESS_OUT = pyo.Set(model.PRODUCT, within=model.PROCESS)
     model.PRODUCT_PROCESS = pyo.Set(within=model.PRODUCT * model.PROCESS, doc='Relation set between intermediate products and processes')
@@ -70,7 +72,6 @@ def populate_env(model):
         if j not in model.ENV_COST_IN[h]:
             model.ENV_COST_IN[h].add(j)
 
-
 def populate_in_and_out(model):
     """Relates the inputs of an activity to its outputs."""
     for i, j in model.PRODUCT_PROCESS:
@@ -110,7 +111,6 @@ def upper_imp_constraint(model, h):
     """ Imposes upper limits on selected impact categories """
     return model.impacts[h] <= model.UPPER_IMP_LIMIT[h]
 
-
 def slack_upper_constraint(model, j):
     """ Slack variable upper limit for activities where supply is specified instead of demand """
     return model.slack[j] <= 1e20 * model.SUPPLY[j]
@@ -122,6 +122,7 @@ def slack_lower_constraint(model, j):
 def objective_function(model):
     """Objective is a sum over all indicators with weights. Typically, the indicator of study has weight 1, the rest 0"""
     return sum(model.impacts[h] * model.WEIGHTS[h] for h in model.INDICATOR)
+
 
 def calculate_methods(instance, lci_data, methods):
     """
@@ -135,30 +136,29 @@ def calculate_methods(instance, lci_data, methods):
     Returns:
         instance: The updated Pyomo model instance with calculated impacts.
     """
-    import scipy.sparse as sparse
-    import numpy as np
-    matrices = lci_data['matrices']
+    # Filter matrices for specified methods
+    matrices = {h: lci_data['matrices'][h] for h in lci_data['matrices'] if str(h) in methods}
     intervention_matrix = lci_data['intervention_matrix']
-    matrices = {h: matrices[h] for h in matrices if str(h) in methods}
-    env_cost = {h: sparse.csr_matrix.dot(matrices[h], intervention_matrix) for h in matrices}
-    try:
-        scaling_vector = np.array([instance.scaling_vector[x].value for x in instance.scaling_vector])
-    except:
-        scaling_vector = np.array([instance.scaling_vector[x] for x in instance.scaling_vector])
 
-    impacts = {}
-    for h in matrices:
-        impacts[h] = sum(env_cost[h].dot(scaling_vector))
+    # Calculate environmental costs
+    env_cost = {h: matrices[h] @ intervention_matrix for h in matrices}
 
-    # Check if instance.impacts_calculated exists
+    # Extract scaling vector
+    scaling_vector = extract_flows(instance, lci_data['process_map'], lci_data['process_map_metadata'], 'scaling').sort_index()
+    scaling_values = scaling_vector['Value'].to_numpy()
+
+    # Calculate impacts
+    impacts = {h: (env_cost[h] @ scaling_values).sum() for h in matrices}
+
+    # Update or create impacts_calculated variable
     if hasattr(instance, 'impacts_calculated'):
-        # Update values if it already exists
-        for h in impacts:
-            instance.impacts_calculated[h].value = impacts[h]
+        for h, value in impacts.items():
+            instance.impacts_calculated[h].value = value
     else:
-        # Create instance.impacts_calculated
-        instance.impacts_calculated = pyo.Var([h for h in impacts], initialize=impacts)
+        instance.impacts_calculated = pyo.Var(impacts.keys(), initialize=impacts)
+
     return instance
+
 
 def calculate_inv_flows(instance, lci_data):
     """
@@ -171,24 +171,22 @@ def calculate_inv_flows(instance, lci_data):
     Returns:
         instance: The updated Pyomo model instance with calculated intervention flows.
     """
-    import numpy as np
+    # Extract intervention matrix and scaling vector
     intervention_matrix = lci_data['intervention_matrix']
-    try:
-        scaling_vector = np.array([instance.scaling_vector[x].value for x in instance.scaling_vector])
-    except:
-        scaling_vector = np.array([instance.scaling_vector[x] for x in instance.scaling_vector])
-    flows = intervention_matrix.dot(scaling_vector)
-    # Check if inv_flows already exists in the model
-    # @TODO: Consider adding "inv_flows" directly as variable to the model and skip this check.
-    if hasattr(instance, 'inv_flows'):
-        # Update the values of the existing variable
-        for i in range(intervention_matrix.shape[0]):
-            instance.inv_flows[i].value = flows[i]
-    else:
-        # Create the variable if it does not exist
-        instance.inv_flows = pyo.Var(range(0, intervention_matrix.shape[0]), initialize=dict(enumerate(flows)))
-    return instance
+    scaling_vector = extract_flows(instance, lci_data['process_map'], lci_data['process_map_metadata'], 'scaling').sort_index()
+    scaling_values = scaling_vector['Value'].to_numpy()
 
+    # Calculate intervention flows
+    flows = intervention_matrix @ scaling_values
+
+    # Update or create inv_flows variable
+    if hasattr(instance, 'inv_flows'):
+        for i, flow_value in enumerate(flows):
+            instance.inv_flows[i].value = flow_value
+    else:
+        instance.inv_flows = pyo.Var(range(len(flows)), initialize=dict(enumerate(flows)))
+
+    return instance
 
 
 def instantiate(model_data):
@@ -208,76 +206,103 @@ def instantiate(model_data):
     return problem
 
 
-def solve_model(model_instance, gams_path=None, solver_name=None, options=None):
+def get_cplex_options(options):
+    # ATTN: Write some instructions on how to tune these parameters. For now, they are set to work for standard ecoinvent problems with CPLEX.
+    """Return the default XPLEX options if none are provided."""
+    default_options = [
+        'option optcr = 1e-15;',
+        'option reslim = 3600;',  # Time limit
+        'GAMS_MODEL.optfile = 1;',
+        '$onecho > cplex.opt',
+        'workmem=4096',
+        'scaind=1',
+        '$offecho',
+    ]
+    return options if options is not None else default_options
+
+def solve_highspy(model_instance):
+    """Solve the model using Highspy."""
+    opt = appsi.solvers.Highs()
+    results = opt.solve(model_instance)
+    print('Optimization problem solved using Highspy')
+    return results, model_instance
+
+def solve_neos(model_instance, solver_name, options):
+    """Solve the model using NEOS."""
+    # ATTN: Perhaps enable passing down the mail address as an argument
+    if 'NEOS_EMAIL' not in os.environ:
+        print("'NEOS_EMAIL' environment variable is not set. \n")
+        print("To use the NEOS solver, please set the 'NEOS_EMAIL' environment variable as explained here:\n")
+        print("https://www.twilio.com/en-us/blog/how-to-set-environment-variables-html \n")
+        print("If you do not have a NEOS account, please create one at https://neos-server.org/neos/ \n")
+        return None, model_instance
+
+    solver_manager = pyo.SolverManagerFactory('neos')
+    kwargs = {'solver': solver_name}
+    if options:
+        kwargs['options'] = options
+    results = solver_manager.solve(model_instance, **kwargs)
+
+    print("Optimization problem solved using NEOS")
+    return results, model_instance
+
+def solve_gams(model_instance, gams_path, options, solver_name=None):
+    """Solve the model using GAMS with either CPLEX or an alternative solver."""
+    if gams_path is True:
+        gams_path = os.getenv('GAMS_PULPO')
+        if gams_path:
+            print('GAMS path retrieved from GAMS_PULPO environment variable:', gams_path)
+        else:
+            print("GAMS path not found. Set the 'GAMS_PULPO' environment variable to your GAMS path or pass it explicitly.")
+            return None, model_instance
+
+    solver = pyo.SolverFactory('gams')
+    if not solver.available():
+        print("GAMS solver is not available. Ensure GAMS is installed and the path is correct.")
+        return None, model_instance
+
+    io_options = {'solver': solver_name or 'CPLEX'}
+    options = get_cplex_options(options) if solver_name is None else options
+
+    results = solver.solve(
+        model_instance,
+        keepfiles=False,
+        symbolic_solver_labels=True,
+        tee=False,
+        report_timing=False,
+        io_options=io_options,
+        add_options=options,
+    )
+    print('Optimization problem solved using GAMS')
+    return results, model_instance
+
+
+def solve_model(model_instance, gams_path=False, solver_name=None, options=None):
     """
-    Solves the instance of the optimization model.
+    Solves the instance of the optimization model using Highspy, NEOS, or GAMS.
 
     Args:
         model_instance (ConcreteModel): The Pyomo model instance.
-        gams_path (str, optional): Path to the GAMS solver. If None, GAMS will not be used.
-        solver_name (str, optional): The solver to use ('highs', 'gams', or 'ipopt'). Defaults to 'highs' unless gams_path is provided.
+        gams_path (str or bool, optional): Path to the GAMS solver or True to use the environment variable.
+        solver_name (str, optional): The solver to use (e.g. 'cplex', 'baron', or 'xpress').
         options (list, optional): Additional options for the solver.
 
     Returns:
         tuple: Results of the optimization and the updated model instance.
     """
-    results = None
+    # ATTN: Cases may be too convoluted. Tidy up the logic eventually.
+    # Case 1: Use Highspy if no GAMS path is provided and the solver is either not specified or is 'highs'
+    if gams_path is False and (solver_name is None or 'highs' in solver_name.lower()):
+        return solve_highspy(model_instance)
 
-    # Use GAMS if gams_path is specified
-    if gams_path and (solver_name is None or solver_name.lower() == 'gams'):
-        pyo.pyomo.common.Executable('gams').set_path(gams_path)
-        solver = pyo.SolverFactory('gams')
-        print('GAMS solvers library availability:', solver.available())
-        print('Solver path:', solver.executable())
+    # Case 2: Use NEOS if a solver_name is provided (and it is not Highspy) and no GAMS path is provided
+    if gams_path is False and solver_name and ('highs' not in solver_name.lower()):
+        return solve_neos(model_instance, solver_name, options)
 
-        io_options = {
-            'mtype': 'lp',  # Type of problem (lp, nlp, mip, minlp)
-            'solver': 'CPLEX',  # Name of solver
-        }
+    # Case 3: Use GAMS if gams_path is specified (either as a path or True)
+    if gams_path:
+        return solve_gams(model_instance, gams_path, options)
 
-        if options is None:
-            options = [
-                'option optcr = 1e-15;',
-                'option reslim = 3600;',
-                'GAMS_MODEL.optfile = 1;',
-                '$onecho > cplex.opt',
-                'workmem=4096',
-                'scaind=1',
-                #'numericalemphasis=1',
-                #'epmrk=0.99',
-                #'eprhs=1E-9',
-                '$offecho',
-            ]
-
-        results = solver.solve(
-            model_instance,
-            keepfiles=True,
-            symbolic_solver_labels=True,
-            tee=False,
-            report_timing=False,
-            io_options=io_options,
-            add_options=options
-        )
-
-        model_instance.solutions.load_from(results)
-
-    # Use IPOPT if explicitly specified
-    elif solver_name and solver_name.lower() == 'ipopt':
-        opt = pyo.SolverFactory('ipopt')
-        if options:
-            for option in options:
-                opt.options[option] = True
-        results = opt.solve(model_instance)
-
-    # Default to HiGHS if no solver specified or if solver_name is 'highs'
-    else:
-        opt = appsi.solvers.Highs()
-        results = opt.solve(model_instance)
-
-    return results, model_instance
-
-
-    print('Optimization problem solved')
-    ## TODO: Add a check for infeasibility and other solver errors
-
-    return results, model_instance
+    # Default case: Return None if no valid solver configuration is found
+    print("No valid solver configuration found.")
+    return None, model_instance

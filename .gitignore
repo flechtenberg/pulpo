@@ -99,5 +99,3 @@ pulpo_install_methanol_case.ipynb
 
 /notebooks/energy_transition_showcase_figures.ipynb
 develop_tests/**
-!develop_tests/sensitivity_analysis.ipynb
-!develop_tests/ammonia_showcase.ipynb
