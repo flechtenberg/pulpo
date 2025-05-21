@@ -15,6 +15,7 @@ def create_model():
     # Sets
     model.PRODUCT = pyo.Set(doc='Set of intermediate products (or technosphere exchanges), indexed by i')
     model.PROCESS = pyo.Set(doc='Set of processes (or activities), indexed by j')
+    model.ENV_COST = pyo.Set(doc='Set of environmental cost flows, indexed by e')
     model.INDICATOR = pyo.Set(doc='Set of impact assessment indicators, indexed by h')
     model.INV = pyo.Set(doc='Set of intervention flows, indexed by g')
     model.ENV_COST_PROCESS = pyo.Set(within=model.PROCESS * model.INDICATOR, doc='Relation set between environmental cost flows and processes')
@@ -224,24 +225,36 @@ def solve_highspy(model_instance):
     """Solve the model using Highspy."""
     opt = appsi.solvers.Highs()
     results = opt.solve(model_instance)
-    print('Optimization problem solved using Highspy')
+    if results.termination_condition == appsi.base.TerminationCondition.optimal: 
+        print('optimal solution found: ', results.best_feasible_objective) 
+        results.solution_loader.load_vars() 
+    elif results.best_feasible_objective is not None: 
+        print('sub-optimal but feasible solution found: ', results.best_feasible_objective) 
+    elif results.termination_condition in {appsi.base.TerminationCondition.maxIterations, appsi.base.TerminationCondition.maxTimeLimit}: 
+        print('No feasible solution was found. The best lower bound found was ', results.best_objective_bound) 
+    else: 
+        print('The following termination condition was encountered: ', results.termination_condition) 
+        print('Optimization problem solved using Highspy')
     return results, model_instance
 
 def solve_neos(model_instance, solver_name, options):
     """Solve the model using NEOS."""
     # ATTN: Perhaps enable passing down the mail address as an argument
+    if 'NEOS_EMAIL' in options:
+        os.environ['NEOS_EMAIL'] = options['NEOS_EMAIL']
     if 'NEOS_EMAIL' not in os.environ:
         print("'NEOS_EMAIL' environment variable is not set. \n")
         print("To use the NEOS solver, please set the 'NEOS_EMAIL' environment variable as explained here:\n")
         print("https://www.twilio.com/en-us/blog/how-to-set-environment-variables-html \n")
         print("If you do not have a NEOS account, please create one at https://neos-server.org/neos/ \n")
         return None, model_instance
-
     solver_manager = pyo.SolverManagerFactory('neos')
-    kwargs = {'solver': solver_name}
-    if options:
-        kwargs['options'] = options
-    results = solver_manager.solve(model_instance, **kwargs)
+    # ATTN: deleted the 'options' use as kwargs, since I do not think it makes sense, it holds options for the PULPO solver and for the pyomo solver_manager, 
+    # it needs to be either different options or completely differently structured. Now I have hard programmed the seetings.
+    #  Also solver_name is a solver_manager option, it kind of does not make sense
+    results = solver_manager.solve(model_instance, opt=solver_name, tee=True)
+    if not results.solver.termination_condition == pyo.TerminationCondition.optimal:
+        raise Exception('Could not find an optimal solutions to the problem.')
 
     print("Optimization problem solved using NEOS")
     return results, model_instance
@@ -277,7 +290,7 @@ def solve_gams(model_instance, gams_path, options, solver_name=None):
     return results, model_instance
 
 
-def solve_model(model_instance, gams_path=False, solver_name=None, options=None):
+def solve_model(model_instance, gams_path=False, solver_name=None, options:dict={}):
     """
     Solves the instance of the optimization model using Highspy, NEOS, or GAMS.
 
@@ -285,7 +298,7 @@ def solve_model(model_instance, gams_path=False, solver_name=None, options=None)
         model_instance (ConcreteModel): The Pyomo model instance.
         gams_path (str or bool, optional): Path to the GAMS solver or True to use the environment variable.
         solver_name (str, optional): The solver to use (e.g. 'cplex', 'baron', or 'xpress').
-        options (list, optional): Additional options for the solver.
+        options (dict): Additional options for the solver.
 
     Returns:
         tuple: Results of the optimization and the updated model instance.
