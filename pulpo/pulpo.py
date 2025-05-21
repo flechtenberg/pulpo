@@ -63,7 +63,7 @@ class PulpoOptimizer:
         self.upper_elem_limit = upper_elem_limit
         self.upper_imp_limit = upper_imp_limit
 
-    def solve(self, GAMS_PATH=False, solver_name=None, options=None):
+    def solve(self, GAMS_PATH=False, solver_name=None, options:dict={}):
         """
         Solves the optimization model and calculates additional methods and inventory flows if needed.
 
@@ -181,6 +181,11 @@ class PulpoOptimizer:
         """
         saver.summarize_results(self, zeroes)
 
+    def extract_results(self):
+        """
+        Summarizes the results of the optimization.
+        """
+        return saver.extract_results(self)
 
 def electricity_showcase():
     """
