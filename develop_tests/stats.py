@@ -269,12 +269,13 @@ class BaseCaseStudy:
         """
 
         # Instantiat and solve the optimization model
+        # self.pulpo_worker.solve()
+        # options = {'NEOS_EMAIL':'b.j.p.m.haussling.lowgren@cml.leidenuniv.nl'}
+        # self.pulpo_worker.solve(solver_name='cplex', options=options)
         self.pulpo_worker.solve()
         # Save and summarize the results
-        result_data = pulpo.saver.extract_results(self.pulpo_worker.instance, self.pulpo_worker.project, self.pulpo_worker.database, self.choices, {}, self.demand,
-                                    self.pulpo_worker.lci_data['process_map'], self.pulpo_worker.lci_data['process_map_metadata'],
-                                    self.pulpo_worker.lci_data['intervention_map'], self.pulpo_worker.lci_data['intervention_map_metadata']) # ATTN: this should be wrapped in the pulpo module similar to the save_results method
-        self.pulpo_worker.summarize_results(choices=self.choices, demand=self.demand, zeroes=True)
+        result_data = self.pulpo_worker.extract_results()
+        self.pulpo_worker.summarize_results(zeroes=True)
         # self.pulpo_worker.save_results(result_data, file_name) # ATTN: This still does not work with the saver code probably still a mistake in there
         return result_data
 
@@ -408,7 +409,7 @@ class AmmoniaCase(BaseCaseStudy):
         for the Ammonia case study.
         """
         self.project = "ammonia_reduced"
-        self.database = ["ammonia-reduced", "ecoinvent-3.10-cutoff"]
+        self.database = ["ecoinvent-3.10-cutoff", "ammonia-reduced"]
         self.method = "('IPCC 2021', 'climate change', 'GWP 100a, incl. H and bio CO2')"
         self.directory = os.path.join(os.path.dirname(os.getcwd()), 'develop_tests/data')
 
@@ -430,40 +431,35 @@ class AmmoniaCase(BaseCaseStudy):
         Specify the functional unit, define choice options and capacities,
         and instantiate the PULPO model with self.pulpo_worker.instantiate().
         """
-        choices_biomethane = [
-            "biogas upgrading to biomethane, chemical scrubbing",
-            "biogas upgrading to biomethane, chemical scrubbing w/ CCS",
-            "biogas upgrading to biomethane, water scrubbing",
-            "biogas upgrading to biomethane, water scrubbing w/ CCS"
-        ]
+        
+        choices_biomethane_CS = ["biogas upgrading to biomethane, chemical scrubbing"]
+        choices_biomethane_CSwCCS = ["biogas upgrading to biomethane, chemical scrubbing w/ CCS"]
+        choices_biomethane_WS = ["biogas upgrading to biomethane, water scrubbing"]
+        choices_biomethane_WSwCCS = ["biogas upgrading to biomethane, water scrubbing w/ CCS"]
 
         choices_methane_market = [
-            "market for methane",
+            "market for bio methane",
             "market group for natural gas, high pressure"
         ]
 
-        choices_hydrogen = [
-            "hydrogen production, steam methane reforming fg",
-            "hydrogen production, steam methane reforming, w/ CCS",
-            "hydrogen production, PEM electrolysis, yellow",
-            "hydrogen production, plastics gasification",
-            "hydrogen production, plastics gasification, w/ CCS"
-        ]
+        choices_hydrogen_SMR = ["hydrogen production, steam methane reforming fg"]
+        choices_hydrogen_SMRwCCS = ["hydrogen production, steam methane reforming, w/ CCS"]
+        choices_hydrogen_PEM = ["hydrogen production, PEM electrolysis, yellow"]
+        choices_hydrogen_plastic = ["hydrogen production, plastics gasification"]
+        choices_hydrogen_plasticCCS = ["hydrogen production, plastics gasification, w/ CCS"]
 
         choices_hydrogen_market = [
             "market for hydrogen",
             "market for hydrogen, gaseous, low pressure"
         ]
 
-        choices_heat = [
-            "heat from hydrogen",
-            "heat from methane, w/ CCS",
-            "heat from methane",
-        ]
+        choices_heat_H2 = ["heat from hydrogen"]
+        choices_heat_CH4wCCS = ["heat from methane, w/ CCS"]
+        choices_heat_CH4 = ["heat from methane"]
 
         choices_ammonia = [
             "ammonia production, steam methane reforming",
-            "ammonia production, steam methane reforming, w/ CCS",
+            # "ammonia production, steam methane reforming, w/ CCS",
             "ammonia production, from nitrogen and hydrogen"
         ]
 
@@ -472,29 +468,77 @@ class AmmoniaCase(BaseCaseStudy):
             "market for ammonia, anhydrous, liquid"
         ]
 
-        # Retrieve activities for each category
         # Retrieve activities for each category and assign to appropriately named variables
-        biomethane_activities = self.pulpo_worker.retrieve_activities(activities=choices_biomethane, locations=["RER", "Europe without Switzerland"])
+        # Retrieve activities for each category and assign to appropriately named variables
+        # Biomethane upgrading
+        biomethane_activities_CS = self.pulpo_worker.retrieve_activities(activities=choices_biomethane_CS, locations=["RER", "Europe without Switzerland"])
+        biomethane_activities_CSwCCS = self.pulpo_worker.retrieve_activities(activities=choices_biomethane_CSwCCS, locations=["RER", "Europe without Switzerland"])
+        biomethane_activities_WS = self.pulpo_worker.retrieve_activities(activities=choices_biomethane_WS, locations=["RER", "Europe without Switzerland"])
+        biomethane_activities_WSwCCS = self.pulpo_worker.retrieve_activities(activities=choices_biomethane_WSwCCS, locations=["RER", "Europe without Switzerland"])
+
         methane_market_activities = self.pulpo_worker.retrieve_activities(activities=choices_methane_market, locations=["RER", "Europe without Switzerland"])
-        hydrogen_activities = self.pulpo_worker.retrieve_activities(activities=choices_hydrogen, locations=["RER", "Europe without Switzerland"])
+        # Hydrogen
+        hydrogen_activities_PEM = self.pulpo_worker.retrieve_activities(activities=choices_hydrogen_PEM, locations=["RER", "Europe without Switzerland"])
+        hydrogen_activities_plastic = self.pulpo_worker.retrieve_activities(activities=choices_hydrogen_plastic, locations=["RER", "Europe without Switzerland"])
+        hydrogen_activities_plasticCCS = self.pulpo_worker.retrieve_activities(activities=choices_hydrogen_plasticCCS, locations=["RER", "Europe without Switzerland"])
+        hydrogen_activities_SMR = self.pulpo_worker.retrieve_activities(activities=choices_hydrogen_SMR, locations=["RER", "Europe without Switzerland"])
+        hydrogen_activities_SMRwCCS = self.pulpo_worker.retrieve_activities(activities=choices_hydrogen_SMRwCCS, locations=["RER", "Europe without Switzerland"])
         hydrogen_market_activities = self.pulpo_worker.retrieve_activities(activities=choices_hydrogen_market, locations=["RER", "Europe without Switzerland"])
-        heat_activities = self.pulpo_worker.retrieve_activities(activities=choices_heat, locations=["RER", "Europe without Switzerland"])
+        # Heat
+        heat_activities_CH4 = self.pulpo_worker.retrieve_activities(activities=choices_heat_CH4, locations=["RER", "Europe without Switzerland"])
+        heat_activities_CH4wCCS = self.pulpo_worker.retrieve_activities(activities=choices_heat_CH4wCCS, locations=["RER", "Europe without Switzerland"])
+        heat_activities_H2 = self.pulpo_worker.retrieve_activities(activities=choices_heat_H2, locations=["RER", "Europe without Switzerland"])
+        # Ammonia
         ammonia_activities = self.pulpo_worker.retrieve_activities(activities=choices_ammonia, locations=["RER", "Europe without Switzerland"])
         ammonia_market_activities = self.pulpo_worker.retrieve_activities(activities=choices_ammonia_market, locations=["RER", "Europe without Switzerland"])
-         # Choices
+        
+        # Set the demand and other global parameters for the problem definition
+        demand_value = 3000e6 
+        manure_biogas = 1.8e9 # Setting the manure biomgas availability for 2030
+        scale_by_demand = False
+        if scale_by_demand:
+            scaling_value = demand_value
+        else:
+            scaling_value = 1
+
+        # Choices as constraints
         self.choices = {
-            "hydrogen": {x: 1e10 for x in hydrogen_activities},
-            "heat": {x: 1e10 for x in heat_activities},
-            "biomethane": {x: 1e10 for x in biomethane_activities},
-            "ammonia": {x: 1e10 for x in ammonia_activities},
-            "methane_market": {x: 1e10 for x in methane_market_activities},
-            "hydrogen_market": {x: 1e10 for x in hydrogen_market_activities},
-            "ammonia_market": {x: 1e10 for x in ammonia_market_activities},
+            "ammonia": {x: 1e20 for x in ammonia_activities},
+            "methane_market": {x: 1e20 for x in methane_market_activities},
+            "hydrogen_market": {x: 1e20 for x in hydrogen_market_activities},
+            "ammonia_market": {x: 1e20 for x in ammonia_market_activities},
         }
+        self.choices["hydrogen"] = {
+            hydrogen_activities_PEM[0] : .3*.1e9/scaling_value, # 0.1 Mt H2 -- 30% of PEM to NH3
+            hydrogen_activities_SMR[0] : 1e20, # SMR
+            hydrogen_activities_SMRwCCS[0] : .3*.5e9/scaling_value, # 0.5 Mt H2 -- 30% of SMR w CCS H2 for NH3
+            hydrogen_activities_plastic[0] : .3*40e6/scaling_value, # 40 kt H2 -- 30% of plastic gasification for NH3
+            hydrogen_activities_plasticCCS[0] : .3*1e6/scaling_value, # 10 kt H2 -- 30% of plastic gasification w CCS for NH3
+        }
+        self.choices["heat"] = {
+            heat_activities_CH4[0]: 1e20,
+            heat_activities_CH4wCCS[0]: .1*1.4e10/scaling_value, # Assuming 10% of the heat currently needed for Ammonia produciton
+            heat_activities_H2[0]:1*1.4e10/scaling_value, # Assuming 10% of the heat currently needed for Ammonia produciton
+        }
+        self.choices["biomethane"] = {
+            biomethane_activities_CS[0]: 1e20, # Assumingly the same potential as WS
+            biomethane_activities_CSwCCS[0]: .1*.2*manure_biogas/scaling_value, # Guess: the same as WS wCCS
+            biomethane_activities_WS[0]: 1e20, # Assumingly the base case technology
+            biomethane_activities_WSwCCS[0]: .1*.2*manure_biogas/scaling_value #  20% (biomethane for NH3) of 10% (CCS for biomethane )of 1.8 mt (biomethane) for which is the max capacity 2030
+        }
+        
+        # Additional constraints
+        anaerobic_digestion = self.pulpo_worker.retrieve_activities(activities='anaerobic digestion of animal manure, with biogenic carbon uptake', locations=["RER", "Europe without Switzerland"])
+        upper_bound = {
+            anaerobic_digestion[0]:.2*1.8e9/scaling_value # 20% of 1.8 mt which is the max capacity 2030
+            } 
+
         # Demand
         ammonia_market = self.pulpo_worker.retrieve_activities(activities="market for ammonia")
-        self.demand = {"ammonia_market": 3e9} # Ammonia production capacity Germany
-        self.pulpo_worker.instantiate(choices=self.choices, demand=self.demand)
+        self.demand = {"ammonia_market": demand_value/scaling_value} # Ammonia production capacity Germany
+        
+        # Instantiate the pulpo instance
+        self.pulpo_worker.instantiate(choices=self.choices, demand=self.demand, upper_limit=upper_bound)
 
 
 # === Parameter Filter ===
@@ -534,13 +578,13 @@ class ParameterFilter:
             scaling_vector_strategy: How to compute scaling vector: 'naive' or 'constructed_demand'.
 
         Returns:
-            scaling_vector: Series of scaling factors (optimal s).
+            scaling_vector_series: Series of scaling factors (optimal s).
         """
         # Define the scaling vector for the subsequent analysis as the optimization results
         # put the scaling vector returned from the optimization into the same order as the process map
         match scaling_vector_strategy:
             case 'naive':
-                scaling_vector_series = self.result_data["scaling_vector"].set_index('ID')['Value'].sort_index()
+                scaling_vector_series = self.result_data['Scaling Vector']['Value'].sort_index()
             case 'constructed_demand':
                 scaling_vector_series = self.construct_scaling_vector_from_choices()
             case _:
@@ -557,13 +601,15 @@ class ParameterFilter:
         """
         # Define the scaling vector for the subsequent analysis as a constructed demand vector
         # Create a demand vector which includes all alternatives in the demand use use the corresponding scaling vector of that LCA for the subsequent GSA and preparation steps, the idea is to include all relevant processes in the LCIA calculation instead of just those chosen by the optimizer at on Pareto point
+        demand = {}
         for product, alternatives in self.choices.items():
-            demand_amount = self.result_data['choices'][product]["Value"].sum()
+            # demand_amount = self.result_data['Choices'][product]["Value"].sum()
             for alternative in alternatives:
-                self.demand[alternative] = demand_amount
+                # self.demand[alternative] = demand_amount
+                demand[alternative] = 1
         # Compute the scaling vector for the set constructed demand
         method_tuple = ast.literal_eval(self.method)
-        lca = bw2calc.LCA(self.demand, method_tuple)
+        lca = bw2calc.LCA(demand, method_tuple)
         lca.lci()
         # Map the scaling vector results of the LCI calculation back to the optimization results index structure
         index_mapper_df = pd.concat(
@@ -588,7 +634,7 @@ class ParameterFilter:
 
         Args:
             characterization_matrix: Characterization Q matrix, since there are multiple available in the .
-            scaling_vector: Series of parameter scaling factors (s).
+            scaling_vector_series: Series of parameter scaling factors (s).
 
         Returns:
             lca_score (float): the summed lcia score for the specific scaling vector.
@@ -761,7 +807,7 @@ class UncertaintyStrategyBase:
         defined_uncertainty_metadata (dict): Mapping of parameter indices to their defined uncertainty metadata.
         undefined_uncertainty_indices (list): List of indices needing distribution assignment.
     """
-    def __init__(self, metadata_df:pd.DataFrame, defined_uncertainty_metadata:dict, undefined_uncertainty_indices:list):
+    def __init__(self, metadata_df:pd.DataFrame, defined_uncertainty_metadata:dict, undefined_uncertainty_indices:list, *args, **kwargs):
         """
         Initialize the UncertaintyStrategyBase with metadata and index lists.
 
@@ -773,9 +819,79 @@ class UncertaintyStrategyBase:
         self.metadata_df = metadata_df # ATTN: rename to param_metadata_df
         self.defined_uncertainty_metadata = defined_uncertainty_metadata
         self.undefined_uncertainty_indices = undefined_uncertainty_indices
+        self.metadata_df = self.assign( *args, **kwargs)
+
+    def assign(self, *args, **kwargs) -> pd.DataFrame:
+        """
+        Assign distribution parameters to parameters without predefined uncertainty.
+
+        Args:
+            <<Depending on the strategy>>
+
+        Returns:
+            pd.DataFrame: Updated metadata DataFrame for targeted parameters.
+        """
+        return pd.DataFrame([])
 
 
-class TriangularStrategy(UncertaintyStrategyBase):
+class TriangluarBaseStrategy(UncertaintyStrategyBase):
+    """
+    Strategy that assigns triangular distributions to parameters with undefined uncertainty information.
+
+    For each parameter index in undefined_uncertainty_indices, this strategy computes the median
+    (loc) from the 'amount' field of metadata_df and defines lower and upper bounds based on
+    configurable scaling factors.
+
+    The lower bound is computed as loc - lower_scaling_factor * abs(loc), and the upper bound
+    as loc + upper_scaling_factor * abs(loc). The distribution type is set to 5 (triangular).
+
+    Methods:
+        _compute_triag_dist_params: Computes scaling factors (upper and lower) based on given scaling_factors.
+        assign: Applies computed scaling factors to assign 'loc', 'minimum', 'maximum', and 'uncertainty_type'.
+
+    Attributes:
+        Inherits metadata_df, defined_uncertainty_metadata, and undefined_uncertainty_indices from base class.
+    """
+    def _compute_triag_dist_params(self, upper_scaling_factor:float, lower_scaling_factor:float) -> pd.DataFrame:
+        """
+        Compute triangular distribution parameters to parameters without predefined uncertainty.
+
+        Args:
+            upper_scaling_factor (float): Scaling factor to determine the upper bound relative to the median.
+            lower_scaling_factor (float): Scaling factor to determine the lower bound relative to the median.
+
+        Returns:
+            pd.DataFrame: Updated metadata DataFrame including 'loc', 'minimum', 'maximum',
+                          and 'uncertainty_type' set to 5 (triangular) for targeted parameters.
+        """
+        # **ATTN For negative flows the skewness might need to be inversed!!**
+        metadata_df = self.metadata_df.copy()
+        # For each undefined parameter, set loc=median, bounds = ±factor·|median|
+        for undefined_indx in self.undefined_uncertainty_indices:
+            amount = metadata_df.loc[undefined_indx].amount
+            # ATTN: BHL: If we have negative values than the skewdness which mostly is poisitve for positive flows will now be positive for negative flows (remain right skewed) while in reality negative flows might be left skewed (tail going away from zero not towards zero as now)
+            metadata_df.loc[undefined_indx, 'loc'] = amount
+            metadata_df.loc[undefined_indx, 'maximum'] = amount + upper_scaling_factor * abs(amount)
+            metadata_df.loc[undefined_indx, 'minimum'] = amount - lower_scaling_factor * abs(amount)
+            # if amount > 0:
+            #     metadata_df.loc[undefined_indx, 'maximum'] = amount + upper_scaling_factor * abs(amount)
+            #     metadata_df.loc[undefined_indx, 'minimum'] = amount - lower_scaling_factor * abs(amount)
+            # if amount < 0:
+            #     metadata_df.loc[undefined_indx, 'maximum'] = amount + lower_scaling_factor * abs(amount)
+            #     metadata_df.loc[undefined_indx, 'minimum'] = amount - upper_scaling_factor * abs(amount)
+            metadata_df.loc[undefined_indx, 'uncertainty_type'] = 5,
+        # Check for negative‐median cases and adjust skew mapping
+        if ((metadata_df.loc[self.undefined_uncertainty_indices,'maximum'] - metadata_df.loc[self.undefined_uncertainty_indices,'minimum']) <= 0).any():
+            raise Exception('There is a parameter with where the asigned minimum value is equal or larger than the asigned maximum value')
+        # There can be negative flows and their upper and lower bounds need to be considered in detail!
+        print('uncertain parameters with negative median value:')
+        print(metadata_df.loc[self.undefined_uncertainty_indices].loc[metadata_df.loc[self.undefined_uncertainty_indices,'loc'] < 0])
+        return metadata_df
+    
+    def assign(self, *args):
+        metadata_asigned_df = self._compute_triag_dist_params(*args)
+        return metadata_asigned_df
+class TriangularBoundInterpolationStrategy(TriangluarBaseStrategy):
     """
     Strategy that assigns triangular distributions to parameters with undefined uncertainty information.
 
@@ -787,7 +903,8 @@ class TriangularStrategy(UncertaintyStrategyBase):
     as loc + upper_scaling_factor * abs(loc). The distribution type is set to 5 (triangular).
 
     Methods:
-        _get_bounds: Computes scaling factors (upper and lower) based on statistical analysis of defined uncertainties.
+        _get_bounds: Computes the bounds of the parameters with defined uncertainty information
+        _compute_bounds_statistics: Computes scaling factors (upper and lower) based on statistical analysis of defined uncertainties.
         assign: Applies computed scaling factors to assign 'loc', 'minimum', 'maximum', and 'uncertainty_type'.
 
     Attributes:
@@ -803,7 +920,7 @@ class TriangularStrategy(UncertaintyStrategyBase):
         self.uncertainty_bounds = UncertaintyProcessor.compute_bounds(self.defined_uncertainty_metadata)
             
 
-    def compute_bounds_statistics(self) -> tuple[float, float]:
+    def _compute_bounds_statistics(self) -> tuple[float, float]:
         """
         Compute loc/min/max for triangular distributions:
           - For defined metadata, interpolate bounds.
@@ -835,37 +952,15 @@ class TriangularStrategy(UncertaintyStrategyBase):
         lower_scaling_factor = lower_spread.median()
         print('The upper spread scaling factor for intervention flows is: {}\nThe lower spread scaling factor for intervention flows is: {}'.format(upper_scaling_factor, lower_scaling_factor)) 
         return upper_scaling_factor, lower_scaling_factor
-
-        
-    def assign(self, upper_scaling_factor:float, lower_scaling_factor:float) -> pd.DataFrame:
+    
+    def assign(self) -> pd.DataFrame:
         """
-        Assign triangular distribution parameters to parameters without predefined uncertainty.
-
-        Args:
-            upper_scaling_factor (float): Scaling factor to determine the upper bound relative to the median.
-            lower_scaling_factor (float): Scaling factor to determine the lower bound relative to the median.
-
-        Returns:
-            pd.DataFrame: Updated metadata DataFrame including 'loc', 'minimum', 'maximum',
-                          and 'uncertainty_type' set to 5 (triangular) for targeted parameters.
+        Assign triangular distribution parameters derived averaged bounds, to parameters without predefined uncertainty.
         """
-        # **ATTN For negative flows the skewness might need to be inversed!!**
-        metadata_df = self.metadata_df.copy()
-        # For each undefined parameter, set loc=median, bounds = ±factor·|median|
-        for undefined_indx in self.undefined_uncertainty_indices:
-            amount = metadata_df.loc[undefined_indx].amount
-            # ATTN: BHL: If we have negative values than the skewdness which mostly is poisitve for positive flows will now be positive for negative flows (remain right skewed) while in reality negative flows might be left skewed (tail going away from zero not towards zero as now)
-            metadata_df.loc[undefined_indx, 'loc'] = amount,
-            metadata_df.loc[undefined_indx, 'maximum'] = amount + upper_scaling_factor * abs(amount),
-            metadata_df.loc[undefined_indx, 'minimum'] = amount - lower_scaling_factor * abs(amount),
-            metadata_df.loc[undefined_indx, 'uncertainty_type'] = 5,
-        # Check for negative‐median cases and adjust skew mapping
-        if ((metadata_df.loc[self.undefined_uncertainty_indices,'maximum'] - metadata_df.loc[self.undefined_uncertainty_indices,'minimum']) <= 0).any():
-            raise Exception('There is a parameter with where the asigned minimum value is equal or larger than the asigned maximum value')
-        # There can be negative flows and their upper and lower bounds need to be considered in detail!
-        print('uncertain parameters with negative median value:')
-        print(metadata_df.loc[self.undefined_uncertainty_indices].loc[metadata_df.loc[self.undefined_uncertainty_indices,'loc'] < 0])
-        return metadata_df
+        upper_scaling_factor, lower_scaling_factor = self._compute_bounds_statistics()
+        metadata_asigned_df = self._compute_triag_dist_params(upper_scaling_factor, lower_scaling_factor)
+        return metadata_asigned_df
+
 
 class UncertaintyProcessor:
     """
@@ -1023,7 +1118,7 @@ class GlobalSensitivityAnalysis:
 
     Attributes:
         result_data (dict):
-            Deterministic PULPO results, including 'impacts' and 'scaling_vector'.
+            Deterministic PULPO results, including 'impacts' and 'Scaling Vector'.
         lci_data (dict):
             Life-Cycle Inventory matrices and metadata for processes and interventions.
         unc_metadata (dict[str:pd.DataFrame]):
@@ -1057,7 +1152,7 @@ class GlobalSensitivityAnalysis:
         Args:
             result_data (dict):
                 Deterministic model output with keys 'impacts' (labels & values)
-                and 'scaling_vector' (for final impact calculation).
+                and 'Scaling Vector' (for final impact calculation).
             lci_data (dict):
                 Contains 'process_map_metadata' and 'intervention_map_metadata'
                 for reconstructing labels in plots.
@@ -1194,7 +1289,7 @@ class GlobalSensitivityAnalysis:
         """
         # Compute the environmental impact using a dot product of the reindex scaling vector
         # Set the columns values to match the intervention columns
-        scaling_vector_expanded = self.result_data['scaling_vector'].set_index('ID')['Value'].reindex(sample_env_cost.columns)
+        scaling_vector_expanded = self.result_data['Scaling Vector'].set_index('ID')['Value'].reindex(sample_env_cost.columns)
         sample_characterized_inventories = sample_env_cost * scaling_vector_expanded
         sample_impacts = sample_env_cost @ scaling_vector_expanded
         return sample_characterized_inventories, sample_impacts
@@ -1679,8 +1774,8 @@ class BaseParetoSolver:
         lambda_array = list(result_data_CC.keys())
         for lambda_1, lambda_2 in zip(lambda_array[:len(lambda_array)-1], lambda_array[1:len(lambda_array)]):
             print(f'lambda_1: {lambda_1}\nlambda_2: {lambda_2}\n')
-            scaling_vector_diff = ((result_data_CC[lambda_1]['scaling_vector'].set_index('ID')['Value'] - result_data_CC[lambda_2]['scaling_vector'].set_index('ID')['Value']))
-            scaling_vector_ratio = (scaling_vector_diff / result_data_CC[lambda_1]['scaling_vector'].set_index('ID')['Value']).abs().sort_values(ascending=False)
+            scaling_vector_diff = ((result_data_CC[lambda_1]['Scaling Vector']['Value'] - result_data_CC[lambda_2]['Scaling Vector']['Value']))
+            scaling_vector_ratio = (scaling_vector_diff / result_data_CC[lambda_1]['Scaling Vector']['Value']).abs().sort_values(ascending=False)
             environmental_cost_mean = {env_cost_index[0]: env_cost for env_cost_index, env_cost in result_data_CC[lambda_1]['ENV_COST_MATRIX']['ENV_COST_MATRIX'].items()}
             characterized_scaling_vector_diff = (scaling_vector_diff * pd.Series(environmental_cost_mean).reindex(scaling_vector_diff.index)).abs()
             characterized_scaling_vector_diff_relative = (characterized_scaling_vector_diff / result_data_CC[lambda_1]['impacts'].set_index('Key').loc[self.cc_formulation.method, 'Value']).abs().sort_values(ascending=False)
@@ -1691,10 +1786,10 @@ class BaseParetoSolver:
 
             amount_of_rows_for_visiualization = 10
             print('The relative change of the scaling vector (s_lambda_1 - s_lambda_2)/s_lambda_1:\n')
-            print(scaling_vector_ratio.iloc[:amount_of_rows_for_visiualization].rename(result_data_CC[lambda_2]['scaling_vector'].set_index('ID')['Process metadata']).sort_values(ascending=False))
+            print(scaling_vector_ratio.iloc[:amount_of_rows_for_visiualization].rename(result_data_CC[lambda_2]['Scaling Vector']['Process metadata']).sort_values(ascending=False))
             print('\n---\n')
             print('The relative change of the characterized scaling vector (s_lambda_1 - s_lambda_2)*QB_s / QBs:\n')
-            print(characterized_scaling_vector_diff_relative.iloc[:amount_of_rows_for_visiualization].rename(result_data_CC[lambda_2]['scaling_vector'].set_index('ID')['Process metadata']))
+            print(characterized_scaling_vector_diff_relative.iloc[:amount_of_rows_for_visiualization].rename(result_data_CC[lambda_2]['Scaling Vector']['Process metadata']))
             print('\n---\n')
 
     def plot_pareto_front(self, result_data_CC:dict, cutoff_value:float):
@@ -1710,7 +1805,7 @@ class BaseParetoSolver:
         data_QBs_list = []
         for lamnda_QBs, result_data in result_data_CC.items():
             environmental_cost_mean = {env_cost_index[0]: env_cost for env_cost_index, env_cost in result_data_CC[lamnda_QBs]['ENV_COST_MATRIX']['ENV_COST_MATRIX'].items()}
-            QBs = result_data['scaling_vector'].set_index('ID')['Value'] * pd.Series(environmental_cost_mean).reindex(result_data['scaling_vector'].set_index('ID')['Value'].index)
+            QBs = result_data['Scaling Vector']['Value'] * pd.Series(environmental_cost_mean).reindex(result_data['Scaling Vector']['Value'].index)
             QBs_main = QBs[QBs.abs() > cutoff_value*QBs.abs().sum()]
             QBs_main.name = lamnda_QBs
             data_QBs_list.append(QBs_main)
