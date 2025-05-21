@@ -1674,7 +1674,7 @@ class CCFormulationBase:
         """
         pass
 
-    def update_problem(self, lambda_level:float) -> None:
+    def update_problem(self, lambda_level:float) -> dict:
         """
         Inject or update the ε‐constraint for a given risk level (to be overridden).
 
@@ -1687,9 +1687,10 @@ class CCFormulationBase:
                 Target confidence/risk threshold (e.g., 0.95 for 95% quantile).
         
         Returns:
-            None
+            environmental_cost (dict):
+                The environmental costs as used for the computation instance
         """
-        pass
+        return {}
 
 class CCFormulationObjIndividualNormalL1(CCFormulationBase):
     """
@@ -1857,7 +1858,7 @@ class CCFormulationObjIndividualNormalL1(CCFormulationBase):
         print('The following points were excluded from the boxplot:')
         print(envcost_std_mean['z'].sort_values(ascending=False).iloc[:5])
 
-    def update_problem(self, lambda_env_cost):
+    def update_problem(self, lambda_env_cost) -> dict:
         """
         Update the Pyomo model’s ENV_COST_MATRIX for a given chance‐constraint level.
 
@@ -1871,6 +1872,7 @@ class CCFormulationObjIndividualNormalL1(CCFormulationBase):
         ppf_lambda_QB = scipy.stats.norm.ppf(lambda_env_cost)
         environmental_cost_updated = {(process_id, self.method): self.envcost_mean[process_id] + ppf_lambda_QB * self.envcost_std[process_id] for process_id in self.envcost_std.keys()}
         self.pulpo_worker.instance.ENV_COST_MATRIX.store_values(environmental_cost_updated, check=True)
+        return environmental_cost_updated
 
 class CCFormulationObjVBIndividualNormalL1(CCFormulationObjIndividualNormalL1):
     """
@@ -1928,20 +1930,9 @@ class BaseParetoSolver:
         """
         self.cc_formulation.update_problem(lambda_level)
         self.cc_formulation.pulpo_worker.solve()
-        result_data = self.extract_results()
+        result_data = self.cc_formulation.pulpo_worker.extract_results()
         return result_data
 
-    def extract_results(self):
-        """
-        Extract the results from the chance-constrained solver after execution.
-
-        Returns:
-            dict: A dictionary containing the extracted results.
-        """
-        result_data = pulpo.saver.extract_results(self.cc_formulation.pulpo_worker.instance, self.cc_formulation.pulpo_worker.project, self.cc_formulation.pulpo_worker.database, self.cc_formulation.choices, {}, self.cc_formulation.demand,
-                                        self.cc_formulation.pulpo_worker.lci_data['process_map'], self.cc_formulation.pulpo_worker.lci_data['process_map_metadata'],
-                                        self.cc_formulation.pulpo_worker.lci_data['intervention_map'], self.cc_formulation.pulpo_worker.lci_data['intervention_map_metadata']) # ATTN: this should be wrapped in the pulpo module similar to the save_results method
-        return result_data
     
     def compare_subsequent_paretosolutions(self, result_data_CC):
         """
@@ -2001,7 +1992,7 @@ class BaseParetoSolver:
         """
         data_QBs_list = []
         for lamnda_QBs, result_data in result_data_CC.items():
-            environmental_cost_mean = {env_cost_index[0]: env_cost for env_cost_index, env_cost in result_data_CC[lamnda_QBs]['ENV_COST_MATRIX']['ENV_COST_MATRIX'].items()}
+            environmental_cost_mean = {env_cost_index[0]: env_cost for env_cost_index, env_cost in result_data_CC[lamnda_QBs]['ENV_COST'].items()}
             QBs = result_data['Scaling Vector']['Value'] * pd.Series(environmental_cost_mean).reindex(result_data['Scaling Vector']['Value'].index)
             QBs_main = QBs[QBs.abs() > cutoff_value*QBs.abs().sum()]
             QBs_main.name = lamnda_QBs
@@ -2036,9 +2027,10 @@ class EpsilonConstraintSolver(BaseParetoSolver):
         result_data_CC = {}
         for lambda_level in lambda_epislons:
             print(f'solving CC problem for lambda_QB = {lambda_level}')
-            self.cc_formulation.update_problem(lambda_level)
+            environmental_cost_updated = self.cc_formulation.update_problem(lambda_level)
             self.cc_formulation.pulpo_worker.solve()
-            result_data_CC[lambda_level] = self.extract_results()
+            result_data_CC[lambda_level] = self.cc_formulation.pulpo_worker.extract_results()
+            result_data_CC[lambda_level]['ENV_COST'] = environmental_cost_updated
         return result_data_CC
 
 
