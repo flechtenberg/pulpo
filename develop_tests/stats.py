@@ -751,12 +751,32 @@ class UncertaintyImporter:
     def __init__(self, lci_data):
         self.lci_data = lci_data # from pulpo_worker.lci_data
 
-    def get_intervention_meta(self, inventory_indices:list) -> pd.DataFrame:
+    def get_intervention_indcs_to_db(self, db_name, intervention_indices:List[tuple]) -> List[tuple]:
+        """
+        fetches the inventory indices to a specified bw database 
+        and if specified the intersection to a given list of interventions flow indices
+
+        Args:
+            db_name (str): name of the BW database for which the indices are fetched for
+            intervention_indices (list) - optional: intervention flow indices for which the metadata will be extracted
+        
+        Returns:
+            db_indcs (list): The interventions flow indices to the specified BW database and intersection to intervention_indices
+        """
+        db_indcs = [process_indx for (db, _), process_indx in self.lci_data['process_map'].items() if db == db_name]
+        intervention_indices_in_db = [(intevention_indx, process_index) for (intevention_indx, process_index) in intervention_indices if process_index in db_indcs]
+        return intervention_indices_in_db
+
+
+    def get_intervention_meta(self, inventory_indices:List[tuple]) -> pd.DataFrame:
         """
         Extract intervention‐flow uncertainty metadata for given indices.
 
+        Args:
+            inventory_indices (List[tuple]): list of intervention flow indices (process_indx, intervention_indx) for which the metadata will be extracted 
+
         Returns:
-            DataFrame indexed by (row, col) with uncertainty info.
+            intervention_metadata_df (pd.DataFrame): DataFrame indexed by (row, col) with uncertainty info.
         """
         intervention_metadata_df = pd.DataFrame(self.lci_data['intervention_params'])
         intervention_metadata_df = intervention_metadata_df.set_index(["row", "col"])
@@ -815,11 +835,34 @@ class UncertaintyStrategyBase:
             metadata_df (pd.DataFrame): The full metadata DataFrame for parameters.
             defined_uncertainty_metadata (dict): Dictionary mapping indices to existing uncertainty metadata.
             undefined_uncertainty_indices (list): List of parameter indices without defined uncertainties.
+            *args: additional arguments passed to the assign method
+            **kwargs: additional optional arguments passed to the assign method
         """
         self.metadata_df = metadata_df # ATTN: rename to param_metadata_df
         self.defined_uncertainty_metadata = defined_uncertainty_metadata
         self.undefined_uncertainty_indices = undefined_uncertainty_indices
-        self.metadata_df = self.assign( *args, **kwargs)
+        self.metadata_assigned_df = self.assign(*args, **kwargs)
+
+    def add_random_noise_to_scaling_factor(self, scaling_factor:Union[float, list], low:float, high:float) -> list:
+        """
+        Adds random noise from uniform distribution to scaling factors, to avoid unrealistic structure in data.
+        Multiplies the scaling vector with 1-low and 1+high to generate noisy scaling vectors given by the interval [1-low, 1+high].
+
+        Args:
+            scaling_factor (float, array, list): the scaling factor which will get noise added to it
+            low (float): the lower bound (1-low) for which the noise will be sampled and multiplied to the scaling_factor.
+            high (float): the lower bound (1+high) for which the noise will be sampled and multiplied to the scaling_factor.
+
+        Returns:
+            scaling_factor_randomized (list): The scaling factor, now a list superposed with the random noise
+
+        """
+        if isinstance(scaling_factor, float):
+            scaling_factor = [scaling_factor] * len(self.undefined_uncertainty_indices)
+        rng = np.random.default_rng(seed=161)
+        random_noise = rng.uniform(1-low, 1+high, len(self.undefined_uncertainty_indices))
+        scaling_factor_randomized = random_noise * np.array(scaling_factor)
+        return scaling_factor_randomized.tolist()
 
     def assign(self, *args, **kwargs) -> pd.DataFrame:
         """
@@ -833,17 +876,97 @@ class UncertaintyStrategyBase:
         """
         return pd.DataFrame([])
 
+class UniformBaseStrategy(UncertaintyStrategyBase):
+    """
+    Strategy that assigns uniform distributions to parameters with undefined uncertainty information.
+
+    For each parameter index in undefined_uncertainty_indices, the staretgy sets min and and max based on
+    configurable scaling factors. 
+    """
+    def __init__(
+            self, 
+            metadata_df, 
+            defined_uncertainty_metadata, 
+            undefined_uncertainty_indices, 
+            upper_scaling_factor, 
+            lower_scaling_factor, 
+            noise_interval:Dict[str,float]={'min':0., 'max':0.}
+            ) -> None:
+        """
+        Initialize the UniformBaseStrategy with metadata and index lists and scaling factors.
+
+        Args:
+            metadata_df (pd.DataFrame): The full metadata DataFrame for parameters.
+            defined_uncertainty_metadata (dict): Dictionary mapping indices to existing uncertainty metadata.
+            undefined_uncertainty_indices (list): List of parameter indices without defined uncertainties.
+            upper_scaling_factor (float): the scaling factor multiplied with the amount 
+                to get the maximum value for the uniform distribution
+            lower_scaling_factor (float): the scaling factor multiplied with the amount 
+                to get the minimum value for the uniform distribution
+            noise_interval (Dict[str,float]): Dict containing "min" and "max" keywords 
+                holding the upper and lower bound of the noise generated with a uniform distribution 
+                and multiplied with the scaling factor vector as (1-min) and (1+max)
+        """
+        super().__init__(
+            metadata_df, 
+            defined_uncertainty_metadata, 
+            undefined_uncertainty_indices, 
+            upper_scaling_factor, 
+            lower_scaling_factor, 
+            noise_interval=noise_interval
+            )
+
+    def _compute_uniform_dist_params(
+            self,
+            upper_scaling_factor:float, 
+            lower_scaling_factor:float,
+            noise_interval:Dict[str,float]={'min':0., 'max':0.}
+            ) -> pd.DataFrame:
+        """
+        Compute uniform distribution parameters to parameters without predefined uncertainty.
+
+        Args:
+            upper_scaling_factor (float): Scaling factor to determine the upper bound relative to the median.
+            lower_scaling_factor (float): Scaling factor to determine the lower bound relative to the median.
+
+        Returns:
+            pd.DataFrame: Updated metadata DataFrame including 'minimum', 'maximum',
+                          and 'uncertainty_type' set to 4 (uniform) for targeted parameters.
+        """
+        metadata_df = self.metadata_df.copy()
+        # Create a scaling factor array if scaling_factors are floats and randomize it if the noise interval has min and max greater 0.
+        upper_scaling_factor_randomized = self.add_random_noise_to_scaling_factor(upper_scaling_factor, noise_interval['min'], noise_interval['max'])
+        lower_scaling_factor_randomized = self.add_random_noise_to_scaling_factor(lower_scaling_factor, noise_interval['min'], noise_interval['max'])
+        # For each undefined parameter, set loc=median, bounds = ±factor·|median|
+        for undefined_indx, upper_scaling_factor, lower_scaling_factor in zip(self.undefined_uncertainty_indices, upper_scaling_factor_randomized, lower_scaling_factor_randomized):
+            amount = metadata_df.loc[undefined_indx].amount
+            metadata_df.loc[undefined_indx, 'loc'] = np.NaN
+            if amount > 0:
+                metadata_df.loc[undefined_indx, 'maximum'] = amount + upper_scaling_factor * abs(amount)
+                metadata_df.loc[undefined_indx, 'minimum'] = amount - lower_scaling_factor * abs(amount)
+            elif amount < 0:
+                metadata_df.loc[undefined_indx, 'maximum'] = amount + lower_scaling_factor * abs(amount)
+                metadata_df.loc[undefined_indx, 'minimum'] = amount - upper_scaling_factor * abs(amount)
+            metadata_df.loc[undefined_indx, 'uncertainty_type'] = 4,
+        # Check for negative‐median cases and adjust skew mapping
+        if ((metadata_df.loc[self.undefined_uncertainty_indices,'maximum'] - metadata_df.loc[self.undefined_uncertainty_indices,'minimum']) <= 0).any():
+            raise Exception('There is a parameter with where the asigned minimum value is equal or larger than the asigned maximum value')
+        return metadata_df
+    
+    def assign(self, *args, **kwargs):
+        metadata_asigned_df = self._compute_uniform_dist_params(*args, **kwargs)
+        return metadata_asigned_df
 
 class TriangluarBaseStrategy(UncertaintyStrategyBase):
     """
     Strategy that assigns triangular distributions to parameters with undefined uncertainty information.
 
-    For each parameter index in undefined_uncertainty_indices, this strategy computes the median
-    (loc) from the 'amount' field of metadata_df and defines lower and upper bounds based on
+    For each parameter index in undefined_uncertainty_indices, this strategy sets the median
+    (loc) from the 'amount' field of metadata_df and defines min and and max based on
     configurable scaling factors.
 
-    The lower bound is computed as loc - lower_scaling_factor * abs(loc), and the upper bound
-    as loc + upper_scaling_factor * abs(loc). The distribution type is set to 5 (triangular).
+    The min is computed as loc - lower_scaling_factor * abs(loc), and the max
+    as loc + upper_scaling_factor * abs(loc).
 
     Methods:
         _compute_triag_dist_params: Computes scaling factors (upper and lower) based on given scaling_factors.
@@ -852,33 +975,74 @@ class TriangluarBaseStrategy(UncertaintyStrategyBase):
     Attributes:
         Inherits metadata_df, defined_uncertainty_metadata, and undefined_uncertainty_indices from base class.
     """
-    def _compute_triag_dist_params(self, upper_scaling_factor:float, lower_scaling_factor:float) -> pd.DataFrame:
+    def __init__(
+            self, 
+            metadata_df, 
+            defined_uncertainty_metadata, 
+            undefined_uncertainty_indices, 
+            upper_scaling_factor:float, 
+            lower_scaling_factor:float, 
+            noise_interval:Dict[str,float]={'min':0., 'max':0.}
+            ) -> None:
+        """
+        Initialize the TriangluarBaseStrategy with metadata and index lists and scaling factors.
+
+        Args:
+            metadata_df (pd.DataFrame): The full metadata DataFrame for parameters.
+            defined_uncertainty_metadata (dict): Dictionary mapping indices to existing uncertainty metadata.
+            undefined_uncertainty_indices (list): List of parameter indices without defined uncertainties.
+            upper_scaling_factor (float): the scaling factor multiplied with the amount 
+                to get the maximum value for the triangular distribution
+            lower_scaling_factor (float): the scaling factor multiplied with the amount 
+                to get the minimum value for the triangular distribution
+            noise_interval (Dict[str,float]): Dict containing "min" and "max" keywords 
+                holding the upper and lower bound of the noise generated with a uniform distribution 
+                and multiplied with the scaling factor vector as (1-min) and (1+max)
+        """
+        super().__init__(
+            metadata_df, 
+            defined_uncertainty_metadata, 
+            undefined_uncertainty_indices, 
+            upper_scaling_factor, 
+            lower_scaling_factor, 
+            noise_interval=noise_interval
+            )
+
+
+    def _compute_triag_dist_params(
+            self,
+            upper_scaling_factor:float, 
+            lower_scaling_factor:float,
+            noise_interval:Dict[str,float]={'min':0., 'max':0.}
+            ) -> pd.DataFrame:
         """
         Compute triangular distribution parameters to parameters without predefined uncertainty.
 
         Args:
             upper_scaling_factor (float): Scaling factor to determine the upper bound relative to the median.
             lower_scaling_factor (float): Scaling factor to determine the lower bound relative to the median.
+            noise_interval (Dict[str,float]): Dict containing "min" and "max" keywords 
+                holding the upper and lower bound of the noise generated with a uniform distribution 
+                and multiplied with the scaling factor vector as (1-min) and (1+max)
 
         Returns:
             pd.DataFrame: Updated metadata DataFrame including 'loc', 'minimum', 'maximum',
                           and 'uncertainty_type' set to 5 (triangular) for targeted parameters.
         """
-        # **ATTN For negative flows the skewness might need to be inversed!!**
         metadata_df = self.metadata_df.copy()
+        # Create a scaling factor array if scaling_factors are floats and randomize it if the noise interval has min and max greater 0.
+        upper_scaling_factor_randomized = self.add_random_noise_to_scaling_factor(upper_scaling_factor, noise_interval['min'], noise_interval['max'])
+        lower_scaling_factor_randomized = self.add_random_noise_to_scaling_factor(lower_scaling_factor, noise_interval['min'], noise_interval['max'])
         # For each undefined parameter, set loc=median, bounds = ±factor·|median|
-        for undefined_indx in self.undefined_uncertainty_indices:
+        for undefined_indx, upper_scaling_fac, lower_scaling_fac in zip(self.undefined_uncertainty_indices, upper_scaling_factor_randomized, lower_scaling_factor_randomized):
             amount = metadata_df.loc[undefined_indx].amount
-            # ATTN: BHL: If we have negative values than the skewdness which mostly is poisitve for positive flows will now be positive for negative flows (remain right skewed) while in reality negative flows might be left skewed (tail going away from zero not towards zero as now)
             metadata_df.loc[undefined_indx, 'loc'] = amount
-            metadata_df.loc[undefined_indx, 'maximum'] = amount + upper_scaling_factor * abs(amount)
-            metadata_df.loc[undefined_indx, 'minimum'] = amount - lower_scaling_factor * abs(amount)
-            # if amount > 0:
-            #     metadata_df.loc[undefined_indx, 'maximum'] = amount + upper_scaling_factor * abs(amount)
-            #     metadata_df.loc[undefined_indx, 'minimum'] = amount - lower_scaling_factor * abs(amount)
-            # if amount < 0:
-            #     metadata_df.loc[undefined_indx, 'maximum'] = amount + lower_scaling_factor * abs(amount)
-            #     metadata_df.loc[undefined_indx, 'minimum'] = amount - upper_scaling_factor * abs(amount)
+            if amount > 0:
+                metadata_df.loc[undefined_indx, 'maximum'] = amount + upper_scaling_fac * abs(amount)
+                metadata_df.loc[undefined_indx, 'minimum'] = amount - lower_scaling_fac * abs(amount)
+            elif amount < 0:
+                metadata_df.loc[undefined_indx, 'maximum'] = amount + lower_scaling_fac * abs(amount)
+                metadata_df.loc[undefined_indx, 'minimum'] = amount - upper_scaling_fac * abs(amount)
             metadata_df.loc[undefined_indx, 'uncertainty_type'] = 5,
         # Check for negative‐median cases and adjust skew mapping
         if ((metadata_df.loc[self.undefined_uncertainty_indices,'maximum'] - metadata_df.loc[self.undefined_uncertainty_indices,'minimum']) <= 0).any():
@@ -888,19 +1052,21 @@ class TriangluarBaseStrategy(UncertaintyStrategyBase):
         print(metadata_df.loc[self.undefined_uncertainty_indices].loc[metadata_df.loc[self.undefined_uncertainty_indices,'loc'] < 0])
         return metadata_df
     
-    def assign(self, *args):
-        metadata_asigned_df = self._compute_triag_dist_params(*args)
+    def assign(self, *args, **kwargs):
+        metadata_asigned_df = self._compute_triag_dist_params(*args, **kwargs)
         return metadata_asigned_df
+    
 class TriangularBoundInterpolationStrategy(TriangluarBaseStrategy):
     """
     Strategy that assigns triangular distributions to parameters with undefined uncertainty information.
 
-    For each parameter index in undefined_uncertainty_indices, this strategy computes the median
-    (loc) from the 'amount' field of metadata_df and defines lower and upper bounds based on
-    configurable scaling factors derived from existing uncertainty metadata statistics.
+    For each parameter index in undefined_uncertainty_indices, this strategy sets the median
+    (loc) from the 'amount' field of metadata_df and defines min and max based on
+    configurable scaling factors derived from existing uncertainty metadata statistics,
+    using the bounds information.
 
-    The lower bound is computed as loc - lower_scaling_factor * abs(loc), and the upper bound
-    as loc + upper_scaling_factor * abs(loc). The distribution type is set to 5 (triangular).
+    The min is computed as loc - lower_scaling_factor * abs(loc), and the max
+    as loc + upper_scaling_factor * abs(loc).
 
     Methods:
         _get_bounds: Computes the bounds of the parameters with defined uncertainty information
@@ -910,6 +1076,20 @@ class TriangularBoundInterpolationStrategy(TriangluarBaseStrategy):
     Attributes:
         Inherits metadata_df, defined_uncertainty_metadata, and undefined_uncertainty_indices from base class.
     """
+    def __init__(self, metadata_df, defined_uncertainty_metadata, undefined_uncertainty_indices, noise_interval:Dict[str,float]={'min':0., 'max':0.}):
+        """
+        Initialize the TriangularBoundInterpolationStrategy with metadata and index lists.
+
+        Args:
+            metadata_df (pd.DataFrame): The full metadata DataFrame for parameters.
+            defined_uncertainty_metadata (dict): Dictionary mapping indices to existing uncertainty metadata.
+            undefined_uncertainty_indices (list): List of parameter indices without defined uncertainties.
+            noise_interval (Dict[str,float]): Dict containing "min" and "max" keywords 
+                holding the upper and lower bound of the noise generated with a uniform distribution 
+                and multiplied with the scaling factor vector as (1-min) and (1+max)
+        """
+        UncertaintyStrategyBase.__init__(self, metadata_df, defined_uncertainty_metadata, undefined_uncertainty_indices, noise_interval=noise_interval)
+
     def _get_bounds(self):
         """
         Compute min/max bounds for all parameters via UncertaintyProcessor.
@@ -922,16 +1102,12 @@ class TriangularBoundInterpolationStrategy(TriangluarBaseStrategy):
 
     def _compute_bounds_statistics(self) -> tuple[float, float]:
         """
-        Compute loc/min/max for triangular distributions:
-          - For defined metadata, interpolate bounds.
-          - For undefined entries, assign ± scaling factors.
+        Computes the scaling factors from the the bounds of the uncertain parameters with known distribution
         Assumes that the bounds of the median of 95% confidence interval can be used to compute scaling factors.
-        When these scaling factors are used to get the min and max of the triangular distribution, 
-        then the bounds returned from the triangular distribution will be smaller than the median computed here, 
-        since the 95% confidence interval of the triangular distribution lies within the mi and max value.
         
         Returns:
-            DataFrame with new loc, minimum, maximum, and type=5.
+            upper_scaling_factor: upper scaling factor to be multiplied with a central moment to get the max value for a distribution, e.g., triangular or uniform
+            lower_scaling_factor: lower scaling factor to be multiplied with a central moment to get the min value for a distribution, e.g., triangular or uniform
         """
         self._get_bounds()
         if len(self.uncertainty_bounds) < 3:
@@ -953,13 +1129,13 @@ class TriangularBoundInterpolationStrategy(TriangluarBaseStrategy):
         print('The upper spread scaling factor for intervention flows is: {}\nThe lower spread scaling factor for intervention flows is: {}'.format(upper_scaling_factor, lower_scaling_factor)) 
         return upper_scaling_factor, lower_scaling_factor
     
-    def assign(self) -> pd.DataFrame:
+    def assign(self, **kwargs) -> pd.DataFrame:
         """
         Assign triangular distribution parameters derived averaged bounds, to parameters without predefined uncertainty.
         """
         upper_scaling_factor, lower_scaling_factor = self._compute_bounds_statistics()
-        metadata_asigned_df = self._compute_triag_dist_params(upper_scaling_factor, lower_scaling_factor)
-        return metadata_asigned_df
+        metadata_asigned_df = self._compute_triag_dist_params(upper_scaling_factor, lower_scaling_factor, **kwargs)
+        return metadata_asigned_df    
 
 
 class UncertaintyProcessor:
@@ -1030,7 +1206,7 @@ class UncertaintyProcessor:
             normal_uncertainty_metadata = {
                 'scale':scale_norm,
                 'loc':loc_norm,
-                'uncertainty_type':3
+                'uncertainty_type':stats_arrays.NormalUncertainty.id
             }
             normal_uncertainty_metadata_df.loc[param_index] = normal_uncertainty_metadata
         if plot_distributions:
@@ -1070,6 +1246,9 @@ class UncertaintyProcessor:
             uncertainty_array = stats_arrays.UncertaintyBase.from_dicts(uncertainty_dict)
             uncertainty_choice = stats_arrays.uncertainty_choices[uncertainty_dict['uncertainty_type']]
             parameter_statistics = uncertainty_choice.statistics(uncertainty_array)
+            # ATTN: for some reason doe the uniform distribution give out the statistic in a 2d array, therefore we are unpacking them here
+            if not isinstance(parameter_statistics['mean'], float):
+                parameter_statistics = {key: value[0][0] for key, value in parameter_statistics.items()}
             uncertainty_bounds[indx] = parameter_statistics
             uncertainty_bounds[indx]['amount'] = uncertainty_dict['amount']
         uncertainty_bounds_df = pd.DataFrame(uncertainty_bounds).T
@@ -1181,6 +1360,24 @@ class GlobalSensitivityAnalysis:
         self.sample_characterized_inventories = None
         self.sensitivity_indices = None
 
+    def perform_gsa(self) -> None:
+        """
+        Calls all relevant methods including plots to perform a full GSA with initialized data
+        """
+        gsa_problem, all_bounds_indx_dict = self.define_problem()
+        sample_data_if, sample_data_cf = self.sample(gsa_problem, all_bounds_indx_dict)
+        sample_impacts, sample_characterized_inventories = self.run_model(sample_data_if, sample_data_cf)
+        total_Si = self.analyze(gsa_problem, sample_impacts)
+        total_Si_metadata = self.generate_Si_metadata(all_bounds_indx_dict, total_Si)
+        colormap_base, colormap_SA_barplot = self.plot_top_total_sensitivity_indices(total_Si, total_Si_metadata)
+        self.plot_total_env_impact_contribution(
+            sample_characterized_inventories, 
+            total_Si_metadata, 
+            colormap_base=colormap_base, 
+            colormap_SA_barplot=colormap_SA_barplot,
+        )
+
+
     def _compute_bounds(self) -> tuple[dict, dict]:
         """
         Compute 95%-CI bounds for both IF and CF parameters.
@@ -1289,7 +1486,7 @@ class GlobalSensitivityAnalysis:
         """
         # Compute the environmental impact using a dot product of the reindex scaling vector
         # Set the columns values to match the intervention columns
-        scaling_vector_expanded = self.result_data['Scaling Vector'].set_index('ID')['Value'].reindex(sample_env_cost.columns)
+        scaling_vector_expanded = self.result_data['Scaling Vector']['Value'].reindex(sample_env_cost.columns)
         sample_characterized_inventories = sample_env_cost * scaling_vector_expanded
         sample_impacts = sample_env_cost @ scaling_vector_expanded
         return sample_characterized_inventories, sample_impacts
@@ -1314,7 +1511,7 @@ class GlobalSensitivityAnalysis:
         sample_characterized_inventories.columns = pd.MultiIndex.from_frame(level_index_if)
         print(f'The statistics of the the sample impacts: {self.method}') # ATTN: if we have more than one method in the results data this might become a problem
         print(sample_impacts.sparse.to_dense().describe())
-        print('The deterministic impact is {}'.format('\n'.join(['{} : {:e}'.format(values[0], values[1]) for values in self.result_data['impacts'].values])))
+        print('The deterministic impact is {}'.format('\n'.join(['{} : {:e}'.format(values[0], values[1]) for values in self.result_data['Impacts'].values])))
         # Show the z-value and the distribution of the output
         sample_impacts.plot.hist(bins=50)
         print(sample_impacts.shape)
@@ -1757,15 +1954,15 @@ class BaseParetoSolver:
         impacts = {}
         print(self.cc_formulation.method)
         for lambda_QB, result_data in result_data_CC.items():
-            impacts[lambda_QB] = result_data['impacts'].set_index('Key').loc[self.cc_formulation.method,'Value']
+            impacts[lambda_QB] = result_data['Impacts'].set_index('Key').loc[self.cc_formulation.method,'Value']
             print('{}: {}'.format(lambda_QB, impacts[lambda_QB]))
         # The changs in the choices of the optimizer
         choices_results = {}
         for i_CC, (lambda_QB, result_data) in enumerate(result_data_CC.items()):
             for choice in self.cc_formulation.choices.keys():
                 if i_CC == 0:
-                    choices_results[choice] = result_data['choices'].xs(tuple(self.cc_formulation.choices.keys()), axis=1)[['Process', 'Capacity']].dropna()
-                choices_results[choice] = choices_results[choice].join(result_data['choices'].xs(tuple(self.cc_formulation.choices.keys()), axis=1)['Value'].rename(lambda_QB), how='left')
+                    choices_results[choice] = result_data['Choices'].xs(tuple(self.cc_formulation.choices.keys()), axis=1)[['Process', 'Capacity']].dropna()
+                choices_results[choice] = choices_results[choice].join(result_data['Choices'].xs(tuple(self.cc_formulation.choices.keys()), axis=1)['Value'].rename(lambda_QB), how='left')
         for choice, choice_result in choices_results.items():
             print(choice)
             print(choice_result)
