@@ -44,7 +44,7 @@ def extract_impacts(instance: ConcreteModel) -> pd.DataFrame:
     Extracts impact values and corresponding weights from the Pyomo instance.
     """
 
-    data = {'Method': [], 'Weight': [], 'Value': []}
+    data:dict = {'Method': [], 'Weight': [], 'Value': []}
 
     for i in instance.impacts.keys():
         data['Method'].append(i)
@@ -64,7 +64,7 @@ def extract_choices(instance: ConcreteModel, choices: Dict[str, Dict[Any, float]
 
     results = {}
     for choice, processes in choices.items():
-        data = {
+        data:dict = {
             "Value": [],
             "Capacity": [],
             "Metadata": []
@@ -113,7 +113,7 @@ def extract_constraints(instance: ConcreteModel, constraints: Dict[Any, float], 
         raise ValueError("Invalid flow_type. Use 'scaling' or 'intervention'.")
 
     # Retrieve data from flows
-    data = {'ID': [], 'Key': [], 'Metadata': [], 'Value': [], 'Limit': []}
+    data:dict = {'ID': [], 'Key': [], 'Metadata': [], 'Value': [], 'Limit': []}
     for constraint in constraints:
         flow = mapping.get(constraint.key)
         data['ID'].append(flow)
