@@ -1,6 +1,7 @@
 import copy
 import numpy as np
 import bw2data as bd
+from stats_arrays import TriangularUncertainty, NormalUncertainty
 
 np.NaN = np.nan  # Ensures compatibility with the latest NumPy versions
 
@@ -146,6 +147,42 @@ def setup_rice_husk_db():
             act.new_exchange(amount=amount, input=input_key, type=exchange_type).save()
             act.save()
 
+        # Custom uncertainty levels for EF (economic flow), by activity name
+        custom_ef_uncertainties = {
+            "Rice factory": 0.10,
+            "Rice farming": 0.10,
+            "Natural gas supply": 0.45,
+            "Wood pellet supply": 0.18,
+            "Rice husk collection 1": 0.06,
+            "Rice husk collection 2": 0.04,
+            "Rice husk collection 3": 0.02,
+            "Rice husk collection 4": 0.04,
+            "Rice husk collection 5": 0.01,
+            "Power plant": 0.15,
+            "Transportation by truck": 0.09,
+        }
+
+        # Apply uncertainty to biosphere exchanges
+        for act in bd.Database("rice_husk_example_db"):
+            for exc in act.exchanges():
+                if exc['type'] == 'biosphere':
+                    input_flow = exc['input'][1]
+
+                    if input_flow == 'CO2':
+                        rel_std = 0.10
+                    elif input_flow == 'CH4':
+                        rel_std = 0.25
+                    elif input_flow == 'EF':
+                        rel_std = custom_ef_uncertainties.get(act['name'], 0.10)  # Default EF uncertainty
+                    else:
+                        rel_std = 0.15  # Catch-all for any other biosphere flows
+
+                    exc['uncertainty type'] = NormalUncertainty.id
+                    exc['loc'] = exc['amount']
+                    exc['scale'] = abs(rel_std * exc['amount'])
+                    exc.save()
+
+
         print('Process database created')
 
         # Loop through the list of methods and deregister each one
@@ -158,9 +195,33 @@ def setup_rice_husk_db():
         # Define LCIA methods and CFs
         methods_data = [
             ('climate change', 'Mt CO2eq', 2, 'cc', 'climate change CFs', 'climate_change', 'CO2',
-             [(co2_key, 1), (ch4_key, 25)]),
-            ('air quality', 'ppm', 1, 'aq', 'air quality CFs', 'air_quality', 'PM', [(ch4_key, 25)]),
-            ('economic flow', 'million dollar', 1, 'ef', 'economic flow CFs', 'economic_flow', 'million dollar', [(ef_key, 1)]),
+            [
+                (co2_key, 1),  # No uncertainty on CO₂
+                # Example of uncertainty on CH₄ (triangular: min=23, mode=25, max=29)
+                (ch4_key, {
+                    'uncertainty type': TriangularUncertainty.id,  # 5 
+                    'loc': 25,    # Mode
+                    'minimum': 23,
+                    'maximum': 29,
+                    'amount': 25,
+                }),
+            ]),
+            
+            ('air quality', 'ppm', 1, 'aq', 'air quality CFs', 'air_quality', 'PM',
+            [
+                (ch4_key, {
+                    'uncertainty type': TriangularUncertainty.id, # 5
+                    'loc': 25,
+                    'minimum': 23,
+                    'maximum': 29,
+                    'amount': 25,
+                }),
+            ]),
+            
+            ('economic flow', 'million dollar', 1, 'ef', 'economic flow CFs', 'economic_flow', 'million dollar',
+            [
+                (ef_key, 1),  # No uncertainty on economic flow
+            ]),
         ]
 
         for method_name, unit, num_cfs, abbreviation, description, filename, flow_code, flow_list in methods_data:

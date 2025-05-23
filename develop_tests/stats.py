@@ -297,7 +297,8 @@ class RiceHuskCase(BaseCaseStudy):
         if self.project not in bw2data.projects: #ATTN: test
             pulpo.install_rice_husk_db()
         self.database = "rice_husk_example_db"
-        self.method = {"('my project', 'climate change')":1}
+        #self.method = "('my project', 'climate change')"
+        self.method = "('my project', 'economic flow')"
         self.directory = os.path.join(os.path.dirname(os.getcwd()), 'develop_tests/data')
 
     def define_problem(self):
@@ -330,11 +331,11 @@ class RiceHuskCase(BaseCaseStudy):
         ## Combine to create the choices dictionary
         ## For each kind of choice, assign a 'label' (e.g. 'boilers')
         ## To each possible choice, assign a process capacity. In the 'unconstrained' case, set this value very high (e.g. 1e10, but depends on the scale of the functional unit)
-        self.choices = {'Rice Husk (Mt)': {rice_husk_collections[0]: 0.03,
-                                    rice_husk_collections[1]: 0.03,
-                                    rice_husk_collections[2]: 0.03,
-                                    rice_husk_collections[3]: 0.03,
-                                    rice_husk_collections[4]: 0.03},
+        self.choices = {'Rice Husk (Mt)': {rice_husk_collections[0]: 0.05,
+                                    rice_husk_collections[1]: 0.05,
+                                    rice_husk_collections[2]: 0.05,
+                                    rice_husk_collections[3]: 0.05,
+                                    rice_husk_collections[4]: 0.05},
                 'Thermal Energy (TWh)': {boilers[0]: 1e10,
                                             boilers[1]: 1e10,
                                             boilers[2]: 1e10},
@@ -2000,8 +2001,10 @@ class BaseParetoSolver:
             print('With a cutoff value of {}, we keep {} process to an error of {:.2%}'.format(cutoff_value, len(QBs_main), abs(1 - QBs_main.sum()/QBs.sum())))
         data_QBs = pd.concat(data_QBs_list, axis=1)
         data_QBs = data_QBs.rename(index={process_id: self.cc_formulation.pulpo_worker.lci_data['process_map_metadata'][process_id] for process_id in data_QBs.index})
+        data_QBs = data_QBs.fillna(0)
         bbox_to_anchor = (0.65, -1.)
         plot_CC_pareto_solution_bar_plots(data_QBs, self.cc_formulation.method, bbox_to_anchor=bbox_to_anchor)
+
 
 
 class EpsilonConstraintSolver(BaseParetoSolver):
