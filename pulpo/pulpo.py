@@ -181,11 +181,11 @@ class PulpoOptimizer:
         """
         saver.summarize_results(self, zeroes)
 
-    def extract_results(self):
+    def extract_results(self, extractparams:bool=False):
         """
         Summarizes the results of the optimization.
         """
-        return saver.extract_results(self)
+        return saver.extract_results(self, extractparams=extractparams)
 
 def electricity_showcase():
     """
