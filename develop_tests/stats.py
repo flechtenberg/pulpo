@@ -858,9 +858,12 @@ class UncertaintyImporter:
         return intervention_indices_in_db
 
 
-    def get_intervention_meta(self, inventory_indices:List[tuple]) -> pd.DataFrame:
+    def get_if_meta(self, inventory_indices:List[tuple]) -> pd.DataFrame:
         """
         Extract intervention‐flow uncertainty metadata for given indices.
+        The data is taken from the `lci_data` object of the `pulpo_worker` instance.
+        The link to the pyomo instnace is that the parameters are identically indexed 
+        in the `lci_data` and pyomo instance.
 
         Args:
             inventory_indices (List[tuple]): list of intervention flow indices (process_indx, intervention_indx) for which the metadata will be extracted 
@@ -873,13 +876,23 @@ class UncertaintyImporter:
         intervention_metadata_df = intervention_metadata_df.loc[inventory_indices]
         return intervention_metadata_df
 
-    def get_cf_meta(self, method:str, characterization_indices:list) -> pd.DataFrame:
+    def get_cf_meta(self, method:str, characterization_indices:List[int]) -> pd.DataFrame:
         """
         Extract uncertainty metadata for characterization factors for a method.
+        The data is taken from the `lci_data` object of the `pulpo_worker` instance.
+        The link to the pyomo instnace is that the parameters are identically indexed 
+        in the `lci_data` and pyomo instance.
 
         Args:
-            method: LCIA method key.
-            characterization_indices: List of characterization row indices.
+            method (str): 
+                LCIA method key.
+            characterization_indices (list[int]): 
+                List of characterization row indices.
+        
+        Return:
+            characterization_metadata_df (pd.DataFrame):
+                metadata of the characterization factors containing uncertainty information 
+                if it exist in the underlying BW databases.
         """
         characterization_params = self.lci_data["characterization_params"][method]
         characterization_metadata_df = pd.DataFrame(characterization_params).set_index('row')
@@ -903,9 +916,39 @@ class UncertaintyImporter:
         print("Parameters with uncertainty information: {} \nParameters without uncertainty information: {}".format(len(defined), len(undefined)))
         return defined, undefined
     
-    def import_from_dict(self, uncertainty_dict:Dict[Tuple[int,int],Dict[str,Union[int,float]]]):
-        stats_arrays.UncertaintyBase.from_dicts(uncertainty_dict)
+    def get_pyomo_param_meta(self, instance, pyomo_param_name:str, param_indcs:List[int]) -> pd.DataFrame:
+        """
+        Generates the uncertainty metadata structre for parameters in the pyomo model excluding
+        if and cf parameter,
+        i.e., uncertainty information to parameters not given in Brightway (LCI databases),
+        e.g., variable bounds, impact bounds, addtional constraints, etc.
+        Since these parameters at the current state of implementation do not have any 
+        uncertainty information specified, they will only get the attribute key "amount" and "uncertainty_type"
 
+        The indexing of these parameters are based on the initialized pyomo model.
+
+        Args:
+            instance (pyomo.instance):
+                The pyomo instance of the case study, used to extract the "amount"
+            pyomo_param_name (str):
+                Name of the pyomo parameter to which the uncertainty metadata is to be generated for
+            param_indcs (list):
+                List of the parameter indices for which uncertainty metadata is to be extracted, 
+                as indexed in the pyomo instance
+
+        Returns:
+            param_metadata_df (pd.DataFrame):
+                Dataframe with the param indices as index and "amount" and "uncertainty_type" as columns
+            
+        """
+        param_metadata:dict = {}
+        param_data = getattr(instance, pyomo_param_name).extract_values()
+        for param_indx in param_indcs:
+            param_metadata[param_indx] = {}
+            param_metadata[param_indx]['amount'] = param_data[param_indx]
+            param_metadata[param_indx]['uncertainty_type'] = 0
+        param_metadata_df = pd.DataFrame(param_metadata).T
+        return param_metadata_df
 
 
 class UncertaintyStrategyBase:
@@ -1364,7 +1407,7 @@ class UncertaintyProcessor:
                   - `scale` (float): Standard deviation of the fitted normal.
                   - `uncertainty_type` (int): Always 3, indicating “normal” type.
         """
-        normal_uncertainty_metadata_df = uncertainty_metadata_df.copy()
+        normal_uncertainty_metadata_dict = {}
         print('{} parameters with non normal distribution are transformed into normal distributions via max likelihood approximation'.format((uncertainty_metadata_df['uncertainty_type'] != 3).sum()))
         # For each parameter:
         #   - generate random samples from its original distribution
@@ -1381,6 +1424,10 @@ class UncertaintyProcessor:
             percentages = np.expand_dims(np.linspace(0.001, 0.999, 1000, axis=0), axis=0)
             x = uncertainty_choice.ppf(metadata_uncertainty_array, percentages=percentages)
             x, y = uncertainty_choice.pdf(metadata_uncertainty_array, xs=x)
+            # ATTN: There is an error in stats_arrays when computing the trinagular pdf, bug is reported (#18), here is the fix.
+            if metadata['uncertainty_type'] == 5:
+                _, scale = uncertainty_choice.rescale(metadata_uncertainty_array)
+                y = y/scale
             # Fit a normal distribution to the sampled data
             loc_norm, scale_norm = scipy.stats.norm.fit(param_samples.T)
             if plot_distributions:
@@ -1388,7 +1435,7 @@ class UncertaintyProcessor:
                 # plot the histrogram of the samples
                 ax.hist(param_samples.T, density=True, bins='auto', histtype='stepfilled', alpha=0.2, label='{} samples'.format(uncertainty_choice.description))
                 # plot the lognormal pdf
-                ax.plot(x, y, 'k-', lw=2, label='frozen {} pdf'.format(uncertainty_choice.description))
+                ax.plot(x.flatten(), y.flatten(), 'k-', lw=2, label='frozen {} pdf'.format(uncertainty_choice.description))
                 # Plot the fitted normal distibution
                 ax.plot(x, scipy.stats.norm.pdf(x,  loc=loc_norm, scale=scale_norm), 'b-', lw=2, label='fitted normal pdf')
                 ax.set_title(str(param_index))
@@ -1399,10 +1446,10 @@ class UncertaintyProcessor:
                 'loc':loc_norm,
                 'uncertainty_type':stats_arrays.NormalUncertainty.id
             }
-            normal_uncertainty_metadata_df.loc[param_index] = normal_uncertainty_metadata
+            normal_uncertainty_metadata_dict[param_index] = normal_uncertainty_metadata
         if plot_distributions:
             plt.show()
-        return normal_uncertainty_metadata_df
+        return pd.DataFrame(normal_uncertainty_metadata_dict).T
     
     @staticmethod
     def compute_bounds(uncertainty_metadata:dict, return_type:str='df') -> Union[pd.DataFrame, dict]:
@@ -1816,44 +1863,58 @@ class GlobalSensitivityAnalysis:
 
 class CCFormulationBase:
     """
-    Main class for Chance Constraint formulation, directly formulates the Pareto problem upon initialization
+    Main class for Chance Constraint formulation containing only Normal distributed uncertain parameters,
+    directly formulates the neccessary data for the Pareto problem upon initialization.
 
-    Subclasses must override `formulate` and `update_problem` to define a
+    Subclasses ca override `formulate` and `update_problem` to define a
     concrete Pyomo model and its λ‐level updates.
     """
     def __init__(self,
-                 # ATTN: Maybe make the metadata_df quasi arguments with zeros as default value, to allow different formulations
-                 unc_metadata: Dict[str,pd.DataFrame],
+                 unc_metadata: Dict[str,pd.DataFrame], # ATTN: It would be nicer to have the layer conatining the uncertainty data either in stast_arrays numbpy format or as dict
                  pulpo_worker,
                  method:str,
                  choices:dict,
-                 demand:dict,
+                 plot_normal_fit_distribution:bool=False,
+                 sample_size_normal_fit:int=1000000, 
                  ):
         """
         Initialize the chance-constraint formulation.
 
-        Stores characterization‐factor and intervention‐flow metadata, the
-        PULPO model constructor, impact method, normative choices, and demand,
+        Stores metadata for the uncertain parameters, needed for the chance constrain formulations.
+        Transforms the uncertainty information into normal distributions.
         then calls `formulate` to assemble the base model.
 
         Args:
             unc_metadata (dict[str:pd.DataFrame]):
-                Uncertainty metadata containing uncertainty informtaion for paramters in chance constaints
-            (must have no undefined types)
+                Uncertainty metadata containing the uncertainty informtaion about the uncertain parameters
+                for all constraints which are to be chance constained.
+                    { '[name of uncertain parameter as defined in pyomo model]':
+                            pd.DataFrame(
+                                rows: parameters - indexed as in pyomo model
+                                columns: statistical params - as defined in stats_arrays, e.g., 'scale', 'loc', ...
+                            ),
+                        '...': pd.DataFrame(...),
+                    }
             pulpo_worker:
                 Factory or callable that constructs the deterministic Pyomo model.
             method (str):
-                LCIA method name (used in impact calculations).
+                LCIA method name (used in impact calculations). 
+                Needed to later compare the CC optimization results.
             choices (dict):
-                Formulation options (e.g. whether to use L1 vs. L2 norms).
-            demand (dict):
-                Demand vector mapping each intervention flow to its required amount.
+                Optimization choices defined for the case study.
+                Needed to later compare the CC optimization results.
+            plot_distributions (bool):
+                If True, display a histogram + fitted-normal curve for each parameter.
+                Defaults to False.
+            sample_size (int):
+                Number of random draws per parameter when fitting normal distribution
+                to uncertain parameters. Defaults to 1_000_000.
         """
         self.unc_metadata = unc_metadata
-        self.method = method
+        self.normal_metadata = self._transform_to_normal(sample_size=sample_size_normal_fit, plot_distribution=plot_normal_fit_distribution)
         self.pulpo_worker = pulpo_worker
+        self.method = method
         self.choices = choices
-        self.demand = demand
         self.formulate()
     
     def formulate(self) -> None:
@@ -1865,7 +1926,31 @@ class CCFormulationBase:
         """
         pass
 
-    def update_problem(self, lambda_level:float) -> dict:
+    def _transform_to_normal(self, sample_size:int=100000, plot_distribution:bool=False) -> Dict[str,pd.DataFrame]:
+        """
+        Fit Normal distributions to all CF and IF uncertainty metadata.
+
+        Uses the UncertaintyProcessor to convert any non‐normal uncertainty
+        definitions into equivalent Normal distributions.
+
+        Args:
+            plot_distributions (bool):
+                If True, display a histogram + fitted-normal curve for each parameter.
+                Defaults to False.
+            sample_size (int):
+                Number of random draws per parameter when fitting normal distribution
+                to uncertain parameters. Defaults to 1_000_000.
+
+        Returns:
+            normal_metadata (Dict[str,pd.DataFrame]): Fitted Normal loc/scale for parameters in chance constaints (e.g., "cf", "if").
+        """
+        normal_metadata = {}
+        for var_name, metadata_df in self.unc_metadata.items():
+            normal_metadata[var_name] = UncertaintyProcessor.fit_normals(metadata_df, sample_size=sample_size, plot_distributions=plot_distribution)
+        # ATTN: Check if the fit_normals runs through with 0 as standard deviations
+        return normal_metadata
+
+    def update_problem(self, lambda_level:float):
         """
         Inject or update the ε‐constraint for a given risk level (to be overridden).
 
@@ -1876,14 +1961,9 @@ class CCFormulationBase:
         Args:
             lambda_level (float):
                 Target confidence/risk threshold (e.g., 0.95 for 95% quantile).
-        
-        Returns:
-            environmental_cost (dict):
-                The environmental costs as used for the computation instance
         """
-        return {}
-
-class CCFormulationObjIndividualNormalL1(CCFormulationBase):
+        pass
+class CCFormulationObjL1(CCFormulationBase):
     """
     Implements an individual chance‐constraint formulation on the objective using the L1 norm on normally distributed uncertainties.
 
@@ -1901,27 +1981,9 @@ class CCFormulationObjIndividualNormalL1(CCFormulationBase):
         3. Compute the mean environmental cost.
         4. Check that the variance‐based z‐values are within acceptable bounds.
         """
-        normal_metadata = self.transform_to_normal()
-        self.envcost_std = self.compute_envcost_variance(normal_metadata['cf'], normal_metadata['if'])
+        self.envcost_std = self.compute_envcost_variance(self.normal_metadata['cf'], self.normal_metadata['if'])
         self.envcost_mean = self.compute_envcost_mean()
         self.check_envcost_variance(self.envcost_std)
-
-
-    def transform_to_normal(self) -> Dict[str,pd.DataFrame]:
-        """
-        Fit Normal distributions to all CF and IF uncertainty metadata.
-
-        Uses the UncertaintyProcessor to convert any non‐normal uncertainty
-        definitions into equivalent Normal distributions.
-
-        Returns:
-            normal_metadata (Dict[str,pd.DataFrame]): Fitted Normal loc/scale for parameters in chance constaints (e.g., "cf", "if").
-        """
-        normal_metadata = {}
-        for var_name, metadata_df in self.unc_metadata.items():
-            normal_metadata[var_name] = UncertaintyProcessor.fit_normals(metadata_df)
-        # ATTN: Check if the fit_normals runs through with 0 as standard deviations
-        return normal_metadata
 
 
     def _extract_process_ids_and_intervention_flows_for_env_cost_variance(self) -> tuple[array.array, pd.DataFrame]:
@@ -1978,16 +2040,16 @@ class CCFormulationObjIndividualNormalL1(CCFormulationBase):
         envcost_std = {}
         for process_id in process_ids:
             # compute the mu_{q_{h,e}}^2 * sigma_{b_{e,j}}^2
-            if process_id in if_normal_metadata_df.index.get_level_values(level='col'):
-                intervention_flow_std = if_normal_metadata_df.xs(process_id, level='col', axis=0, drop_level=True)['scale']
+            if process_id in if_normal_metadata_df.index.get_level_values(level=1):
+                intervention_flow_std = if_normal_metadata_df.xs(process_id, level=1, axis=0, drop_level=True)['scale']
                 characterization_factor_mean = pd.Series(
                     self.pulpo_worker.lci_data["matrices"][self.method].diagonal()[
-                        intervention_flow_std.index.get_level_values(level='row')
+                        intervention_flow_std.index.get_level_values(level=0)
                         ],
-                    index=intervention_flow_std.index.get_level_values(level='row')
+                    index=intervention_flow_std.index.get_level_values(level=0)
                 )
                 # Reindex so that we can perform a matrix multiplication on all intervention flows
-                characterization_factor_mean = characterization_factor_mean.reindex(intervention_flow_std.index, axis=0, level='row')
+                characterization_factor_mean = characterization_factor_mean.reindex(intervention_flow_std.index, axis=0, level=0)
                 mu_q2_sigma_b2 = characterization_factor_mean.pow(2).mul(intervention_flow_std.pow(2), axis=0)
             else:
                 mu_q2_sigma_b2 = pd.Series([0])
@@ -2000,7 +2062,7 @@ class CCFormulationObjIndividualNormalL1(CCFormulationBase):
             else:
                 sigma_q2_mu_b2 = pd.Series([0])
             # compute the sigma_{b_{e,j}}^2 * sigma_{q_{h,e}}^2
-            if (intervention_flows_extracted[process_id] > 0).any() and process_id in if_normal_metadata_df.index.get_level_values(level='col'):
+            if (intervention_flows_extracted[process_id] > 0).any() and process_id in if_normal_metadata_df.index.get_level_values(level=1):
                 sigma_q2_sigma_b2 = characterization_factor_std.pow(2).mul(intervention_flow_std.pow(2))
             else:
                 sigma_q2_sigma_b2 = pd.Series([0])
@@ -2019,6 +2081,7 @@ class CCFormulationObjIndividualNormalL1(CCFormulationBase):
         """
         # Compute the mean of the environmental costs to be used together with the standard deviation to update the uncertain parameters in line with chance constraint formulation
         envcost_raw = self.pulpo_worker.lci_data['matrices'][self.method].diagonal() @ self.pulpo_worker.lci_data['intervention_matrix']
+        # ATTN: The env_cost_raw must be updated with the potentially different means after fitting the normal distribution
         envcost_mean = pd.Series(envcost_raw).to_dict()
         return envcost_mean
 
@@ -2049,7 +2112,7 @@ class CCFormulationObjIndividualNormalL1(CCFormulationBase):
         print('The following points were excluded from the boxplot:')
         print(envcost_std_mean['z'].sort_values(ascending=False).iloc[:5])
 
-    def update_problem(self, lambda_env_cost) -> dict:
+    def update_problem(self, lambda_env_cost):
         """
         Update the Pyomo model’s ENV_COST_MATRIX for a given chance‐constraint level.
 
@@ -2060,12 +2123,61 @@ class CCFormulationObjIndividualNormalL1(CCFormulationBase):
         Args:
             lambda_env_cost (float): Confidence level (e.g. 0.95 for 95%).
         """
+        super(CCFormulationObjL1, self).update_problem(lambda_env_cost)
         ppf_lambda_QB = scipy.stats.norm.ppf(lambda_env_cost)
         environmental_cost_updated = {(process_id, self.method): self.envcost_mean[process_id] + ppf_lambda_QB * self.envcost_std[process_id] for process_id in self.envcost_std.keys()}
         self.pulpo_worker.instance.ENV_COST_MATRIX.store_values(environmental_cost_updated, check=True)
-        return environmental_cost_updated
+class CCFormulationVarBounds(CCFormulationBase):
+    """
+    Implements an individual chance‐constraint formulation on the variable bounds
+    using normal distributed upper and/or lower bound parameters. 
+    The possible variable bounds to be chance constraint are:
+        - UPPER_LIMIT: the upper bound on the scaling vector
+        - LOWER_LIMIT: the lower bound on the scaling vector
+        - UPPER_IMP_LIMIT: the upper bound on the environmental impacts
+        - UPPER_INV_LIMIT: the upper bound on inventories emissions
 
-class CCFormulationObjVarBoundIndividualNormalL1(CCFormulationObjIndividualNormalL1):
+    This subclass approximates all variable bounds specifief in the `unc_metadata` dictionary as Normal(μ,σ²),
+    and then traces Pareto‐optimal solutions by varying the confidence level (λ).
+
+    For all variable which are indexed in the dataframe to each of the specified bounds (above) (keys in `unc_metadata`),
+    The bounds are chance constrained.
+    """
+    
+    def update_problem(self, lambda_level):
+        """
+        Update the upper/lower bound parameters in the Pyomo model’s 
+        for a given chance‐constraint level, based on the chance constraint mathematic formulation
+        derived in the supplementary material. 
+
+        1. Compute the normal‐distribution quantile (PPF) for the risk threshold λ.
+        2. Scale each bounds standard deviation by this quantile.
+        3. Store the updated values back into pulpo_worker.instance.{bound_name}.
+
+        Args:
+            lambda_level (float): Confidence level (e.g. 0.95 for 95%).
+        """
+        super(CCFormulationVarBounds, self).update_problem(lambda_level)
+        ppf_lambda = scipy.stats.norm.ppf(lambda_level)
+        for bound_name, metadata_df in self.normal_metadata.items():
+            match bound_name:
+                case 'UPPER_LIMIT':
+                    bound_updated = (metadata_df['loc'] - ppf_lambda * metadata_df['scale']).to_dict()
+                case 'LOWER_LIMIT':
+                    bound_updated = (metadata_df['loc'] + ppf_lambda * metadata_df['scale']).to_dict()
+                case 'UPPER_IMP_LIMIT': # ATTN: Not tested
+                    bound_updated = (metadata_df['loc'] - ppf_lambda * metadata_df['scale']).to_dict()
+                case 'UPPER_INV_LIMIT': # ATTN: Not tested
+                    bound_updated = (metadata_df['loc'] - ppf_lambda * metadata_df['scale']).to_dict()
+                case 'cf' | 'if':
+                    continue # 'cf' and 'if' are keys in `normal_metadata` if the Objective is chance constrained, therefore they are skipped
+                case _:
+                    raise Exception('has not been implemented yet.')
+            pyomo_bound = getattr(self.pulpo_worker.instance, bound_name)
+            pyomo_bound.store_values(bound_updated, check=True)
+
+
+class CCFormulationObjL1VarBound(CCFormulationObjL1, CCFormulationVarBounds):
     """
     Implements an individual chance‐constraint formulation on the objective using the L1 norm and 
     on the variable bounds with normally distributed uncertainties.
@@ -2075,7 +2187,25 @@ class CCFormulationObjVarBoundIndividualNormalL1(CCFormulationObjIndividualNorma
     traces Pareto‐optimal solutions by varying the confidence level (λ).
     """
 
-class CCFormulationObjIndividualNormalL2(CCFormulationBase):
+    def update_problem(self, lambda_level):
+        """
+        Update the Pyomo model’s ENV_COST_MATRIX, and variable bounds,
+        e.g., UPPER_LIMIT, and UPPER_LIMIT 
+        for a given chance‐constraint level (`lambda_level`).
+
+        1. Compute the normal‐distribution quantile (PPF) for the risk threshold λ.
+        2. Scale each process’s cost standard deviation in the metadata by this quantile.
+        3. Store the updated values back into pulpo_worker.instance.ENV_COST_MATRIX.
+        4. Scale each variable bound in the metadata by this quantile.
+        5. Store the updated values back into pulpo_worker.instance.UPPER_LIMIT, LOWER_LIMIT.
+
+        Args:
+            lambda_level (float): Confidence level (e.g. 0.95 for 95%).
+        """
+        super(CCFormulationObjL1VarBound, self).update_problem(lambda_level)
+        
+
+class CCFormulationObjL2(CCFormulationBase):
 
     def formulate(self):
         """
@@ -2159,7 +2289,7 @@ class BaseParetoSolver:
             print(f'lambda_1: {lambda_1}\nlambda_2: {lambda_2}\n')
             scaling_vector_diff = ((result_data_CC[lambda_1]['Scaling Vector']['Value'] - result_data_CC[lambda_2]['Scaling Vector']['Value']))
             scaling_vector_ratio = (scaling_vector_diff / result_data_CC[lambda_1]['Scaling Vector']['Value']).abs().sort_values(ascending=False)
-            environmental_cost_mean = {env_cost_index[0]: env_cost for env_cost_index, env_cost in result_data_CC[lambda_1]['ENV_COST'].items()}
+            environmental_cost_mean = {env_cost_index[0]: env_cost['Value'] for env_cost_index, env_cost in result_data_CC[lambda_1]['ENV_COST_MATRIX'].iterrows()}
             characterized_scaling_vector_diff = (scaling_vector_diff * pd.Series(environmental_cost_mean).reindex(scaling_vector_diff.index)).abs()
             characterized_scaling_vector_diff_relative = (characterized_scaling_vector_diff / result_data_CC[lambda_1]['Impacts'].loc[self.cc_formulation.method, 'Value']).abs().sort_values(ascending=False)
 
@@ -2168,9 +2298,9 @@ class BaseParetoSolver:
             print('{:.5e}: is the maximum impact change in one process\n{:.5e}: is the total impact change\n'.format(characterized_scaling_vector_diff_relative.max(), characterized_scaling_vector_diff_relative.sum()))
 
             amount_of_rows_for_visiualization = 10
-            print('The relative change of the scaling vector (s_lambda_1 - s_lambda_2)/s_lambda_1:\n')
-            display(scaling_vector_ratio.iloc[:amount_of_rows_for_visiualization].rename(result_data_CC[lambda_2]['Scaling Vector']['Metadata']).sort_values(ascending=False))
-            print('\n---\n')
+            # print('The relative change of the scaling vector (s_lambda_1 - s_lambda_2)/s_lambda_1:\n')
+            # display(scaling_vector_ratio.iloc[:amount_of_rows_for_visiualization].rename(result_data_CC[lambda_2]['Scaling Vector']['Metadata']).sort_values(ascending=False))
+            # print('\n---\n')
             print('The relative change of the characterized scaling vector (s_lambda_1 - s_lambda_2)*QB_s / QBs:\n')
             display(characterized_scaling_vector_diff_relative.iloc[:amount_of_rows_for_visiualization].rename(result_data_CC[lambda_2]['Scaling Vector']['Metadata']))
             print('\n---\n')
@@ -2195,7 +2325,7 @@ class BaseParetoSolver:
         data_QBs_main_list = []
         # data_QBs_list = []
         for lamnda_QBs, result_data in result_data_CC.items():
-            environmental_cost_mean = {env_cost_index[0]: env_cost for env_cost_index, env_cost in result_data_CC[lamnda_QBs]['ENV_COST'].items()}
+            environmental_cost_mean = {env_cost_index[0]: env_cost['Value'] for env_cost_index, env_cost in result_data_CC[lamnda_QBs]['ENV_COST_MATRIX'].iterrows()}
             QBs = result_data['Scaling Vector']['Value'] * pd.Series(environmental_cost_mean).reindex(result_data['Scaling Vector']['Value'].index)
             # data_QBs_list.append(QBs)
             QBs_main = QBs[QBs.abs() > cutoff_value*QBs.abs().sum()]
@@ -2250,10 +2380,11 @@ class EpsilonConstraintSolver(BaseParetoSolver):
         result_data_CC = {}
         for lambda_level in lambda_epislons:
             print(f'solving CC problem for lambda_QB = {lambda_level}')
-            environmental_cost_updated = self.cc_formulation.update_problem(lambda_level)
+            # ATTN: We need to store the environmental costs in the results_data and not extract seperate
+            # This used to be the case before the results_data was changed, this formulation will run into errors.
+            self.cc_formulation.update_problem(lambda_level)
             self.cc_formulation.pulpo_worker.solve()
-            result_data_CC[lambda_level] = self.cc_formulation.pulpo_worker.extract_results()
-            result_data_CC[lambda_level]['ENV_COST'] = environmental_cost_updated
+            result_data_CC[lambda_level] = self.cc_formulation.pulpo_worker.extract_results(extractparams=True)
         return result_data_CC
 
 
