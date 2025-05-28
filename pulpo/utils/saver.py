@@ -1,7 +1,7 @@
 import pandas as pd
 import os
-from typing import Dict, Any
-from pyomo.environ import ConcreteModel
+from typing import Dict, Any, List
+from pyomo.environ import ConcreteModel, Param
 
 
 def extract_flows(instance: ConcreteModel, mapping: Dict[str, str], metadata: Dict[str, str], flow_type: str) -> pd.DataFrame:
@@ -124,8 +124,20 @@ def extract_constraints(instance: ConcreteModel, constraints: Dict[Any, float], 
 
     return pd.DataFrame(data).set_index('ID').sort_values('Value', ascending=False)
 
+def extract_params(instance: ConcreteModel) -> Dict[str,pd.DataFrame]:
+    """
+    Extracts the Parameter values from the optimization model
+    """
+    data_all:dict = {}
+    for param in instance.component_objects(ctype=Param):
+        data = {}
+        extracted_values = param.extract_values()
+        data['ID'] = list(extracted_values.keys())
+        data['Value'] = list(extracted_values.values())
+        data_all[param.name] = pd.DataFrame(data).set_index('ID').sort_values('Value', ascending=False)
+    return data_all
 
-def extract_results(worker: Any) -> Dict[str, Any]:
+def extract_results(worker: Any, extractparams:bool=False) -> Dict[str, Any]:
     """
     Extracts results from the Pyomo model instance and organizes them into a structured format. Calls all other extract functions.
     """
@@ -151,6 +163,10 @@ def extract_results(worker: Any) -> Dict[str, Any]:
         "Constraints Upper Elem": extract_constraints(instance, worker.upper_elem_limit, interv_map, interv_map_meta, 'intervention')
     }
 
+    # Append the parameter values to it
+    if extractparams:
+        param_data = extract_params(instance)
+        result_data.update(param_data)
     return result_data
 
 def save_results(worker: Any, file_name: str) -> None:
