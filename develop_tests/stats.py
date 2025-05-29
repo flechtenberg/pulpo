@@ -27,9 +27,10 @@ import bw2data
 import bw2calc
 import ast
 import array
-from typing import Union, List, Optional, Dict
+from typing import Union, List, Optional, Dict, Tuple
 
 # === Plots ===
+
 def set_size(width, height, fraction=1):
     """ Set aesthetic figure dimensions to avoid scaling in latex.
  
@@ -69,17 +70,15 @@ def set_size(width, height, fraction=1):
 
 def plot_contribution_barplot(data:pd.DataFrame, metadata:pd.DataFrame, impact_category:str, colormap:pd.Series=pd.Series([]), bbox_to_anchor_lower:float = -0.6, bbox_to_anchor_center:float=0.5):
     """
-        Barplot of the contributional variance of the parameters in an objective
+    Barplot of the contributional variance of the parameters in an objective
 
-        args:
-            data:       series with impacts as values and processes as index
-            metadata:   metadataframe with bar_names and same indices as data
-            colormap:   Series with color codes to each data index     `colormap = pd.Series(mpl.cm.tab20.colors[:data.shape[0]], index=data.index)`
-            bbox_to_anchor_lower: negative float, scaled how much the legend is under the plot
+    args:
+        data:       series with impacts as values and processes as index
+        metadata:   metadataframe with bar_names and same indices as data
+        colormap:   Series with color codes to each data index     `colormap = pd.Series(mpl.cm.tab20.colors[:data.shape[0]], index=data.index)`
+        bbox_to_anchor_lower: negative float, scaled how much the legend is under the plot
     """
-    # width = 180
-    # height = 180
-    width = 4.77*72.4#600
+    width = 6*72.4
     height = None
     _, ax = plt.subplots(1, 1, figsize=set_size(width,height))
 
@@ -106,17 +105,15 @@ def plot_contribution_barplot(data:pd.DataFrame, metadata:pd.DataFrame, impact_c
 
 def plot_contribution_barplot_with_err(data:pd.DataFrame, metadata:pd.DataFrame, colormap:pd.Series=pd.Series([]), bbox_to_anchor_lower:float = -0.6, bbox_to_anchor_center:float=0.5):
     """
-        Barplot of the contributional variance of the parameters in an objective
+    Barplot of the contributional variance of the parameters in an objective
 
-        args:
-            data:       dataframe with columns: "ST" and "ST_conf"
-            metadata:   metadataframe with "bar_names" column and same indices as data
-            colormap:   Series with color codes to each data index     `colormap = pd.Series(mpl.cm.tab20.colors[:data.shape[0]], index=data.index)`
-            bbox_to_anchor_lower: negative float, scaled how much the legend is under the plot
+    args:
+        data:       dataframe with columns: "ST" and "ST_conf"
+        metadata:   metadataframe with "bar_names" column and same indices as data
+        colormap:   Series with color codes to each data index     `colormap = pd.Series(mpl.cm.tab20.colors[:data.shape[0]], index=data.index)`
+        bbox_to_anchor_lower: negative float, scaled how much the legend is under the plot
     """
-    # width = 180
-    # height = 180
-    width = 4.77*72.4#600
+    width = 6*72.4
     height = None
     _, ax = plt.subplots(1, 1, figsize=set_size(width,height))
 
@@ -142,15 +139,15 @@ def plot_contribution_barplot_with_err(data:pd.DataFrame, metadata:pd.DataFrame,
 
 def plot_linked_contribution_barplot(data:pd.DataFrame,  metadata:pd.DataFrame, impact_category:str, colormap_base:tuple, colormap_linked:pd.Series=pd.Series([]), savefig:Optional[bool]=None, bbox_to_anchor_center:float=0.7, bbox_to_anchor_lower:float=0.7):
     """
-        Barplot of the contributional variance of the parameters in total cost objective
+    Barplot of the contributional variance of the parameters in total cost objective
 
-        args:
-            data:       dataframe with columns: "ST" and "ST_conf"
-            metadata:   metadataframe with "bar_names" column and same indices as data
-            impact_category:    name of environmental impact category
-            colormap_base:      The colormap which should be used for the plot, use the same as underlying the colormap_linked if it is specified
-            colormap_linked:    If there is a colormap from another plot where the variables shown in this plot should refer to if they appear in both
-            savefig:    if true saves fig into specified path
+    args:
+        data:       dataframe with columns: "ST" and "ST_conf"
+        metadata:   metadataframe with "bar_names" column and same indices as data
+        impact_category:    name of environmental impact category
+        colormap_base:      The colormap which should be used for the plot, use the same as underlying the colormap_linked if it is specified
+        colormap_linked:    If there is a colormap from another plot where the variables shown in this plot should refer to if they appear in both
+        savefig:    if true saves fig into specified path
     """
     if colormap_linked.empty:
         colormap = pd.Series(colormap_base[:data.shape[0]], index=data.index)
@@ -175,41 +172,94 @@ def plot_linked_contribution_barplot(data:pd.DataFrame,  metadata:pd.DataFrame, 
         raise Exception('not implemented yet')
         # plt.savefig(r"C:\Users\admin\OneDrive - Carbon Minds GmbH\Dokumente\13 Students\MA_Bartolomeus_Löwgren\02_code\03_optimization_framework\04_case_studies\02_plots\total_env_impact_barplot" + ".{}".format(fileformat), format=fileformat, bbox_inches='tight')
 
-def plot_CC_pareto_solution_bar_plots(data:pd.DataFrame, y_label:str, bbox_to_anchor:tuple=(1.40, .05)):
+def plot_pareto_solution_normalized_bar_plots(data:pd.DataFrame, y_label:str, bbox_to_anchor:tuple=(1.40, .05)):
     """
-        args:
-            data:       columns: lambdas, rows: QBs grouped by something
+    Plots normalized bar plots [0-1] stacked by the rows in the `data` dataframe and bars based on the columns.
+    Normalized the bars based on the sum of each column.
+
+    args:
+        data (pd.DataFrame):
+            Dataframe with: columns as Pareto solutions, e.g., Lambdas, rows: impacts of groups or processes
+        y_label (str):
+            Name of the variable in in the values in the dataframe, e.g., impact category
+        bbox_to_anchor (tuple): 
+                Tuple holding the bbox anchor points for the legend.
+                Default value is (1.40, .05).
     """
     
-    # set figure and plot
-    width = 6.
-    height = 6.
-    _, ax = plt.subplots(1, 1, figsize=(width,height))
-
+    width = 6*72.4
+    height = None
+    _, ax = plt.subplots(1, 1, figsize=set_size(width,height))
+    # Normalize the data and create bar plot data format
     data_cleaned = data.copy()
     data_cleaned_scaled = data_cleaned.abs().divide(data_cleaned.abs().sum())
     data_cumsum = data_cleaned_scaled.cumsum(axis=0)
-    width = .8
+    # Set the bar plot style
+    bar_width = .8
     labels = ["{:.3f}".format(label) for label in data.columns.astype(float).values]
     bottom_data = np.zeros(len(labels))
+    # Plot the bars
     for i_row, (type, row_data) in enumerate(data_cumsum.iterrows()):
-        ax.bar(labels, row_data.values-bottom_data, width, bottom=bottom_data, label=type, color=mpl.cm.tab20.colors[i_row])
+        ax.bar(labels, row_data.values-bottom_data, bar_width, bottom=bottom_data, label=type, color=mpl.cm.tab20.colors[i_row])
         bottom_data = row_data.values
     ax.axhline(y=0, color='k')
     ax.set_xlabel("probability level ($\lambda$)")
     ax.set_ylabel("{} in [\%]".format(y_label))
     for tick in ax.get_xticklabels():
         tick.set_rotation(45)
-
+    # Plot the Pareto front 
     ax2 = ax.twinx()
     ax2.plot(labels, data.sum().values/1e9, "kx-", label="total GWP", linewidth=1)
     ax2.set_ylabel(y_label)
-
+    # Set the legend 
     lines, labels = ax.get_legend_handles_labels()
     lines2, labels2 = ax2.get_legend_handles_labels()
     ax.legend(lines + lines2, labels + labels2, loc='lower center', bbox_to_anchor=bbox_to_anchor, borderpad=1, facecolor="None")
     ax.set_facecolor("None")
 
+def plot_pareto_solution_bar_plots(data:pd.DataFrame, y_label:str, bbox_to_anchor:tuple=(1.40, .05), save_fig_name:str=""):
+    """
+    args:
+        data (pd.DataFrame):
+            Dataframe with: columns as Pareto solutions, e.g., Lambdas, rows: impacts of groups or processes
+        y_label (str):
+            Name of the variable in in the values in the dataframe, e.g., impact category
+        bbox_to_anchor (tuple): 
+            Tuple holding the bbox anchor points for the legend.
+            Default value is (1.40, .05).
+        save_fig_name (str):
+            Currently not in use
+    """
+    
+    # set figure and plot
+    width = 6*72.4
+    height = None
+    _, ax = plt.subplots(1, 1, figsize=set_size(width,height))
+
+    data_cleaned = data.copy()
+    data_cleaned[data.abs() < data.abs().sum()/500] = 0
+    data_cleaned = data_cleaned.drop(index = data_cleaned.index[(data_cleaned == 0).all(axis=1)])
+    data_positive_cumsum = data_cleaned[(data_cleaned>=0).all(axis=1)].cumsum(axis=0)
+    width = .8
+    labels = ["{:.3f}".format(label) for label in data.columns.astype(float).values]
+    bottom_data = np.zeros(len(labels))
+    for i_row, (type, row_data) in enumerate(data_positive_cumsum.iterrows()):
+        ax.bar(labels, row_data.values-bottom_data, width, bottom=bottom_data, label=type, color=mpl.cm.tab20.colors[i_row])
+        bottom_data = row_data.values
+    data_negative_cumsum = data_cleaned[(data_cleaned<=0).all(axis=1)].cumsum(axis=0)
+    bottom_data = np.zeros(len(labels))
+    for i_row, (type, row_data) in enumerate(data_negative_cumsum.iterrows()):
+        ax.bar(labels, row_data.values-bottom_data, width, bottom=bottom_data, label=type, color=mpl.cm.tab20.colors[i_row+data_positive_cumsum.shape[0]])
+        bottom_data = row_data.values
+    ax.plot(labels, data.sum().values, "kx-", markersize=6, linewidth=1.)
+    ax.axhline(y=0, color='k')
+    plt.xticks(rotation = 45) 
+    ax.legend(loc='lower center', bbox_to_anchor=bbox_to_anchor, borderpad=1)
+
+    ax.set_xlabel("Pareto points, represented by alpha")
+    ax.set_ylabel(y_label)
+    # if save_fig_name != "":
+    #     plt.savefig(r"C:\Users\admin\OneDrive - Carbon Minds GmbH\Dokumente\13 Students\MA_Bartolomeus_Löwgren\02_code\03_optimization_framework\04_case_studies\02_plots" + "\{}.{}".format(save_fig_name, fileformat), format=fileformat, bbox_inches='tight')
 
 
 
@@ -567,6 +617,37 @@ class ParameterFilter:
         self.demand = demand # From CaseStduy
         self.method = method # From the result_data
 
+    def apply_filter(self, scaling_vector_strategy:str, cutoff:float, plot_n_top_processes:int=10) -> Tuple[list,list]:
+         """
+         Applies the filtering steps:
+         1. prepares the scaling vector used to subselect the most contributing paramters to the impact results
+         2. Computes the LCI and LCIA results with the chose scaling vector
+         3. Plot the main contributing processes to to the total demand computed
+         4. Filter out the intervention flows which have characterized results 
+            are smaller than the cutoff multiplied with the LCA score
+         5. Filter out the chcharacterization factors which do not have any intervention flows after step 4.
+
+         Args:
+            scaling_vector_strategy (str): 
+                How to compute scaling vector: 'naive' or 'constructed_demand'.
+            cutoff (float): 
+                cutoff factor to compute minimum contribution value to retain a parameter. 
+                Multiplied with the LCA score, i.e., a percentage of the total LCA score
+            top_amount (int): 
+                Number of top items to display in top contribution process plot (default: 10).
+
+        Returns:
+            characterized_inventory_indices (list): 
+                Subset of inventory flows indices returned from filtering.
+            reduced_characterization_matrix_ids (list): 
+                Subset of characterization factors indices returned from filtering.
+         """
+         scaling_vector_series = self.prepare_sampling(scaling_vector_strategy=scaling_vector_strategy)
+         lca_score, characterized_inventory = self.compute_LCI_LCIA(scaling_vector_series)
+         self.plot_top_processes(characterized_inventory, top_amount=plot_n_top_processes)
+         filtered_inventory_indcs = self.filter_inventoryflows(characterized_inventory, lca_score, cutoff)
+         filtered_characterization_indcs = self.filter_characterization_factors(filtered_inventory_indcs)
+         return filtered_inventory_indcs, filtered_characterization_indcs
 
     def prepare_sampling(self,  scaling_vector_strategy:str='naive') -> pd.Series:
         """
@@ -638,8 +719,10 @@ class ParameterFilter:
             scaling_vector_series: Series of parameter scaling factors (s).
 
         Returns:
-            lca_score (float): the summed lcia score for the specific scaling vector.
-            characterized_inventory (scipy.sparse.sparray): B·(Q·s) for each parameter (impact after characterization).
+            lca_score (float): 
+                the summed lcia score for the specific scaling vector.
+            characterized_inventory (scipy.sparse.sparray): 
+                B·(Q·s) for each parameter (impact after characterization).
         """
         characterization_matrix = self.lci_data["matrices"][self.method]
         print('chosen environmental impact method: {}'.format(self.method))
@@ -666,7 +749,8 @@ class ParameterFilter:
         Args:
             characterized_inventory (scipy.sparse.sparray): B·(Q·s) for each parameter (impact after characterization).
             lca_score (float): the summed lcia score for the specific scaling vector.
-            cutoff (float): cutoff factor to compute minimum contribution value to retain a parameter.
+            cutoff (float): cutoff factor to compute minimum contribution value to retain a parameter. 
+                Multiplied with the LCA score, i.e., a percentage of the total LCA score
 
         Returns:
             characterized_inventory_indices (list): Subset of inventory flows indices returned from filtering.
@@ -752,7 +836,7 @@ class UncertaintyImporter:
     def __init__(self, lci_data):
         self.lci_data = lci_data # from pulpo_worker.lci_data
 
-    def get_intervention_indcs_to_db(self, db_name, intervention_indices:List[tuple]) -> List[tuple]:
+    def get_intervention_indcs_to_db(self, db_name, intervention_indices:List[Tuple[int, int]]) -> List[Tuple[int, int]]:
         """
         fetches the inventory indices to a specified bw database 
         and if specified the intersection to a given list of interventions flow indices
@@ -764,14 +848,23 @@ class UncertaintyImporter:
         Returns:
             db_indcs (list): The interventions flow indices to the specified BW database and intersection to intervention_indices
         """
-        db_indcs = [process_indx for (db, _), process_indx in self.lci_data['process_map'].items() if db == db_name]
-        intervention_indices_in_db = [(intevention_indx, process_index) for (intevention_indx, process_index) in intervention_indices if process_index in db_indcs]
+        # To increase the speed of the search the process_map and the intervention_indices are transformed into arrays (pandas)
+        process_map_df = pd.DataFrame(zip(*self.lci_data['process_map'].keys(), self.lci_data['process_map'].values()), index=['db', 'key']).T
+        db_process_indcs = process_map_df.index[process_map_df['db'] == db_name]
+        intervention_indices_df = pd.DataFrame(zip(*intervention_indices), index=['intervention_indx', 'process_indx']).T
+        intervention_indices_in_db_df = intervention_indices_df[intervention_indices_df['process_indx'].isin(db_process_indcs)]
+        intervention_indices_in_db = intervention_indices_in_db_df.to_records(index=False).tolist()
+        # db_process_indcs = [process_indx for (db, _), process_indx in self.lci_data['process_map'].items() if db == db_name]
+        # intervention_indices_in_db = [(intevention_indx, process_index) for (intevention_indx, process_index) in intervention_indices if process_index in db_process_indcs]
         return intervention_indices_in_db
 
 
-    def get_intervention_meta(self, inventory_indices:List[tuple]) -> pd.DataFrame:
+    def get_if_meta(self, inventory_indices:List[tuple]) -> pd.DataFrame:
         """
         Extract intervention‐flow uncertainty metadata for given indices.
+        The data is taken from the `lci_data` object of the `pulpo_worker` instance.
+        The link to the pyomo instnace is that the parameters are identically indexed 
+        in the `lci_data` and pyomo instance.
 
         Args:
             inventory_indices (List[tuple]): list of intervention flow indices (process_indx, intervention_indx) for which the metadata will be extracted 
@@ -784,13 +877,23 @@ class UncertaintyImporter:
         intervention_metadata_df = intervention_metadata_df.loc[inventory_indices]
         return intervention_metadata_df
 
-    def get_cf_meta(self, method:str, characterization_indices:list) -> pd.DataFrame:
+    def get_cf_meta(self, method:str, characterization_indices:List[int]) -> pd.DataFrame:
         """
         Extract uncertainty metadata for characterization factors for a method.
+        The data is taken from the `lci_data` object of the `pulpo_worker` instance.
+        The link to the pyomo instnace is that the parameters are identically indexed 
+        in the `lci_data` and pyomo instance.
 
         Args:
-            method: LCIA method key.
-            characterization_indices: List of characterization row indices.
+            method (str): 
+                LCIA method key.
+            characterization_indices (list[int]): 
+                List of characterization row indices.
+        
+        Return:
+            characterization_metadata_df (pd.DataFrame):
+                metadata of the characterization factors containing uncertainty information 
+                if it exist in the underlying BW databases.
         """
         characterization_params = self.lci_data["characterization_params"][method]
         characterization_metadata_df = pd.DataFrame(characterization_params).set_index('row')
@@ -813,6 +916,40 @@ class UncertaintyImporter:
                 undefined.append(idx)
         print("Parameters with uncertainty information: {} \nParameters without uncertainty information: {}".format(len(defined), len(undefined)))
         return defined, undefined
+    
+    def get_pyomo_param_meta(self, instance, pyomo_param_name:str, param_indcs:List[int]) -> pd.DataFrame:
+        """
+        Generates the uncertainty metadata structre for parameters in the pyomo model excluding
+        if and cf parameter,
+        i.e., uncertainty information to parameters not given in Brightway (LCI databases),
+        e.g., variable bounds, impact bounds, addtional constraints, etc.
+        Since these parameters at the current state of implementation do not have any 
+        uncertainty information specified, they will only get the attribute key "amount" and "uncertainty_type"
+
+        The indexing of these parameters are based on the initialized pyomo model.
+
+        Args:
+            instance (pyomo.instance):
+                The pyomo instance of the case study, used to extract the "amount"
+            pyomo_param_name (str):
+                Name of the pyomo parameter to which the uncertainty metadata is to be generated for
+            param_indcs (list):
+                List of the parameter indices for which uncertainty metadata is to be extracted, 
+                as indexed in the pyomo instance
+
+        Returns:
+            param_metadata_df (pd.DataFrame):
+                Dataframe with the param indices as index and "amount" and "uncertainty_type" as columns
+            
+        """
+        param_metadata:dict = {}
+        param_data = getattr(instance, pyomo_param_name).extract_values()
+        for param_indx in param_indcs:
+            param_metadata[param_indx] = {}
+            param_metadata[param_indx]['amount'] = param_data[param_indx]
+            param_metadata[param_indx]['uncertainty_type'] = 0
+        param_metadata_df = pd.DataFrame(param_metadata).T
+        return param_metadata_df
 
 
 class UncertaintyStrategyBase:
@@ -828,19 +965,17 @@ class UncertaintyStrategyBase:
         defined_uncertainty_metadata (dict): Mapping of parameter indices to their defined uncertainty metadata.
         undefined_uncertainty_indices (list): List of indices needing distribution assignment.
     """
-    def __init__(self, metadata_df:pd.DataFrame, defined_uncertainty_metadata:dict, undefined_uncertainty_indices:list, *args, **kwargs):
+    def __init__(self, metadata_df:pd.DataFrame, undefined_uncertainty_indices:list, *args, **kwargs):
         """
         Initialize the UncertaintyStrategyBase with metadata and index lists.
 
         Args:
             metadata_df (pd.DataFrame): The full metadata DataFrame for parameters.
-            defined_uncertainty_metadata (dict): Dictionary mapping indices to existing uncertainty metadata.
             undefined_uncertainty_indices (list): List of parameter indices without defined uncertainties.
             *args: additional arguments passed to the assign method
             **kwargs: additional optional arguments passed to the assign method
         """
         self.metadata_df = metadata_df # ATTN: rename to param_metadata_df
-        self.defined_uncertainty_metadata = defined_uncertainty_metadata
         self.undefined_uncertainty_indices = undefined_uncertainty_indices
         self.metadata_assigned_df = self.assign(*args, **kwargs)
 
@@ -864,6 +999,40 @@ class UncertaintyStrategyBase:
         random_noise = rng.uniform(1-low, 1+high, len(self.undefined_uncertainty_indices))
         scaling_factor_randomized = random_noise * np.array(scaling_factor)
         return scaling_factor_randomized.tolist()
+    
+    def rename_metadata_index(self, lci_data:dict, uncertainty_param_name:str):
+        """
+        Changes the index of the metadata_df from the matrix index to a readable name based on the metadata of the underlying parameters.
+        Currently implemented for "intervention_flow" and "characterization_factor".
+
+        Args:
+            lci_data (dict):
+                The lci_data containing the "..._map_metadata" dicts needed to rename the index, from pulpo_worker.
+            uncertainty_param_name (str):
+                The parameter name contained in the "metadata_df", options are: "intervention_flow" and "characterization_factor".
+        
+        Returns:
+            metadata_df (pd.DataFrame):
+                The uncertainty metadata frame with descriptive indices.
+        """
+        metadata_df = self.metadata_assigned_df.copy()
+        match uncertainty_param_name:
+            case 'intervention_flow':
+                if_index_map = {
+                    (interv_indx, process_indx):  '{} --- {}'.format(
+                        lci_data['process_map_metadata'][process_indx], lci_data['intervention_map_metadata'][interv_indx]
+                        ) for interv_indx, process_indx in metadata_df.index
+                        }
+                flat_index = metadata_df.index.to_flat_index()
+                metadata_df = metadata_df.reset_index()
+                metadata_df.index = flat_index
+                metadata_df = metadata_df.rename(index=if_index_map)
+            case 'characterization_factor':
+                cf_index_map = {interv_indx:  '{} '.format(lci_data['intervention_map_metadata'][interv_indx]) for interv_indx in metadata_df.index}
+                metadata_df.rename(index=cf_index_map)
+            case _:
+                raise Exception(f'"rename_metadata_index" to <<{uncertainty_param_name}>> as "uncertainty_var_name" has not been implemented')
+        return metadata_df
 
     def assign(self, *args, **kwargs) -> pd.DataFrame:
         """
@@ -875,8 +1044,77 @@ class UncertaintyStrategyBase:
         Returns:
             pd.DataFrame: Updated metadata DataFrame for targeted parameters.
         """
-        return pd.DataFrame([])
+        metadata_asigned_df = pd.DataFrame([])
+        return metadata_asigned_df
 
+class ExpertKnowledgeStrategy(UncertaintyStrategyBase):
+    """
+    Adds specific probability distribution informaiton to uncertain parameters based on expert judgement.
+    """
+    def __init__(self, metadata_df, undefined_uncertainty_indices, prob_metadata:Dict[int, Dict[str,Union[int, float]]]):
+        """
+        Initialize the ExpertKnowledgeStrategy with prob_metadata containing the expert knowledge 
+        and index lists with the indexes of the parameter who's uncertainty information should be
+        replaced with the data in prob_metadata.
+
+        Args:
+            metadata_df (pd.DataFrame): 
+                The metadata DataFrame for the uncertainty parameters, for which the selected
+                parameters in 'undefined_uncertainty_indices' will get an updated uncertainty information
+            undefined_uncertainty_indices (list): 
+                List of parameter indices without defined uncertainties.
+            prob_metadata (Dict[int, Dict[str,Union[int, float]]]): 
+                the export knowledge uncertainty metadata of the parameters which are to be
+                replaced in the metadata_df, the dictionary is structured as:
+                { 
+                    index of 1. uncertain parameter (int or tuple): {
+                        uncertainty attribute (str), e.g., 'loc', 'scale', 'minimum', 'uncertainty_type': 
+                            attribute value (float or int) 
+                    },
+                    index of 3. uncertain parameter (int or tuple): {
+                        ...
+                    },
+                    ...
+                }
+        """
+        super().__init__(metadata_df, undefined_uncertainty_indices, prob_metadata)  
+
+
+    def assign(self, prob_metadata):
+        """
+        Updated the parameters uncertainty information in the metadata_df
+        with expert uncertainty information found in the prob_metadata dict.
+
+        Args:
+            prob_metadata (Dict[int, Dict[str,Union[int, float]]]): 
+                the export knowledge uncertainty metadata of the parameters which are to be
+                replaced in the metadata_df, the dictionary is structured as:
+                { 
+                    index of 1. uncertain parameter (int or tuple): {
+                        uncertainty attribute (str), e.g., 'loc', 'scale', 'minimum', 'uncertainty_type': 
+                            attribute value (float or int) 
+                    },
+                    index of 3. uncertain parameter (int or tuple): {
+                        ...
+                    },
+                    ...
+                }
+
+        Returns:
+            metadata_asigned_df: 
+                The updated self.metadata_df containing the expert uncertainty information.
+        """
+        metadata_asigned_df = self.metadata_df.copy()
+        # Roughly checks the probability metadata by creating an uncertainty object in stats_array 
+        # which will only take the correct keys out of the prob_metadata dict
+        # It can still have missing data or wrong values
+        prob_metadata_stats_array = stats_arrays.UncertaintyBase.from_dicts(*prob_metadata.values())
+        prob_metadata_df= pd.DataFrame(prob_metadata_stats_array, index=prob_metadata.keys())
+        # Writes the expert uncertainty information into the metadata_asigned_df
+        for indx in self.undefined_uncertainty_indices:
+            for unc_attr in prob_metadata[indx].keys():
+                metadata_asigned_df.loc[indx, unc_attr] = prob_metadata_df.loc[indx,unc_attr]
+        return metadata_asigned_df
 class UniformBaseStrategy(UncertaintyStrategyBase):
     """
     Strategy that assigns uniform distributions to parameters with undefined uncertainty information.
@@ -887,7 +1125,6 @@ class UniformBaseStrategy(UncertaintyStrategyBase):
     def __init__(
             self, 
             metadata_df, 
-            defined_uncertainty_metadata, 
             undefined_uncertainty_indices, 
             upper_scaling_factor, 
             lower_scaling_factor, 
@@ -898,7 +1135,6 @@ class UniformBaseStrategy(UncertaintyStrategyBase):
 
         Args:
             metadata_df (pd.DataFrame): The full metadata DataFrame for parameters.
-            defined_uncertainty_metadata (dict): Dictionary mapping indices to existing uncertainty metadata.
             undefined_uncertainty_indices (list): List of parameter indices without defined uncertainties.
             upper_scaling_factor (float): the scaling factor multiplied with the amount 
                 to get the maximum value for the uniform distribution
@@ -910,7 +1146,6 @@ class UniformBaseStrategy(UncertaintyStrategyBase):
         """
         super().__init__(
             metadata_df, 
-            defined_uncertainty_metadata, 
             undefined_uncertainty_indices, 
             upper_scaling_factor, 
             lower_scaling_factor, 
@@ -979,7 +1214,6 @@ class TriangluarBaseStrategy(UncertaintyStrategyBase):
     def __init__(
             self, 
             metadata_df, 
-            defined_uncertainty_metadata, 
             undefined_uncertainty_indices, 
             upper_scaling_factor:float, 
             lower_scaling_factor:float, 
@@ -990,7 +1224,6 @@ class TriangluarBaseStrategy(UncertaintyStrategyBase):
 
         Args:
             metadata_df (pd.DataFrame): The full metadata DataFrame for parameters.
-            defined_uncertainty_metadata (dict): Dictionary mapping indices to existing uncertainty metadata.
             undefined_uncertainty_indices (list): List of parameter indices without defined uncertainties.
             upper_scaling_factor (float): the scaling factor multiplied with the amount 
                 to get the maximum value for the triangular distribution
@@ -1002,7 +1235,6 @@ class TriangluarBaseStrategy(UncertaintyStrategyBase):
         """
         super().__init__(
             metadata_df, 
-            defined_uncertainty_metadata, 
             undefined_uncertainty_indices, 
             upper_scaling_factor, 
             lower_scaling_factor, 
@@ -1075,21 +1307,23 @@ class TriangularBoundInterpolationStrategy(TriangluarBaseStrategy):
         assign: Applies computed scaling factors to assign 'loc', 'minimum', 'maximum', and 'uncertainty_type'.
 
     Attributes:
-        Inherits metadata_df, defined_uncertainty_metadata, and undefined_uncertainty_indices from base class.
+        Inherits metadata_df and undefined_uncertainty_indices from base class.
+        defined_uncertainty_metadata set in this class upon initilialization
     """
-    def __init__(self, metadata_df, defined_uncertainty_metadata, undefined_uncertainty_indices, noise_interval:Dict[str,float]={'min':0., 'max':0.}):
+    def __init__(self, metadata_df, undefined_uncertainty_indices, defined_uncertainty_metadata, noise_interval:Dict[str,float]={'min':0., 'max':0.}):
         """
         Initialize the TriangularBoundInterpolationStrategy with metadata and index lists.
 
         Args:
             metadata_df (pd.DataFrame): The full metadata DataFrame for parameters.
-            defined_uncertainty_metadata (dict): Dictionary mapping indices to existing uncertainty metadata.
             undefined_uncertainty_indices (list): List of parameter indices without defined uncertainties.
+            defined_uncertainty_metadata (dict): Dictionary mapping indices to existing uncertainty metadata.
             noise_interval (Dict[str,float]): Dict containing "min" and "max" keywords 
                 holding the upper and lower bound of the noise generated with a uniform distribution 
                 and multiplied with the scaling factor vector as (1-min) and (1+max)
         """
-        UncertaintyStrategyBase.__init__(self, metadata_df, defined_uncertainty_metadata, undefined_uncertainty_indices, noise_interval=noise_interval)
+        self.defined_uncertainty_metadata = defined_uncertainty_metadata
+        UncertaintyStrategyBase.__init__(self, metadata_df, undefined_uncertainty_indices, noise_interval=noise_interval)
 
     def _get_bounds(self):
         """
@@ -1174,7 +1408,7 @@ class UncertaintyProcessor:
                   - `scale` (float): Standard deviation of the fitted normal.
                   - `uncertainty_type` (int): Always 3, indicating “normal” type.
         """
-        normal_uncertainty_metadata_df = uncertainty_metadata_df.copy()
+        normal_uncertainty_metadata_dict = {}
         print('{} parameters with non normal distribution are transformed into normal distributions via max likelihood approximation'.format((uncertainty_metadata_df['uncertainty_type'] != 3).sum()))
         # For each parameter:
         #   - generate random samples from its original distribution
@@ -1191,6 +1425,10 @@ class UncertaintyProcessor:
             percentages = np.expand_dims(np.linspace(0.001, 0.999, 1000, axis=0), axis=0)
             x = uncertainty_choice.ppf(metadata_uncertainty_array, percentages=percentages)
             x, y = uncertainty_choice.pdf(metadata_uncertainty_array, xs=x)
+            # ATTN: There is an error in stats_arrays when computing the trinagular pdf, bug is reported (#18), here is the fix.
+            if metadata['uncertainty_type'] == 5:
+                _, scale = uncertainty_choice.rescale(metadata_uncertainty_array)
+                y = y/scale
             # Fit a normal distribution to the sampled data
             loc_norm, scale_norm = scipy.stats.norm.fit(param_samples.T)
             if plot_distributions:
@@ -1198,7 +1436,7 @@ class UncertaintyProcessor:
                 # plot the histrogram of the samples
                 ax.hist(param_samples.T, density=True, bins='auto', histtype='stepfilled', alpha=0.2, label='{} samples'.format(uncertainty_choice.description))
                 # plot the lognormal pdf
-                ax.plot(x, y, 'k-', lw=2, label='frozen {} pdf'.format(uncertainty_choice.description))
+                ax.plot(x.flatten(), y.flatten(), 'k-', lw=2, label='frozen {} pdf'.format(uncertainty_choice.description))
                 # Plot the fitted normal distibution
                 ax.plot(x, scipy.stats.norm.pdf(x,  loc=loc_norm, scale=scale_norm), 'b-', lw=2, label='fitted normal pdf')
                 ax.set_title(str(param_index))
@@ -1209,15 +1447,15 @@ class UncertaintyProcessor:
                 'loc':loc_norm,
                 'uncertainty_type':stats_arrays.NormalUncertainty.id
             }
-            normal_uncertainty_metadata_df.loc[param_index] = normal_uncertainty_metadata
+            normal_uncertainty_metadata_dict[param_index] = normal_uncertainty_metadata
         if plot_distributions:
             plt.show()
-        return normal_uncertainty_metadata_df
+        return pd.DataFrame(normal_uncertainty_metadata_dict).T
     
     @staticmethod
     def compute_bounds(uncertainty_metadata:dict, return_type:str='df') -> Union[pd.DataFrame, dict]:
         """
-        Compute mean, median (or mode), and 95% CI bounds for each parameter.
+        Compute mean, median (or mode), and 95% CI bounds for each parameter using the stats_array package.
 
         Iterates over a dictionary mapping parameter IDs to uncertainty definitions
         (in the format accepted by `stats_arrays.UncertaintyBase`). For each parameter,
@@ -1626,44 +1864,58 @@ class GlobalSensitivityAnalysis:
 
 class CCFormulationBase:
     """
-    Main class for Chance Constraint formulation, directly formulates the Pareto problem upon initialization
+    Main class for Chance Constraint formulation containing only Normal distributed uncertain parameters,
+    directly formulates the neccessary data for the Pareto problem upon initialization.
 
-    Subclasses must override `formulate` and `update_problem` to define a
+    Subclasses ca override `formulate` and `update_problem` to define a
     concrete Pyomo model and its λ‐level updates.
     """
     def __init__(self,
-                 # ATTN: Maybe make the metadata_df quasi arguments with zeros as default value, to allow different formulations
-                 unc_metadata: Dict[str,pd.DataFrame],
+                 unc_metadata: Dict[str,pd.DataFrame], # ATTN: It would be nicer to have the layer conatining the uncertainty data either in stast_arrays numbpy format or as dict
                  pulpo_worker,
                  method:str,
                  choices:dict,
-                 demand:dict,
+                 plot_normal_fit_distribution:bool=False,
+                 sample_size_normal_fit:int=1000000, 
                  ):
         """
         Initialize the chance-constraint formulation.
 
-        Stores characterization‐factor and intervention‐flow metadata, the
-        PULPO model constructor, impact method, normative choices, and demand,
+        Stores metadata for the uncertain parameters, needed for the chance constrain formulations.
+        Transforms the uncertainty information into normal distributions.
         then calls `formulate` to assemble the base model.
 
         Args:
             unc_metadata (dict[str:pd.DataFrame]):
-                Uncertainty metadata containing uncertainty informtaion for paramters in chance constaints
-            (must have no undefined types)
+                Uncertainty metadata containing the uncertainty informtaion about the uncertain parameters
+                for all constraints which are to be chance constained.
+                    { '[name of uncertain parameter as defined in pyomo model]':
+                            pd.DataFrame(
+                                rows: parameters - indexed as in pyomo model
+                                columns: statistical params - as defined in stats_arrays, e.g., 'scale', 'loc', ...
+                            ),
+                        '...': pd.DataFrame(...),
+                    }
             pulpo_worker:
                 Factory or callable that constructs the deterministic Pyomo model.
             method (str):
-                LCIA method name (used in impact calculations).
+                LCIA method name (used in impact calculations). 
+                Needed to later compare the CC optimization results.
             choices (dict):
-                Formulation options (e.g. whether to use L1 vs. L2 norms).
-            demand (dict):
-                Demand vector mapping each intervention flow to its required amount.
+                Optimization choices defined for the case study.
+                Needed to later compare the CC optimization results.
+            plot_distributions (bool):
+                If True, display a histogram + fitted-normal curve for each parameter.
+                Defaults to False.
+            sample_size (int):
+                Number of random draws per parameter when fitting normal distribution
+                to uncertain parameters. Defaults to 1_000_000.
         """
         self.unc_metadata = unc_metadata
-        self.method = method
+        self.normal_metadata = self._transform_to_normal(sample_size=sample_size_normal_fit, plot_distribution=plot_normal_fit_distribution)
         self.pulpo_worker = pulpo_worker
+        self.method = method
         self.choices = choices
-        self.demand = demand
         self.formulate()
     
     def formulate(self) -> None:
@@ -1675,7 +1927,31 @@ class CCFormulationBase:
         """
         pass
 
-    def update_problem(self, lambda_level:float) -> dict:
+    def _transform_to_normal(self, sample_size:int=100000, plot_distribution:bool=False) -> Dict[str,pd.DataFrame]:
+        """
+        Fit Normal distributions to all CF and IF uncertainty metadata.
+
+        Uses the UncertaintyProcessor to convert any non‐normal uncertainty
+        definitions into equivalent Normal distributions.
+
+        Args:
+            plot_distributions (bool):
+                If True, display a histogram + fitted-normal curve for each parameter.
+                Defaults to False.
+            sample_size (int):
+                Number of random draws per parameter when fitting normal distribution
+                to uncertain parameters. Defaults to 1_000_000.
+
+        Returns:
+            normal_metadata (Dict[str,pd.DataFrame]): Fitted Normal loc/scale for parameters in chance constaints (e.g., "cf", "if").
+        """
+        normal_metadata = {}
+        for var_name, metadata_df in self.unc_metadata.items():
+            normal_metadata[var_name] = UncertaintyProcessor.fit_normals(metadata_df, sample_size=sample_size, plot_distributions=plot_distribution)
+        # ATTN: Check if the fit_normals runs through with 0 as standard deviations
+        return normal_metadata
+
+    def update_problem(self, lambda_level:float):
         """
         Inject or update the ε‐constraint for a given risk level (to be overridden).
 
@@ -1686,14 +1962,9 @@ class CCFormulationBase:
         Args:
             lambda_level (float):
                 Target confidence/risk threshold (e.g., 0.95 for 95% quantile).
-        
-        Returns:
-            environmental_cost (dict):
-                The environmental costs as used for the computation instance
         """
-        return {}
-
-class CCFormulationObjIndividualNormalL1(CCFormulationBase):
+        pass
+class CCFormulationObjL1(CCFormulationBase):
     """
     Implements an individual chance‐constraint formulation on the objective using the L1 norm on normally distributed uncertainties.
 
@@ -1711,27 +1982,9 @@ class CCFormulationObjIndividualNormalL1(CCFormulationBase):
         3. Compute the mean environmental cost.
         4. Check that the variance‐based z‐values are within acceptable bounds.
         """
-        normal_metadata = self.transform_to_normal()
-        self.envcost_std = self.compute_envcost_variance(normal_metadata['cf'], normal_metadata['if'])
+        self.envcost_std = self.compute_envcost_variance(self.normal_metadata['cf'], self.normal_metadata['if'])
         self.envcost_mean = self.compute_envcost_mean()
         self.check_envcost_variance(self.envcost_std)
-
-
-    def transform_to_normal(self) -> Dict[str,pd.DataFrame]:
-        """
-        Fit Normal distributions to all CF and IF uncertainty metadata.
-
-        Uses the UncertaintyProcessor to convert any non‐normal uncertainty
-        definitions into equivalent Normal distributions.
-
-        Returns:
-            normal_metadata (Dict[str,pd.DataFrame]): Fitted Normal loc/scale for parameters in chance constaints (e.g., "cf", "if").
-        """
-        normal_metadata = {}
-        for var_name, metadata_df in self.unc_metadata.items():
-            normal_metadata[var_name] = UncertaintyProcessor.fit_normals(metadata_df)
-        # ATTN: Check if the fit_normals runs through with 0 as standard deviations
-        return normal_metadata
 
 
     def _extract_process_ids_and_intervention_flows_for_env_cost_variance(self) -> tuple[array.array, pd.DataFrame]:
@@ -1788,16 +2041,16 @@ class CCFormulationObjIndividualNormalL1(CCFormulationBase):
         envcost_std = {}
         for process_id in process_ids:
             # compute the mu_{q_{h,e}}^2 * sigma_{b_{e,j}}^2
-            if process_id in if_normal_metadata_df.index.get_level_values(level='col'):
-                intervention_flow_std = if_normal_metadata_df.xs(process_id, level='col', axis=0, drop_level=True)['scale']
+            if process_id in if_normal_metadata_df.index.get_level_values(level=1):
+                intervention_flow_std = if_normal_metadata_df.xs(process_id, level=1, axis=0, drop_level=True)['scale']
                 characterization_factor_mean = pd.Series(
                     self.pulpo_worker.lci_data["matrices"][self.method].diagonal()[
-                        intervention_flow_std.index.get_level_values(level='row')
+                        intervention_flow_std.index.get_level_values(level=0)
                         ],
-                    index=intervention_flow_std.index.get_level_values(level='row')
+                    index=intervention_flow_std.index.get_level_values(level=0)
                 )
                 # Reindex so that we can perform a matrix multiplication on all intervention flows
-                characterization_factor_mean = characterization_factor_mean.reindex(intervention_flow_std.index, axis=0, level='row')
+                characterization_factor_mean = characterization_factor_mean.reindex(intervention_flow_std.index, axis=0, level=0)
                 mu_q2_sigma_b2 = characterization_factor_mean.pow(2).mul(intervention_flow_std.pow(2), axis=0)
             else:
                 mu_q2_sigma_b2 = pd.Series([0])
@@ -1810,7 +2063,7 @@ class CCFormulationObjIndividualNormalL1(CCFormulationBase):
             else:
                 sigma_q2_mu_b2 = pd.Series([0])
             # compute the sigma_{b_{e,j}}^2 * sigma_{q_{h,e}}^2
-            if (intervention_flows_extracted[process_id] > 0).any() and process_id in if_normal_metadata_df.index.get_level_values(level='col'):
+            if (intervention_flows_extracted[process_id] > 0).any() and process_id in if_normal_metadata_df.index.get_level_values(level=1):
                 sigma_q2_sigma_b2 = characterization_factor_std.pow(2).mul(intervention_flow_std.pow(2))
             else:
                 sigma_q2_sigma_b2 = pd.Series([0])
@@ -1829,6 +2082,7 @@ class CCFormulationObjIndividualNormalL1(CCFormulationBase):
         """
         # Compute the mean of the environmental costs to be used together with the standard deviation to update the uncertain parameters in line with chance constraint formulation
         envcost_raw = self.pulpo_worker.lci_data['matrices'][self.method].diagonal() @ self.pulpo_worker.lci_data['intervention_matrix']
+        # ATTN: The env_cost_raw must be updated with the potentially different means after fitting the normal distribution
         envcost_mean = pd.Series(envcost_raw).to_dict()
         return envcost_mean
 
@@ -1859,7 +2113,7 @@ class CCFormulationObjIndividualNormalL1(CCFormulationBase):
         print('The following points were excluded from the boxplot:')
         print(envcost_std_mean['z'].sort_values(ascending=False).iloc[:5])
 
-    def update_problem(self, lambda_env_cost) -> dict:
+    def update_problem(self, lambda_env_cost):
         """
         Update the Pyomo model’s ENV_COST_MATRIX for a given chance‐constraint level.
 
@@ -1870,12 +2124,61 @@ class CCFormulationObjIndividualNormalL1(CCFormulationBase):
         Args:
             lambda_env_cost (float): Confidence level (e.g. 0.95 for 95%).
         """
+        super(CCFormulationObjL1, self).update_problem(lambda_env_cost)
         ppf_lambda_QB = scipy.stats.norm.ppf(lambda_env_cost)
         environmental_cost_updated = {(process_id, self.method): self.envcost_mean[process_id] + ppf_lambda_QB * self.envcost_std[process_id] for process_id in self.envcost_std.keys()}
         self.pulpo_worker.instance.ENV_COST_MATRIX.store_values(environmental_cost_updated, check=True)
-        return environmental_cost_updated
+class CCFormulationVarBounds(CCFormulationBase):
+    """
+    Implements an individual chance‐constraint formulation on the variable bounds
+    using normal distributed upper and/or lower bound parameters. 
+    The possible variable bounds to be chance constraint are:
+        - UPPER_LIMIT: the upper bound on the scaling vector
+        - LOWER_LIMIT: the lower bound on the scaling vector
+        - UPPER_IMP_LIMIT: the upper bound on the environmental impacts
+        - UPPER_INV_LIMIT: the upper bound on inventories emissions
 
-class CCFormulationObjVBIndividualNormalL1(CCFormulationObjIndividualNormalL1):
+    This subclass approximates all variable bounds specifief in the `unc_metadata` dictionary as Normal(μ,σ²),
+    and then traces Pareto‐optimal solutions by varying the confidence level (λ).
+
+    For all variable which are indexed in the dataframe to each of the specified bounds (above) (keys in `unc_metadata`),
+    The bounds are chance constrained.
+    """
+    
+    def update_problem(self, lambda_level):
+        """
+        Update the upper/lower bound parameters in the Pyomo model’s 
+        for a given chance‐constraint level, based on the chance constraint mathematic formulation
+        derived in the supplementary material. 
+
+        1. Compute the normal‐distribution quantile (PPF) for the risk threshold λ.
+        2. Scale each bounds standard deviation by this quantile.
+        3. Store the updated values back into pulpo_worker.instance.{bound_name}.
+
+        Args:
+            lambda_level (float): Confidence level (e.g. 0.95 for 95%).
+        """
+        super(CCFormulationVarBounds, self).update_problem(lambda_level)
+        ppf_lambda = scipy.stats.norm.ppf(lambda_level)
+        for bound_name, metadata_df in self.normal_metadata.items():
+            match bound_name:
+                case 'UPPER_LIMIT':
+                    bound_updated = (metadata_df['loc'] - ppf_lambda * metadata_df['scale']).to_dict()
+                case 'LOWER_LIMIT':
+                    bound_updated = (metadata_df['loc'] + ppf_lambda * metadata_df['scale']).to_dict()
+                case 'UPPER_IMP_LIMIT': # ATTN: Not tested
+                    bound_updated = (metadata_df['loc'] - ppf_lambda * metadata_df['scale']).to_dict()
+                case 'UPPER_INV_LIMIT': # ATTN: Not tested
+                    bound_updated = (metadata_df['loc'] - ppf_lambda * metadata_df['scale']).to_dict()
+                case 'cf' | 'if':
+                    continue # 'cf' and 'if' are keys in `normal_metadata` if the Objective is chance constrained, therefore they are skipped
+                case _:
+                    raise Exception('has not been implemented yet.')
+            pyomo_bound = getattr(self.pulpo_worker.instance, bound_name)
+            pyomo_bound.store_values(bound_updated, check=True)
+
+
+class CCFormulationObjL1VarBound(CCFormulationObjL1, CCFormulationVarBounds):
     """
     Implements an individual chance‐constraint formulation on the objective using the L1 norm and 
     on the variable bounds with normally distributed uncertainties.
@@ -1885,7 +2188,25 @@ class CCFormulationObjVBIndividualNormalL1(CCFormulationObjIndividualNormalL1):
     traces Pareto‐optimal solutions by varying the confidence level (λ).
     """
 
-class CCFormulationObjIndividualNormalL2(CCFormulationBase):
+    def update_problem(self, lambda_level):
+        """
+        Update the Pyomo model’s ENV_COST_MATRIX, and variable bounds,
+        e.g., UPPER_LIMIT, and UPPER_LIMIT 
+        for a given chance‐constraint level (`lambda_level`).
+
+        1. Compute the normal‐distribution quantile (PPF) for the risk threshold λ.
+        2. Scale each process’s cost standard deviation in the metadata by this quantile.
+        3. Store the updated values back into pulpo_worker.instance.ENV_COST_MATRIX.
+        4. Scale each variable bound in the metadata by this quantile.
+        5. Store the updated values back into pulpo_worker.instance.UPPER_LIMIT, LOWER_LIMIT.
+
+        Args:
+            lambda_level (float): Confidence level (e.g. 0.95 for 95%).
+        """
+        super(CCFormulationObjL1VarBound, self).update_problem(lambda_level)
+        
+
+class CCFormulationObjL2(CCFormulationBase):
 
     def formulate(self):
         """
@@ -1943,21 +2264,25 @@ class BaseParetoSolver:
             result_data_CC (dict of float to dict): Mapping from each lambda level
                 to its corresponding solver result dictionary.
         """
+        try:
+            from IPython.display import display
+        except ImportError:
+            display = globals()['print']
         impacts = {}
         print(self.cc_formulation.method)
         for lambda_QB, result_data in result_data_CC.items():
-            impacts[lambda_QB] = result_data['Impacts'].set_index('Key').loc[self.cc_formulation.method,'Value']
+            impacts[lambda_QB] = result_data['Impacts'].loc[self.cc_formulation.method,'Value']
             print('{}: {}'.format(lambda_QB, impacts[lambda_QB]))
         # The changs in the choices of the optimizer
         choices_results = {}
         for i_CC, (lambda_QB, result_data) in enumerate(result_data_CC.items()):
             for choice in self.cc_formulation.choices.keys():
                 if i_CC == 0:
-                    choices_results[choice] = result_data['Choices'].xs(tuple(self.cc_formulation.choices.keys()), axis=1)[['Process', 'Capacity']].dropna()
-                choices_results[choice] = choices_results[choice].join(result_data['Choices'].xs(tuple(self.cc_formulation.choices.keys()), axis=1)['Value'].rename(lambda_QB), how='left')
+                    choices_results[choice] = result_data['Choices'][choice][['Capacity']]
+                choices_results[choice] = choices_results[choice].join(result_data['Choices'][choice]['Value'].rename(lambda_QB), how='left')
         for choice, choice_result in choices_results.items():
-            print(choice)
-            print(choice_result)
+            display(choice)
+            display(choice_result)
 
         # Changes in the scaling vector and the characterized and scaled inventories
         lambda_array = list(result_data_CC.keys())
@@ -1965,23 +2290,57 @@ class BaseParetoSolver:
             print(f'lambda_1: {lambda_1}\nlambda_2: {lambda_2}\n')
             scaling_vector_diff = ((result_data_CC[lambda_1]['Scaling Vector']['Value'] - result_data_CC[lambda_2]['Scaling Vector']['Value']))
             scaling_vector_ratio = (scaling_vector_diff / result_data_CC[lambda_1]['Scaling Vector']['Value']).abs().sort_values(ascending=False)
-            environmental_cost_mean = {env_cost_index[0]: env_cost for env_cost_index, env_cost in result_data_CC[lambda_1]['ENV_COST_MATRIX']['ENV_COST_MATRIX'].items()}
+            environmental_cost_mean = {env_cost_index[0]: env_cost['Value'] for env_cost_index, env_cost in result_data_CC[lambda_1]['ENV_COST_MATRIX'].iterrows()}
             characterized_scaling_vector_diff = (scaling_vector_diff * pd.Series(environmental_cost_mean).reindex(scaling_vector_diff.index)).abs()
-            characterized_scaling_vector_diff_relative = (characterized_scaling_vector_diff / result_data_CC[lambda_1]['impacts'].set_index('Key').loc[self.cc_formulation.method, 'Value']).abs().sort_values(ascending=False)
+            characterized_scaling_vector_diff_relative = (characterized_scaling_vector_diff / result_data_CC[lambda_1]['Impacts'].loc[self.cc_formulation.method, 'Value']).abs().sort_values(ascending=False)
 
             print('Amount of process scaling variables that changed:\n{}: >1% \n{}: >10%\n{}: >100%\n{}: >1000%\n'.format((scaling_vector_ratio > 0.01).sum(), (scaling_vector_ratio > 0.1).sum(), (scaling_vector_ratio > 1).sum(), (scaling_vector_ratio > 10).sum()))
             print('Amount of process characterized scaling variables (impacts per process) that changed:\n{}: >1% \n{}: >10%\n{}: >100%\n{}: >1000%\n'.format((characterized_scaling_vector_diff_relative > 0.01).sum(), (characterized_scaling_vector_diff_relative > 0.1).sum(), (characterized_scaling_vector_diff_relative > 1).sum(), (characterized_scaling_vector_diff_relative > 10).sum()))
             print('{:.5e}: is the maximum impact change in one process\n{:.5e}: is the total impact change\n'.format(characterized_scaling_vector_diff_relative.max(), characterized_scaling_vector_diff_relative.sum()))
 
             amount_of_rows_for_visiualization = 10
-            print('The relative change of the scaling vector (s_lambda_1 - s_lambda_2)/s_lambda_1:\n')
-            print(scaling_vector_ratio.iloc[:amount_of_rows_for_visiualization].rename(result_data_CC[lambda_2]['Scaling Vector']['Process metadata']).sort_values(ascending=False))
-            print('\n---\n')
+            # print('The relative change of the scaling vector (s_lambda_1 - s_lambda_2)/s_lambda_1:\n')
+            # display(scaling_vector_ratio.iloc[:amount_of_rows_for_visiualization].rename(result_data_CC[lambda_2]['Scaling Vector']['Metadata']).sort_values(ascending=False))
+            # print('\n---\n')
             print('The relative change of the characterized scaling vector (s_lambda_1 - s_lambda_2)*QB_s / QBs:\n')
-            print(characterized_scaling_vector_diff_relative.iloc[:amount_of_rows_for_visiualization].rename(result_data_CC[lambda_2]['Scaling Vector']['Process metadata']))
+            display(characterized_scaling_vector_diff_relative.iloc[:amount_of_rows_for_visiualization].rename(result_data_CC[lambda_2]['Scaling Vector']['Metadata']))
             print('\n---\n')
 
-    def plot_pareto_front(self, result_data_CC:dict, cutoff_value:float):
+    def create_data_for_plots(self, result_data_CC:dict, cutoff_value:float) -> pd.DataFrame:
+        """
+        Create the data for the Pareto front plots, by computing the process impacts and 
+        selecting the top processes per Pareto Point based on the cut off and then concatting
+        all main contributing processes across Pareto Points to show changes.
+
+        Args:
+            result_data_CC (dict of float to dict): Mapping from each lambda level
+                to its corresponding solver result dictionary.
+            cutoff_value (float): Relative threshold for filtering main decision variables
+                to include in the bar plot.
+
+        Return:
+            data_QBs_main_df (pd.DataFrame): 
+                Containing the main contributing processes to the impact per Pareto Point, 
+                returned from `create_data_for_plots` method.
+        """
+        data_QBs_main_list = []
+        # data_QBs_list = []
+        for lamnda_QBs, result_data in result_data_CC.items():
+            environmental_cost_mean = {env_cost_index[0]: env_cost['Value'] for env_cost_index, env_cost in result_data_CC[lamnda_QBs]['ENV_COST_MATRIX'].iterrows()}
+            QBs = result_data['Scaling Vector']['Value'] * pd.Series(environmental_cost_mean).reindex(result_data['Scaling Vector']['Value'].index)
+            # data_QBs_list.append(QBs)
+            QBs_main = QBs[QBs.abs() > cutoff_value*QBs.abs().sum()]
+            QBs_main.name = lamnda_QBs
+            data_QBs_main_list.append(QBs_main)
+            print('With a cutoff value of {}, we keep {} process to an error of {:.2%}'.format(cutoff_value, len(QBs_main), abs(1 - QBs_main.sum()/QBs.sum())))
+        data_QBs_main_df = pd.concat(data_QBs_main_list, axis=1)
+        # ATTN: Best case would be to fill NaN which appear when concating the "maion contributing processes datasets" with the data from the QBs, but currently we dont have all ENV_COST
+        data_QBs_main_df = data_QBs_main_df.fillna(0.)
+        # Rename the index to contain the main contributing processes.
+        data_QBs_main_df = data_QBs_main_df.rename(index={process_id: self.cc_formulation.pulpo_worker.lci_data['process_map_metadata'][process_id] for process_id in data_QBs_main_df.index})
+        return data_QBs_main_df
+
+    def plot_pareto_front(self, result_data_CC:dict, cutoff_value:float, bbox_to_anchor:Tuple[float, float] = (0.65, -1.)):
         """
         Plot the Pareto front and highlight main contributing variables.
 
@@ -1990,23 +2349,15 @@ class BaseParetoSolver:
                 to its corresponding solver result dictionary.
             cutoff_value (float): Relative threshold for filtering main decision variables
                 to include in the bar plot.
+            bbox_to_anchor (tuple): 
+                Tuple holding the bbox anchor points for the legend.
+                Default value is (0.65, -1.).
         """
-        data_QBs_list = []
-        for lamnda_QBs, result_data in result_data_CC.items():
-            environmental_cost_mean = {env_cost_index[0]: env_cost for env_cost_index, env_cost in result_data_CC[lamnda_QBs]['ENV_COST'].items()}
-            QBs = result_data['Scaling Vector']['Value'] * pd.Series(environmental_cost_mean).reindex(result_data['Scaling Vector']['Value'].index)
-            QBs_main = QBs[QBs.abs() > cutoff_value*QBs.abs().sum()]
-            QBs_main.name = lamnda_QBs
-            data_QBs_list.append(QBs_main)
-            print('With a cutoff value of {}, we keep {} process to an error of {:.2%}'.format(cutoff_value, len(QBs_main), abs(1 - QBs_main.sum()/QBs.sum())))
-        data_QBs = pd.concat(data_QBs_list, axis=1)
-        data_QBs = data_QBs.rename(index={process_id: self.cc_formulation.pulpo_worker.lci_data['process_map_metadata'][process_id] for process_id in data_QBs.index})
-        data_QBs = data_QBs.fillna(0)
-        bbox_to_anchor = (0.65, -1.)
-        plot_CC_pareto_solution_bar_plots(data_QBs, self.cc_formulation.method, bbox_to_anchor=bbox_to_anchor)
+        data_QBs_main_df = self.create_data_for_plots(result_data_CC, cutoff_value)
+        plot_pareto_solution_normalized_bar_plots(data_QBs_main_df, self.cc_formulation.method, bbox_to_anchor=bbox_to_anchor)
+        plot_pareto_solution_bar_plots(data_QBs_main_df, self.cc_formulation.method, bbox_to_anchor=bbox_to_anchor)
 
-
-
+    
 class EpsilonConstraintSolver(BaseParetoSolver):
     """
     Solver implementing the epsilon-constraint method for Pareto front approximation.
@@ -2030,10 +2381,11 @@ class EpsilonConstraintSolver(BaseParetoSolver):
         result_data_CC = {}
         for lambda_level in lambda_epislons:
             print(f'solving CC problem for lambda_QB = {lambda_level}')
-            environmental_cost_updated = self.cc_formulation.update_problem(lambda_level)
+            # ATTN: We need to store the environmental costs in the results_data and not extract seperate
+            # This used to be the case before the results_data was changed, this formulation will run into errors.
+            self.cc_formulation.update_problem(lambda_level)
             self.cc_formulation.pulpo_worker.solve()
-            result_data_CC[lambda_level] = self.cc_formulation.pulpo_worker.extract_results()
-            result_data_CC[lambda_level]['ENV_COST'] = environmental_cost_updated
+            result_data_CC[lambda_level] = self.cc_formulation.pulpo_worker.extract_results(extractparams=True)
         return result_data_CC
 
 
