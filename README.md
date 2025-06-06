@@ -46,7 +46,7 @@ The following features are currently under development:
 > - [ ] `ℹ️  Multi-objective optimization [bi-objective epsilon constrained, goal programming ...]`
 > - [ ] `ℹ️  Integration of economic and social indicators in the optimization problem formulation`
 
-> - [ ] `ℹ️  Development of a GUI for simple optimization tasks`
+> - [X] `ℹ️  Development of a GUI for simple optimization tasks` [Link](https://github.com/flechtenberg/pulpo-gui)
 > - [X] `ℹ️  Enable PULPO to work on both bw2 and bw25 projects`
 > - [X] `ℹ️  Thorough documentation hosted on flechtenberg.github.io/pulpo/`
 
@@ -83,6 +83,9 @@ python -m unittest discover -s tests
 ```
 
 ---
+## What's new in 1.4.2?
+- Enable the use of gurobi solver
+
 ## What's new in 1.4.0?
 - Enable the use of NEOS solver (commercial solvers without license)
 - Enable Monte-Carlo sampling feature 
