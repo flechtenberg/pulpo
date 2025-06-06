@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pulpo-dev"
-version = "1.4.1"
+version = "1.4.2"
 description = "Pulpo package for optimization in LCI databases"
 authors = [
   { name="Fabian Lechtenberg", email="fabian.lechtenberg@chem.ethz.ch" }
@@ -13,7 +13,7 @@ maintainers = [
   { name="Fabian Lechtenberg", email="fabian.lechtenberg@chem.ethz.ch" }
 ]
 readme = "README.md"
-requires-python = ">=3.10,<=3.12"
+requires-python = ">=3.10"
 license = "BSD-3-Clause"
 license-files = ["LICENSE"]
 classifiers = [
