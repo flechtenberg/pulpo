@@ -13,7 +13,7 @@ maintainers = [
   { name="Fabian Lechtenberg", email="fabian.lechtenberg@chem.ethz.ch" }
 ]
 readme = "README.md"
-requires-python = ">=3.10,<=3.12"
+requires-python = ">=3.10"
 license = "BSD-3-Clause"
 license-files = ["LICENSE"]
 classifiers = [

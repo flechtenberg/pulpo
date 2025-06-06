@@ -63,7 +63,7 @@ class PulpoOptimizer:
         self.upper_elem_limit = upper_elem_limit
         self.upper_imp_limit = upper_imp_limit
 
-    def solve(self, GAMS_PATH=False, solver_name=None, options=None):
+    def solve(self, GAMS_PATH=False, solver_name=None, options=None, neos_email=None):
         """
         Solves the optimization model and calculates additional methods and inventory flows if needed.
 
@@ -74,7 +74,7 @@ class PulpoOptimizer:
         Returns:
             results: Results of the optimization.
         """
-        results, self.instance = optimizer.solve_model(self.instance, GAMS_PATH, solver_name=solver_name, options=options)
+        results, self.instance = optimizer.solve_model(self.instance, GAMS_PATH, solver_name=solver_name, options=options, neos_email=neos_email)
 
         # Post calculate additional methods, in case several methods have been specified and one of them is 0
         if not isinstance(self.method, str):
