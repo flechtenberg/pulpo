@@ -187,6 +187,35 @@ class TestPULPO(unittest.TestCase):
         self.assertEqual(round(worker.instance.inv_flows[3].value, 3), 5.200)
         self.assertEqual(round(worker.instance.inv_flows[2].value, 3), 1.659)
     
+    def test_gurobi_solver(self):
+        """Test solving the optimisation problem with the Gurobi solver."""
+        try:
+            import gurobipy as gp
+        except ImportError:
+            self.skipTest("gurobipy is not installed – skipping Gurobi test.")
+        worker = pulpo.PulpoOptimizer(self.project, self.database, self.methods, '')
+        worker.intervention_matrix = 'biosphere'
+        worker.get_lci_data()
+
+        eCar  = worker.retrieve_activities(reference_products='transport')
+        elec  = worker.retrieve_activities(reference_products='electricity')
+
+        demand  = {eCar[0]: 1}
+        choices = {'electricity': {elec[0]: 100, elec[1]: 100}}
+
+        worker.instantiate(choices=choices, demand=demand)
+
+        # -----------------------------------------------------------------------
+        worker.solve(solver_name='gurobi')          # <-- new branch exercised
+
+        # Objective and one auxiliary impact should match the reference value
+        self.assertAlmostEqual(round(worker.instance.OBJ(), 6), 0.103093)
+        self.assertAlmostEqual(
+            round(worker.instance.impacts_calculated["('my project', 'resources')"].value, 5),
+            5.25773
+        )
+
+    
     def test_gams_solver(self):
         """Test solving the optimization problem using the GAMS solver."""
         gams_path = os.getenv('GAMS_PULPO')  # Ensure GAMS_PULPO is set in the environment
@@ -237,7 +266,7 @@ class TestPULPO(unittest.TestCase):
         choices = {'electricity': {elec[0]: 100, elec[1]: 100}}
         worker.instantiate(choices=choices, demand=demand)
 
-        # Solve using GAMS
+        # Solve using NEOS
         worker.solve(solver_name='cplex')
 
         # Assert the objective value

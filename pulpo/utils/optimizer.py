@@ -278,6 +278,52 @@ def solve_gams(model_instance, gams_path, options, solver_name=None):
     return results, model_instance
 
 
+def solve_gurobi(model_instance, options=None):
+    """
+    Solve the given Pyomo ConcreteModel using Gurobi.
+    Captures:
+      - model_instance.solver_status
+      - model_instance.solver_termination
+      - model_instance.best_feasible_obj (if available)
+      - model_instance.best_obj_bound    (if available)
+    Then, if truly optimal, the Pyomo vars are already loaded (no extra loader needed).
+    """
+    # Create the Gurobi solver plugin
+    solver = pyo.SolverFactory('gurobi')
+
+    # If you want to pass custom options (e.g. MIPGap, TimeLimit), do so here:
+    # For example: options = {"MIPGap": 1e-8, "TimeLimit": 600}
+    if options:
+        for key, val in options.items():
+            solver.options[key] = val
+
+    # Solve. The results object is a standard Pyomo SolverResults.
+    results = solver.solve(
+        model_instance,
+        tee=False,               
+        load_solutions=True      
+    )
+
+    # Capture solver status and termination condition on the model instance:
+    model_instance.solver_status      = results.solver.status
+    model_instance.solver_termination = results.solver.termination_condition
+
+    # If Gurobi found a feasible or optimal solution, you can also read:
+    try:
+        obj_val = results.problem.lower_bound if model_instance.OBJ.sense == pyo.minimize else results.problem.upper_bound
+        model_instance.best_obj_bound = obj_val
+    except Exception:
+        model_instance.best_obj_bound = None
+
+    try:
+        model_instance.best_feasible_obj = results.problem.upper_bound if model_instance.OBJ.sense == pyo.minimize else results.problem.lower_bound
+    except Exception:
+        model_instance.best_feasible_obj = None
+
+    print("Optimization problem solved using gurobi")
+    print(f"status={results.solver.status}, termination={results.solver.termination_condition}")
+    return results, model_instance
+
 def solve_model(model_instance, gams_path=False, solver_name=None, options=None):
     """
     Solves the instance of the optimization model using Highspy, NEOS, or GAMS.
@@ -295,12 +341,16 @@ def solve_model(model_instance, gams_path=False, solver_name=None, options=None)
     # Case 1: Use Highspy if no GAMS path is provided and the solver is either not specified or is 'highs'
     if gams_path is False and (solver_name is None or 'highs' in solver_name.lower()):
         return solve_highspy(model_instance)
+    
+    # Case 2: Gurobi if no GAMS and solver_name == "gurobi"
+    if gams_path is False and solver_name and solver_name.lower() == "gurobi":
+        return solve_gurobi(model_instance, options=options)
 
-    # Case 2: Use NEOS if a solver_name is provided (and it is not Highspy) and no GAMS path is provided
+    # Case 3: Use NEOS if a solver_name is provided (and it is not Highspy) and no GAMS path is provided
     if gams_path is False and solver_name and ('highs' not in solver_name.lower()):
         return solve_neos(model_instance, solver_name, options)
 
-    # Case 3: Use GAMS if gams_path is specified (either as a path or True)
+    # Case 4: Use GAMS if gams_path is specified (either as a path or True)
     if gams_path:
         return solve_gams(model_instance, gams_path, options)
 
