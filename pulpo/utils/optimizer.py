@@ -294,8 +294,22 @@ def solve_gurobi(model_instance, options=None):
     # Create the Gurobi solver plugin
     solver = pyo.SolverFactory('gurobi')
 
-    # If you want to pass custom options (e.g. MIPGap, TimeLimit), do so here:
-    # For example: options = {"MIPGap": 1e-8, "TimeLimit": 600}
+    """
+    Recommended Gurobi tweaks for high-precision LP/QP runs
+
+        options = {
+            "FeasibilityTol": 1e-9,   # < tighter constraints (default 1e-6)
+            "OptimalityTol" : 1e-9,   # < tighter dual/primal gap
+            "BarConvTol"    : 1e-9,   # < stricter barrier convergence
+            "NumericFocus"  : 3,      # > robust numerics (quad pivots, careful cuts)
+            "ScaleFlag"     : 2       # > geometric scaling for better conditioning
+        }
+
+    These values keep residuals ~1×10⁻⁹ (enough for 6-8 significant-digit LCA
+    results) while guarding against ill-scaled data.  Add extras like
+    `"TimeLimit": 600` or `"MIPGap": 1e-8` to the same dict.
+    """
+    
     if options:
         for key, val in options.items():
             solver.options[key] = val
