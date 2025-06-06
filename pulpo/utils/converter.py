@@ -98,7 +98,8 @@ def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, upper_in
         upper_limit_dict[process_map[proc]] = upper_limit[proc]
     for choice in choices:
         for proc in choices[choice]:
-            upper_limit_dict[process_map[proc]] = choices[choice][proc]
+            if isinstance(choices[choice], dict):
+                upper_limit_dict[process_map[proc]] = choices[choice][proc]
 
     # Check if a supply has been specified
     supply_dict = {prod: 0 for prod in PRODUCTS[None]}
