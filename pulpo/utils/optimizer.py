@@ -228,14 +228,17 @@ def solve_highspy(model_instance):
     print('Optimization problem solved using Highspy')
     return results, model_instance
 
-def solve_neos(model_instance, solver_name, options):
+def solve_neos(model_instance, solver_name, options, neos_email):
     """Solve the model using NEOS."""
-    # ATTN: Perhaps enable passing down the mail address as an argument
+    if neos_email is not None:
+        os.environ['NEOS_EMAIL'] = neos_email
+
     if 'NEOS_EMAIL' not in os.environ:
         print("'NEOS_EMAIL' environment variable is not set. \n")
         print("To use the NEOS solver, please set the 'NEOS_EMAIL' environment variable as explained here:\n")
         print("https://www.twilio.com/en-us/blog/how-to-set-environment-variables-html \n")
         print("If you do not have a NEOS account, please create one at https://neos-server.org/neos/ \n")
+        print("Alternatively, you can pass the 'neos_email' argument to the solve function. \n")
         return None, model_instance
 
     solver_manager = pyo.SolverManagerFactory('neos')
@@ -324,7 +327,7 @@ def solve_gurobi(model_instance, options=None):
     print(f"status={results.solver.status}, termination={results.solver.termination_condition}")
     return results, model_instance
 
-def solve_model(model_instance, gams_path=False, solver_name=None, options=None):
+def solve_model(model_instance, gams_path=False, solver_name=None, options=None, neos_email=None):
     """
     Solves the instance of the optimization model using Highspy, NEOS, or GAMS.
 
@@ -333,6 +336,7 @@ def solve_model(model_instance, gams_path=False, solver_name=None, options=None)
         gams_path (str or bool, optional): Path to the GAMS solver or True to use the environment variable.
         solver_name (str, optional): The solver to use (e.g. 'cplex', 'baron', or 'xpress').
         options (list, optional): Additional options for the solver.
+        neos_email (str, optional): Email for NEOS solver authentication.
 
     Returns:
         tuple: Results of the optimization and the updated model instance.
@@ -348,7 +352,7 @@ def solve_model(model_instance, gams_path=False, solver_name=None, options=None)
 
     # Case 3: Use NEOS if a solver_name is provided (and it is not Highspy) and no GAMS path is provided
     if gams_path is False and solver_name and ('highs' not in solver_name.lower()):
-        return solve_neos(model_instance, solver_name, options)
+        return solve_neos(model_instance, solver_name, options, neos_email)
 
     # Case 4: Use GAMS if gams_path is specified (either as a path or True)
     if gams_path:
