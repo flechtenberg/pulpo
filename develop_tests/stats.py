@@ -619,52 +619,51 @@ class ParameterFilter:
     def apply_filter(self, scaling_vector_strategy:str, cutoff:float, plot_n_top_processes:int=10) -> Tuple[list,list]:
          """
          Applies the filtering steps:
-         1. prepares the scaling vector used to subselect the most contributing paramters to the impact results
-         2. Computes the LCI and LCIA results with the chose scaling vector
-         3. Plot the main contributing processes to to the total demand computed
-         4. Filter out the intervention flows which have characterized results 
+         1. Prepare the scaling vector used to subselect the most contributing paramters to the impact results
+         2. Compute the LCI and LCIA results with the chosen scaling vector
+         3. Plot the main contributing processes to the impact result
+         4. Filters out the intervention flows whose characterized results 
             are smaller than the cutoff multiplied with the LCA score
-         5. Filter out the chcharacterization factors which do not have any intervention flows after step 4.
+         5. Filter out the chcharacterization factors which are not connected to any intervention flows after step 4.
 
          Args:
             scaling_vector_strategy (str): 
                 How to compute scaling vector: 'naive' or 'constructed_demand'.
             cutoff (float): 
-                cutoff factor to compute minimum contribution value to retain a parameter. 
+                cutoff factor to compute minimum contribution value to retain an intervention flow. 
                 Multiplied with the LCA score, i.e., a percentage of the total LCA score
-            top_amount (int): 
+            plot_n_top_processes (int): 
                 Number of top items to display in top contribution process plot (default: 10).
 
         Returns:
-            characterized_inventory_indices (list): 
+            filtered_inventory_indcs (list): 
                 Subset of inventory flows indices returned from filtering.
-            reduced_characterization_matrix_ids (list): 
+            filtered_characterization_indcs (list): 
                 Subset of characterization factors indices returned from filtering.
          """
-         scaling_vector_series = self.prepare_sampling(scaling_vector_strategy=scaling_vector_strategy)
+         scaling_vector_series = self.prepare_scaling_vector(scaling_vector_strategy=scaling_vector_strategy)
          lca_score, characterized_inventory = self.compute_LCI_LCIA(scaling_vector_series)
          self.plot_top_processes(characterized_inventory, top_amount=plot_n_top_processes)
          filtered_inventory_indcs = self.filter_inventoryflows(characterized_inventory, lca_score, cutoff)
          filtered_characterization_indcs = self.filter_characterization_factors(filtered_inventory_indcs)
          return filtered_inventory_indcs, filtered_characterization_indcs
 
-    def prepare_sampling(self,  scaling_vector_strategy:str='naive') -> pd.Series:
+    def prepare_scaling_vector(self,  scaling_vector_strategy:str='naive') -> pd.Series:
         """
-        Build the combined parameter matrix (B and Q) and scaling vector.
-        We only consider uncertainty in the $B$ and $Q$ parameter matrizes. The scaling vector is given by the optimal solution.
-        We will look at the contribution of the parameters to the environmental impact objective: 
-        Q·B·s
+        Prepares the scaling vector which will be used to compute the LCIA contributions per inventory flow.
+        The scaling vector can be created from the determinisitc optimum ('naive') 
+        or computed based on all possible choices ('constructed_demand').
 
         Args:
-            scaling_vector_strategy: How to compute scaling vector: 'naive' or 'constructed_demand'.
+            scaling_vector_strategy (str): 
+                How to compute scaling vector: 'naive' or 'constructed_demand' (default: 'naive')
 
         Returns:
             scaling_vector_series: Series of scaling factors (optimal s).
         """
-        # Define the scaling vector for the subsequent analysis as the optimization results
-        # put the scaling vector returned from the optimization into the same order as the process map
         match scaling_vector_strategy:
             case 'naive':
+            # put the scaling vector returned from the optimization into the same order as the process map
                 scaling_vector_series = self.result_data['Scaling Vector']['Value'].sort_index()
             case 'constructed_demand':
                 scaling_vector_series = self.construct_scaling_vector_from_choices()
@@ -674,11 +673,11 @@ class ParameterFilter:
         
     def construct_scaling_vector_from_choices(self) -> pd.Series:
         """
-        Construct a scaling vector from the model's choice decisions.
+        Compute a scaling vector from a constructed demand, with the idea that it contains the impact linked to all possible choices.
+        The demand vector is constructed that the demand for each choice is equal to one.
 
         Returns:
-            pd.Series: Scaling factors for each parameter, indexed by parameter name,
-                       derived from the selected capacities.
+            pd.Series: Scaling factors based on the constructed demand.
         """
         # Define the scaling vector for the subsequent analysis as a constructed demand vector
         # Create a demand vector which includes all alternatives in the demand use use the corresponding scaling vector of that LCA for the subsequent GSA and preparation steps, the idea is to include all relevant processes in the LCIA calculation instead of just those chosen by the optimizer at on Pareto point
@@ -704,18 +703,16 @@ class ParameterFilter:
         scaling_vector_series = reindex_supply_array_df['supply_array']
         return scaling_vector_series
 
-
-
     def compute_LCI_LCIA(
             self, 
             scaling_vector_series:pd.Series, 
             ) -> tuple[float, scipy.sparse.sparray]:
         """
-        Compute per-parameter LCI and LCIA contributions.
+        Compute per-inventory LCI and LCIA contributions.
 
         Args:
-            characterization_matrix: Characterization Q matrix, since there are multiple available in the .
-            scaling_vector_series: Series of parameter scaling factors (s).
+            scaling_vector_series (pd.Series):
+                Series of parameter scaling factors (s) from 'prepare_scaling_vector' method.
 
         Returns:
             lca_score (float): 
@@ -746,13 +743,17 @@ class ParameterFilter:
         Select inventory-flow parameters whose LCIA contributions exceed a threshold.
 
         Args:
-            characterized_inventory (scipy.sparse.sparray): B·(Q·s) for each parameter (impact after characterization).
-            lca_score (float): the summed lcia score for the specific scaling vector.
-            cutoff (float): cutoff factor to compute minimum contribution value to retain a parameter. 
+            characterized_inventory (scipy.sparse.sparray): 
+                B·(Q·s) for each parameter (impact after characterization).
+            lca_score (float): 
+                the summed lcia score for the specific scaling vector.
+            cutoff (float): 
+                cutoff factor to compute minimum contribution value to retain a parameter. 
                 Multiplied with the LCA score, i.e., a percentage of the total LCA score
 
         Returns:
-            characterized_inventory_indices (list): Subset of inventory flows indices returned from filtering.
+            characterized_inventory_indices (list): 
+                Subset of inventory flows indices returned from filtering.
         """
         #ATTN: Add a simple optimization loop to find the cutoff which results in an absolute change of around 1%
         # Filters the inventory flows
@@ -779,10 +780,12 @@ class ParameterFilter:
         Select characterization-factor parameters which characterize inventory flows returned from filtering.
 
         Args:
-            characterized_inventory_indices (list): list of intervention flows returned from the filtering process.
+            characterized_inventory_indices (list): 
+                list of intervention flows returned from the filtering process.
 
         Returns:
-            reduced_characterization_matrix_ids (list): Subset of characterization factors indices returned from filtering.
+            reduced_characterization_matrix_ids (list): 
+                Subset of characterization factors indices returned from filtering.
         """
         # Filter characterization matrix
         characterization_matrix = self.lci_data["matrices"][self.method]
@@ -803,8 +806,10 @@ class ParameterFilter:
         Plot the top-N contributing processes or parameters as a bar chart.
 
         Args:
-            characterized_inventory (scipy.sparse.sparray): B·(Q·s) for each parameter (impact after characterization).
-            top_amount (int): Number of top items to display (default: 10).
+            characterized_inventory (scipy.sparse.sparray): 
+                B·(Q·s) for each parameter (impact after characterization).
+            top_amount (int): 
+                Number of top items to display (default: 10).
 
         Returns:
             None: Displays a matplotlib bar plot of the highest contributors.
@@ -833,6 +838,13 @@ class UncertaintyImporter:
     Extract/Import and index uncertainty metadata for intervention flows and characterization factors.
     """
     def __init__(self, lci_data):
+        """
+        Initiates uncertainty importer with the LCI data.
+
+        Args:
+            lci_data (dict): 
+                PULPO LCI data (matrices, maps).
+        """
         self.lci_data = lci_data # from pulpo_worker.lci_data
 
     def get_intervention_indcs_to_db(self, db_name, intervention_indices:List[Tuple[int, int]]) -> List[Tuple[int, int]]:
@@ -841,11 +853,14 @@ class UncertaintyImporter:
         and if specified the intersection to a given list of interventions flow indices
 
         Args:
-            db_name (str): name of the BW database for which the indices are fetched for
-            intervention_indices (list) - optional: intervention flow indices for which the metadata will be extracted
+            db_name (str): 
+                name of the BW database for which the indices are fetched for
+            intervention_indices (list): 
+                intervention flow indices for which the metadata will be extracted
         
         Returns:
-            db_indcs (list): The interventions flow indices to the specified BW database and intersection to intervention_indices
+            intervention_indices_in_db (list): 
+                The interventions flow indices to the specified BW database and intersection to intervention_indices
         """
         # To increase the speed of the search the process_map and the intervention_indices are transformed into arrays (pandas)
         process_map_df = pd.DataFrame(zip(*self.lci_data['process_map'].keys(), self.lci_data['process_map'].values()), index=['db', 'key']).T
@@ -862,14 +877,18 @@ class UncertaintyImporter:
         """
         Extract intervention‐flow uncertainty metadata for given indices.
         The data is taken from the `lci_data` object of the `pulpo_worker` instance.
-        The link to the pyomo instnace is that the parameters are identically indexed 
+        The link to the pyomo instance is that the parameters are identically indexed 
         in the `lci_data` and pyomo instance.
 
         Args:
-            inventory_indices (List[tuple]): list of intervention flow indices (process_indx, intervention_indx) for which the metadata will be extracted 
+            inventory_indices (List[tuple]): 
+                list of intervention flow indices (process_indx, intervention_indx) 
+                for which the metadata will be extracted 
 
         Returns:
-            intervention_metadata_df (pd.DataFrame): DataFrame indexed by (row, col) with uncertainty info.
+            intervention_metadata_df (pd.DataFrame): 
+                DataFrame containing the uncertainty information of the inventory flows
+                indexed by (row, col).
         """
         intervention_metadata_df = pd.DataFrame(self.lci_data['intervention_params'])
         intervention_metadata_df = intervention_metadata_df.set_index(["row", "col"])
@@ -878,7 +897,7 @@ class UncertaintyImporter:
 
     def get_cf_meta(self, method:str, characterization_indices:List[int]) -> pd.DataFrame:
         """
-        Extract uncertainty metadata for characterization factors for a method.
+        Extract uncertainty metadata for characterization factors for a LCIA method.
         The data is taken from the `lci_data` object of the `pulpo_worker` instance.
         The link to the pyomo instnace is that the parameters are identically indexed 
         in the `lci_data` and pyomo instance.
@@ -892,7 +911,7 @@ class UncertaintyImporter:
         Return:
             characterization_metadata_df (pd.DataFrame):
                 metadata of the characterization factors containing uncertainty information 
-                if it exist in the underlying BW databases.
+                indexed by .
         """
         characterization_params = self.lci_data["characterization_params"][method]
         characterization_metadata_df = pd.DataFrame(characterization_params).set_index('row')
@@ -904,8 +923,11 @@ class UncertaintyImporter:
         Split metadata into defined (type>0) and undefined (type=0) entries.
 
         Returns:
-            defined: dict index→metadata row
-            undefined: list of indices without defined distributions
+            defined (dict): 
+                dictionary indexed by the parameter index, containing the the uncertainty metadata 
+                for parameter which have uncertainty information, 
+            undefined (list): 
+                list of indices without defined distributions
         """
         defined, undefined = {}, []
         for idx, row in uncertainty_metadata_df.iterrows():
@@ -918,8 +940,8 @@ class UncertaintyImporter:
     
     def get_pyomo_param_meta(self, instance, pyomo_param_name:str, param_indcs:List[int]) -> pd.DataFrame:
         """
-        Generates the uncertainty metadata structre for parameters in the pyomo model excluding
-        if and cf parameter,
+        Generates the uncertainty metadata structre for parameters in the pyomo model 
+        which are not intervention flows or characterization factors.
         i.e., uncertainty information to parameters not given in Brightway (LCI databases),
         e.g., variable bounds, impact bounds, addtional constraints, etc.
         Since these parameters at the current state of implementation do not have any 
@@ -953,26 +975,33 @@ class UncertaintyImporter:
 
 class UncertaintyStrategyBase:
     """
-    Base class for uncertainty distribution strategies.
+    Base class for uncertainty distribution specification strategies.
 
     This abstract base defines the interface and common functionality for assigning probability
     distributions to parameters lacking predefined uncertainty metadata. Subclasses must implement
     methods to derive distribution parameters for these unspecified uncertainties.
 
     Attributes:
-        metadata_df (pd.DataFrame): DataFrame containing parameter metadata.
-        defined_uncertainty_metadata (dict): Mapping of parameter indices to their defined uncertainty metadata.
-        undefined_uncertainty_indices (list): List of indices needing distribution assignment.
+        metadata_df (pd.DataFrame): 
+            DataFrame containing parameter metadata.
+        defined_uncertainty_metadata (dict): 
+            Mapping of parameter indices to their defined uncertainty metadata.
+        undefined_uncertainty_indices (list): 
+            List of indices needing distribution assignment.
     """
     def __init__(self, metadata_df:pd.DataFrame, undefined_uncertainty_indices:list, *args, **kwargs):
         """
         Initialize the UncertaintyStrategyBase with metadata and index lists.
 
         Args:
-            metadata_df (pd.DataFrame): The full metadata DataFrame for parameters.
-            undefined_uncertainty_indices (list): List of parameter indices without defined uncertainties.
-            *args: additional arguments passed to the assign method
-            **kwargs: additional optional arguments passed to the assign method
+            metadata_df (pd.DataFrame): 
+                The full metadata DataFrame for parameters.
+            undefined_uncertainty_indices (list): 
+                List of parameter indices without defined uncertainties.
+            *args: 
+                additional arguments passed to the assign method
+            **kwargs: 
+                additional optional arguments passed to the assign method
         """
         self.metadata_df = metadata_df # ATTN: rename to param_metadata_df
         self.undefined_uncertainty_indices = undefined_uncertainty_indices
@@ -980,16 +1009,21 @@ class UncertaintyStrategyBase:
 
     def add_random_noise_to_scaling_factor(self, scaling_factor:Union[float, list], low:float, high:float) -> list:
         """
-        Adds random noise from uniform distribution to scaling factors, to avoid unrealistic structure in data.
-        Multiplies the scaling vector with 1-low and 1+high to generate noisy scaling vectors given by the interval [1-low, 1+high].
+        Adds random noise from uniform distribution to scaling factors, to avoid structured randomness when scaling the data.
+        Multiplies the scaling factors in the array of scaling factors with 1-low and 1+high 
+        to generate noisy scaling vectors given by the interval [1-low, 1+high].
 
         Args:
-            scaling_factor (float, array, list): the scaling factor which will get noise added to it
-            low (float): the lower bound (1-low) for which the noise will be sampled and multiplied to the scaling_factor.
-            high (float): the lower bound (1+high) for which the noise will be sampled and multiplied to the scaling_factor.
+            scaling_factor (float, array, list): 
+                the scaling factor which will get noise added to it
+            low (float): 
+                the lower bound (1-low) for which the noise will be sampled and multiplied to the scaling_factor.
+            high (float): 
+                the lower bound (1+high) for which the noise will be sampled and multiplied to the scaling_factor.
 
         Returns:
-            scaling_factor_randomized (list): The scaling factor, now a list superposed with the random noise
+            scaling_factor_randomized (list): 
+                The scaling factor, now a list superposed with the random noise
 
         """
         if isinstance(scaling_factor, float):
@@ -1008,7 +1042,8 @@ class UncertaintyStrategyBase:
             lci_data (dict):
                 The lci_data containing the "..._map_metadata" dicts needed to rename the index, from pulpo_worker.
             uncertainty_param_name (str):
-                The parameter name contained in the "metadata_df", options are: "intervention_flow" and "characterization_factor".
+                The parameter name contained in the "metadata_df", 
+                options are: "intervention_flow" and "characterization_factor".
         
         Returns:
             metadata_df (pd.DataFrame):
@@ -1052,7 +1087,7 @@ class ExpertKnowledgeStrategy(UncertaintyStrategyBase):
     """
     def __init__(self, metadata_df, undefined_uncertainty_indices, prob_metadata:Dict[int, Dict[str,Union[int, float]]]):
         """
-        Initialize the ExpertKnowledgeStrategy with prob_metadata containing the expert knowledge 
+        Initialize the ExpertKnowledgeStrategy with 'prob_metadata' containing the expert knowledge 
         and index lists with the indexes of the parameter who's uncertainty information should be
         replaced with the data in prob_metadata.
 
@@ -1070,7 +1105,7 @@ class ExpertKnowledgeStrategy(UncertaintyStrategyBase):
                         uncertainty attribute (str), e.g., 'loc', 'scale', 'minimum', 'uncertainty_type': 
                             attribute value (float or int) 
                     },
-                    index of 3. uncertain parameter (int or tuple): {
+                    index of 2. uncertain parameter (int or tuple): {
                         ...
                     },
                     ...
@@ -1093,7 +1128,7 @@ class ExpertKnowledgeStrategy(UncertaintyStrategyBase):
                         uncertainty attribute (str), e.g., 'loc', 'scale', 'minimum', 'uncertainty_type': 
                             attribute value (float or int) 
                     },
-                    index of 3. uncertain parameter (int or tuple): {
+                    index of 2. uncertain parameter (int or tuple): {
                         ...
                     },
                     ...
@@ -1119,7 +1154,7 @@ class UniformBaseStrategy(UncertaintyStrategyBase):
     Strategy that assigns uniform distributions to parameters with undefined uncertainty information.
 
     For each parameter index in undefined_uncertainty_indices, the staretgy sets min and and max based on
-    configurable scaling factors. 
+    the specified scaling factors. 
     """
     def __init__(
             self, 
@@ -1133,11 +1168,15 @@ class UniformBaseStrategy(UncertaintyStrategyBase):
         Initialize the UniformBaseStrategy with metadata and index lists and scaling factors.
 
         Args:
-            metadata_df (pd.DataFrame): The full metadata DataFrame for parameters.
-            undefined_uncertainty_indices (list): List of parameter indices without defined uncertainties.
-            upper_scaling_factor (float): the scaling factor multiplied with the amount 
+            metadata_df (pd.DataFrame):
+                The full metadata DataFrame for parameters.
+            undefined_uncertainty_indices (list): 
+                List of parameter indices without defined uncertainties.
+            upper_scaling_factor (float): 
+                The scaling factor multiplied with the amount (deterministic values)
                 to get the maximum value for the uniform distribution
-            lower_scaling_factor (float): the scaling factor multiplied with the amount 
+            lower_scaling_factor (float): 
+                The scaling factor multiplied with the amount (deterministic values)
                 to get the minimum value for the uniform distribution
             noise_interval (Dict[str,float]): Dict containing "min" and "max" keywords 
                 holding the upper and lower bound of the noise generated with a uniform distribution 
@@ -1161,8 +1200,10 @@ class UniformBaseStrategy(UncertaintyStrategyBase):
         Compute uniform distribution parameters to parameters without predefined uncertainty.
 
         Args:
-            upper_scaling_factor (float): Scaling factor to determine the upper bound relative to the median.
-            lower_scaling_factor (float): Scaling factor to determine the lower bound relative to the median.
+            upper_scaling_factor (float): 
+                Scaling factor to determine the upper bound relative to the median.
+            lower_scaling_factor (float): 
+                Scaling factor to determine the lower bound relative to the median.
 
         Returns:
             pd.DataFrame: Updated metadata DataFrame including 'minimum', 'maximum',
@@ -1194,11 +1235,12 @@ class UniformBaseStrategy(UncertaintyStrategyBase):
 
 class TriangluarBaseStrategy(UncertaintyStrategyBase):
     """
-    Strategy that assigns triangular distributions to parameters with undefined uncertainty information.
+    Strategy that assigns triangular distributions with specified scaling facotrs
+    to parameters with undefined uncertainty information.
 
-    For each parameter index in undefined_uncertainty_indices, this strategy sets the median
-    (loc) from the 'amount' field of metadata_df and defines min and and max based on
-    configurable scaling factors.
+    For each undefined uncertain parameter, this strategy sets the median
+    (loc) equal to the amount and computes min and and max based on
+    the speficied scaling factors.
 
     The min is computed as loc - lower_scaling_factor * abs(loc), and the max
     as loc + upper_scaling_factor * abs(loc).
@@ -1222,15 +1264,20 @@ class TriangluarBaseStrategy(UncertaintyStrategyBase):
         Initialize the TriangluarBaseStrategy with metadata and index lists and scaling factors.
 
         Args:
-            metadata_df (pd.DataFrame): The full metadata DataFrame for parameters.
-            undefined_uncertainty_indices (list): List of parameter indices without defined uncertainties.
-            upper_scaling_factor (float): the scaling factor multiplied with the amount 
-                to get the maximum value for the triangular distribution
-            lower_scaling_factor (float): the scaling factor multiplied with the amount 
-                to get the minimum value for the triangular distribution
-            noise_interval (Dict[str,float]): Dict containing "min" and "max" keywords 
-                holding the upper and lower bound of the noise generated with a uniform distribution 
-                and multiplied with the scaling factor vector as (1-min) and (1+max)
+            metadata_df (pd.DataFrame): 
+                The full metadata DataFrame for parameters.
+            undefined_uncertainty_indices (list): 
+                List of parameter indices without defined uncertainties.
+            upper_scaling_factor (float): 
+                the scaling factor multiplied with the amount to get the maximum value 
+                for the triangular distribution
+            lower_scaling_factor (float): 
+                the scaling factor multiplied with the amount to get the minimum value 
+                for the triangular distribution
+            noise_interval (Dict[str,float]): 
+                Dict containing "min" and "max" keywords holding the upper and lower bound 
+                of the noise generated with a uniform distribution and multiplied with 
+                the scaling factor vector as (1-min) and (1+max)
         """
         super().__init__(
             metadata_df, 
@@ -1251,15 +1298,19 @@ class TriangluarBaseStrategy(UncertaintyStrategyBase):
         Compute triangular distribution parameters to parameters without predefined uncertainty.
 
         Args:
-            upper_scaling_factor (float): Scaling factor to determine the upper bound relative to the median.
-            lower_scaling_factor (float): Scaling factor to determine the lower bound relative to the median.
-            noise_interval (Dict[str,float]): Dict containing "min" and "max" keywords 
-                holding the upper and lower bound of the noise generated with a uniform distribution 
-                and multiplied with the scaling factor vector as (1-min) and (1+max)
+            upper_scaling_factor (float): 
+                Scaling factor to determine the upper bound relative to the median.
+            lower_scaling_factor (float): 
+                Scaling factor to determine the lower bound relative to the median.
+            noise_interval (Dict[str,float]): 
+                Dict containing "min" and "max" keywords holding the upper and lower bound 
+                of the noise generated with a uniform distribution and multiplied with 
+                the scaling factor vector as (1-min) and (1+max)
 
         Returns:
-            pd.DataFrame: Updated metadata DataFrame including 'loc', 'minimum', 'maximum',
-                          and 'uncertainty_type' set to 5 (triangular) for targeted parameters.
+            metadata_df (pd.DataFrame(): 
+                Updated metadata DataFrame including 'loc', 'minimum', 'maximum',
+                and 'uncertainty_type' set to 5 (triangular) for targeted parameters.
         """
         metadata_df = self.metadata_df.copy()
         # Create a scaling factor array if scaling_factors are floats and randomize it if the noise interval has min and max greater 0.
@@ -1290,7 +1341,8 @@ class TriangluarBaseStrategy(UncertaintyStrategyBase):
     
 class TriangularBoundInterpolationStrategy(TriangluarBaseStrategy):
     """
-    Strategy that assigns triangular distributions to parameters with undefined uncertainty information.
+    Strategy that assigns triangular distributions based on interpolated parameter bounds
+    to parameters with undefined uncertainty information.
 
     For each parameter index in undefined_uncertainty_indices, this strategy sets the median
     (loc) from the 'amount' field of metadata_df and defines min and max based on
@@ -1314,10 +1366,14 @@ class TriangularBoundInterpolationStrategy(TriangluarBaseStrategy):
         Initialize the TriangularBoundInterpolationStrategy with metadata and index lists.
 
         Args:
-            metadata_df (pd.DataFrame): The full metadata DataFrame for parameters.
-            undefined_uncertainty_indices (list): List of parameter indices without defined uncertainties.
-            defined_uncertainty_metadata (dict): Dictionary mapping indices to existing uncertainty metadata.
-            noise_interval (Dict[str,float]): Dict containing "min" and "max" keywords 
+            metadata_df (pd.DataFrame): 
+                The full metadata DataFrame for parameters.
+            undefined_uncertainty_indices (list): 
+                List of parameter indices without defined uncertainties.
+            defined_uncertainty_metadata (dict): 
+                Dictionary mapping indices to existing uncertainty metadata.
+            noise_interval (Dict[str,float]): 
+                Dict containing "min" and "max" keywords 
                 holding the upper and lower bound of the noise generated with a uniform distribution 
                 and multiplied with the scaling factor vector as (1-min) and (1+max)
         """
@@ -1366,6 +1422,11 @@ class TriangularBoundInterpolationStrategy(TriangluarBaseStrategy):
     def assign(self, **kwargs) -> pd.DataFrame:
         """
         Assign triangular distribution parameters derived averaged bounds, to parameters without predefined uncertainty.
+
+        Returns:
+            metadata_asigned_df (pd.DataFrame):
+                Updated metadata DataFrame with the interpolated triangular uncertainty information.
+                
         """
         upper_scaling_factor, lower_scaling_factor = self._compute_bounds_statistics()
         metadata_asigned_df = self._compute_triag_dist_params(upper_scaling_factor, lower_scaling_factor, **kwargs)
@@ -1838,12 +1899,16 @@ class GlobalSensitivityAnalysis:
                 Characterized inventory flows per sample.
             total_Si_metadata (pd.DataFrame):
                 'bar_names' for labeling processes.
-            top_amount (int): Number of top processes to include.
-            colormap_base (pd.Series): Base colormap mapping (optional).
-            colormap_SA_barplot (pd.Series): Sensitivity-plot colormap mapping (optional).
+            top_amount (int): 
+                Number of top processes to include.
+            colormap_base (pd.Series): 
+                Base colormap mapping (optional).
+            colormap_SA_barplot (pd.Series): 
+                Sensitivity-plot colormap mapping (optional).
 
         Returns:
-            pd.DataFrame: Data prepared for the linked impact contribution plot.
+            data_plot (pd.DataFrame): 
+                Data prepared for the linked impact contribution plot.
         """        
         #Plot the main contributing variables to the total environmental impact
         # Generate the data
@@ -1896,7 +1961,7 @@ class CCFormulationBase:
                         '...': pd.DataFrame(...),
                     }
             pulpo_worker:
-                Factory or callable that constructs the deterministic Pyomo model.
+                The initialized deterministic Pyomo model.
             method (str):
                 LCIA method name (used in impact calculations). 
                 Needed to later compare the CC optimization results.
