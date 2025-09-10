@@ -964,6 +964,10 @@ class UncertaintyImporter:
             
         """
         param_metadata:dict = {}
+        # ATTN: Change this method that it gets the pyomo parameter amount from the dicts used to instantiate the worker
+        #   from: upper_limit, lower_limit, upper_elem_limit, upper_imp_limit
+        #   These must then be arguments into the method, probably as **kwargs
+        #   passed by the wrapper method in the pulpo worker
         param_data = getattr(instance, pyomo_param_name).extract_values()
         for param_indx in param_indcs:
             param_metadata[param_indx] = {}
@@ -1032,41 +1036,6 @@ class UncertaintyStrategyBase:
         random_noise = rng.uniform(1-low, 1+high, len(self.undefined_uncertainty_indices))
         scaling_factor_randomized = random_noise * np.array(scaling_factor)
         return scaling_factor_randomized.tolist()
-    
-    def rename_metadata_index(self, lci_data:dict, uncertainty_param_name:str):
-        """
-        Changes the index of the metadata_df from the matrix index to a readable name based on the metadata of the underlying parameters.
-        Currently implemented for "intervention_flow" and "characterization_factor".
-
-        Args:
-            lci_data (dict):
-                The lci_data containing the "..._map_metadata" dicts needed to rename the index, from pulpo_worker.
-            uncertainty_param_name (str):
-                The parameter name contained in the "metadata_df", 
-                options are: "intervention_flow" and "characterization_factor".
-        
-        Returns:
-            metadata_df (pd.DataFrame):
-                The uncertainty metadata frame with descriptive indices.
-        """
-        metadata_df = self.metadata_assigned_df.copy()
-        match uncertainty_param_name:
-            case 'intervention_flow':
-                if_index_map = {
-                    (interv_indx, process_indx):  '{} --- {}'.format(
-                        lci_data['process_map_metadata'][process_indx], lci_data['intervention_map_metadata'][interv_indx]
-                        ) for interv_indx, process_indx in metadata_df.index
-                        }
-                flat_index = metadata_df.index.to_flat_index()
-                metadata_df = metadata_df.reset_index()
-                metadata_df.index = flat_index
-                metadata_df = metadata_df.rename(index=if_index_map)
-            case 'characterization_factor':
-                cf_index_map = {interv_indx:  '{} '.format(lci_data['intervention_map_metadata'][interv_indx]) for interv_indx in metadata_df.index}
-                metadata_df.rename(index=cf_index_map)
-            case _:
-                raise Exception(f'"rename_metadata_index" to <<{uncertainty_param_name}>> as "uncertainty_var_name" has not been implemented')
-        return metadata_df
 
     def assign(self, *args, **kwargs) -> pd.DataFrame:
         """
@@ -1562,7 +1531,45 @@ class UncertaintyProcessor:
             case _:
                 raise Exception(f'Not defined return_type: {return_type}')
 
+    @staticmethod
+    def rename_metadata_index(metadata_df, lci_data:dict, param_type:str):
+            """
+            Changes the index of the metadata_df from the matrix index to a readable name based on the metadata of the underlying parameters.
+            Currently implemented for "intervention_flow" and "characterization_factor".
 
+            Args:
+                metadata_df (pd.dataframe):
+                    The metadata dataframe containing the index to be renamed as dataframe index
+                lci_data (dict):
+                    The lci_data containing the "..._map_metadata" dicts needed to rename the index, from pulpo_worker.
+                param_type (str):
+                    The parameter name contained in the "metadata_df", 
+                    options are: "intervention_flow" and "characterization_factor".
+            
+            Returns:
+                metadata_df (pd.DataFrame):
+                    The uncertainty metadata frame with descriptive indices.
+            """
+            match param_type:
+                case 'intervention_flow':
+                    if_index_map = {
+                        (interv_indx, process_indx):  '{} --- {}'.format(
+                            lci_data['process_map_metadata'][process_indx], lci_data['intervention_map_metadata'][interv_indx]
+                            ) for interv_indx, process_indx in metadata_df.index
+                            }
+                    flat_index = metadata_df.index.to_flat_index()
+                    metadata_df = metadata_df.reset_index()
+                    metadata_df.index = flat_index
+                    metadata_df = metadata_df.rename(index=if_index_map)
+                case 'characterization_factor':
+                    cf_index_map = {interv_indx:  '{} '.format(lci_data['intervention_map_metadata'][interv_indx]) for interv_indx in metadata_df.index}
+                    metadata_df.rename(index=cf_index_map)
+                case 'process':
+                    process_index_map = {process_indx:  '{} '.format(lci_data['process_map_metadata'][process_indx]) for process_indx in metadata_df.index}
+                    metadata_df = metadata_df.rename(index=process_index_map)
+                case _:
+                    raise Exception(f'"rename_metadata_index" to <<{param_type}>> as "uncertainty_var_name" has not been implemented')
+            return metadata_df
 
 # class UncertaintyModule:
 #     """Orchestrate uncertainty prep for GSA or CC workflows"""
