@@ -2,7 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
-## [0.1.5] - 2025-01-??
+## [1.4.2] - 2025-06-06
+* Enable the use of Gurobi solver
+* Pass email as argument to NEOS solver
+* Enable choices to be specified as dict of lists rather than dict of dicts
+
+## [0.1.5] - 2025-01-26
 * Convenience changes to optimization problem formulation
 * Enable users to specify separate fore- and background databases to retrieve data from simultaneously.
 * Several bugfixes
