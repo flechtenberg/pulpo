@@ -23,12 +23,12 @@ class PulpoOptimizer:
         self.directory = directory
         self.lci_data = None
         self.instance = None
-        self.choices = {}
-        self.demand = {}
-        self.upper_limit = {}
-        self.lower_limit = {}
-        self.upper_elem_limit = {}
-        self.upper_imp_limit = {}
+        self.choices:dict = {}
+        self.demand:dict = {}
+        self.upper_limit:dict = {}
+        self.lower_limit:dict = {}
+        self.upper_elem_limit:dict = {}
+        self.upper_imp_limit:dict = {}
 
         bw_parser.set_project(project)
 
