@@ -1,0 +1,236 @@
+
+
+# === Plots ===
+
+def set_size(width, height, fraction=1):
+    """ Set aesthetic figure dimensions to avoid scaling in latex.
+ 
+    Parameters
+    ----------
+    width: float
+            Width in pts
+    fraction: float
+            Fraction of the width which you wish the figure to occupy
+ 
+    Returns
+    -------
+    fig_dim: tuple
+            Dimensions of figure in inches
+    """
+    # Width of figure
+    fig_width_pt = width * fraction    
+ 
+    # Convert from pt to inches
+    inches_per_pt = 1 / 72.27
+ 
+    # Golden ratio to set aesthetic figure height
+    golden_ratio = (5**.5 - 1) / 2
+ 
+    # Figure width in inches
+    fig_width_in = fig_width_pt * inches_per_pt
+    # Figure height in inches
+    if height: #if height is specified
+        fig_height_pt = height * fraction
+        fig_height_in = fig_height_pt * inches_per_pt
+    else:
+        fig_height_in = fig_width_in * golden_ratio
+ 
+    fig_dim = (fig_width_in, fig_height_in)
+ 
+    return fig_dim
+
+def plot_contribution_barplot(data:pd.DataFrame, metadata:pd.DataFrame, impact_category:str, colormap:pd.Series=pd.Series([]), bbox_to_anchor_lower:float = -0.6, bbox_to_anchor_center:float=0.5):
+    """
+    Barplot of the contributional variance of the parameters in an objective
+
+    args:
+        data:       series with impacts as values and processes as index
+        metadata:   metadataframe with bar_names and same indices as data
+        colormap:   Series with color codes to each data index     `colormap = pd.Series(mpl.cm.tab20.colors[:data.shape[0]], index=data.index)`
+        bbox_to_anchor_lower: negative float, scaled how much the legend is under the plot
+    """
+    width = 6*72.4
+    height = None
+    _, ax = plt.subplots(1, 1, figsize=set_size(width,height))
+
+    # Data
+    data = data.sort_values(ascending=False)
+    heights = data.values * 100
+    bars = [textwrap.fill(string, 50) for string in metadata.reindex(data.index)]
+    y_pos = range(len(bars))
+    
+    for height, y_po, indx in zip(heights, y_pos, data.index):
+        ax.bar(y_po, height, capsize=5, ecolor="gray", color=colormap[indx], alpha=0.9)
+    ax.set_xticks([])
+    if (data<=1).all() and (data>=0).all():
+        ax.yaxis.set_major_formatter(mpl.ticker.PercentFormatter())
+        ax.yaxis.set_major_locator(mpl.ticker.MultipleLocator(10))
+        # For the minor ticks, use no labels; default NullFormatter.
+        ax.yaxis.set_minor_locator(mpl.ticker.MultipleLocator(5))
+    ax.legend(bars, loc='lower center', bbox_to_anchor=(bbox_to_anchor_center, bbox_to_anchor_lower), borderpad=1)
+    ax.set_axisbelow(True)
+    ax.yaxis.grid(color='gray', linestyle='dotted')
+    ax.set_xlabel("Main environmental parameters")
+    ax.set_ylabel("Contribution to total {} in [\%]".format(impact_category))
+    return ax
+
+def plot_contribution_barplot_with_err(data:pd.DataFrame, metadata:pd.DataFrame, colormap:pd.Series=pd.Series([]), bbox_to_anchor_lower:float = -0.6, bbox_to_anchor_center:float=0.5):
+    """
+    Barplot of the contributional variance of the parameters in an objective
+
+    args:
+        data:       dataframe with columns: "ST" and "ST_conf"
+        metadata:   metadataframe with "bar_names" column and same indices as data
+        colormap:   Series with color codes to each data index     `colormap = pd.Series(mpl.cm.tab20.colors[:data.shape[0]], index=data.index)`
+        bbox_to_anchor_lower: negative float, scaled how much the legend is under the plot
+    """
+    width = 6*72.4
+    height = None
+    _, ax = plt.subplots(1, 1, figsize=set_size(width,height))
+
+    # Data
+    data = data.sort_values(["ST"], ascending=False)
+    heights = data["ST"].values * 100
+    yerrs = data["ST_conf"].values * 100
+    bars = [textwrap.fill(string, 50) for string in metadata["bar_names"].reindex(data.index)]
+    y_pos = range(len(bars))
+    
+    for height, y_po, yerr, indx in zip(heights, y_pos, yerrs, data.index):
+        ax.bar(y_po, height, yerr=yerr, capsize=5, ecolor="gray", color=colormap[indx], alpha=0.9)
+    ax.set_xticks([])
+    if (data["ST"]<=1).all() and (data["ST"]>=0).all():
+        ax.yaxis.set_major_formatter(mpl.ticker.PercentFormatter())
+        ax.yaxis.set_major_locator(mpl.ticker.MultipleLocator(10))
+        # For the minor ticks, use no labels; default NullFormatter.
+        ax.yaxis.set_minor_locator(mpl.ticker.MultipleLocator(5))
+    ax.legend(bars, loc='lower center', bbox_to_anchor=(bbox_to_anchor_center, bbox_to_anchor_lower), borderpad=1)
+    ax.set_axisbelow(True)
+    ax.yaxis.grid(color='gray', linestyle='dotted')
+    return ax
+
+def plot_linked_contribution_barplot(data:pd.DataFrame,  metadata:pd.DataFrame, impact_category:str, colormap_base:tuple, colormap_linked:pd.Series=pd.Series([]), savefig:Optional[bool]=None, bbox_to_anchor_center:float=0.7, bbox_to_anchor_lower:float=0.7):
+    """
+    Barplot of the contributional variance of the parameters in total cost objective
+
+    args:
+        data:       dataframe with columns: "ST" and "ST_conf"
+        metadata:   metadataframe with "bar_names" column and same indices as data
+        impact_category:    name of environmental impact category
+        colormap_base:      The colormap which should be used for the plot, use the same as underlying the colormap_linked if it is specified
+        colormap_linked:    If there is a colormap from another plot where the variables shown in this plot should refer to if they appear in both
+        savefig:    if true saves fig into specified path
+    """
+    if colormap_linked.empty:
+        colormap = pd.Series(colormap_base[:data.shape[0]], index=data.index)
+    else:
+        # act_indcs = [index for index in colormap.index if type(index[1]) == int]
+        # colormap_red = pd.Series(colormap[act_indcs].values, index=[indcs[1] for indcs in act_indcs])
+        colormap_red = colormap_linked.loc[colormap_linked.index.isin(data.index)]
+        addtional_incs = data.index[~data.index.isin(colormap_red.index)]
+        additional_colormap = pd.Series(
+            colormap_base[colormap_linked.shape[0]:colormap_linked.shape[0]+len(addtional_incs)], 
+            index = addtional_incs
+            )
+        colormap = pd.concat([colormap_red, additional_colormap])
+
+
+    ax = plot_contribution_barplot_with_err(data, metadata, colormap=colormap, bbox_to_anchor_lower=bbox_to_anchor_lower, bbox_to_anchor_center=bbox_to_anchor_center)    
+    ax.set_xlabel("Main environmental parameters")
+    ax.set_ylabel("Contribution to total {} in [\%]".format(impact_category))
+
+    # Save figure
+    if savefig:
+        raise Exception('not implemented yet')
+        # plt.savefig(r"C:\Users\admin\OneDrive - Carbon Minds GmbH\Dokumente\13 Students\MA_Bartolomeus_Löwgren\02_code\03_optimization_framework\04_case_studies\02_plots\total_env_impact_barplot" + ".{}".format(fileformat), format=fileformat, bbox_inches='tight')
+
+def plot_pareto_solution_normalized_bar_plots(data:pd.DataFrame, y_label:str, bbox_to_anchor:tuple=(1.40, .05)):
+    """
+    Plots normalized bar plots [0-1] stacked by the rows in the `data` dataframe and bars based on the columns.
+    Normalized the bars based on the sum of each column.
+
+    args:
+        data (pd.DataFrame):
+            Dataframe with: columns as Pareto solutions, e.g., Lambdas, rows: impacts of groups or processes
+        y_label (str):
+            Name of the variable in in the values in the dataframe, e.g., impact category
+        bbox_to_anchor (tuple): 
+                Tuple holding the bbox anchor points for the legend.
+                Default value is (1.40, .05).
+    """
+    
+    width = 6*72.4
+    height = None
+    _, ax = plt.subplots(1, 1, figsize=set_size(width,height))
+    # Normalize the data and create bar plot data format
+    data_cleaned = data.copy()
+    data_cleaned_scaled = data_cleaned.abs().divide(data_cleaned.abs().sum())
+    data_cumsum = data_cleaned_scaled.cumsum(axis=0)
+    # Set the bar plot style
+    bar_width = .8
+    labels = ["{:.3f}".format(label) for label in data.columns.astype(float).values]
+    bottom_data = np.zeros(len(labels))
+    # Plot the bars
+    for i_row, (type, row_data) in enumerate(data_cumsum.iterrows()):
+        ax.bar(labels, row_data.values-bottom_data, bar_width, bottom=bottom_data, label=type, color=mpl.cm.tab20.colors[i_row])
+        bottom_data = row_data.values
+    ax.axhline(y=0, color='k')
+    ax.set_xlabel("probability level ($\lambda$)")
+    ax.set_ylabel("{} in [\%]".format(y_label))
+    for tick in ax.get_xticklabels():
+        tick.set_rotation(45)
+    # Plot the Pareto front 
+    ax2 = ax.twinx()
+    ax2.plot(labels, data.sum().values/1e9, "kx-", label="total GWP", linewidth=1)
+    ax2.set_ylabel(y_label)
+    # Set the legend 
+    lines, labels = ax.get_legend_handles_labels()
+    lines2, labels2 = ax2.get_legend_handles_labels()
+    ax.legend(lines + lines2, labels + labels2, loc='lower center', bbox_to_anchor=bbox_to_anchor, borderpad=1, facecolor="None")
+    ax.set_facecolor("None")
+
+def plot_pareto_solution_bar_plots(data:pd.DataFrame, y_label:str, bbox_to_anchor:tuple=(1.40, .05), save_fig_name:str=""):
+    """
+    args:
+        data (pd.DataFrame):
+            Dataframe with: columns as Pareto solutions, e.g., Lambdas, rows: impacts of groups or processes
+        y_label (str):
+            Name of the variable in in the values in the dataframe, e.g., impact category
+        bbox_to_anchor (tuple): 
+            Tuple holding the bbox anchor points for the legend.
+            Default value is (1.40, .05).
+        save_fig_name (str):
+            Currently not in use
+    """
+    
+    # set figure and plot
+    width = 6*72.4
+    height = None
+    _, ax = plt.subplots(1, 1, figsize=set_size(width,height))
+
+    data_cleaned = data.copy()
+    data_cleaned[data.abs() < data.abs().sum()/500] = 0
+    data_cleaned = data_cleaned.drop(index = data_cleaned.index[(data_cleaned == 0).all(axis=1)])
+    data_positive_cumsum = data_cleaned[(data_cleaned>=0).all(axis=1)].cumsum(axis=0)
+    width = .8
+    labels = ["{:.3f}".format(label) for label in data.columns.astype(float).values]
+    bottom_data = np.zeros(len(labels))
+    for i_row, (type, row_data) in enumerate(data_positive_cumsum.iterrows()):
+        ax.bar(labels, row_data.values-bottom_data, width, bottom=bottom_data, label=type, color=mpl.cm.tab20.colors[i_row])
+        bottom_data = row_data.values
+    data_negative_cumsum = data_cleaned[(data_cleaned<=0).all(axis=1)].cumsum(axis=0)
+    bottom_data = np.zeros(len(labels))
+    for i_row, (type, row_data) in enumerate(data_negative_cumsum.iterrows()):
+        ax.bar(labels, row_data.values-bottom_data, width, bottom=bottom_data, label=type, color=mpl.cm.tab20.colors[i_row+data_positive_cumsum.shape[0]])
+        bottom_data = row_data.values
+    ax.plot(labels, data.sum().values, "kx-", markersize=6, linewidth=1.)
+    ax.axhline(y=0, color='k')
+    plt.xticks(rotation = 45) 
+    ax.legend(loc='lower center', bbox_to_anchor=bbox_to_anchor, borderpad=1)
+
+    ax.set_xlabel("Pareto points, represented by alpha")
+    ax.set_ylabel(y_label)
+    # if save_fig_name != "":
+    #     plt.savefig(r"C:\Users\admin\OneDrive - Carbon Minds GmbH\Dokumente\13 Students\MA_Bartolomeus_Löwgren\02_code\03_optimization_framework\04_case_studies\02_plots" + "\{}.{}".format(save_fig_name, fileformat), format=fileformat, bbox_inches='tight')
+
+
+
