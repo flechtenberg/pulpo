@@ -1,6 +1,77 @@
+"""
+plots.py
 
+Module that contains the plots used in the uncertainty modules.
+It is split up in "Plots Wrapper" and "General Plots"
+which are the methods that prepare the data and then call 
+a general plot method.
+"""
 
-# === Plots ===
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import scipy.sparse
+import stats_arrays
+import scipy.stats
+import pandas as pd
+import numpy as np
+import os
+from pulpo import pulpo
+import scipy.sparse as sparse
+from time import time
+import stats_arrays
+import matplotlib.pyplot as plt
+import matplotlib as mpl
+import textwrap
+import bw2data
+import bw2calc
+import ast
+import array
+from typing import Union, List, Optional, Dict, Tuple
+
+# === Plots Wrapper ===
+
+def plot_top_characterized_processes(
+        process_map_metadata:dict[int, str],
+        characterized_inventory:scipy.sparse.sparray, 
+        method:str, 
+        top_amount:int=10
+        ):
+    """
+    Plot the top-N contributing processes or parameters as a bar chart.
+
+    Args:
+        process_map_metadata (dict):
+            Dictionary mapping the process index (keys) to the metadata, i.e., description (values)
+        characterized_inventory (scipy.sparse.sparray): 
+            B·(Q·s) for each parameter (impact after characterization).
+        method (str):
+            The LCIA method used to compute the characterized inventory
+        top_amount (int) - optional: 
+            Number of top items to display (default: 10).
+
+    Returns:
+        None: Displays a matplotlib bar plot of the highest contributors.
+    """
+    # Plot the highest contributing processes
+    impact_df = pd.DataFrame(
+        characterized_inventory.sum(axis=0).T,
+        index=list(range(characterized_inventory.shape[1])),
+        columns=['impact']
+    )
+    impact_df['process name'] = impact_df.index.map(process_map_metadata)
+    impact_df = impact_df.reindex(impact_df['impact'].abs().sort_values(ascending=False).index)
+    impact_df_red = impact_df.iloc[:top_amount,:]
+    impact_rest = impact_df.iloc[top_amount:,:].sum()
+    impact_rest['process name'] = 'Rest'
+    impact_df_red = pd.concat([impact_df_red, impact_rest.to_frame().T], axis=0)        
+    impact_df_red['impact'] = impact_df_red['impact'] / impact_df['impact'].sum()
+    colormap = mpl.colormaps['tab20']
+    colormap_ser = pd.Series(colormap.colors[:impact_df_red.shape[0]], index=impact_df_red.index)
+    plot_contribution_barplot(impact_df_red['impact'], metadata=impact_df_red['process name'], impact_category=method, colormap=colormap_ser,  bbox_to_anchor_center=1.7, bbox_to_anchor_lower=-.6)
+    plt.show()
+
+# === General Plots ===
 
 def set_size(width, height, fraction=1):
     """ Set aesthetic figure dimensions to avoid scaling in latex.
