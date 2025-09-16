@@ -38,15 +38,15 @@ class UncertaintyStrategyBase:
     methods to derive distribution parameters for these unspecified uncertainties.
 
     """
-    def __init__(self, uncertainty_data:dict, uncertain_param_type:str, uncertain_param_subgroup:str, *args, **kwargs):
+    def __init__(
+            self, 
+            uncertain_param_type:Literal['If', 'Cf', 'Var_bounds'], 
+            uncertain_param_subgroup:str,
+        ):
         """
         Initialize the UncertaintyStrategyBase with metadata and index lists.
 
         Args:
-            uncertainty_data (dict): 
-                The uncertainty data containing the defined and undefined 
-                uncertainty information, returned from:
-                `preparer.UncertaintyImporter.import_uncertainty_data()`
             uncertain_param_type (str): 
                 The uncertainty parameter type: 'If', 'Cf', or 'Var_bounds'
             uncertain_param_subgroup (str):
@@ -54,12 +54,9 @@ class UncertaintyStrategyBase:
                 uncertain_param_type, the BW databse name for 'If', the 
                 LCIA method for 'Cf' and the types of variable bounds for 
                 'Var_bounds'
-            *args: 
-                additional arguments passed to the assign method
-            **kwargs: 
-                additional optional arguments passed to the assign method
         """
-        self.assign(uncertainty_data, uncertain_param_type, uncertain_param_subgroup, *args, **kwargs)
+        self.uncertain_param_type = uncertain_param_type
+        self.uncertain_param_subgroup = uncertain_param_subgroup
 
     def add_random_noise_to_scaling_factor(self, undefined_param_amt:int, scaling_factor:Union[float, list], low:float, high:float) -> list:
         """
@@ -89,15 +86,9 @@ class UncertaintyStrategyBase:
         scaling_factor_randomized = random_noise * np.array(scaling_factor)
         return scaling_factor_randomized.tolist()
 
-    def assign(self, uncertainty_data:dict, uncertain_param_type:str, uncertain_param_subgroup:str, *args, **kwargs):
+    def assign(self, *args):
         """
         Assign distribution parameters to parameters without predefined uncertainty.
-
-        Args:
-            <<Depending on the strategy>>
-
-        Returns:
-            pd.DataFrame: Updated metadata DataFrame for targeted parameters.
         """
         pass
 
@@ -107,7 +98,6 @@ class ExpertKnowledgeStrategy(UncertaintyStrategyBase):
     """
     def __init__(
             self,
-            uncertainty_data:UncertaintyData, 
             uncertain_param_type:Literal['If', 'Cf', 'Var_bounds'], 
             uncertain_param_subgroup:str,
             prob_metadata:Dict[int, Dict[str,Union[int, float]]]
@@ -118,10 +108,6 @@ class ExpertKnowledgeStrategy(UncertaintyStrategyBase):
         replaced with the data in prob_metadata.
 
         Args:
-            uncertainty_data (dict): 
-                The uncertainty data containing the defined and undefined 
-                uncertainty information, returned from:
-                `preparer.UncertaintyImporter.import_uncertainty_data()`
             uncertain_param_type (str): 
                 The uncertainty parameter type: 'If', 'Cf', or 'Var_bounds'
             uncertain_param_subgroup (str):
@@ -143,15 +129,13 @@ class ExpertKnowledgeStrategy(UncertaintyStrategyBase):
                     ...
                 }
         """
-        super().__init__(uncertainty_data, uncertain_param_type, uncertain_param_subgroup, prob_metadata)  
+        super().__init__(uncertain_param_type, uncertain_param_subgroup)
+        self.prob_metadata = prob_metadata  
 
 
     def insert_expert_knowledge(
             self, 
-            uncertainty_data:UncertaintyData, 
-            uncertain_param_type:Literal['If', 'Cf', 'Var_bounds'], 
-            uncertain_param_subgroup:str,
-            prob_metadata_dict
+            uncertainty_data:UncertaintyData
             ):
         """
         Updated the parameters uncertainty information in the metadata_df
@@ -162,40 +146,20 @@ class ExpertKnowledgeStrategy(UncertaintyStrategyBase):
                 The uncertainty data containing the defined and undefined 
                 uncertainty information, returned from:
                 `preparer.UncertaintyImporter.import_uncertainty_data()`
-            uncertain_param_type (str): 
-                The uncertainty parameter type: 'If', 'Cf', or 'Var_bounds'
-            uncertain_param_subgroup (str):
-                The subgroup of the uncertain_param_type, depends on the 
-                uncertain_param_type, the BW databse name for 'If', the 
-                LCIA method for 'Cf' and the types of variable bounds for 
-                'Var_bounds'
-            prob_metadata_dict (Dict[int, Dict[str,Union[int, float]]]): 
-                the export knowledge uncertainty metadata of the parameters which are to be
-                replaced in the metadata_df, the dictionary is structured as:
-                { 
-                    index of 1. uncertain parameter (int or tuple): {
-                        uncertainty attribute (str), e.g., 'loc', 'scale', 'minimum', 'uncertainty_type': 
-                            attribute value (float or int) 
-                    },
-                    index of 2. uncertain parameter (int or tuple): {
-                        ...
-                    },
-                    ...
-                }
         """
         # Roughly checks the probability metadata by creating an uncertainty object in stats_array 
         # which will only take the correct keys out of the prob_metadata dict
         # It can still have missing data or wrong values
-        prob_metadata_stats_array = stats_arrays.UncertaintyBase.from_dicts(*prob_metadata_dict.values())
+        prob_metadata_stats_array = stats_arrays.UncertaintyBase.from_dicts(*self.prob_metadata.values())
         # Writes the expert uncertainty information into the uncertainty_data
-        for indx, prob_metadata_arr in zip(prob_metadata_dict.keys(), prob_metadata_stats_array):
+        for indx, prob_metadata_arr in zip(self.prob_metadata.keys(), prob_metadata_stats_array):
             prob_metadata = dict(zip(prob_metadata_stats_array.dtype.names, prob_metadata_arr))
-            if indx not in uncertainty_data[uncertain_param_type][uncertain_param_subgroup]['defined'].keys():
-                raise Exception(f'{indx} is not found in "defined" uncertainty data of {uncertain_param_subgroup} in {uncertain_param_type}.')
-            uncertainty_data[uncertain_param_type][uncertain_param_subgroup]['defined'][indx].update(prob_metadata)
+            if indx not in uncertainty_data[self.uncertain_param_type][self.uncertain_param_subgroup]['defined'].keys():
+                raise Exception(f'{indx} is not found in "defined" uncertainty data of {self.uncertain_param_subgroup} in {self.uncertain_param_type}.')
+            uncertainty_data[self.uncertain_param_type][self.uncertain_param_subgroup]['defined'][indx].update(prob_metadata)
     
-    def assign(self, *args):
-        self.insert_expert_knowledge(*args)
+    def assign(self, uncertainty_data:UncertaintyData):
+        self.insert_expert_knowledge(uncertainty_data)
 class UniformBaseStrategy(UncertaintyStrategyBase):
     """
     Strategy that assigns uniform distributions to parameters with undefined uncertainty information.
@@ -205,21 +169,16 @@ class UniformBaseStrategy(UncertaintyStrategyBase):
     """
     def __init__(
             self, 
-            uncertainty_data:dict, 
-            uncertain_param_type:str, 
+            uncertain_param_type:Literal['If', 'Cf', 'Var_bounds'], 
             uncertain_param_subgroup:str,
             upper_scaling_factor:float, 
-            lower_scaling_factor:float, 
+            lower_scaling_factor:float,
             noise_interval:Dict[str,float]={'min':0., 'max':0.}
             ) -> None:
         """
         Initialize the UniformBaseStrategy with metadata and index lists and scaling factors.
 
         Args:
-            uncertainty_data (dict): 
-                The uncertainty data containing the defined and undefined 
-                uncertainty information, returned from:
-                `preparer.UncertaintyImporter.import_uncertainty_data()`
             uncertain_param_type (str): 
                 The uncertainty parameter type: 'If', 'Cf', or 'Var_bounds'
             uncertain_param_subgroup (str):
@@ -237,23 +196,14 @@ class UniformBaseStrategy(UncertaintyStrategyBase):
                 holding the upper and lower bound of the noise generated with a uniform distribution 
                 and multiplied with the scaling factor vector as (1-min) and (1+max)
         """
-        super().__init__(
-            uncertainty_data, 
-            uncertain_param_type, 
-            uncertain_param_subgroup,
-            upper_scaling_factor, 
-            lower_scaling_factor, 
-            noise_interval=noise_interval
-            )
+        super().__init__(uncertain_param_type, uncertain_param_subgroup)
+        self.upper_scaling_factor = upper_scaling_factor
+        self.lower_scaling_factor = lower_scaling_factor
+        self.noise_interval = noise_interval
 
     def _compute_uniform_dist_params(
             self,
             uncertainty_data:UncertaintyData, 
-            uncertain_param_type:Literal['If', 'Cf', 'Var_bounds'], 
-            uncertain_param_subgroup:str,
-            upper_scaling_factor:float, 
-            lower_scaling_factor:float,
-            noise_interval:Dict[str,float]={'min':0., 'max':0.}
             ) -> pd.DataFrame:
         """
         Compute uniform distribution parameters to parameters without predefined uncertainty.
@@ -263,47 +213,36 @@ class UniformBaseStrategy(UncertaintyStrategyBase):
                 The uncertainty data containing the defined and undefined 
                 uncertainty information, returned from:
                 `preparer.UncertaintyImporter.import_uncertainty_data()`
-            uncertain_param_type (str): 
-                The uncertainty parameter type: 'If', 'Cf', or 'Var_bounds'
-            uncertain_param_subgroup (str):
-                The subgroup of the uncertain_param_type, depends on the 
-                uncertain_param_type, the BW databse name for 'If', the 
-                LCIA method for 'Cf' and the types of variable bounds for 
-                'Var_bounds'
-            upper_scaling_factor (float): 
-                Scaling factor to determine the upper bound relative to the median.
-            lower_scaling_factor (float): 
-                Scaling factor to determine the lower bound relative to the median.
 
         Returns:
             pd.DataFrame: Updated metadata DataFrame including 'minimum', 'maximum',
                           and 'uncertainty_type' set to 4 (uniform) for targeted parameters.
         """
         # Create a scaling factor array if scaling_factors are floats and randomize it if the noise interval has min and max greater 0.
-        undefined_param_amt = len(uncertainty_data[uncertain_param_type][uncertain_param_subgroup]['undefined'])
-        upper_scaling_factor_randomized = self.add_random_noise_to_scaling_factor(undefined_param_amt, upper_scaling_factor, noise_interval['min'], noise_interval['max'])
-        lower_scaling_factor_randomized = self.add_random_noise_to_scaling_factor(undefined_param_amt, lower_scaling_factor, noise_interval['min'], noise_interval['max'])
+        undefined_param_amt = len(uncertainty_data[self.uncertain_param_type][self.uncertain_param_subgroup]['undefined'])
+        upper_scaling_factor_randomized = self.add_random_noise_to_scaling_factor(undefined_param_amt, self.upper_scaling_factor, self.noise_interval['min'], self.noise_interval['max'])
+        lower_scaling_factor_randomized = self.add_random_noise_to_scaling_factor(undefined_param_amt, self.lower_scaling_factor, self.noise_interval['min'], self.noise_interval['max'])
         # For each undefined parameter, set loc=median, bounds = ±factor·|median|
-        undefined_uncertainty_indices = list(uncertainty_data[uncertain_param_type][uncertain_param_subgroup]['undefined'].keys())
+        undefined_uncertainty_indices = list(uncertainty_data[self.uncertain_param_type][self.uncertain_param_subgroup]['undefined'].keys())
         for undefined_indx, upper_scaling_factor, lower_scaling_factor in zip(undefined_uncertainty_indices, upper_scaling_factor_randomized, lower_scaling_factor_randomized):
-            undefined_dict = uncertainty_data[uncertain_param_type][uncertain_param_subgroup]['undefined'].pop(undefined_indx)
-            uncertainty_data[uncertain_param_type][uncertain_param_subgroup]['defined'][undefined_indx] = undefined_dict
+            undefined_dict = uncertainty_data[self.uncertain_param_type][self.uncertain_param_subgroup]['undefined'].pop(undefined_indx)
+            uncertainty_data[self.uncertain_param_type][self.uncertain_param_subgroup]['defined'][undefined_indx] = undefined_dict
             amount = undefined_dict['amount']
-            uncertainty_data[uncertain_param_type][uncertain_param_subgroup]['defined'][undefined_indx]['loc'] = np.NaN
+            uncertainty_data[self.uncertain_param_type][self.uncertain_param_subgroup]['defined'][undefined_indx]['loc'] = np.NaN
             if amount > 0:
-                uncertainty_data[uncertain_param_type][uncertain_param_subgroup]['defined'][undefined_indx]['maximum'] = amount + upper_scaling_factor * abs(amount)
-                uncertainty_data[uncertain_param_type][uncertain_param_subgroup]['defined'][undefined_indx]['minimum'] = amount - lower_scaling_factor * abs(amount)
+                uncertainty_data[self.uncertain_param_type][self.uncertain_param_subgroup]['defined'][undefined_indx]['maximum'] = amount + upper_scaling_factor * abs(amount)
+                uncertainty_data[self.uncertain_param_type][self.uncertain_param_subgroup]['defined'][undefined_indx]['minimum'] = amount - lower_scaling_factor * abs(amount)
             elif amount < 0:
-                uncertainty_data[uncertain_param_type][uncertain_param_subgroup]['defined'][undefined_indx]['maximum'] = amount + lower_scaling_factor * abs(amount)
-                uncertainty_data[uncertain_param_type][uncertain_param_subgroup]['defined'][undefined_indx]['minimum'] = amount - upper_scaling_factor * abs(amount)
-            uncertainty_data[uncertain_param_type][uncertain_param_subgroup]['defined'][undefined_indx]['uncertainty_type'] = 4
+                uncertainty_data[self.uncertain_param_type][self.uncertain_param_subgroup]['defined'][undefined_indx]['maximum'] = amount + lower_scaling_factor * abs(amount)
+                uncertainty_data[self.uncertain_param_type][self.uncertain_param_subgroup]['defined'][undefined_indx]['minimum'] = amount - upper_scaling_factor * abs(amount)
+            uncertainty_data[self.uncertain_param_type][self.uncertain_param_subgroup]['defined'][undefined_indx]['uncertainty_type'] = 4
         # Check for negative‐median cases and adjust skew mapping
         # ATTN: fix this Exception based on the new uncertainty data type
         # if ((metadata_df.loc[self.undefined_uncertainty_indices,'maximum'] - metadata_df.loc[self.undefined_uncertainty_indices,'minimum']) <= 0).any():
         #     raise Exception('There is a parameter with where the asigned minimum value is equal or larger than the asigned maximum value')
     
-    def assign(self, *args, **kwargs):
-        metadata_asigned_df = self._compute_uniform_dist_params(*args, **kwargs)
+    def assign(self, uncertainty_data:UncertaintyData):
+        self._compute_uniform_dist_params(uncertainty_data)
 
 class TriangluarBaseStrategy(UncertaintyStrategyBase):
     """
@@ -320,14 +259,10 @@ class TriangluarBaseStrategy(UncertaintyStrategyBase):
     Methods:
         _compute_triag_dist_params: Computes scaling factors (upper and lower) based on given scaling_factors.
         assign: Applies computed scaling factors to assign 'loc', 'minimum', 'maximum', and 'uncertainty_type'.
-
-    Attributes:
-        Inherits metadata_df, defined_uncertainty_metadata, and undefined_uncertainty_indices from base class.
     """
     def __init__(
             self, 
-            uncertainty_data:dict, 
-            uncertain_param_type:str, 
+            uncertain_param_type:Literal['If', 'Cf', 'Var_bounds'], 
             uncertain_param_subgroup:str,
             upper_scaling_factor:float, 
             lower_scaling_factor:float, 
@@ -337,10 +272,6 @@ class TriangluarBaseStrategy(UncertaintyStrategyBase):
         Initialize the TriangluarBaseStrategy with metadata and index lists and scaling factors.
 
         Args:
-            uncertainty_data (dict): 
-                The uncertainty data containing the defined and undefined 
-                uncertainty information, returned from:
-                `preparer.UncertaintyImporter.import_uncertainty_data()`
             uncertain_param_type (str): 
                 The uncertainty parameter type: 'If', 'Cf', or 'Var_bounds'
             uncertain_param_subgroup (str):
@@ -359,48 +290,21 @@ class TriangluarBaseStrategy(UncertaintyStrategyBase):
                 of the noise generated with a uniform distribution and multiplied with 
                 the scaling factor vector as (1-min) and (1+max)
         """
-        super().__init__(
-            uncertainty_data, 
-            uncertain_param_type, 
-            uncertain_param_subgroup,
-            upper_scaling_factor, 
-            lower_scaling_factor, 
-            noise_interval=noise_interval
-            )
+        super().__init__(uncertain_param_type, uncertain_param_subgroup)
+        self.upper_scaling_factor = upper_scaling_factor
+        self.lower_scaling_factor = lower_scaling_factor
+        self.noise_interval = noise_interval
 
 
-    def _compute_triag_dist_params(
-            self,
-            uncertainty_data:UncertaintyData, 
-            uncertain_param_type:Literal['If', 'Cf', 'Var_bounds'], 
-            uncertain_param_subgroup:str,
-            upper_scaling_factor:float, 
-            lower_scaling_factor:float,
-            noise_interval:Dict[str,float]={'min':0., 'max':0.}
-            ) -> pd.DataFrame:
+    def _compute_triag_dist_params(self, uncertainty_data:UncertaintyData):
         """
         Compute triangular distribution parameters to parameters without predefined uncertainty.
 
         Args:
             uncertainty_data (dict): 
                 The uncertainty data containing the defined and undefined 
-                uncertainty information, returned from:
+                uncertainty information, stored outside the class, initially returned from:
                 `preparer.UncertaintyImporter.import_uncertainty_data()`
-            uncertain_param_type (str): 
-                The uncertainty parameter type: 'If', 'Cf', or 'Var_bounds'
-            uncertain_param_subgroup (str):
-                The subgroup of the uncertain_param_type, depends on the 
-                uncertain_param_type, the BW databse name for 'If', the 
-                LCIA method for 'Cf' and the types of variable bounds for 
-                'Var_bounds'
-            upper_scaling_factor (float): 
-                Scaling factor to determine the upper bound relative to the median.
-            lower_scaling_factor (float): 
-                Scaling factor to determine the lower bound relative to the median.
-            noise_interval (Dict[str,float]): 
-                Dict containing "min" and "max" keywords holding the upper and lower bound 
-                of the noise generated with a uniform distribution and multiplied with 
-                the scaling factor vector as (1-min) and (1+max)
 
         Returns:
             metadata_df (pd.DataFrame(): 
@@ -408,23 +312,23 @@ class TriangluarBaseStrategy(UncertaintyStrategyBase):
                 and 'uncertainty_type' set to 5 (triangular) for targeted parameters.
         """
         # Create a scaling factor array if scaling_factors are floats and randomize it if the noise interval has min and max greater 0.
-        undefined_param_amt = len(uncertainty_data[uncertain_param_type][uncertain_param_subgroup]['undefined'])
-        upper_scaling_factor_randomized = self.add_random_noise_to_scaling_factor(undefined_param_amt, upper_scaling_factor, noise_interval['min'], noise_interval['max'])
-        lower_scaling_factor_randomized = self.add_random_noise_to_scaling_factor(undefined_param_amt, lower_scaling_factor, noise_interval['min'], noise_interval['max'])
+        undefined_param_amt = len(uncertainty_data[self.uncertain_param_type][self.uncertain_param_subgroup]['undefined'])
+        upper_scaling_factor_randomized = self.add_random_noise_to_scaling_factor(undefined_param_amt, self.upper_scaling_factor, self.noise_interval['min'], self.noise_interval['max'])
+        lower_scaling_factor_randomized = self.add_random_noise_to_scaling_factor(undefined_param_amt, self.lower_scaling_factor, self.noise_interval['min'], self.noise_interval['max'])
         # For each undefined parameter, set loc=median, bounds = ±factor·|median|
-        undefined_uncertainty_indices = list(uncertainty_data[uncertain_param_type][uncertain_param_subgroup]['undefined'].keys())
+        undefined_uncertainty_indices = list(uncertainty_data[self.uncertain_param_type][self.uncertain_param_subgroup]['undefined'].keys())
         for undefined_indx, upper_scaling_fac, lower_scaling_fac in zip(undefined_uncertainty_indices, upper_scaling_factor_randomized, lower_scaling_factor_randomized):
-            undefined_dict = uncertainty_data[uncertain_param_type][uncertain_param_subgroup]['undefined'].pop(undefined_indx)
-            uncertainty_data[uncertain_param_type][uncertain_param_subgroup]['defined'][undefined_indx] = undefined_dict
+            undefined_dict = uncertainty_data[self.uncertain_param_type][self.uncertain_param_subgroup]['undefined'].pop(undefined_indx)
+            uncertainty_data[self.uncertain_param_type][self.uncertain_param_subgroup]['defined'][undefined_indx] = undefined_dict
             amount = undefined_dict['amount']
-            uncertainty_data[uncertain_param_type][uncertain_param_subgroup]['defined'][undefined_indx]['loc'] = amount
+            uncertainty_data[self.uncertain_param_type][self.uncertain_param_subgroup]['defined'][undefined_indx]['loc'] = amount
             if amount > 0:
-                uncertainty_data[uncertain_param_type][uncertain_param_subgroup]['defined'][undefined_indx]['maximum'] = amount + upper_scaling_fac * abs(amount)
-                uncertainty_data[uncertain_param_type][uncertain_param_subgroup]['defined'][undefined_indx]['minimum'] = amount - lower_scaling_fac * abs(amount)
+                uncertainty_data[self.uncertain_param_type][self.uncertain_param_subgroup]['defined'][undefined_indx]['maximum'] = amount + upper_scaling_fac * abs(amount)
+                uncertainty_data[self.uncertain_param_type][self.uncertain_param_subgroup]['defined'][undefined_indx]['minimum'] = amount - lower_scaling_fac * abs(amount)
             elif amount < 0:
-                uncertainty_data[uncertain_param_type][uncertain_param_subgroup]['defined'][undefined_indx]['maximum'] = amount + lower_scaling_fac * abs(amount)
-                uncertainty_data[uncertain_param_type][uncertain_param_subgroup]['defined'][undefined_indx]['minimum'] = amount - upper_scaling_fac * abs(amount)
-            uncertainty_data[uncertain_param_type][uncertain_param_subgroup]['defined'][undefined_indx]['uncertainty_type'] = 5
+                uncertainty_data[self.uncertain_param_type][self.uncertain_param_subgroup]['defined'][undefined_indx]['maximum'] = amount + lower_scaling_fac * abs(amount)
+                uncertainty_data[self.uncertain_param_type][self.uncertain_param_subgroup]['defined'][undefined_indx]['minimum'] = amount - upper_scaling_fac * abs(amount)
+            uncertainty_data[self.uncertain_param_type][self.uncertain_param_subgroup]['defined'][undefined_indx]['uncertainty_type'] = 5
         # Check for negative‐median cases and adjust skew mapping
         # ATTN: fix this Exception based on the new uncertainty data type
         # if ((metadata_df.loc[self.undefined_uncertainty_indices,'maximum'] - metadata_df.loc[self.undefined_uncertainty_indices,'minimum']) <= 0).any():
@@ -434,8 +338,8 @@ class TriangluarBaseStrategy(UncertaintyStrategyBase):
         # print('uncertain parameters with negative median value:')
         # print(metadata_df.loc[self.undefined_uncertainty_indices].loc[metadata_df.loc[self.undefined_uncertainty_indices,'loc'] < 0])
     
-    def assign(self, *args, **kwargs):
-        self._compute_triag_dist_params(*args, **kwargs)
+    def assign(self, uncertainty_data:UncertaintyData):
+        self._compute_triag_dist_params(uncertainty_data)
     
 class TriangularBoundInterpolationStrategy(TriangluarBaseStrategy):
     """
@@ -454,25 +358,16 @@ class TriangularBoundInterpolationStrategy(TriangluarBaseStrategy):
         _get_bounds: Computes the bounds of the parameters with defined uncertainty information
         _compute_bounds_statistics: Computes scaling factors (upper and lower) based on statistical analysis of defined uncertainties.
         assign: Applies computed scaling factors to assign 'loc', 'minimum', 'maximum', and 'uncertainty_type'.
-
-    Attributes:
-        Inherits metadata_df and undefined_uncertainty_indices from base class.
-        defined_uncertainty_metadata set in this class upon initilialization
     """
     def __init__(
             self, 
-            uncertainty_data:dict, 
-            uncertain_param_type:str, 
+            uncertain_param_type:Literal['If', 'Cf', 'Var_bounds'], 
             uncertain_param_subgroup:str,
             noise_interval:Dict[str,float]={'min':0., 'max':0.}):
         """
         Initialize the TriangularBoundInterpolationStrategy with metadata and index lists.
 
         Args:
-            uncertainty_data (dict): 
-                The uncertainty data containing the defined and undefined 
-                uncertainty information, returned from:
-                `preparer.UncertaintyImporter.import_uncertainty_data()`
             uncertain_param_type (str): 
                 The uncertainty parameter type: 'If', 'Cf', or 'Var_bounds'
             uncertain_param_subgroup (str):
@@ -485,27 +380,19 @@ class TriangularBoundInterpolationStrategy(TriangluarBaseStrategy):
                 holding the upper and lower bound of the noise generated with a uniform distribution 
                 and multiplied with the scaling factor vector as (1-min) and (1+max)
         """
-        UncertaintyStrategyBase.__init__(
-            self, 
-            uncertainty_data, 
-            uncertain_param_type, 
-            uncertain_param_subgroup,
-            noise_interval=noise_interval
-            )
+        super().__init__(uncertain_param_type, uncertain_param_subgroup, np.NaN, np.NaN, noise_interval)
 
     def _get_bounds(
             self,
-            uncertainty_data:UncertaintyData, 
-            uncertain_param_type:Literal['If', 'Cf', 'Var_bounds'], 
-            uncertain_param_subgroup:str,
+            uncertainty_data:UncertaintyData,
             ) -> pd.DataFrame:
         """
         Compute min/max bounds for all parameters via UncertaintyProcessor.
         Raises if no metadata defined.
         """
-        if not uncertainty_data[uncertain_param_type][uncertain_param_subgroup]['defined']:
+        if not uncertainty_data[self.uncertain_param_type][self.uncertain_param_subgroup]['defined']:
             raise Exception('There are no uncertain parameters with defined uncertainty, as needed to interpolate the bouds.')
-        uncertainty_bounds = compute_bounds(uncertainty_data[uncertain_param_type][uncertain_param_subgroup]['defined'])
+        uncertainty_bounds = compute_bounds(uncertainty_data[self.uncertain_param_type][self.uncertain_param_subgroup]['defined'])
         return uncertainty_bounds
             
 
@@ -545,27 +432,42 @@ class TriangularBoundInterpolationStrategy(TriangluarBaseStrategy):
         print('The upper spread scaling factor for intervention flows is: {}\nThe lower spread scaling factor for intervention flows is: {}'.format(upper_scaling_factor, lower_scaling_factor)) 
         return upper_scaling_factor, lower_scaling_factor
     
-    def assign(self, *args, **kwargs):
+    def assign(self, uncertainty_data:UncertaintyData):
         """
         Assign triangular distribution parameters derived averaged bounds, to parameters without predefined uncertainty.
-
-        Returns:
-            metadata_asigned_df (pd.DataFrame):
-                Updated metadata DataFrame with the interpolated triangular uncertainty information.
         """
-        uncertainty_bounds = self._get_bounds(*args)
-        upper_scaling_factor, lower_scaling_factor = self._compute_bounds_statistics(uncertainty_bounds)
-        self._compute_triag_dist_params(*args, upper_scaling_factor, lower_scaling_factor, **kwargs)
+        uncertainty_bounds = self._get_bounds(uncertainty_data)
+        self.upper_scaling_factor, self.lower_scaling_factor = self._compute_bounds_statistics(uncertainty_bounds)
+        self._compute_triag_dist_params(uncertainty_data)
 
-def apply_strategies(data: UncertaintyData, *strategies: UncertaintyStrategyBase) -> UncertaintyData:
-    # ATTN: REWRITE STRATEGIES TO NOT CALL ASSIGN IN INIT
-    did = id(data)
+def apply_uncertainty_strategies(uncertainty_data: UncertaintyData, *strategies: UncertaintyStrategyBase):
+    """
+    Applies the strategies, by passing the strategies as instatialized classes and then performs the assign method.
+
+    Args:
+        uncertainty_data (dict): 
+            The uncertainty data containing the defined and undefined 
+            uncertainty information, stored outside the class, initially returned from:
+            `preparer.UncertaintyImporter.import_uncertainty_data()`
+        *strategies:
+            All strategies as instatialized classes for which will manipulate the uncertainty_data
+    """
+    did = id(uncertainty_data)
     for s in strategies:
-        s.assign(data)
+        s.assign(uncertainty_data)
         # guardrail: catch accidental rebinds
-        assert id(data) == did, "Strategy must not rebind the data dict"
-    return data
+        assert id(uncertainty_data) == did, "Strategy must not rebind the data dict"
 
+def check_missing_uncertainty_data(uncertainty_data: UncertaintyData) -> bool:
+    missing_unc_data = False
+    for unc_type, unc_type_data in uncertainty_data.items():
+        for unc_subgroup, unc_subgroup_data in unc_type_data.items():
+            if len(unc_subgroup_data['undefined']):
+                missing_unc_data = True
+                print('{} - {} \n \t {} parameters without uncertainty information'.format(unc_type, unc_subgroup, len(unc_subgroup_data['undefined'])))
+    if not missing_unc_data:
+        print('No uncertainty data missing.')
+    return missing_unc_data
 
 def fit_normals(uncertainty_metadata_df:pd.DataFrame, plot_distributions:bool=False, sample_size:int=1000000) -> pd.DataFrame:
     """
