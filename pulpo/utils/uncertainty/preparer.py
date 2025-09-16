@@ -8,39 +8,196 @@ This module filter and imports uncertainty data to then be used for uncertainty 
 
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
 import scipy.sparse
-import stats_arrays
-import scipy.stats
 import pandas as pd
 import numpy as np
-import os
-from pulpo import pulpo
 import scipy.sparse as sparse
 from time import time
-import stats_arrays
-import matplotlib.pyplot as plt
-import matplotlib as mpl
-import textwrap
-import bw2data
-import bw2calc
 import ast
-import array
-from typing import Union, List, Optional, Dict, Tuple
+from typing import List, Dict, Tuple, Dict, TypedDict, Optional, Literal, Union
+import bw2calc
+from pulpo.utils.uncertainty import plots
 
+"""
+The uncertainty data type
+"""
+
+# One uncertainty spec (your inner dict for each indx)
+class UncertaintySpec(TypedDict):
+    uncertainty_type: Literal[0,1,2,3,4,5,6,7,8,9,10,11,12]
+    amount: float
+    loc: Optional[float]
+    scale: Optional[float]
+    shape: Optional[float]
+    minimum: Optional[float]
+    maximum: Optional[float]
+class DefUndefBlock(TypedDict, total=False):
+    defined: Dict[Union[Tuple[int,int],int], UncertaintySpec]
+    undefined: Dict[Union[Tuple[int,int],int], UncertaintySpec]
+class UncertaintyData(TypedDict, total=False):
+    # Use "if_" as the Python-safe attribute name for the "if" key.
+    If: Dict[str, DefUndefBlock] # e.g. {"db1": {...}, "db2": {...}}
+    Cf: Dict[str, DefUndefBlock] # e.g. {"<method>": {...}}
+    Var_bounds: Dict[str, DefUndefBlock] # e.g. {"upper_limit": {...}, "lower_limit": {...}}
 class UncertaintyImporter:
     """
-    Extract/Import and index uncertainty metadata for intervention flows and characterization factors.
+    Stores/Extract/Import and index uncertainty metadata for intervention flows and characterization factors and variable bounds.
     """
-    def __init__(self, lci_data):
+    def __init__(self, lci_data:dict, bw_databases:List[str], LCIA_method:str):
         """
         Initiates uncertainty importer with the LCI data.
+        
+        The structure of the uncertainty data is examplified below,
+        based on the specified uncertain parameters. 
+        Each uncertain parameter type: 'If', 'Cf', 'Var_bounds' has
+        uncertain parameter groups, e.g., the BW databses for 'If', the 
+        LCIA method for 'Cf' and the types of variable bounds for 'Var_bounds'
+
+        uncertainty_data = {
+            'If': {
+                'db1': {
+                    'defined':{},
+                    'undefined':{}
+                },
+                'db2': {
+                    'defined':{},
+                    'undefined':{}
+                },
+                'db3': ...
+            },
+            'Cf':{
+                '<<method>>': {
+                    'defined':{},
+                    'undefined':{}
+                    }
+                },
+            }
+            'Var_bounds':{
+                'upper_limit': {
+                    'defined':{},
+                    'undefined':{}
+                },
+                'lower_limit': {
+                    'defined':{},
+                    'undefined':{}
+                },
+                ...
+            }
+        }
+        For both defined and undefined the dict structure is
+        based on the `statsarray` parameter array:
+        (https://stats-arrays.readthedocs.io/en/latest/)
+        {
+            indx: {
+                'uncertainty_type': int (0-12),
+                'amount': float, (the static value)
+                'loc': float, (depending on uncertainty type)
+                'scale': float, (depending on uncertainty type)
+                'shape': float, (depending on uncertainty type)
+                'minimum': float, (depending on uncertainty type)
+                'maximum': float, (depending on uncertainty type)
+            }
+        }
 
         Args:
             lci_data (dict): 
                 PULPO LCI data (matrices, maps).
+            databases (list):
+                List of the fore and background databases 
+                for which the uncertainty will be extracted.
+            LCIA_method (str):
+                The LCIA method for which the characterization factor uncertainty data will be extracted.
         """
         self.lci_data = lci_data # from pulpo_worker.lci_data
+        self.bw_databases = bw_databases
+        self.LCIA_method = LCIA_method
+        self.uncertainty_data:UncertaintyData = {
+            'If': {
+                database: {
+                    'defined':{},
+                    'undefined':{}
+                } for database in bw_databases
+            },
+            'Cf':{
+                LCIA_method: {
+                    'defined':{},
+                    'undefined':{}
+                }
+            },
+            'Var_bounds':{
+                'upper_limit': {
+                    'defined':{},
+                    'undefined':{}
+                },
+                'lower_limit': {
+                    'defined':{},
+                    'undefined':{}
+                },
+                'upper_elem_limit': {
+                    'defined':{},
+                    'undefined':{}
+                },
+                'upper_imp_limit': {
+                    'defined':{},
+                    'undefined':{}
+                },
+            },
+        }
+
+    def import_uncertainty_data(
+            self, 
+            if_indcs:List[Tuple[int,int]], 
+            cf_indcs:List[int], 
+            choices:dict, 
+            upper_limit:dict, 
+            lower_limit:dict, 
+            upper_elem_limit:dict, 
+            upper_imp_limit:dict
+            ) -> UncertaintyData: 
+        """
+            Performs the uncertainty data import for all specified intervention flows (cf_indcs) 
+            in the specified databases and for the characterization factors of the LCIA methods.
+            Saves all the uncertainty data in the `uncertainty_data` attribute.
+
+            Args:
+                if_indcs (List[int]):
+                    list of intervention flow indices (process_indx, intervention_indx) 
+                    for which the uncertainty data will be extracted.
+                cf_indcs (List[int]):
+                    List of characterization flow indiced (intervention_indx)
+                    for which the uncertainty data will be extracted.
+                choices (dict):
+                    The choices as specified in the pulpo instance.
+                upper_limit (dict):
+                    the upper limit specifiecation passed to the pulpo instance.
+                lower_limit (dict):
+                    the lower limit specifiecation passed to the pulpo instance.
+                upper_elem_limit (dict):
+                    the upper element limit specifiecation passed to the pulpo instance.
+                upper_imp_limit (dict):
+                    the upper impact limit specifiecation passed to the pulpo instance.
+
+            Returns:
+                uncertainty_data (dict):
+                    The full uncertainty data containing the defined and undefined uncertainty data to
+                    all intervention flows (B) in the specified databases, the characterization factors,
+                    and the variable bounds.
+        """
+        # import the uncertainty information of the fore and background databases, the user must know which are which
+        print('Intervention flows:')
+        for database in self.bw_databases:
+            print(f'In {database}:')
+            db_if_indcs = self.get_intervention_indcs_to_db(database, if_indcs)
+            if_metadata_df = self.get_if_meta(inventory_indices=db_if_indcs)
+            self.uncertainty_data['If'][database]['defined'],  self.uncertainty_data['If'][database]['undefined'] = self.separate(if_metadata_df)
+        # import the characterization factor uncertainty information
+        print('Charactetization factors:')
+        cf_metadata_df = self.get_cf_meta(characterization_indices=cf_indcs, method=self.LCIA_method)
+        self.uncertainty_data['Cf'][self.LCIA_method]['defined'],  self.uncertainty_data['Cf'][self.LCIA_method]['undefined'] = self.separate(cf_metadata_df)
+        # create the variable bounds uncertainty information structure
+        print('Variable bounds:')
+        self.set_uncertainty_meta_for_var_bounds(choices, upper_limit, lower_limit, upper_elem_limit, upper_imp_limit)
+        return self.uncertainty_data
 
     def get_intervention_indcs_to_db(self, db_name, intervention_indices:List[Tuple[int, int]]) -> List[Tuple[int, int]]:
         """
@@ -113,7 +270,7 @@ class UncertaintyImporter:
         characterization_metadata_df = characterization_metadata_df.loc[characterization_indices]
         return characterization_metadata_df
 
-    def separate(self, uncertainty_metadata_df:pd.DataFrame) -> tuple[dict, list]:
+    def separate(self, uncertainty_metadata_df:pd.DataFrame):
         """
         Split metadata into defined (type>0) and undefined (type=0) entries.
 
@@ -124,14 +281,62 @@ class UncertaintyImporter:
             undefined (list): 
                 list of indices without defined distributions
         """
-        defined, undefined = {}, []
+        defined:Dict[Union[Tuple[int,int],int], UncertaintySpec] = {}
+        undefined:Dict[Union[Tuple[int,int],int], UncertaintySpec] = {}
         for idx, row in uncertainty_metadata_df.iterrows():
             if row['uncertainty_type'] > 0:
-                defined[idx] = row.to_dict()
+                defined[idx]= row.to_dict()
             else:
-                undefined.append(idx)
+                undefined[idx] = row.to_dict()
         print("Parameters with uncertainty information: {} \nParameters without uncertainty information: {}".format(len(defined), len(undefined)))
         return defined, undefined
+    
+    def set_uncertainty_meta_for_var_bounds (self, choices:dict, upper_limit:dict, lower_limit:dict, upper_elem_limit:dict, upper_imp_limit:dict):
+        """
+        The variable bounds in the pyomo instance are generated either from the choices or in the additionally
+        specified bound arguments in the pulpo instance. This method creates uncertainty data dicts based
+        on the specified variable bounds.
+
+        The uncertainty data is stored in the `uncertainty_data` class attribute.
+
+        Args:
+            choices (dict):
+                The choices as specified in the pulpo instance.
+            upper_limit (dict):
+                the upper limit specifiecation passed to the pulpo instance.
+            lower_limit (dict):
+                the lower limit specifiecation passed to the pulpo instance.
+            upper_elem_limit (dict):
+                the upper element limit specifiecation passed to the pulpo instance.
+            upper_imp_limit (dict):
+                the upper impact limit specifiecation passed to the pulpo instance.
+        """
+        # Get the upper bound specified with all alternatives
+        for _, alternatives in choices.items():
+            for alternative, upperbound in alternatives.items():
+                alternative_indx = self.lci_data['process_map'][alternative.key]
+                self.uncertainty_data['Var_bounds']['upper_limit']['undefined'][alternative_indx] = {}
+                self.uncertainty_data['Var_bounds']['upper_limit']['undefined'][alternative_indx]['amount'] = upperbound
+                self.uncertainty_data['Var_bounds']['upper_limit']['undefined'][alternative_indx]['uncertainty_type'] = 0
+        print("Upper bound from choices without uncertainty information: {}".format(len(self.uncertainty_data['Var_bounds']['upper_limit']['undefined'])))
+        # set the uncertainty data for the specified upper_limit 
+        for upper_limit_act, upper_limit_value in upper_limit.items():
+            process_indx = self.lci_data['process_map'][upper_limit_act.key]
+            self.uncertainty_data['Var_bounds']['upper_limit']['undefined'][process_indx] = {}
+            self.uncertainty_data['Var_bounds']['upper_limit']['undefined'][process_indx]['amount'] = upper_limit_value
+            self.uncertainty_data['Var_bounds']['upper_limit']['undefined'][process_indx]['uncertainty_type'] = 0
+        print("Upper bound from `upper_limit` without uncertainty information: {}".format(len(upper_limit)))
+        # set the uncertainty data for the specified upper_limit 
+        for lower_limit_act, lower_limit_value in lower_limit.items():
+            process_indx = self.lci_data['process_map'][lower_limit_act.key]
+            self.uncertainty_data['Var_bounds']['lower_limit']['undefined'][process_indx] = {}
+            self.uncertainty_data['Var_bounds']['lower_limit']['undefined'][process_indx]['amount'] = lower_limit_value
+            self.uncertainty_data['Var_bounds']['lower_limit']['undefined'][process_indx]['uncertainty_type'] = 0
+        print("Lower bound from `lower_limit` without uncertainty information: {}".format(len(lower_limit)))
+        if upper_elem_limit:
+            raise Exception('upper_elem_limit has not been implemented yet in the uncertainty data import.')
+        if upper_imp_limit:
+            raise Exception('upper_imp_limit has not been implemented yet in the uncertainty data import.')
     
     def get_pyomo_param_meta(self, instance, pyomo_param_name:str, param_indcs:List[int]) -> pd.DataFrame:
         """
@@ -186,11 +391,16 @@ class ParameterFilter:
         Store optimization results and LCI data for filtering.
 
         Args:
-            result_data: Solver output dict.
-            lci_data: PULPO LCI data (matrices, maps).
-            choices: Choice dict from case study.
-            demand: Demand dict from case study.
-            method: LCIA method used.
+            result_data (dict): 
+                Solver output dict.
+            lci_data (dict): 
+                PULPO LCI data (matrices, maps), From pulpo_worker.lci_data
+            choices (dict): 
+                Choice dict from case study.
+            demand (dict): 
+                Demand dict from case study.
+            method (str): 
+                LCIA method used.
         """
         self.result_data = result_data
         self.lci_data = lci_data # From pulpo_worker.lci_data
@@ -198,7 +408,7 @@ class ParameterFilter:
         self.demand = demand # From CaseStduy
         self.method = method # From the result_data
 
-    def apply_filter(self, scaling_vector_strategy:str, cutoff:float, plot_n_top_processes:int=10) -> Tuple[list,list]:
+    def apply_filter(self, scaling_vector_strategy:str, cutoff:float, plot_results:bool=False, plot_n_top_processes:int=10) -> Tuple[list,list]:
          """
          Applies the filtering steps:
          1. Prepare the scaling vector used to subselect the most contributing paramters to the impact results
@@ -214,7 +424,9 @@ class ParameterFilter:
             cutoff (float): 
                 cutoff factor to compute minimum contribution value to retain an intervention flow. 
                 Multiplied with the LCA score, i.e., a percentage of the total LCA score
-            plot_n_top_processes (int): 
+            plot_results (bool) - optional:
+                defaulf False, Set to True if the plot main characterized processes should be created and shown.
+            plot_n_top_processes (int) - optional: 
                 Number of top items to display in top contribution process plot (default: 10).
 
         Returns:
@@ -225,7 +437,7 @@ class ParameterFilter:
          """
          scaling_vector_series = self.prepare_scaling_vector(scaling_vector_strategy=scaling_vector_strategy)
          lca_score, characterized_inventory = self.compute_LCI_LCIA(scaling_vector_series)
-         self.plot_top_processes(characterized_inventory, top_amount=plot_n_top_processes)
+         plots.plot_top_characterized_processes(self.lci_data['process_map_metadata'], characterized_inventory, self.method, top_amount=plot_n_top_processes)
          filtered_inventory_indcs = self.filter_inventoryflows(characterized_inventory, lca_score, cutoff)
          filtered_characterization_indcs = self.filter_characterization_factors(filtered_inventory_indcs)
          return filtered_inventory_indcs, filtered_characterization_indcs
@@ -384,32 +596,3 @@ class ParameterFilter:
         return reduced_characterization_matrix_ids
 
 
-    def plot_top_processes(self, characterized_inventory:scipy.sparse.sparray, top_amount:int=10):
-        """
-        Plot the top-N contributing processes or parameters as a bar chart.
-
-        Args:
-            characterized_inventory (scipy.sparse.sparray): 
-                B·(Q·s) for each parameter (impact after characterization).
-            top_amount (int): 
-                Number of top items to display (default: 10).
-
-        Returns:
-            None: Displays a matplotlib bar plot of the highest contributors.
-        """
-        # Plot the highest contributing processes
-        impact_df = pd.DataFrame(
-            characterized_inventory.sum(axis=0).T,
-            index=list(range(characterized_inventory.shape[1])),
-            columns=['impact']
-        )
-        impact_df['process name'] = impact_df.index.map(self.lci_data['process_map_metadata'])
-        impact_df = impact_df.reindex(impact_df['impact'].abs().sort_values(ascending=False).index)
-        impact_df_red = impact_df.iloc[:top_amount,:]
-        impact_rest = impact_df.iloc[top_amount:,:].sum()
-        impact_rest['process name'] = 'Rest'
-        impact_df_red = pd.concat([impact_df_red, impact_rest.to_frame().T], axis=0)        
-        impact_df_red['impact'] = impact_df_red['impact'] / impact_df['impact'].sum()
-        colormap = pd.Series(mpl.cm.tab20.colors[:impact_df_red.shape[0]], index=impact_df_red.index)
-        plot_contribution_barplot(impact_df_red['impact'], metadata=impact_df_red['process name'], impact_category=self.method, colormap=colormap,  bbox_to_anchor_center=1.7, bbox_to_anchor_lower=-.6)
-        plt.show()
