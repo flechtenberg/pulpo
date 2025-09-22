@@ -29,6 +29,10 @@ import bw2calc
 import ast
 import array
 from typing import Union, List, Optional, Dict, Tuple
+import warnings
+
+from pulpo.utils.uncertainty import plots, processor
+from pulpo.utils.uncertainty.preparer import UncertaintyData
 
 
 # === Global Sensitivity Analysis ===
@@ -45,7 +49,7 @@ class GlobalSensitivityAnalysis:
             Deterministic PULPO results, including 'impacts' and 'Scaling Vector'.
         lci_data (dict):
             Life-Cycle Inventory matrices and metadata for processes and interventions.
-        unc_metadata (dict[str:pd.DataFrame]):
+        uncertainty_data (dict[str:pd.DataFrame]):
             Uncertainty metadata containing uncertainty informtaion for characterization factors and intervention flows (must have no undefined types).
         sampler:
             SALib sampling function (e.g., saltelli.sample).
@@ -64,11 +68,12 @@ class GlobalSensitivityAnalysis:
         self,
         result_data: dict,
         lci_data: dict,
-        unc_metadata: dict,
+        uncertainty_data: UncertaintyData,
         sampler,
         analyser,
         sample_size: int,
-        method:str
+        method:str,
+        plot_gsa_results:bool=False,
     ):
         """
         Initialize the global sensitivity analysis.
@@ -80,7 +85,7 @@ class GlobalSensitivityAnalysis:
             lci_data (dict):
                 Contains 'process_map_metadata' and 'intervention_map_metadata'
                 for reconstructing labels in plots.
-            unc_metadata (dict[str:pd.DataFrame]):
+            uncertainty_data (UncertaintyData):
                 Uncertainty metadata containing uncertainty informtaion for characterization factors 
                 and intervention flows (must have no undefined types), contains "cf" and "if" keys.
             sampler:
@@ -89,38 +94,40 @@ class GlobalSensitivityAnalysis:
                 SALib analysis function (e.g., SALib.analyze.sobol).
             sample_size (int):
                 Number of samples to generate for the analysis.
+            plot_gsa_results (bool):
+                Whether to generate plots of the GSA results.
         """
         self.result_data = result_data # This is the optimization solution at which we compute the GSA
         self.method = method # ATTN: This might generate errors in the future
         self.lci_data = lci_data # from pulpo_worker
-        self.unc_metadata = unc_metadata
-        if (unc_metadata["if"].uncertainty_type == 0).any():
-            raise Exception('There are still intervention flows with undefined uncertainty information')
-        if (unc_metadata["cf"].uncertainty_type == 0).any():
-            raise Exception('There are still characterization factors with undefined uncertainty information')
+        self.uncertainty_data = uncertainty_data
+        if processor.check_missing_uncertainty_data(uncertainty_data):
+            warnings.warn("The uncertainty data contains undefined uncertainty types. Please define all uncertainty types before running the GSA.")
         self.sampler = sampler # from SALib.sample
         self.analyser = analyser # from SALib.analyze
         self.sample_size = sample_size
         self.sample_impacts = None
         self.sample_characterized_inventories = None
         self.sensitivity_indices = None
+        self.plot_gsa_results_bool = plot_gsa_results
 
-    def perform_gsa(self) -> None:
+    def perform_gsa(self) -> tuple[pd.DataFrame, dict]:
         """
         Calls all relevant methods including plots to perform a full GSA with initialized data
+
+        Returns:
+            total_Si (pd.DataFrame):
+                DataFrame of total Sobol indices 'ST' and 'ST_conf' indexed by parameter names.
+            sensitivity_indices (dict):
+                Full SALib sensitivity indices output.
         """
         gsa_problem, all_bounds_indx_dict = self.define_problem()
         sample_data_if, sample_data_cf = self.sample(gsa_problem, all_bounds_indx_dict)
         sample_impacts, sample_characterized_inventories = self.run_model(sample_data_if, sample_data_cf)
-        total_Si = self.analyze(gsa_problem, sample_impacts)
-        total_Si_metadata = self.generate_Si_metadata(all_bounds_indx_dict, total_Si)
-        colormap_base, colormap_SA_barplot = self.plot_top_total_sensitivity_indices(total_Si, total_Si_metadata)
-        self.plot_total_env_impact_contribution(
-            sample_characterized_inventories, 
-            total_Si_metadata, 
-            colormap_base=colormap_base, 
-            colormap_SA_barplot=colormap_SA_barplot,
-        )
+        total_Si, sensitivity_indices = self.analyze(gsa_problem, sample_impacts)
+        if self.plot_gsa_results_bool:
+            self.plot_gsa_results(all_bounds_indx_dict, total_Si, sample_characterized_inventories)
+        return total_Si, sensitivity_indices
 
 
     def _compute_bounds(self) -> tuple[dict, dict]:
@@ -135,8 +142,11 @@ class GlobalSensitivityAnalysis:
                 - if_bounds: mapping IF parameter names → {'lower', 'upper', 'mean', 'median', 'amount'}
                 - cf_bounds: mapping CF parameter names → same structure
         """
-        if_bounds = UncertaintyProcessor.compute_bounds(self.unc_metadata['if'].T.to_dict(), return_type='dict')
-        cf_bounds = UncertaintyProcessor.compute_bounds(self.unc_metadata["cf"].T.to_dict(), return_type='dict')
+        All_if_uncertainty_data = {}
+        for database in self.uncertainty_data['If'].keys():
+            All_if_uncertainty_data.update(self.uncertainty_data['If'][database]['defined'])
+        if_bounds = processor.compute_bounds(All_if_uncertainty_data, return_type='dict')
+        cf_bounds = processor.compute_bounds(self.uncertainty_data['Cf'][self.method]['defined'], return_type='dict')
         return if_bounds, cf_bounds
 
     def define_problem(self) -> tuple[dict, dict]:
@@ -264,7 +274,7 @@ class GlobalSensitivityAnalysis:
         print('the z-value of the total impact: {}'.format(sample_impacts.sparse.to_dense().std()/abs(sample_impacts.mean())))
         return sample_impacts, sample_characterized_inventories
 
-    def analyze(self, problem:dict, sample_impacts:pd.DataFrame):
+    def analyze(self, problem:dict, sample_impacts:pd.DataFrame) -> tuple[pd.DataFrame, dict]:
         """
         Calculate Sobol sensitivity indices from sampled impacts.
 
@@ -273,15 +283,17 @@ class GlobalSensitivityAnalysis:
             sample_impacts (pd.Series): Impact per sample.
 
         Returns:
-            pd.DataFrame: DataFrame of total Sobol indices 'ST' and 'ST_conf'
-                          indexed by parameter names.
+            total_Si (pd.DataFrame): 
+                DataFrame of total Sobol indices 'ST' and 'ST_conf' indexed by parameter names.
+            sensitivity_indices (dict):
+                Full SALib sensitivity indices output.
         """
         sensitivity_indices = self.analyser.analyze(problem, sample_impacts.sparse.to_dense().values, parallel=True)
         # total_Si, first_Si, second_Si = sensitivity_indices.to_df()
         total_Si = pd.DataFrame([sensitivity_indices['ST'].T, sensitivity_indices['ST_conf'].T], index=['ST', 'ST_conf'], columns=problem['names']).T
         # Calculate total explained variance
         print("The total explained variance is \n{:.4}%".format(total_Si["ST"].sum()*100))
-        return total_Si
+        return total_Si, sensitivity_indices
 
     def generate_Si_metadata(
         self,
@@ -308,66 +320,27 @@ class GlobalSensitivityAnalysis:
         total_Si_metadata = pd.DataFrame([metadata_dict], index=['bar_names']).T
         return total_Si_metadata
 
-    def plot_top_total_sensitivity_indices(self, total_Si:pd.DataFrame, total_Si_metadata:pd.DataFrame, top_amount:int=10) -> tuple[pd.Series, pd.Series]:
+    def plot_gsa_results(self, all_bounds_indx_dict:dict, total_Si:pd.DataFrame, sample_characterized_inventories:pd.DataFrame):
         """
-        Plot the top contributors to total variance (Sobol ST).
-
+        Generate plots for the GSA results. Must be called after `analyze`. 
         Args:
-            total_Si (pd.DataFrame): Contains 'ST' and 'ST_conf' columns.
-            total_Si_metadata (pd.DataFrame): 'bar_names' labels.
-            top_amount (int): Number of top parameters to display.
-
-        Returns:
-            colormap_base: list of colors used.
-            colormap_SA_barplot: pd.Series mapping params → colors.
+            all_bounds_indx_dict (dict): 
+                Contains 'cf_start' to split IF/CF.
+            total_Si (pd.DataFrame): 
+                DataFrame of sensitivity indices.
+            sample_characterized_inventories (pd.DataFrame): 
+                flows × samples.
         """
-        # Plot the contribution to variance
-        top_total_Si = total_Si.sort_values('ST', ascending=False).iloc[:top_amount,:]
-        top_total_Si_metadata = total_Si_metadata.loc[top_total_Si.index]
-        colormap_base = mpl.cm.tab20.colors
-        colormap_SA_barplot = pd.Series(colormap_base[:top_total_Si.shape[0]], index=top_total_Si.index)
-        plot_contribution_barplot_with_err(data=top_total_Si, metadata=top_total_Si_metadata, colormap=colormap_SA_barplot, bbox_to_anchor_center=1.7, bbox_to_anchor_lower=-.6)
-        return colormap_base, colormap_SA_barplot
-        
-    def plot_total_env_impact_contribution(
-            self,
-            sample_characterized_inventories: pd.DataFrame,
-            total_Si_metadata: pd.DataFrame,
-            top_amount: int = 10,
-            colormap_base: pd.Series = pd.Series([]),
-            colormap_SA_barplot: pd.Series = pd.Series([])
-        ) -> pd.DataFrame:
-        """
-        Plot each process's share of the total environmental impact.
+        total_Si_metadata = self.generate_Si_metadata(all_bounds_indx_dict, total_Si)
+        colormap_base, colormap_SA_barplot = plots.plot_top_total_sensitivity_indices(total_Si, total_Si_metadata)
+        plots.plot_total_env_impact_contribution(
+            sample_characterized_inventories, 
+            total_Si_metadata, 
+            self.method, 
+            top_amount=10,
+            colormap_base=colormap_base, 
+            colormap_SA_barplot=colormap_SA_barplot,
+        )
 
-        Args:
-            sample_characterized_inventories (pd.DataFrame):
-                Characterized inventory flows per sample.
-            total_Si_metadata (pd.DataFrame):
-                'bar_names' for labeling processes.
-            top_amount (int): 
-                Number of top processes to include.
-            colormap_base (pd.Series): 
-                Base colormap mapping (optional).
-            colormap_SA_barplot (pd.Series): 
-                Sensitivity-plot colormap mapping (optional).
-
-        Returns:
-            data_plot (pd.DataFrame): 
-                Data prepared for the linked impact contribution plot.
-        """        
-        #Plot the main contributing variables to the total environmental impact
-        # Generate the data
-        top_characterized_inventories_indcs = sample_characterized_inventories.mean().abs().sort_values(ascending=False).iloc[:top_amount].index
-        data_plot = pd.DataFrame([])
-        characterized_inventories_scaled = (sample_characterized_inventories.T / sample_characterized_inventories.T.sum()).T #sample_characterized_inventories.div(sample_characterized_inventories.sum(axis=1), axis=0)
-        data_plot["ST"] = characterized_inventories_scaled.mean()[top_characterized_inventories_indcs]
-        data_plot["ST_conf"] = characterized_inventories_scaled.sparse.to_dense().std()[top_characterized_inventories_indcs]
-        data_plot.index = data_plot.index.to_flat_index()
-        metadata_plot = total_Si_metadata.loc[data_plot.index,['bar_names']]
-        # Plot the total environmental impact for the top processes
-        if not colormap_base:
-            colormap_base = pd.Series(mpl.cm.tab20.colors[:data_plot.shape[0]], index=data_plot.index)
-        plot_linked_contribution_barplot(data_plot, metadata=metadata_plot, impact_category=self.method, colormap_base=colormap_base, colormap_linked=colormap_SA_barplot, savefig=False, bbox_to_anchor_center=1.7, bbox_to_anchor_lower=-.6)
-        return data_plot
+    
 
