@@ -1,5 +1,7 @@
-from pulpo.utils import optimizer, bw_parser, converter, saver, uncertainty
-from typing import List, Union
+from pulpo.utils import optimizer, bw_parser, converter, saver
+from pulpo.utils.uncertainty import preparer, processor, gsa
+from typing import List, Union, Literal
+import pandas as pd
 import webbrowser
 from tests.rice_database import setup_rice_husk_db
 from tests.generic_database import setup_generic_db
@@ -21,6 +23,7 @@ class PulpoOptimizer:
         self.intervention_matrix = 'biosphere3'
         self.method = converter.convert_to_dict(method)
         self.directory = directory
+        self.uncertainty_data = None
         self.lci_data = None
         self.instance = None
         self.choices:dict = {}
@@ -100,16 +103,159 @@ class PulpoOptimizer:
         results = uncertainty.solve_model_MC(self, n_it, GAMS_PATH, solver_name=solver_name, options=options)
 
         return results
+    
+    def import_and_filter_uncertainty_data(
+            self, 
+            cutoff:float=0,
+            scaling_vector_strategy:Literal['naive', 'constructed_demand']='naive',
+            result_data:dict={}, 
+            plot_results:bool=False,
+            plot_n_top_processes:int=10,
+        ):
+        """
+        Imports the uncertain parameter information from the underlying
+        databases for the interventions flows (B) and the characterization
+        factors (Q) and the variable bounds. Applies filter to reduce the 
+        amnount of uncertain parameters for quicker uncertainty assessment
+        in subsequent methods, e.g., GSA or CC-optimization.
 
-    def run_gsa(self):
+        Args:
+            cutoff (float) - optional:
+                (Default: 0., i.e., no filter) cutoff factor to compute minimum contribution value to retain 
+                an intervention flow. Multiplied with the LCA score, i.e., a percentage 
+                of the total LCA score. The main filtering parameter, the higher the cutoff the more parameters
+                will be filtered out.
+            scaling_vector_strategy (Literal['naive', 'constructed_demand']) - optional: 
+                How to compute scaling vector: 'naive' or 'constructed_demand'. Default: 'naive'
+            result_data (dict) - optional: 
+                 Solver output dict. Only needed if scaling_vector_strategy is 'constructed_demand', default: None
+            plot_results (bool) - optional:
+                defaulf False, Set to True if the plot main characterized processes should be created and shown.
+            plot_n_top_processes (int) - optional: 
+                Number of top items to display in top contribution process plot (default: 10).
+        """
+        if len(self.method) > 1:
+            raise Exception('The uncertainty data import currently only works with a single LCIA method. Please specify a single LCIA method.')
+        if self.lci_data is None:
+            raise Exception('No LCI data found. Please run get_lci_data method first.')
+        # Get the method name
+        method = next(iter(self.method))
+        paramfilter = preparer.ParameterFilter(
+            lci_data=self.lci_data, 
+            choices = self.choices,
+            demand = self.demand,
+            method = method
+        )
+        filtered_inventory_indcs, filtered_characterization_indcs = paramfilter.apply_filter(
+            scaling_vector_strategy=scaling_vector_strategy,
+            cutoff=cutoff,
+            plot_results=plot_results,
+            plot_n_top_processes=plot_n_top_processes,
+            result_data=result_data
+        )
+        # import the uncertainty data for the filtered uncertain parameters
+        uncertainty_importer = preparer.UncertaintyImporter(
+            lci_data=self.lci_data, 
+            bw_databases=self.database, 
+            LCIA_method=method,
+        )
+        self.uncertainty_data = uncertainty_importer.import_uncertainty_data(
+            if_indcs=filtered_inventory_indcs,
+            cf_indcs=filtered_characterization_indcs,
+            choices=self.choices,
+            upper_limit=self.upper_limit,
+            lower_limit=self.lower_limit,
+            upper_elem_limit=self.upper_elem_limit,
+            upper_imp_limit=self.upper_imp_limit,
+        )
+
+    def apply_uncertainty_strategies(self, strategies:List[processor.UncertaintyStrategyBase]=[], scaling_factor_if=0.5, scaling_factor_cf=0.3, scaling_factor_var_bounds=0.2):
+        """
+        Applies the uncertainty gap filling and updating strategies.
+        Wrapper for utils.uncertainty.processor.apply_uncertainty_strategies.
+
+        Args:
+            strategies (List[UncertaintyStrategyBase]):
+                All strategies as instatialized classes for which will manipulate the uncertainty_data
+            scaling_factor_if (float):
+                If no strategies are passed the missing uncerainty information in the intervention flows will be 
+                filled using triangular strategy either with interpolation or this scaling factor:
+                The scaling factor which will be used in the TriangluarBaseStrategy for the intervention flows
+                if more than 50% of the intervention flows in the database have no uncertainty information.
+                Default is 0.5, meaning that the min and max of the triangular distribution will be set to:
+                min = amount - 0.5 * abs(amount)
+                max = amount + 0.5 * abs(amount)
+            scaling_factor_cf (float):
+                If no strategies are passed the missing uncerainty information in the characterization factors will be 
+                filled using triangular strategy with this scaling factor.
+                The scaling factor which will be used in the TriangluarBaseStrategy for the characterization
+                factors. Default is 0.3, meaning that the min and max of the triangular distribution will be set to:
+                min = amount - 0.3 * abs(amount)
+                max = amount + 0.3 * abs(amount)
+            scaling_factor_var_bounds (float):
+                If no strategies are passed the missing uncerainty information in the variable bounds will be 
+                filled using triangular strategy with this scaling factor.
+                The scaling factor which will be used in the TriangluarBaseStrategy for the variable bounds.
+                Default is 0.2, meaning that the min and max of the triangular distribution will be set to:
+                min = amount - 0.2 * abs(amount)
+                max = amount + 0.2 * abs(amount)
+
+        """
+        if self.uncertainty_data is None:
+            raise Exception('No uncertainty data found. Please run import_and_filter_uncertainty_data method first.')
+        # If no strategies are provided, use default strategies
+        if strategies is None or len(strategies) == 0:
+            print('Applying default uncertainty strategies.')
+            strategies = processor.uncertainty_strategy_base_case(
+                databases=self.database if isinstance(self.database, list) else [self.database],
+                method=next(iter(self.method)),
+                uncertainty_data=self.uncertainty_data,
+                scaling_factor_if=scaling_factor_if,
+                scaling_factor_cf=scaling_factor_if,
+                scaling_factor_var_bounds=scaling_factor_var_bounds
+            )
+        processor.apply_uncertainty_strategies(self.uncertainty_data, strategies)
+        processor.check_missing_uncertainty_data(self.uncertainty_data)
+
+    def run_gsa(self, result_data:dict, sample_method, SA_method, sample_size:int, plot_gsa_results:bool=False) -> tuple[pd.DataFrame, pd.DataFrame]:
         """
         Runs a global sensitivity analysis on the optimization model.
 
+        Args:
+            result_data (dict): 
+                Results from the optimization model.
+            sample_method:
+                Sampling method from SALib.sample (e.g., SALib.sample.saltelli)
+            SA_method:
+                Sensitivity analysis method from SALib.analyze (e.g., SALib.analyze.sobol)
+            sample_size (int):
+                Sample size for the GSA.
+            plot_gsa_results (bool):
+                If True, plots the GSA results.
+
         Returns:
-            results: Results of the sensitivity analysis.
+            total_Si (pd.DataFrame): 
+                Total sensitivity indices.
+            sensitivity_indices (pd.DataFrame):
+                First order and second order sensitivity indices (SaLib results).
         """
-        results = uncertainty.run_gsa(self)
-        return results
+        if self.uncertainty_data is None:
+            raise Exception('No uncertainty data found. Please run import_and_filter_uncertainty_data method first.')
+        if processor.check_missing_uncertainty_data(self.uncertainty_data):
+            raise Exception('The uncertainty data contains undefined uncertainty types. Please define all uncertainty types before running the GSA.')
+        # Run the GSA
+        gsa_study = gsa.GlobalSensitivityAnalysis(
+            result_data=result_data,
+            lci_data=self.lci_data,
+            uncertainty_data=self.uncertainty_data,
+            sampler=sample_method,
+            analyser=SA_method,
+            sample_size=sample_size,
+            method=self.method,
+            plot_gsa_results=plot_gsa_results
+        )
+        total_Si, sensitivity_indices = gsa_study.perform_gsa()
+        return total_Si, sensitivity_indices
     
     def retrieve_processes(self, keys=None, processes=None, reference_products=None, locations=None):
         """
