@@ -386,13 +386,11 @@ class ParameterFilter:
 
     Uses the  objective contribution to rank parameters.
     """
-    def __init__(self, result_data:dict, lci_data: dict, choices: dict, demand:dict, method:str):
+    def __init__(self, lci_data: dict, choices: dict, demand:dict, method:str):
         """
         Store optimization results and LCI data for filtering.
 
         Args:
-            result_data (dict): 
-                Solver output dict.
             lci_data (dict): 
                 PULPO LCI data (matrices, maps), From pulpo_worker.lci_data
             choices (dict): 
@@ -402,13 +400,19 @@ class ParameterFilter:
             method (str): 
                 LCIA method used.
         """
-        self.result_data = result_data
         self.lci_data = lci_data # From pulpo_worker.lci_data
         self.choices = choices # From CaseStudy
         self.demand = demand # From CaseStduy
         self.method = method # From the result_data
 
-    def apply_filter(self, scaling_vector_strategy:str, cutoff:float, plot_results:bool=False, plot_n_top_processes:int=10) -> Tuple[list,list]:
+    def apply_filter(
+            self, 
+            scaling_vector_strategy:Literal['naive', 'constructed_demand'], 
+            cutoff:float, 
+            result_data:dict={},
+            plot_results:bool=False, 
+            plot_n_top_processes:int=10
+            ) -> Tuple[list,list]:
          """
          Applies the filtering steps:
          1. Prepare the scaling vector used to subselect the most contributing paramters to the impact results
@@ -424,6 +428,9 @@ class ParameterFilter:
             cutoff (float): 
                 cutoff factor to compute minimum contribution value to retain an intervention flow. 
                 Multiplied with the LCA score, i.e., a percentage of the total LCA score
+            result_data (None|dict): 
+                Solver output dict, only neccessary for scaling_vector_strategy='naive', 
+                From pulpo_worker.result_data
             plot_results (bool) - optional:
                 defaulf False, Set to True if the plot main characterized processes should be created and shown.
             plot_n_top_processes (int) - optional: 
@@ -435,14 +442,15 @@ class ParameterFilter:
             filtered_characterization_indcs (list): 
                 Subset of characterization factors indices returned from filtering.
          """
-         scaling_vector_series = self.prepare_scaling_vector(scaling_vector_strategy=scaling_vector_strategy)
+         scaling_vector_series = self.prepare_scaling_vector(scaling_vector_strategy=scaling_vector_strategy, result_data=result_data)
          lca_score, characterized_inventory = self.compute_LCI_LCIA(scaling_vector_series)
-         plots.plot_top_characterized_processes(self.lci_data['process_map_metadata'], characterized_inventory, self.method, top_amount=plot_n_top_processes)
+         if plot_results:
+            plots.plot_top_characterized_processes(self.lci_data['process_map_metadata'], characterized_inventory, self.method, top_amount=plot_n_top_processes)
          filtered_inventory_indcs = self.filter_inventoryflows(characterized_inventory, lca_score, cutoff)
          filtered_characterization_indcs = self.filter_characterization_factors(filtered_inventory_indcs)
          return filtered_inventory_indcs, filtered_characterization_indcs
 
-    def prepare_scaling_vector(self,  scaling_vector_strategy:str='naive') -> pd.Series:
+    def prepare_scaling_vector(self,  scaling_vector_strategy:str='constructed_demand', result_data:Optional[dict]={}) -> pd.Series:
         """
         Prepares the scaling vector which will be used to compute the LCIA contributions per inventory flow.
         The scaling vector can be created from the determinisitc optimum ('naive') 
@@ -457,8 +465,11 @@ class ParameterFilter:
         """
         match scaling_vector_strategy:
             case 'naive':
-            # put the scaling vector returned from the optimization into the same order as the process map
-                scaling_vector_series = self.result_data['Scaling Vector']['Value'].sort_index()
+                # Filter the uncertain parameters
+                if not result_data:
+                    raise Exception('No result_data specified. When specifying "constructed_demand" as scaling_vector_strategy, a result_data dict needs to be passed to the import_and_filter_uncertainty_data method')
+                # put the scaling vector returned from the optimization into the same order as the process map
+                scaling_vector_series = result_data['Scaling Vector']['Value'].sort_index()
             case 'constructed_demand':
                 scaling_vector_series = self.construct_scaling_vector_from_choices()
             case _:

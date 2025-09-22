@@ -440,7 +440,7 @@ class TriangularBoundInterpolationStrategy(TriangluarBaseStrategy):
         self.upper_scaling_factor, self.lower_scaling_factor = self._compute_bounds_statistics(uncertainty_bounds)
         self._compute_triag_dist_params(uncertainty_data)
 
-def apply_uncertainty_strategies(uncertainty_data: UncertaintyData, *strategies: UncertaintyStrategyBase):
+def apply_uncertainty_strategies(uncertainty_data: UncertaintyData, strategies: List[UncertaintyStrategyBase]):
     """
     Applies the strategies, by passing the strategies as instatialized classes and then performs the assign method.
 
@@ -449,7 +449,7 @@ def apply_uncertainty_strategies(uncertainty_data: UncertaintyData, *strategies:
             The uncertainty data containing the defined and undefined 
             uncertainty information, stored outside the class, initially returned from:
             `preparer.UncertaintyImporter.import_uncertainty_data()`
-        *strategies:
+        strategies (List[UncertaintyStrategyBase]):
             All strategies as instatialized classes for which will manipulate the uncertainty_data
     """
     did = id(uncertainty_data)
@@ -457,6 +457,98 @@ def apply_uncertainty_strategies(uncertainty_data: UncertaintyData, *strategies:
         s.assign(uncertainty_data)
         # guardrail: catch accidental rebinds
         assert id(uncertainty_data) == did, "Strategy must not rebind the data dict"
+
+def uncertainty_strategy_base_case(
+        databases:Union[str, List[str]], 
+        method:str, 
+        uncertainty_data:UncertaintyData, 
+        scaling_factor_if:float=0.5, 
+        scaling_factor_cf:float=0.3,
+        scaling_factor_var_bounds:float=0.2
+        ) -> List[UncertaintyStrategyBase]:
+    """
+    Creates a list of uncertainty strategies which can be used as a base case for uncertainty analysis.
+    The strategies are:
+        - TriangularBoundInterpolationStrategy for all intervention flows in the database(s)
+        - TriangluarBaseStrategy for the characterization factors in the method
+        - TriangluarBaseStrategy for the variable bounds of the variables 'upper_limit', 'lower_limit', 'upper_elem_limit', 'upper_imp_limit'
+    
+    Args:
+        databases (List[str]):
+            The name of the database or a list of database names for which the intervention flows will get
+            the TriangularBoundInterpolationStrategy assigned to them.
+        method (Dict[str, str]):
+            The LCIA method for which the characterization factors will get the TriangluarBaseStrategy assigned to them.
+        uncertainty_data (UncertaintyData):
+            The uncertainty data containing the defined and undefined 
+            uncertainty information.
+        scaling_factor_if (float):
+            The scaling factor which will be used in the TriangluarBaseStrategy for the intervention flows
+            if more than 50% of the intervention flows in the database have no uncertainty information.
+            Default is 0.5, meaning that the min and max of the triangular distribution will be set to:
+            min = amount - 0.5 * abs(amount)
+            max = amount + 0.5 * abs(amount)
+        scaling_factor_cf (float):
+            The scaling factor which will be used in the TriangluarBaseStrategy for the characterization
+            factors. Default is 0.3, meaning that the min and max of the triangular distribution will be set to:
+            min = amount - 0.3 * abs(amount)
+            max = amount + 0.3 * abs(amount)
+        scaling_factor_var_bounds (float):
+            The scaling factor which will be used in the TriangluarBaseStrategy for the variable bounds.
+            Default is 0.2, meaning that the min and max of the triangular distribution will be set to:
+            min = amount - 0.2 * abs(amount)
+            max = amount + 0.2 * abs(amount)
+    Returns:
+        strategies (List[UncertaintyStrategyBase]):
+            A list of instatialized uncertainty strategies which can be used in the 
+            `apply_uncertainty_strategies` function.
+    """
+    If_strategies = []
+    print('Creating base case uncertainty strategies for intervention flows')
+    for database in databases:
+        if len(uncertainty_data['If'][database]['defined']) ==0 or len(uncertainty_data['If'][database]['undefined'])/len(uncertainty_data['If'][database]['defined']) > 0.5:
+            print('More than 50% of the intervention flows in the database {database} have no uncertainty information, the scaling factors are set to: {scaling_factor}.')
+            print('\tCreating triangular bound base strategy for intervention flows in database: {}'.format(database))
+            If_strategies.append(
+                TriangluarBaseStrategy(
+                    uncertain_param_type='If',
+                    uncertain_param_subgroup=database,
+                    upper_scaling_factor = scaling_factor_if,
+                    lower_scaling_factor = scaling_factor_if,
+                    noise_interval={'min':.1, 'max':.1}
+                )
+            )
+        else:
+            print('\tCreating triangular bound interpolation strategy for intervention flows in database: {}'.format(database))
+            If_strategies.append(
+                TriangularBoundInterpolationStrategy(
+                    uncertain_param_type='If',
+                    uncertain_param_subgroup=database,
+                    noise_interval={'min':.1, 'max':.1}
+                )
+            )
+    print('Creating triangular bound base strategy for Characterization factors: {}'.format(next(iter(method))))
+    Cf_strategies = [
+        TriangluarBaseStrategy(
+            uncertain_param_type='Cf',
+            uncertain_param_subgroup=next(iter(method)),
+            upper_scaling_factor = scaling_factor_cf,
+            lower_scaling_factor = scaling_factor_cf,
+            noise_interval={'min':.1, 'max':.1}
+        )
+    ]
+    print('Creating triangular bound base strategy for variable bounds')
+    Var_strategies = [
+            TriangluarBaseStrategy(
+            uncertain_param_type='Var_bounds',
+            uncertain_param_subgroup=var_bound,
+            upper_scaling_factor=scaling_factor_var_bounds,
+            lower_scaling_factor=scaling_factor_var_bounds,
+            noise_interval={'min':.2, 'max':.1}
+        ) for var_bound in ['upper_limit', 'lower_limit', 'upper_elem_limit', 'upper_imp_limit']
+    ]
+    strategies = If_strategies + Cf_strategies + Var_strategies
+    return strategies
 
 def check_missing_uncertainty_data(uncertainty_data: UncertaintyData) -> bool:
     missing_unc_data = False
