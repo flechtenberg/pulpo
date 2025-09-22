@@ -71,6 +71,73 @@ def plot_top_characterized_processes(
     plot_contribution_barplot(impact_df_red['impact'], metadata=impact_df_red['process name'], impact_category=method, colormap=colormap_ser,  bbox_to_anchor_center=1.7, bbox_to_anchor_lower=-.6)
     plt.show()
 
+def plot_top_total_sensitivity_indices(total_Si:pd.DataFrame, total_Si_metadata:pd.DataFrame, top_amount:int=10) -> tuple[pd.Series, pd.Series]:
+        """
+        Plot the top contributors to total variance (Sobol ST).
+
+        Args:
+            total_Si (pd.DataFrame): Contains 'ST' and 'ST_conf' columns.
+            total_Si_metadata (pd.DataFrame): 'bar_names' labels.
+            top_amount (int): Number of top parameters to display.
+
+        Returns:
+            colormap_base: list of colors used.
+            colormap_SA_barplot: pd.Series mapping params → colors.
+        """
+        # Plot the contribution to variance
+        top_total_Si = total_Si.sort_values('ST', ascending=False).iloc[:top_amount,:]
+        top_total_Si_metadata = total_Si_metadata.loc[top_total_Si.index]
+        colormap_base = mpl.colormaps['tab20'].colors
+        colormap_SA_barplot = pd.Series(colormap_base[:top_total_Si.shape[0]], index=top_total_Si.index)
+        plot_contribution_barplot_with_err(data=top_total_Si, metadata=top_total_Si_metadata, colormap=colormap_SA_barplot, bbox_to_anchor_center=1.7, bbox_to_anchor_lower=-.6)
+        return colormap_base, colormap_SA_barplot
+
+
+        
+def plot_total_env_impact_contribution(
+        sample_characterized_inventories: pd.DataFrame,
+        total_Si_metadata: pd.DataFrame,
+        method: str,
+        top_amount: int = 10,
+        colormap_base: pd.Series = pd.Series([]),
+        colormap_SA_barplot: pd.Series = pd.Series([])
+    ) -> pd.DataFrame:
+    """
+    Plot each process's share of the total environmental impact.
+
+    Args:
+        sample_characterized_inventories (pd.DataFrame):
+            Characterized inventory flows per sample.
+        total_Si_metadata (pd.DataFrame):
+            'bar_names' for labeling processes.
+        method (str):
+            LCIA method used.
+        top_amount (int): 
+            Number of top processes to include.
+        colormap_base (pd.Series): 
+            Base colormap mapping (optional).
+        colormap_SA_barplot (pd.Series): 
+            Sensitivity-plot colormap mapping (optional).
+
+    Returns:
+        data_plot (pd.DataFrame): 
+            Data prepared for the linked impact contribution plot.
+    """        
+    #Plot the main contributing variables to the total environmental impact
+    # Generate the data
+    top_characterized_inventories_indcs = sample_characterized_inventories.mean().abs().sort_values(ascending=False).iloc[:top_amount].index
+    data_plot = pd.DataFrame([])
+    characterized_inventories_scaled = (sample_characterized_inventories.T / sample_characterized_inventories.T.sum()).T #sample_characterized_inventories.div(sample_characterized_inventories.sum(axis=1), axis=0)
+    data_plot["ST"] = characterized_inventories_scaled.mean()[top_characterized_inventories_indcs]
+    data_plot["ST_conf"] = characterized_inventories_scaled.sparse.to_dense().std()[top_characterized_inventories_indcs]
+    data_plot.index = data_plot.index.to_flat_index()
+    metadata_plot = total_Si_metadata.loc[data_plot.index,['bar_names']]
+    # Plot the total environmental impact for the top processes
+    if not colormap_base:
+        colormap_base = pd.Series(mpl.colormaps['tab20'].colors[:data_plot.shape[0]], index=data_plot.index)
+    plot_linked_contribution_barplot(data_plot, metadata=metadata_plot, impact_category=method, colormap_base=colormap_base, colormap_linked=colormap_SA_barplot, savefig=False, bbox_to_anchor_center=1.7, bbox_to_anchor_lower=-.6)
+    return data_plot
+
 # === General Plots ===
 
 def set_size(width, height, fraction=1):
