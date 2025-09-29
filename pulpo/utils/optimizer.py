@@ -1,7 +1,15 @@
+import os
+import pandas as pd
+import numpy as np
+import scipy
+import array
+from typing import Dict, Tuple
 import pyomo.environ as pyo
 from pyomo.contrib import appsi
+import stats_arrays
 from .saver import extract_flows
-import os
+from .uncertainty import processor
+from .uncertainty.preparer import UncertaintyData, UncertaintySpec, DefUndefBlock
 
 def create_model():
     """
@@ -162,6 +170,301 @@ def calculate_methods(instance, lci_data, methods):
 
     return instance
 
+def compute_L1_env_cost_mean_var(
+        normal_uncertainty_data:UncertaintyData, 
+        lci_data:dict, 
+        method:str, 
+        plot_analysis_support_plots=False
+        ) -> Dict[Tuple[int,str], UncertaintySpec]:
+    """
+    Computes the environmental cost mean and variance associated with 
+    the uncertain intervention and characterization flows specified in uncertainty_data
+
+    This is a shortcut approach to implement an individual chance‐constraint formulation 
+    on the objective using the L1 norm on normally distributed uncertainties.
+
+    This method approximates all uncertain intervention flows and characterization factors as Normal(μ,σ²),
+    computes the aggregated standard deviation of total environmental cost under an L1 norm.
+
+    Args:
+        normal_uncertainty_data (UncertaintyData): 
+            Dictionary containing metadata about uncertain intervention flows (IF) and characterization factors (CF).
+            All uncertain paramters need to have been transformed to normal distributions.
+        lci_data (dict): 
+            Dictionary containing life cycle inventory data, including matrices and mappings.
+        method (str): 
+            The impact assessment method for which to compute environmental cost statistics.
+        sample_size_normal_fit (int, optional): 
+            Number of samples to use when fitting normal distributions to uncertainty data. Default is 100000.
+        plot_analysis_support_plots (bool, optional): 
+            If True, plots the fitted normal distributions for inspection. Default is False.
+
+    Returns:
+        normal_metadata_env_cost (Dict[Tuple[int,str], UncertaintySpec]):
+            dictionary holding the mean, std as loc and scale for all environmental cost subjected to uncertainty.
+            With (method, process_id) as keys, as indexed in pyomo.
+    """
+    def _check_all_uncertainty_is_normal(uncertainty_data:UncertaintyData, method:str):
+        """
+        Checks that all uncertainty specs in 'If' and 'Cf' have Normal uncertainty type.
+
+        Args:
+            uncertainty_data (UncertaintyData): 
+                Dictionary containing metadata about uncertain intervention flows (IF) and characterization factors (CF).
+            method (str): 
+                The impact assessment method for which to check CF uncertainty.
+
+        Raises:
+            ValueError: If any uncertainty spec is not of Normal type.
+        """
+        normal_id = stats_arrays.NormalUncertainty.id
+        # Check 'If'
+        for if_data in uncertainty_data['If'].values():
+            for spec in if_data['defined'].values():
+                if spec.get('uncertainty_type', None) != normal_id:
+                    raise ValueError("All 'If' uncertainty specs must be Normal distributions.")
+        # Check 'Cf'
+        for spec in uncertainty_data['Cf'][method]['defined'].values():
+            if spec.get('uncertainty_type', None) != normal_id:
+                raise ValueError("All 'Cf' uncertainty specs must be Normal distributions.")
+    
+    def _extract_process_ids_and_intervention_flows_for_env_cost_variance(uncertainty_data:UncertaintyData, lci_data:dict, method:str) -> tuple[array.array, pd.DataFrame]:
+        """
+        Identify which processes and flows feed into the environmental-cost variance.
+
+        Extracts the array of process IDs that have uncertain intervention flows or CFs,
+        then computes per-process cost standard deviations and z-scores, printing any
+        outliers and plotting the z-value distribution for inspection.
+
+        Args:
+            uncertainty_data (UncertaintyData): 
+                Dictionary containing metadata about uncertain intervention flows (IF) and characterization factors (CF).
+            lci_data (dict): 
+                Dictionary containing life cycle inventory data, including matrices and mappings.
+            method (str): 
+                The impact assessment method for which to compute environmental cost statistics.
+
+        Returns:
+            process_id_uncertain_if (array.array): 
+                IDs of processes with uncertain IF contributions.
+            envcost_std_mean (pd.DataFrame): 
+                DataFrame indexed by process ID with columns
+                ['std', 'mean', 'z', 'metadata'] summarizing variance diagnostics.
+        """
+        # To Compute the variance of the environmental costs we must extract all processes which contain:
+        # - an uncertain intervention flow
+        process_id_uncertain_if = []
+        for if_unc_data in uncertainty_data['If'].values():
+            process_id_uncertain_if += [if_indx for (_, if_indx) in if_unc_data['defined'].keys()]
+        # - an intervention flow associated with an uncertain characterization factor
+        Cf_indcs = list(uncertainty_data['Cf'][method]['defined'].keys())
+        process_id_associated_cf = lci_data['intervention_matrix'][Cf_indcs,:].nonzero()[1]
+        process_ids = np.unique(np.append(process_id_associated_cf, process_id_uncertain_if))
+        # Get the intervention flows to the uncertain characterization factors
+        intervention_flows_extracted = pd.DataFrame.sparse.from_spmatrix(
+            lci_data['intervention_matrix'][Cf_indcs,:][:,process_ids],
+            index=Cf_indcs,
+            columns=process_ids
+        )
+        return process_ids, intervention_flows_extracted
+
+    def _compute_envcost_variance(normal_uncertainty_data:UncertaintyData, lci_data, method) -> dict:
+        """
+        Calculate the standard deviation of total environmental cost across processes.
+        This calculation assumes that we can use the L1 norm to compute the variance
+        of the total environmental cost, which is a sum of products of uncertain IFs and CFs.
+
+        Uses the fitted Normal distributions for CFs and IFs to derive per-process
+        cost variances, then aggregates them (under independence) to obtain the
+        overall cost standard deviations.
+        $$
+        \sigma_{q_hb_j} =\sqrt{\sum_e \big(\mu_{q_{h,e}}^2\sigma_{b_{e,j}}^2 + \mu_{b_{e,j}}^2\sigma_{q_{h,e}}^2 + \sigma_{b_{e,j}}^2 \sigma_{q_{h,e}}^2\big)}
+        $$
+
+        Args:
+            uncertainty_data (UncertaintyData): 
+                Dictionary containing metadata about uncertain intervention flows (IF) and characterization factors (CF).
+            lci_data (dict): 
+                Dictionary containing life cycle inventory data, including matrices and mappings.
+            method (str): 
+                The impact assessment method for which to compute environmental cost statistics.    
+
+        Returns:
+            envcost_std (dict):
+                Indexed by process ID, with each value equal to the standard deviation
+                of that process’s total cost contribution.
+        """
+        # Create dataframes for the uncertainty data If and Cf, as this method was written with another uncertainty_data sturcture
+        # ATTN: rewrite this method to fully be based on the UncertaintyData structure
+        if_unc_dict = {}
+        for if_uncertainty_data in normal_uncertainty_data['If'].values():
+            if_unc_dict.update(if_uncertainty_data['defined'])
+        if_normal_metadata_df = pd.DataFrame(if_unc_dict).T
+        cf_normal_metadata_df = pd.DataFrame(normal_uncertainty_data['Cf'][method]['defined']).T
+        # Get the process and intervention flow Id's for the env costs.
+        process_ids, intervention_flows_extracted = _extract_process_ids_and_intervention_flows_for_env_cost_variance(normal_uncertainty_data, lci_data, method)
+        envcost_std = {}
+        for process_id in process_ids:
+            # compute the mu_{q_{h,e}}^2 * sigma_{b_{e,j}}^2
+            if process_id in if_normal_metadata_df.index.get_level_values(level=1):
+                intervention_flow_std = if_normal_metadata_df.xs(process_id, level=1, axis=0, drop_level=True)['scale']
+                characterization_factor_mean = pd.Series(
+                    lci_data["matrices"][method].diagonal()[
+                        intervention_flow_std.index.get_level_values(level=0)
+                        ],
+                    index=intervention_flow_std.index.get_level_values(level=0)
+                )
+                # Reindex so that we can perform a matrix multiplication on all intervention flows
+                characterization_factor_mean = characterization_factor_mean.reindex(intervention_flow_std.index, axis=0, level=0)
+                mu_q2_sigma_b2 = characterization_factor_mean.pow(2).mul(intervention_flow_std.pow(2), axis=0)
+            else:
+                mu_q2_sigma_b2 = pd.Series([0])
+            # compute the mu_{b_{e,j}}^2 * sigma_{q_{h,e}}^2
+            if (intervention_flows_extracted[process_id] > 0).any():
+                characterization_factor_std = cf_normal_metadata_df['scale']
+                # Reindex so that we can perform a matrix multiplication on all characterization factors
+                intervention_flow_mean = intervention_flows_extracted[process_id]
+                sigma_q2_mu_b2 = characterization_factor_std.pow(2).mul(intervention_flow_mean.pow(2), axis=0)
+            else:
+                sigma_q2_mu_b2 = pd.Series([0])
+            # compute the sigma_{b_{e,j}}^2 * sigma_{q_{h,e}}^2
+            if (intervention_flows_extracted[process_id] > 0).any() and process_id in if_normal_metadata_df.index.get_level_values(level=1):
+                sigma_q2_sigma_b2 = characterization_factor_std.pow(2).mul(intervention_flow_std.pow(2))
+            else:
+                sigma_q2_sigma_b2 = pd.Series([0])
+            # Take the sqrt of the sum over the std terms and the intervention flows
+            envcost_std[process_id] = np.sqrt(mu_q2_sigma_b2.sum() + sigma_q2_sigma_b2.sum() + sigma_q2_mu_b2.sum())
+        return envcost_std
+
+    def _compute_envcost_mean(lci_data:dict) -> dict:
+        """
+        Compute the expected (mean) total environmental cost per process.
+
+        Args:
+            lci_data (dict): 
+                Dictionary containing life cycle inventory data, including matrices and mappings.
+
+        Returns:
+            envcost_mean (pd.Series):
+                environmental cost mean values, Indexed by process ID, with each value equal to the expected cost
+                contribution of that process.
+        """
+        # Compute the mean of the environmental costs to be used together with the standard deviation to update the uncertain parameters in line with chance constraint formulation
+        envcost_raw = lci_data['matrices'][method].diagonal() @ lci_data['intervention_matrix']
+        # ATTN: The env_cost_raw must be updated with the potentially different means after fitting the normal distribution
+        envcost_mean = pd.Series(envcost_raw).to_dict()
+        return envcost_mean
+
+    def _check_envcost_variance(envcost_std:dict, envcost_mean:dict, lci_data:dict, box_plots:bool=False):
+        """
+        Validate z-scores (std/mean) for environmental cost contributions.
+
+        Computes z = std/|mean| for each process and raises a warning or error
+        if any z exceed reasonable thresholds (indicating potential numerical issues).
+
+        Args:
+            envcost_std (dict):
+                Standard deviation per process (from `compute_envcost_variance`).
+            envcost_mean (dict):
+                environmental cost mean values, Indexed by process ID, with each value equal to the expected cost
+                contribution of that process.
+            lci_data (dict):
+                Dictionary containing life cycle inventory data, including matrices and mappings.
+            box_plots (bool, optional):
+                If true show the box plot of the z-values computed for the standard deviations
+        """
+        # ATTN: For the environmental costs with very large z-value we should check if they come from interpolated values or from database uncertainty
+        envcost_std_mean = pd.DataFrame.from_dict(envcost_std, orient='index', columns=['std'])
+        envcost_std_mean['metadata'] = envcost_std_mean.index.map(lci_data['process_map_metadata'])
+        if envcost_std_mean['std'].isna().any():
+            raise Exception('There are NaNs in the standard deviation')
+        envcost_std_mean['mean'] = envcost_std_mean.index.map(envcost_mean)
+        envcost_std_mean['z'] = envcost_std_mean['std'] / envcost_std_mean['mean']
+        if (envcost_std_mean['z'] > 0.5).any():
+            print('These environmental costs have a standard deviation larger than 50% of their mean:\n')
+            print(envcost_std_mean[envcost_std_mean['z'] > 0.5].sort_values('z', ascending=False))
+            # raise Exception('There are z-values greater than 0.5 this is improbable')
+        if box_plots:
+            envcost_std_mean['z'].sort_values(ascending=False).iloc[5:].plot.box()
+            print('The following points were excluded from the boxplot:')
+            print(envcost_std_mean['z'].sort_values(ascending=False).iloc[:5])
+    
+    """
+    Prepare the variance‐based chance‐constraint formulation.
+
+    1. Check that CF and IF are Normally distributed.
+    2. Compute the standard deviation of environmental cost contributions.
+    3. Compute the mean environmental cost.
+    4. Check that the variance‐based z‐values are within acceptable bounds.
+    """
+    _check_all_uncertainty_is_normal(normal_uncertainty_data, method)
+    envcost_std = _compute_envcost_variance(normal_uncertainty_data, lci_data, method)
+    envcost_mean = _compute_envcost_mean(lci_data)
+    _check_envcost_variance(envcost_std, envcost_mean, lci_data, box_plots=plot_analysis_support_plots)
+    normal_metadata_env_cost: Dict[Tuple[int,str], UncertaintySpec] = {
+        (process_id, method): {
+            'loc':envcost_mean[process_id], 
+            'scale':envcost_std[process_id],
+            'uncertainty_type':stats_arrays.NormalUncertainty.id,
+            'amount':np.NaN,
+            'maximum':np.NaN,
+            'minimum':np.NaN,
+            'shape':np.NaN,
+        } for process_id in envcost_std.keys()
+    }
+    return normal_metadata_env_cost
+
+def apply_CC_formulation(
+        model_instance, 
+        lambda_level:float, 
+        normal_metadata_env_cost:Dict[Tuple[int,str], UncertaintySpec]={}, 
+        normal_metadata_var_bounds:Dict[str, Dict[int, UncertaintySpec]]={}
+        ):
+    """
+    Inject or update the ε‐constraint for a given risk level.
+
+    Modifies the existing Pyomo model to enforce that the specified
+    chance constraint (e.g. P{impact ≤ threshold} ≥ λ) is satisfied
+    at the current `lambda_level`. This supports tracing the Pareto front.
+
+    Args:
+        model_instance (ConcreteModel): 
+            The Pyomo model instance.
+        lambda_level (float):
+            Target confidence/risk threshold (e.g., 0.95 for 95% quantile).
+        normal_metadata_env_cost (Dict[Tuple[int,str], UncertaintySpec]):
+            Dictionary holding the mean, std as loc and scale for all environmental cost subjected to uncertainty.
+            With (method, process_id) as keys, as indexed in pyomo.
+        normal_metadata_var_bounds (str, UncertaintySpec]):
+            Dictionary holding the mean, std as loc and scale for all variable bounds subjected to uncertainty.
+            With ('upper_limit' or 'lower_limit', process_id) as keys, as indexed in pyomo.
+        
+    """
+    ppf_lambda = scipy.stats.norm.ppf(lambda_level)
+    if normal_metadata_env_cost:
+        print(f'Applying CC constraints to the environmental cost calculation with lambda: {lambda_level}')
+        environmental_cost_updated = {env_cost_indx: env_cost_data['loc'] + ppf_lambda * env_cost_data['scale'] for env_cost_indx, env_cost_data in normal_metadata_env_cost.items()}
+        model_instance.ENV_COST_MATRIX.store_values(environmental_cost_updated, check=True)
+    for bound_name, metadata_vb in normal_metadata_var_bounds.items():
+        if metadata_vb:
+            print(f'Applying CC constraints to the {bound_name} constraint with lambda: {lambda_level}')
+            match bound_name:
+                case 'upper_limit':
+                    pyomo_var_name = 'UPPER_LIMIT'
+                    bound_updated = {indx: (unc_data['loc'] - ppf_lambda * unc_data['scale']) for indx, unc_data in metadata_vb.items()}
+                case 'lower_limit':
+                    pyomo_var_name = 'LOWER_LIMIT'
+                    bound_updated = {indx: (unc_data['loc'] + ppf_lambda * unc_data['scale']) for indx, unc_data in metadata_vb.items()}
+                case 'upper_imp_limit': # ATTN: Not tested
+                    pyomo_var_name = 'UPPER_IMP_LIMIT'
+                    bound_updated = {indx: (unc_data['loc'] - ppf_lambda * unc_data['scale']) for indx, unc_data in metadata_vb.items()}
+                case 'upper_inv_limit': # ATTN: Not tested
+                    pyomo_var_name = 'UPPER_INV_LIMIT'
+                    bound_updated = {indx: (unc_data['loc'] - ppf_lambda * unc_data['scale']) for indx, unc_data in metadata_vb.items()}
+                case _:
+                    raise Exception('has not been implemented yet.')
+            pyomo_bound = getattr(model_instance, pyomo_var_name)
+            pyomo_bound.store_values(bound_updated, check=True)
 
 def calculate_inv_flows(instance, lci_data):
     """
