@@ -28,6 +28,7 @@ import bw2calc
 import ast
 import array
 from typing import Union, List, Optional, Dict, Tuple
+from pulpo.utils.saver import ResultDataDict
 
 # === Plots Wrapper ===
 
@@ -137,6 +138,65 @@ def plot_total_env_impact_contribution(
         colormap_base = pd.Series(mpl.colormaps['tab20'].colors[:data_plot.shape[0]], index=data_plot.index)
     plot_linked_contribution_barplot(data_plot, metadata=metadata_plot, impact_category=method, colormap_base=colormap_base, colormap_linked=colormap_SA_barplot, savefig=False, bbox_to_anchor_center=1.7, bbox_to_anchor_lower=-.6)
     return data_plot
+
+def create_data_for_plots(result_data_CC:Dict[float,ResultDataDict], cutoff_value:float, process_map_metadata:dict) -> pd.DataFrame:
+        """
+        Create the data for the Pareto front plots, by computing the process impacts and 
+        selecting the top processes per Pareto Point based on the cut off and then concatting
+        all main contributing processes across Pareto Points to show changes.
+
+        Args:
+            result_data_CC (Dict[float,ResultDataDict]): Mapping from each lambda level
+                to its corresponding solver result dictionary.
+            cutoff_value (float): Relative threshold for filtering main decision variables
+                to include in the bar plot.
+            process_map_metadata (dict):
+                Dictionary mapping the process index (keys) to the metadata, i.e., description (values)
+                from `lci_data['process_map_metadata']`
+
+        Return:
+            data_QBs_main_df (pd.DataFrame): 
+                Containing the main contributing processes to the impact per Pareto Point, 
+                returned from `create_data_for_plots` method.
+        """
+        data_QBs_main_list = []
+        # data_QBs_list = []
+        for lamnda_QBs, result_data in result_data_CC.items():
+            environmental_cost_mean = {env_cost_index[0]: env_cost['Value'] for env_cost_index, env_cost in result_data_CC[lamnda_QBs]['ENV_COST_MATRIX'].iterrows()}
+            QBs = result_data['Scaling Vector']['Value'] * pd.Series(environmental_cost_mean).reindex(result_data['Scaling Vector']['Value'].index)
+            # data_QBs_list.append(QBs)
+            QBs_main = QBs[QBs.abs() > cutoff_value*QBs.abs().sum()]
+            QBs_main.name = lamnda_QBs
+            data_QBs_main_list.append(QBs_main)
+            print('With a cutoff value of {}, we keep {} process to an error of {:.2%}'.format(cutoff_value, len(QBs_main), abs(1 - QBs_main.sum()/QBs.sum())))
+        data_QBs_main_df = pd.concat(data_QBs_main_list, axis=1)
+        # ATTN: Best case would be to fill NaN which appear when concating the "maion contributing processes datasets" with the data from the QBs, but currently we dont have all ENV_COST
+        data_QBs_main_df = data_QBs_main_df.fillna(0.)
+        # Rename the index to contain the main contributing processes.
+        data_QBs_main_df = data_QBs_main_df.rename(index={process_id: process_map_metadata[process_id] for process_id in data_QBs_main_df.index})
+        return data_QBs_main_df
+
+def plot_pareto_front(result_data_CC:Dict[float,ResultDataDict], cutoff_value:float, method:str, process_map_metadata:dict, bbox_to_anchor:Tuple[float, float] = (0.65, -1.)):
+    """
+    Plot the Pareto front and highlight main contributing variables.
+
+    Args:
+        result_data_CC (Dict[float,ResultDataDict]): Mapping from each lambda level
+            to its corresponding solver result dictionary.
+        cutoff_value (float): Relative threshold for filtering main decision variables
+            to include in the bar plot.
+        method (str):
+            The LCIA method used to compute the characterized inventory
+        process_map_metadata (dict):
+                Dictionary mapping the process index (keys) to the metadata, i.e., description (values)
+                from `lci_data['process_map_metadata']`
+        bbox_to_anchor (tuple): 
+            Tuple holding the bbox anchor points for the legend.
+            Default value is (0.65, -1.).
+    """
+    data_QBs_main_df = create_data_for_plots(result_data_CC, cutoff_value, process_map_metadata)
+    plot_pareto_solution_normalized_bar_plots(data_QBs_main_df, method, bbox_to_anchor=bbox_to_anchor)
+    plot_pareto_solution_bar_plots(data_QBs_main_df, method, bbox_to_anchor=bbox_to_anchor)
 
 # === General Plots ===
 
