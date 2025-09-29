@@ -454,6 +454,7 @@ def apply_uncertainty_strategies(uncertainty_data: UncertaintyData, strategies: 
     """
     did = id(uncertainty_data)
     for s in strategies:
+        print('Applying uncertainy strategy {}, for {} in {}'.format(s.__class__.__name__, s.uncertain_param_subgroup, s.uncertain_param_type))
         s.assign(uncertainty_data)
         # guardrail: catch accidental rebinds
         assert id(uncertainty_data) == did, "Strategy must not rebind the data dict"
@@ -465,7 +466,7 @@ def uncertainty_strategy_base_case(
         scaling_factor_if:float=0.5, 
         scaling_factor_cf:float=0.3,
         scaling_factor_var_bounds:float=0.2
-        ) -> List[UncertaintyStrategyBase]:
+        ) -> List[TriangluarBaseStrategy]:
     """
     Creates a list of uncertainty strategies which can be used as a base case for uncertainty analysis.
     The strategies are:
@@ -531,7 +532,7 @@ def uncertainty_strategy_base_case(
     Cf_strategies = [
         TriangluarBaseStrategy(
             uncertain_param_type='Cf',
-            uncertain_param_subgroup=next(iter(method)),
+            uncertain_param_subgroup=method,
             upper_scaling_factor = scaling_factor_cf,
             lower_scaling_factor = scaling_factor_cf,
             noise_interval={'min':.1, 'max':.1}
@@ -551,6 +552,17 @@ def uncertainty_strategy_base_case(
     return strategies
 
 def check_missing_uncertainty_data(uncertainty_data: UncertaintyData) -> bool:
+    """
+    Check if there are any undefined uncertainty data in the uncertainty_data dict.
+    
+    Args:
+        uncertainty_data (UncertaintyData): 
+            Dictionary containing metadata about uncertain intervention flows (IF) and characterization factors (CF).
+    
+    Returns:
+        missing_unc_data (bool): 
+            True if there is any undefined uncertainty data, False otherwise.
+    """
     missing_unc_data = False
     for unc_type, unc_type_data in uncertainty_data.items():
         for unc_subgroup, unc_subgroup_data in unc_type_data.items():
@@ -561,7 +573,43 @@ def check_missing_uncertainty_data(uncertainty_data: UncertaintyData) -> bool:
         print('No uncertainty data missing.')
     return missing_unc_data
 
-def fit_normals(uncertainty_metadata_df:pd.DataFrame, plot_distributions:bool=False, sample_size:int=1000000) -> pd.DataFrame:
+
+def transform_to_normal(uncertainty_data:UncertaintyData, sample_size:int=100000, plot_distribution:bool=False) -> UncertaintyData:
+    """
+    Fit Normal distributions to all CF and IF uncertainty metadata.
+
+    Uses the UncertaintyProcessor to convert any non‐normal uncertainty
+    definitions into equivalent Normal distributions.
+
+    Args:
+        uncertainty_data (UncertaintyData): 
+            Dictionary containing metadata about uncertain intervention flows (IF) and characterization factors (CF).
+        sample_size (int):
+            Number of random draws per parameter when fitting normal distribution
+            to uncertain parameters. Defaults to 1_000_000.
+        plot_distributions (bool):
+            If True, display a histogram + fitted-normal curve for each parameter.
+            Defaults to False.
+    Returns:
+        normal_metadata (UncertaintyData): 
+            Fitted Normal loc/scale for parameters in chance constaints (e.g., "cf", "if").
+    """
+    if check_missing_uncertainty_data(uncertainty_data):
+        raise Exception('There is undefined uncertainty data, you can only compute the env. cost statistics when all uncertainty data is defined')
+    normal_metadata:UncertaintyData = {}
+    for param_type, params_metadata in uncertainty_data.items():
+        normal_metadata[param_type] = {}
+        for var_name, var_metadata in params_metadata.items():
+            normal_metadata[param_type][var_name] = {}
+            normal_metadata[param_type][var_name]['defined'] = fit_normals(var_metadata['defined'], sample_size=sample_size, plot_distributions=plot_distribution)
+    # ATTN: Check if the fit_normals runs through with 0 as standard deviations
+    return normal_metadata
+
+def fit_normals(
+        uncertainty_metadata:Dict[Union[Tuple[int,int],int], UncertaintySpec], 
+        plot_distributions:bool=False, 
+        sample_size:int=1000000
+        ) -> Dict[Union[Tuple[int,int],int], UncertaintySpec]:
     """
     Fit normal distributions to parameters defined with non-normal uncertainty types.
 
@@ -590,15 +638,24 @@ def fit_normals(uncertainty_metadata_df:pd.DataFrame, plot_distributions:bool=Fa
                 - `uncertainty_type` (int): Always 3, indicating “normal” type.
     """
     normal_uncertainty_metadata_dict = {}
-    print('{} parameters with non normal distribution are transformed into normal distributions via max likelihood approximation'.format((uncertainty_metadata_df['uncertainty_type'] != 3).sum()))
+    if uncertainty_metadata:
+        print('{} parameters with non normal distribution are transformed into normal distributions via max likelihood approximation'.format((pd.DataFrame(uncertainty_metadata).T['uncertainty_type'] != 3).sum()))
     # For each parameter:
     #   - generate random samples from its original distribution
     #   - estimate mean and std via max likelihood fit of the percent‐point function samples (ppf)
     #   - replace in returned DataFrame
-    for param_index, metadata in uncertainty_metadata_df[uncertainty_metadata_df['uncertainty_type'] != 3].iterrows():
+    for param_index, metadata in uncertainty_metadata.items():
         if metadata['uncertainty_type'] == 1:
             raise Exception('The intervention flow has the "no uncertainty" distribution type. This is not allowed')
-        metadata_uncertainty_array = stats_arrays.UncertaintyBase.from_dicts(metadata.to_dict())
+        if metadata['uncertainty_type'] == 3:
+            # If the distribution is already normal, just copy the metadata
+            normal_uncertainty_metadata_dict[param_index] = {
+                'scale':metadata['scale'],
+                'loc':metadata['loc'],
+                'uncertainty_type':stats_arrays.NormalUncertainty.id
+            }
+            continue
+        metadata_uncertainty_array = stats_arrays.UncertaintyBase.from_dicts(metadata)
         uncertainty_choice = stats_arrays.uncertainty_choices[metadata['uncertainty_type']]
         # Sample the non-normal distribution 
         param_samples = uncertainty_choice.random_variables(metadata_uncertainty_array, sample_size)
@@ -631,7 +688,7 @@ def fit_normals(uncertainty_metadata_df:pd.DataFrame, plot_distributions:bool=Fa
         normal_uncertainty_metadata_dict[param_index] = normal_uncertainty_metadata
     if plot_distributions:
         plt.show()
-    return pd.DataFrame(normal_uncertainty_metadata_dict).T
+    return normal_uncertainty_metadata_dict
 
 def compute_bounds(uncertainty_metadata:dict, return_type:str='df') -> Union[pd.DataFrame, dict]:
     """
