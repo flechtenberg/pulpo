@@ -1,7 +1,11 @@
 from pulpo.utils import optimizer, bw_parser, converter, saver
 from pulpo.utils.uncertainty import preparer, processor, gsa
-from typing import List, Union, Literal
+from pulpo.utils.uncertainty.preparer import UncertaintySpec
+from pulpo.utils.saver import ResultDataDict
+from typing import List, Union, Literal, Dict, Tuple, Optional
 import pandas as pd
+import numpy as np
+import array
 import webbrowser
 from tests.rice_database import setup_rice_husk_db
 from tests.generic_database import setup_generic_db
@@ -103,6 +107,64 @@ class PulpoOptimizer:
         results = uncertainty.solve_model_MC(self, n_it, GAMS_PATH, solver_name=solver_name, options=options)
 
         return results
+
+    def solve_CC_problem(
+        self,
+        lambda_level:float|List, 
+        normal_metadata_env_cost:Dict[Tuple[int,str], UncertaintySpec], 
+        normal_metadata_var_bounds:Dict[str, Dict[int, UncertaintySpec]],
+        gams_path=False, 
+        solver_name:Optional[str]=None, 
+        options=None, 
+        neos_email=None
+        ) -> ResultDataDict | Dict[float, ResultDataDict]:
+        """
+        Solve a (set of) Pareto point(s) for the specified lambda level(s).
+        Solves one point if lambda_level is a float, or multiple points if lambda_level is an array of floats.
+
+        Args:
+            model_instance (ConcreteModel): 
+                The Pyomo model instance.
+            lambda_level (float):
+                Target confidence/risk threshold (e.g., 0.95 for 95% quantile).
+            normal_metadata_env_cost (Dict[Tuple[int,str], UncertaintySpec]): 
+                Mean and standard deviation of the environmental costs.
+            normal_metadata_var_bounds (Dict[str, Dict[int,UncertaintySpec]]): 
+                Standard deviation of the variable bounds.
+            gams_path (str or bool, optional): 
+                Path to the GAMS solver or True to use the environment variable.
+            solver_name (str, optional): 
+                The solver to use (e.g. 'cplex', 'baron', or 'xpress').
+            options (list, optional): 
+                Additional options for the solver.
+            neos_email (str, optional): 
+                Email for NEOS solver authentication.
+            
+        Returns:
+            results (ResultDataDict or Dict[float,ResultDataDict]): 
+                If lambda_level is a float, returns a dictionary containing the results extracted from the solver,
+                including variable values, objective metrics, and metadata.
+                If lambda_level is an array of floats, returns a dictionary where each key is a lambda value and
+                each value is a dictionary containing the results for that lambda level.
+        """
+        if isinstance(lambda_level, float):
+            optimizer.apply_CC_formulation(self.instance, lambda_level, normal_metadata_env_cost, normal_metadata_var_bounds)
+            self.solve(GAMS_PATH=gams_path, solver_name=solver_name, options=options, neos_email=neos_email)
+            results = self.extract_results()
+            return results
+        elif isinstance(lambda_level, np.ndarray) or isinstance(lambda_level, list) or isinstance(lambda_level, array.array):
+            results = {}
+            for lambda_ in lambda_level:
+                print(f'solving CC problem for lambda_QB = {lambda_}')
+                # ATTN: We need to store the environmental costs in the results_data and not extract seperate
+                # This used to be the case before the results_data was changed, this formulation will run into errors.
+                optimizer.apply_CC_formulation(self.instance, lambda_, normal_metadata_env_cost, normal_metadata_var_bounds)
+                self.solve(GAMS_PATH=gams_path, solver_name=solver_name, options=options, neos_email=neos_email)
+                results[lambda_] = self.extract_results(extractparams=True)
+            return results
+        else:
+            raise Exception('lambda_level datatype not implemented, needs to be an array or a float.')
+
     
     def import_and_filter_uncertainty_data(
             self, 
@@ -256,7 +318,54 @@ class PulpoOptimizer:
         )
         total_Si, sensitivity_indices = gsa_study.perform_gsa()
         return total_Si, sensitivity_indices
-    
+        
+    def create_CC_formulation(
+            self, 
+            CC_env_cost:bool=True, 
+            CC_var_bounds:List[Literal['upper_imp_limit', 'lower_limit', 'upper_elem_limit', 'upper_limit']] = []
+            ) -> tuple[Dict[Tuple[int,str], UncertaintySpec], Dict[str, Dict[int,UncertaintySpec]]]:
+        """
+        Creates the data needed for the CC formulation, i.e., the mean and standard deviation of
+        the environmental costs based on the L1 norm and the standard deviation of the variable bounds.
+
+        Args:
+            CC_env_cost (bool):
+                If True, computes the mean and standard deviation of the environmental costs.
+            CC_var_bounds (List[Literal['upper_imp_limit', 'lower_limit', 'upper_elem_limit', 'upper_limit']]):
+                List of variable bounds to extract the standard deviation for. 
+                Options are 'upper_imp_limit', 'lower_limit', 'upper_elem_limit', 'upper_limit'.
+
+        Returns:
+            normal_metadata_env_cost (Dict[Tuple[int,str], UncertaintySpec]):
+                Mean and standard deviation of the environmental costs.
+            normal_metadata_var_bounds (Dict[str, Dict[int,UncertaintySpec]]):
+                Standard deviation of the variable bounds.
+        """
+        if self.uncertainty_data is None or processor.check_missing_uncertainty_data(self.uncertainty_data):
+            raise Exception('None or incomplete uncertainty data found. Please run import_and_filter_uncertainty_data and apply_uncertainty_strategies methods first.')
+        # Transform the uncertainty data to normal distributions
+        normal_uncertainty_data = processor.transform_to_normal(
+            self.uncertainty_data,
+            sample_size=100, 
+            plot_distribution=False
+            )
+        # Calculate the mean and standard deviation of the environmental costs based on the L1 norm
+        if CC_env_cost:
+            normal_metadata_env_cost = optimizer.compute_L1_env_cost_mean_var(
+                    normal_uncertainty_data= normal_uncertainty_data,
+                    lci_data=self.lci_data,
+                    method=next(iter(self.method)),
+                    plot_analysis_support_plots=False
+                )
+        else:
+            normal_metadata_env_cost = {}
+        # Extract the standard deviation of the variable bounds
+        if CC_var_bounds:
+            normal_metadata_var_bounds = {var_bound:normal_uncertainty_data['Var_bounds'][var_bound]['defined'] for var_bound in CC_var_bounds}
+        else:
+            normal_metadata_var_bounds = {} 
+        return normal_metadata_env_cost, normal_metadata_var_bounds
+
     def retrieve_processes(self, keys=None, processes=None, reference_products=None, locations=None):
         """
         Retrieves processes from the database based on given filters.
