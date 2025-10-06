@@ -101,3 +101,4 @@ pulpo_install_methanol_case.ipynb
 develop_tests/**
 !develop_tests/stats_notebook_final.ipynb
 !develop_tests/ammonia.xlsx
+notebooks/credentials.txt

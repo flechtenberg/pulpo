@@ -63,7 +63,7 @@ def plot_top_characterized_processes(
     impact_df['process name'] = impact_df.index.map(process_map_metadata)
     impact_df = impact_df.reindex(impact_df['impact'].abs().sort_values(ascending=False).index)
     impact_df_red = impact_df.iloc[:top_amount,:]
-    impact_rest = impact_df.iloc[top_amount:,:].sum()
+    impact_rest = impact_df.iloc[top_amount:,:].sum(numeric_only=True)
     impact_rest['process name'] = 'Rest'
     impact_df_red = pd.concat([impact_df_red, impact_rest.to_frame().T], axis=0)        
     impact_df_red['impact'] = impact_df_red['impact'] / impact_df['impact'].sum()
