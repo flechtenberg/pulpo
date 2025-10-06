@@ -8,10 +8,14 @@ from pulpo.utils.bw_parser import import_data, retrieve_methods, retrieve_env_in
 from pulpo.utils.saver import extract_flows, extract_slack, extract_impacts, extract_choices, extract_demand, extract_constraints, save_results
 
 import tests as tests
-from tests.sample_database import sample_lcia, setup_test_db
+from tests.sample_database import sample_lcia, setup_test_db, setup_background_db, setup_biosphere_db, setup_lcia_methods, setup_foreground_db
 import unittest
 
+setup_biosphere_db()
+setup_lcia_methods()
 setup_test_db()
+setup_background_db()
+setup_foreground_db()
 
 from pulpo.utils.utils import is_bw25
 project_name = "sample_project_bw25" if is_bw25() else "sample_project"
@@ -33,7 +37,7 @@ class TestParser(unittest.TestCase):
             "('my project', 'resources')": 1,
         }
 
-        result = import_data(project_name, 'technosphere', methods, 'biosphere')
+        result = import_data(project_name, 'technosphere', methods, 'biosphere3')
 
         # Define the expected keys
         expected_keys = [
@@ -68,7 +72,7 @@ class TestParser(unittest.TestCase):
 
         # Test invalid database
         with self.assertRaises(ValueError) as context:
-            import_data(project_name, 'nothing', methods, 'biosphere')
+            import_data(project_name, 'nothing', methods, 'biosphere3')
         self.assertIn("Database 'nothing' does not exist", str(context.exception))
 
         # Test invalid method
@@ -77,7 +81,7 @@ class TestParser(unittest.TestCase):
             "('my project', 'air quality')": 1,
         }
         with self.assertRaises(ValueError) as context:
-            import_data(project_name, 'technosphere', invalid_methods, 'biosphere')
+            import_data(project_name, 'technosphere', invalid_methods, 'biosphere3')
         self.assertIn("The following methods do not exist", str(context.exception))
 
     def test_uncertainty_import(self):
@@ -88,7 +92,7 @@ class TestParser(unittest.TestCase):
             "('my project', 'resources')": 1,
         }
 
-        result = import_data(project_name, 'technosphere', methods, 'biosphere', seed=42)
+        result = import_data(project_name, 'technosphere', methods, 'biosphere3', seed=42)
 
         # Check one element in each matrix
         self.assertAlmostEqual(result['technology_matrix'][0, 0], 1.0, places=6)
@@ -114,7 +118,7 @@ class TestParser(unittest.TestCase):
         self.assertEqual(multi_result, [('my project', 'climate change'), ('my project', 'air quality'), ('my project', 'resources')])
 
     def test_retrieve_envflows(self):
-        result = retrieve_env_interventions(project_name, intervention_matrix='biosphere', keys="('biosphere', 'PM')")
+        result = retrieve_env_interventions(project_name, intervention_matrix='biosphere3', keys="('biosphere3', 'PM')")
         self.assertEqual(result[0]['name'], 'Particulate matter, industrial')
 
 ###############################
@@ -139,7 +143,7 @@ class TestPULPO(unittest.TestCase):
 
     def test_basic_pulpo(self):
         worker = pulpo.PulpoOptimizer(self.project, self.database, self.methods, '')
-        worker.intervention_matrix = 'biosphere'
+        worker.intervention_matrix = 'biosphere3'
         worker.get_lci_data()
         eCar = worker.retrieve_activities(reference_products='transport')
         demand = {eCar[0]: 1}
@@ -154,7 +158,7 @@ class TestPULPO(unittest.TestCase):
 
     def test_supply_specification(self):
         worker = pulpo.PulpoOptimizer(self.project, self.database, self.methods, '')
-        worker.intervention_matrix = 'biosphere'
+        worker.intervention_matrix = 'biosphere3'
         worker.get_lci_data()
         eCar = worker.retrieve_activities(reference_products='transport')
         elec = worker.retrieve_activities(reference_products='electricity')
@@ -170,7 +174,7 @@ class TestPULPO(unittest.TestCase):
 
     def test_elementary_intervention_flow_constraint(self):
         worker = pulpo.PulpoOptimizer(self.project, self.database, self.methods, '')
-        worker.intervention_matrix = 'biosphere'
+        worker.intervention_matrix = 'biosphere3'
         worker.get_lci_data()
         eCar = worker.retrieve_activities(reference_products='transport')
         demand = {eCar[0]: 1}
@@ -194,7 +198,7 @@ class TestPULPO(unittest.TestCase):
         except ImportError:
             self.skipTest("gurobipy is not installed – skipping Gurobi test.")
         worker = pulpo.PulpoOptimizer(self.project, self.database, self.methods, '')
-        worker.intervention_matrix = 'biosphere'
+        worker.intervention_matrix = 'biosphere3'
         worker.get_lci_data()
 
         eCar  = worker.retrieve_activities(reference_products='transport')
@@ -229,7 +233,7 @@ class TestPULPO(unittest.TestCase):
             )
 
         worker = pulpo.PulpoOptimizer(self.project, self.database, self.methods, '')
-        worker.intervention_matrix = 'biosphere'
+        worker.intervention_matrix = 'biosphere3'
         worker.get_lci_data()
         eCar = worker.retrieve_activities(reference_products='transport')
         demand = {eCar[0]: 1}
@@ -258,7 +262,7 @@ class TestPULPO(unittest.TestCase):
                 "To set it follow instructions on: https://www.twilio.com/en-us/blog/how-to-set-environment-variables-html"
             )
         worker = pulpo.PulpoOptimizer(self.project, self.database, self.methods, '')
-        worker.intervention_matrix = 'biosphere'
+        worker.intervention_matrix = 'biosphere3'
         worker.get_lci_data()
         eCar = worker.retrieve_activities(reference_products='transport')
         demand = {eCar[0]: 1}
@@ -276,7 +280,7 @@ class TestPULPO(unittest.TestCase):
     def test_monte_carlo(self):
         """Test the Monte Carlo simulation."""
         worker = pulpo.PulpoOptimizer(self.project, self.database, self.methods, '')
-        worker.intervention_matrix = 'biosphere'
+        worker.intervention_matrix = 'biosphere3'
         worker.get_lci_data()
         eCar = worker.retrieve_activities(reference_products='transport')
         demand = {eCar[0]: 1}
@@ -293,7 +297,7 @@ class TestPULPO(unittest.TestCase):
     
     def test_gsa(self):
         worker = pulpo.PulpoOptimizer(self.project, self.database, self.methods, '')
-        worker.intervention_matrix = 'biosphere'
+        worker.intervention_matrix = 'biosphere3'
         worker.get_lci_data()
         eCar = worker.retrieve_activities(reference_products='transport')
         demand = {eCar[0]: 1}
@@ -318,7 +322,7 @@ class TestSaver(unittest.TestCase):
                    "('my project', 'air quality')": 1,
                    "('my project', 'resources')": 0}
         cls.worker = pulpo.PulpoOptimizer(project, database, methods, '')
-        cls.worker.intervention_matrix = 'biosphere'
+        cls.worker.intervention_matrix = 'biosphere3'
         cls.worker.get_lci_data()
         eCar = cls.worker.retrieve_activities(reference_products='transport')
         demand = {eCar[0]: 1}
@@ -367,10 +371,10 @@ class TestSaver(unittest.TestCase):
         # Define the expected DataFrame
         expected = pd.DataFrame({
             'Key': [
-                ('biosphere', 'H2O_irrigation'),
-                ('biosphere', 'PM'),
-                ('biosphere', 'CO2'),
-                ('biosphere', 'CH4')
+                ('biosphere3', 'H2O_irrigation'),
+                ('biosphere3', 'PM'),
+                ('biosphere3', 'CO2'),
+                ('biosphere3', 'CH4')
             ],
             'Metadata': ["Water, irrigation | ('water use', 'irrigation')",
                          "Particulate matter, industrial | ('air quality', 'particulate matter')",
