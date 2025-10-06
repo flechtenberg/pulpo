@@ -3,6 +3,7 @@ from typing import List, Union
 import webbrowser
 from tests.rice_database import setup_rice_husk_db
 from tests.generic_database import setup_generic_db
+from tests.sample_database import setup_sample_db
 
 class PulpoOptimizer:
     def __init__(self, project: str, database: Union[str, List[str]], method: Union[str, List[str], dict], directory: str):
@@ -242,3 +243,8 @@ def install_generic_db(project="generic_db_project", database="generic_db", n_pr
                             n_inputs=n_inputs, n_flows=n_flows, n_methods=n_methods,
                             seed=seed, return_data=return_data)
 
+def install_sample_db():
+    """
+    Sets up the sample LCI database in Brightway2.
+    """
+    setup_sample_db()
