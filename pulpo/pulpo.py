@@ -1,4 +1,4 @@
-from pulpo.utils import optimizer, bw_parser, converter, saver
+from pulpo.utils import optimizer, bw_parser, converter, saver, plots
 from pulpo.utils.uncertainty import preparer, processor, gsa
 from pulpo.utils.uncertainty.preparer import UncertaintySpec
 from pulpo.utils.saver import ResultDataDict
@@ -103,10 +103,11 @@ class PulpoOptimizer:
         Returns:
             results: Results of the optimization.
         """
-        # TODO: Analyse also the choices made in each iteration, parallelize? ...
-        results = uncertainty.solve_model_MC(self, n_it, GAMS_PATH, solver_name=solver_name, options=options)
+        # # TODO: Analyse also the choices made in each iteration, parallelize? ...
+        # results = uncertainty.solve_model_MC(self, n_it, GAMS_PATH, solver_name=solver_name, options=options)
 
-        return results
+        # return results
+        raise NotImplementedError('Monte Carlo optimization not yet implemented.')
 
     def solve_CC_problem(
         self,
@@ -116,8 +117,12 @@ class PulpoOptimizer:
         gams_path=False, 
         solver_name:Optional[str]=None, 
         options=None, 
-        neos_email=None
-        ) -> ResultDataDict | Dict[float, ResultDataDict]:
+        neos_email=None,
+        cutoff_value:float=0.01,
+        plot_results:bool=False,
+        bbox_to_anchor:tuple=(1.40, .05),
+        cmap_name:str='tab20'
+        ) -> Dict[float, ResultDataDict]:
         """
         Solve a (set of) Pareto point(s) for the specified lambda level(s).
         Solves one point if lambda_level is a float, or multiple points if lambda_level is an array of floats.
@@ -139,21 +144,26 @@ class PulpoOptimizer:
                 Additional options for the solver.
             neos_email (str, optional): 
                 Email for NEOS solver authentication.
+            cutoff_value (float, optional): 
+                Cutoff value for plotting the Pareto front.
+            plot_results (bool, optional): 
+                If True, plots the Pareto front after solving. Default is False.
+            bbox_to_anchor (tuple, optional): 
+                Positioning for the legend in the plot. Default is (1.40, .05).
+            cmap_name (str, optional): 
+                Colormap name for the plot. Default is 'tab20'.
             
         Returns:
-            results (ResultDataDict or Dict[float,ResultDataDict]): 
-                If lambda_level is a float, returns a dictionary containing the results extracted from the solver,
-                including variable values, objective metrics, and metadata.
-                If lambda_level is an array of floats, returns a dictionary where each key is a lambda value and
+            results (Dict[float,ResultDataDict]): 
+                returns a dictionary where each key is a lambda value and
                 each value is a dictionary containing the results for that lambda level.
         """
+        results = {}
         if isinstance(lambda_level, float):
             optimizer.apply_CC_formulation(self.instance, lambda_level, normal_metadata_env_cost, normal_metadata_var_bounds)
             self.solve(GAMS_PATH=gams_path, solver_name=solver_name, options=options, neos_email=neos_email)
-            results = self.extract_results()
-            return results
+            results[lambda_level] = self.extract_results()
         elif isinstance(lambda_level, np.ndarray) or isinstance(lambda_level, list) or isinstance(lambda_level, array.array):
-            results = {}
             for lambda_ in lambda_level:
                 print(f'solving CC problem for lambda_QB = {lambda_}')
                 # ATTN: We need to store the environmental costs in the results_data and not extract seperate
@@ -161,9 +171,20 @@ class PulpoOptimizer:
                 optimizer.apply_CC_formulation(self.instance, lambda_, normal_metadata_env_cost, normal_metadata_var_bounds)
                 self.solve(GAMS_PATH=gams_path, solver_name=solver_name, options=options, neos_email=neos_email)
                 results[lambda_] = self.extract_results(extractparams=True)
-            return results
         else:
             raise Exception('lambda_level datatype not implemented, needs to be an array or a float.')
+        if plot_results:
+            if self.lci_data is None:
+                raise Exception('No LCI data found. Please run get_lci_data method first.')
+            plots.plot_pareto_front(
+                result_data_CC=results, 
+                cutoff_value=cutoff_value, 
+                method="\n".join(self.method.split("'")[1::2]), 
+                process_map_metadata=self.lci_data['process_map_metadata'], 
+                bbox_to_anchor=bbox_to_anchor,
+                cmap_name=cmap_name
+                )
+        return results
 
     
     def import_and_filter_uncertainty_data(
