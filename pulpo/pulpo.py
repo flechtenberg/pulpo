@@ -294,7 +294,7 @@ class PulpoOptimizer:
                 method=next(iter(self.method)),
                 uncertainty_data=self.uncertainty_data,
                 scaling_factor_if=scaling_factor_if,
-                scaling_factor_cf=scaling_factor_if,
+                scaling_factor_cf=scaling_factor_cf,
                 scaling_factor_var_bounds=scaling_factor_var_bounds
             )
         processor.apply_uncertainty_strategies(self.uncertainty_data, strategies)
