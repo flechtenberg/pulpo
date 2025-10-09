@@ -8,23 +8,12 @@ updating data or comupting metrics from the uncertainty data.
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import scipy.sparse
 import stats_arrays
 import scipy.stats
 import pandas as pd
 import numpy as np
-import os
-from pulpo import pulpo
-import scipy.sparse as sparse
-from time import time
 import stats_arrays
 import matplotlib.pyplot as plt
-import matplotlib as mpl
-import textwrap
-import bw2data
-import bw2calc
-import ast
-import array
 from typing import Union, List, Optional, Dict, Tuple, Literal
 
 from pulpo.utils.uncertainty.preparer import UncertaintyData, UncertaintySpec
