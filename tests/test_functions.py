@@ -300,6 +300,35 @@ class TestPULPO(unittest.TestCase):
             self.assertEqual(climate_mean, 0.09328144132911008)
         else:
             self.assertEqual(climate_mean, 0.10209749581609506)
+
+    def test_custom_limits_too_low(self):
+        """Test that setting custom limits too low causes an optimization error."""
+        worker = pulpo.PulpoOptimizer(self.project, self.database, self.methods, '')
+        worker.intervention_matrix = 'biosphere3'
+        worker.get_lci_data()
+        eCar = worker.retrieve_activities(reference_products='transport')
+        demand = {eCar[0]: 1}
+        elec = worker.retrieve_activities(reference_products='electricity')
+        choices = {'electricity': {elec[0]: 100, elec[1]: 100}}
+        
+        # Set limits that are too restrictive for the problem
+        custom_limits = {
+            'lower_bound': -0.1,    # Very restrictive lower bound
+            'upper_bound': 0.1,     # Very restrictive upper bound  
+            'upper_inv_bound': 0.1  # Very restrictive intervention bound
+        }
+        
+        # This should cause an error during instantiation or solving
+        with self.assertRaises((ValueError, RuntimeError, Exception)) as context:
+            worker.instantiate(choices=choices, demand=demand, default_limits=custom_limits)
+            worker.solve()
+        
+        # Verify that the error is related to infeasible optimization problem
+        error_message = str(context.exception).lower()
+        self.assertTrue(
+            any(keyword in error_message for keyword in ['feasible solution was not found']),
+            f"Expected optimization error, but got: {context.exception}"
+        )
         
 
 ##########################

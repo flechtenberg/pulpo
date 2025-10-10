@@ -1,7 +1,7 @@
 import scipy.sparse as sparse
 
 
-def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, upper_inv_limit, upper_imp_limit, methods):
+def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, upper_inv_limit, upper_imp_limit, methods, default_limits=None):
     """
     Combines all the inputs into a dictionary as an input for the optimization model.
 
@@ -14,10 +14,20 @@ def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, upper_in
         upper_inv_limit (dict): Upper intervention limit constraints.
         upper_imp_limit (dict): Upper impact limit constraints.
         methods (dict): Methods for environmental impact assessment.
+        default_limits (dict, optional): Custom default limits. If None, uses standard values.
+                                        Expected keys: 'lower_bound', 'upper_bound', 'upper_inv_bound'
 
     Returns:
         dict: Combined data dictionary for the optimization model.
     """
+
+    # Set default limits
+    if default_limits is None:
+        default_limits = {
+            'lower_bound': -1e20,
+            'upper_bound': 1e20,
+            'upper_inv_bound': 1e24
+        }
 
     # Load LCI data matrices and mappings
     matrices = lci_data['matrices']
@@ -85,7 +95,7 @@ def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, upper_in
             raise ValueError(f"'{dem}' is not found in process_map keys or values.")
 
     # Specify the lower limit
-    lower_limit_dict = {proc: -1e20 for proc in PROCESS[None]}
+    lower_limit_dict = {proc: default_limits['lower_bound'] for proc in PROCESS[None]}
     for choice in choices:
         for proc in choices[choice]:
             lower_limit_dict[process_map[proc]] = 0
@@ -93,7 +103,7 @@ def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, upper_in
         lower_limit_dict[process_map[proc]] = lower_limit[proc]
 
     # Specify the upper limit
-    upper_limit_dict = {proc: 1e20 for proc in PROCESS[None]}
+    upper_limit_dict = {proc: default_limits['upper_bound'] for proc in PROCESS[None]}
     for proc in upper_limit:
         upper_limit_dict[process_map[proc]] = upper_limit[proc]
     for choice in choices:
@@ -107,12 +117,12 @@ def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, upper_in
         supply_dict[process_map[proc]] = 1 if lower_limit[proc] == upper_limit[proc] else 0
 
     # Specify the upper elementary flow limit
-    upper_inv_limit_dict = {elem: 1e24 for elem in INV[None]}
+    upper_inv_limit_dict = {elem: default_limits['upper_inv_bound'] for elem in INV[None]}
     for inv in upper_inv_limit:
         upper_inv_limit_dict[intervention_map[inv.key]] = upper_inv_limit[inv]
 
     # Specify the upper impact category limit
-    upper_imp_limit_dict = {imp: 1e24 for imp in INDICATOR[None]}
+    upper_imp_limit_dict = {imp: default_limits['upper_inv_bound'] for imp in INDICATOR[None]}
     for imp in upper_imp_limit:
         upper_imp_limit_dict[imp] = upper_imp_limit[imp]
 
