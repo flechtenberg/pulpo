@@ -39,6 +39,11 @@ def create_model():
     model.SUPPLY = pyo.Param(model.PRODUCT, mutable=True, within=pyo.Binary, doc='Binary parameter which specifies whether or not a supply has been specified instead of a demand')
     model.TECH_MATRIX = pyo.Param(model.PRODUCT_PROCESS, mutable=True, doc='Technology matrix A describing the intermediate product i produced/absorbed by process j')
     model.WEIGHTS = pyo.Param(model.INDICATOR, mutable=True, within=pyo.NonNegativeReals, doc='Weighting factors for the impact assessment indicators in the objective function')
+    
+    # Dependent constraints parameters
+    model.DEPENDENT_CONSTRAINTS = pyo.Set(doc='Set of dependent constraint names')
+    model.LEFT_WEIGHTS = pyo.Param(model.DEPENDENT_CONSTRAINTS, model.PROCESS, mutable=True, default=0, doc='Left side weights for dependent constraints')
+    model.RIGHT_WEIGHTS = pyo.Param(model.DEPENDENT_CONSTRAINTS, model.PROCESS, mutable=True, default=0, doc='Right side weights for dependent constraints')
 
     # Variables
     model.impacts = pyo.Var(model.INDICATOR, doc='Environmental impact on indicator h evaluated with the established LCIA method')
@@ -63,6 +68,7 @@ def create_model():
     model.LOWER_INV_CNSTR = pyo.Constraint(model.INV, rule=lower_env_constraint)
     model.IMP_CNSTR = pyo.Constraint(model.INDICATOR, rule=upper_imp_constraint)
     model.LOWER_IMP_CNSTR = pyo.Constraint(model.INDICATOR, rule=lower_imp_constraint)
+    model.DEPENDENT_CNSTR = pyo.Constraint(model.DEPENDENT_CONSTRAINTS, rule=dependent_constraint)
 
     # Objective function
     model.OBJ = pyo.Objective(sense=pyo.minimize, rule=objective_function)
@@ -123,6 +129,12 @@ def upper_imp_constraint(model, h):
 def lower_imp_constraint(model, h):
     """ Imposes lower limits on selected impact categories """
     return model.impacts[h] >= model.LOWER_IMP_LIMIT[h]
+
+def dependent_constraint(model, constraint_name):
+    """Dependent constraint: sum of left side weights * scaling <= sum of right side weights * scaling"""
+    left_sum = sum(model.LEFT_WEIGHTS[constraint_name, j] * model.scaling_vector[j] for j in model.PROCESS)
+    right_sum = sum(model.RIGHT_WEIGHTS[constraint_name, j] * model.scaling_vector[j] for j in model.PROCESS)
+    return left_sum <= right_sum
 
 def slack_upper_constraint(model, j):
     """ Slack variable upper limit for activities where supply is specified instead of demand """

@@ -332,6 +332,50 @@ class TestPULPO(unittest.TestCase):
             any(keyword in error_message for keyword in ['feasible solution was not found']),
             f"Expected optimization error, but got: {context.exception}"
         )
+
+    def test_dependent_constraints(self):
+        """Test that dependent constraints work properly between scaling vectors."""
+        worker = pulpo.PulpoOptimizer(self.project, self.database, self.methods, '')
+        worker.intervention_matrix = 'biosphere3'
+        worker.get_lci_data()
+        eCar = worker.retrieve_activities(reference_products='transport')
+        demand = {eCar[0]: 1}
+        
+        # Retrieve specific electricity activities by name to ensure we know which is which
+        wind_turbine = worker.retrieve_activities(activities=['wind turbine'])
+        steam_cycle = worker.retrieve_activities(activities=['steam cycle'])
+        
+        choices = {'electricity': {wind_turbine[0]: 100, steam_cycle[0]: 100}}
+        
+        # Create dependent constraint: wind <= 0.8 * (wind + steam) total electricity production
+        # Or: wind <= 4 * steam (multiplying both sides by 5)
+        dependent_constraints = {
+            'wind_max_80_percent': {
+                'left': {wind_turbine[0]: 1},           # wind
+                'right': {steam_cycle[0]: 4}            # 4 * steam (so wind <= 4 * steam)
+            }
+        }
+        
+        worker.instantiate(
+            choices=choices, 
+            demand=demand, 
+            dependent_constraints=dependent_constraints
+        )
+        worker.solve()
+        
+        # Get the scaling values for verification
+        wind_scaling = worker.instance.scaling_vector[3].value  # wind turbine
+        steam_scaling = worker.instance.scaling_vector[2].value  # steam cycle
+        
+        # Verify the constraint is satisfied: wind <= 4 * steam
+        self.assertLessEqual(wind_scaling, 4 * steam_scaling + 1e-6, 
+                           "Dependent constraint should be satisfied: wind <= 4 * steam")
+        
+        # Check for exact scaling vector values
+        self.assertAlmostEqual(wind_scaling, 0.8247422674711002, places=6,
+                             msg="Wind scaling should match expected value")
+        self.assertAlmostEqual(steam_scaling, 0.20618556686777506, places=6,
+                             msg="Steam scaling should match expected value")
         
 
 ##########################
