@@ -1,8 +1,6 @@
 from pulpo.utils import optimizer, bw_parser, converter, saver, uncertainty
 from typing import List, Union
-import webbrowser
 from tests.rice_database import setup_rice_husk_db
-from tests.generic_database import setup_generic_db
 from tests.sample_database import setup_sample_db
 
 class PulpoOptimizer:
@@ -101,16 +99,6 @@ class PulpoOptimizer:
         results = uncertainty.solve_model_MC(self, n_it, GAMS_PATH, solver_name=solver_name, options=options)
 
         return results
-
-    def run_gsa(self):
-        """
-        Runs a global sensitivity analysis on the optimization model.
-
-        Returns:
-            results: Results of the sensitivity analysis.
-        """
-        results = uncertainty.run_gsa(self)
-        return results
     
     def retrieve_processes(self, keys=None, processes=None, reference_products=None, locations=None):
         """
@@ -183,65 +171,12 @@ class PulpoOptimizer:
         saver.summarize_results(self, zeroes)
 
 
-def electricity_showcase():
-    """
-    Opens the electricity showcase notebook in the web browser.
-    """
-    github_url = 'https://github.com/flechtenberg/pulpo/blob/master/notebooks/electricity_showcase.ipynb'
-    nbviewer_url = 'https://nbviewer.jupyter.org/github/' + github_url.split('github.com/')[1]
-    webbrowser.open(nbviewer_url)
-
-
-def hydrogen_showcase():
-    """
-    Opens the hydrogen showcase notebook in the web browser.
-    """
-    github_url = 'https://github.com/flechtenberg/pulpo/blob/master/notebooks/hydrogen_showcase.ipynb'
-    nbviewer_url = 'https://nbviewer.jupyter.org/github/' + github_url.split('github.com/')[1]
-    webbrowser.open(nbviewer_url)
-
-
-def plastic_showcase():
-    """
-    Opens the plastic showcase notebook in the web browser.
-    """
-    github_url = 'https://github.com/flechtenberg/pulpo/blob/master/notebooks/plastic_showcase.ipynb'
-    nbviewer_url = 'https://nbviewer.jupyter.org/github/' + github_url.split('github.com/')[1]
-    webbrowser.open(nbviewer_url)
-
-
 def install_rice_husk_db():
     """
     Sets up the rice husk example database.
     """
     setup_rice_husk_db()
 
-def install_generic_db(project="generic_db_project", database="generic_db", n_prod=5, n_proc=3, n_reg=3, n_inputs=4, n_flows=4, n_methods=2, seed=None, return_data=False):
-    """
-    Sets up the generic LCI database in Brightway2 with specified parameters.
-
-    Args:
-        project (str): Name of the Brightway2 project to create or use. Defaults to "generic_db_project".
-        database (str): Name of the database to create or use. Defaults to "generic_db".
-        n_prod (int): Number of products to generate. Defaults to 5.
-        n_proc (int): Maximum number of processes per product. Defaults to 3.
-        n_reg (int): Number of regions where processes can be active. Defaults to 3.
-        n_inputs (int): Maximum number of inputs per process. Defaults to 4.
-        n_flows (int): Number of environmental flows to generate. Defaults to 4.
-        n_methods (int): Number of impact assessment methods to create. Defaults to 2.
-        seed (int, optional): Seed for reproducibility of random data generation. Defaults to None.
-        return_data (bool): If True, returns the generated matrices (technosphere, biosphere, and
-            characterization). Defaults to False.
-
-    Returns:
-        tuple: If `return_data` is True, returns a tuple containing:
-            - technosphere_matrix (np.ndarray): The technosphere matrix.
-            - biosphere_matrix (np.ndarray): The biosphere matrix.
-            - characterization_matrices (dict): A dictionary of characterization factor matrices.
-    """
-    return setup_generic_db(project=project, database=database, n_prod=n_prod, n_proc=n_proc, n_reg=n_reg,
-                            n_inputs=n_inputs, n_flows=n_flows, n_methods=n_methods,
-                            seed=seed, return_data=return_data)
 
 def install_sample_db():
     """
