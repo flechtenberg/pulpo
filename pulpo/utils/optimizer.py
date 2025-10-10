@@ -41,10 +41,10 @@ def create_model():
     model.WEIGHTS = pyo.Param(model.INDICATOR, mutable=True, within=pyo.NonNegativeReals, doc='Weighting factors for the impact assessment indicators in the objective function')
 
     # Variables
-    model.impacts = pyo.Var(model.INDICATOR, bounds=(-1e24, 1e24), doc='Environmental impact on indicator h evaluated with the established LCIA method')
-    model.scaling_vector = pyo.Var(model.PROCESS, bounds=(-1e24, 1e24), doc='Activity level of each process to meet the final demand')
-    model.inv_vector = pyo.Var(model.INV, bounds=(-1e24, 1e24), doc='Intervention flows')
-    model.slack = pyo.Var(model.PRODUCT, bounds=(-1e24, 1e24), doc='Supply slack variables')
+    model.impacts = pyo.Var(model.INDICATOR, doc='Environmental impact on indicator h evaluated with the established LCIA method')
+    model.scaling_vector = pyo.Var(model.PROCESS, doc='Activity level of each process to meet the final demand')
+    model.inv_vector = pyo.Var(model.INV, doc='Intervention flows')
+    model.slack = pyo.Var(model.PRODUCT, doc='Supply slack variables')
 
     # Building rules for sets
     model.Env_in_out = pyo.BuildAction(rule=populate_env)
