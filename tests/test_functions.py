@@ -315,7 +315,10 @@ class TestPULPO(unittest.TestCase):
         custom_limits = {
             'lower_bound': -0.1,    # Very restrictive lower bound
             'upper_bound': 0.1,     # Very restrictive upper bound  
-            'upper_inv_bound': 0.1  # Very restrictive intervention bound
+            'upper_inv_bound': 0.1,  # Very restrictive intervention bound
+            'lower_inv_bound': -0.1, # Very restrictive intervention bound
+            'lower_imp_bound': -0.1, # Very restrictive impact bound
+            'upper_imp_bound': 0.1   # Very restrictive impact bound
         }
         
         # This should cause an error during instantiation or solving
