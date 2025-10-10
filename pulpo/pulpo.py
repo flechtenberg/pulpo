@@ -1,4 +1,5 @@
-from pulpo.utils import optimizer, bw_parser, converter, saver, uncertainty
+from pulpo.utils import optimizer, bw_parser, converter, saver
+from pulpo.utils.uncertainty import monte_carlo
 from typing import List, Union
 from tests.rice_database import setup_rice_husk_db
 from tests.sample_database import setup_sample_db
@@ -96,7 +97,7 @@ class PulpoOptimizer:
             results: Results of the optimization.
         """
         # TODO: Analyse also the choices made in each iteration, parallelize? ...
-        results = uncertainty.solve_model_MC(self, n_it, GAMS_PATH, solver_name=solver_name, options=options)
+        results = monte_carlo.solve_model_MC(self, n_it, GAMS_PATH, solver_name=solver_name, options=options)
 
         return results
     
