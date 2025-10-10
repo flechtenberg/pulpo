@@ -39,7 +39,7 @@ class PulpoOptimizer:
         self.lci_data = bw_parser.import_data(self.project, self.database, self.method, self.intervention_matrix, seed)
 
     def instantiate(self, choices={}, demand={}, upper_limit={}, lower_limit={}, upper_elem_limit={},
-                    upper_imp_limit={}):
+                    upper_imp_limit={}, default_limits=None):
         """
         Combines inputs and instantiates the optimization model.
 
@@ -50,11 +50,13 @@ class PulpoOptimizer:
             lower_limit (dict): Lower limit constraints.
             upper_elem_limit (dict): Upper elemental limit constraints.
             upper_imp_limit (dict): Upper impact limit constraints.
+            default_limits (dict, optional): Custom default limits. If None, uses standard values.
+                                            Expected keys: 'lower_bound', 'upper_bound', 'upper_inv_bound'
         """
         # Instantiate only for those methods that are part of the objective or the limits
         methods = {h: self.method[h] for h in self.method if self.method[h] != 0 or h in upper_imp_limit}
         data = converter.combine_inputs(self.lci_data, demand, choices, upper_limit, lower_limit, upper_elem_limit,
-                                        upper_imp_limit, methods)
+                                        upper_imp_limit, methods, default_limits)
         self.instance = optimizer.instantiate(data)
         self.choices = choices
         self.demand = demand
