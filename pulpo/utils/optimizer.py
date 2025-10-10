@@ -30,7 +30,9 @@ def create_model():
     model.UPPER_LIMIT = pyo.Param(model.PROCESS, mutable=True, within=pyo.Reals, doc='Maximum production capacity of process j')
     model.LOWER_LIMIT = pyo.Param(model.PROCESS, mutable=True, within=pyo.Reals, doc='Minimum production capacity of process j')
     model.UPPER_INV_LIMIT = pyo.Param(model.INV, mutable=True, within=pyo.Reals, doc='Maximum intervention flow g')
+    model.LOWER_INV_LIMIT = pyo.Param(model.INV, mutable=True, within=pyo.Reals, doc='Minimum intervention flow g')
     model.UPPER_IMP_LIMIT = pyo.Param(model.INDICATOR, mutable=True, within=pyo.Reals, doc='Maximum impact on category h')
+    model.LOWER_IMP_LIMIT = pyo.Param(model.INDICATOR, mutable=True, within=pyo.Reals, doc='Minimum impact on category h')
     model.ENV_COST_MATRIX = pyo.Param(model.ENV_COST_PROCESS, mutable=True, doc='Enviornmental cost matrix Q*B describing the environmental cost flows e associated to process j')
     model.INV_MATRIX = pyo.Param(model.INV_PROCESS, mutable=True, doc='Intervention matrix B describing the intervention flow g entering/leaving process j')
     model.FINAL_DEMAND = pyo.Param(model.PRODUCT, mutable=True, within=pyo.Reals, doc='Final demand of intermediate product flows (i.e., functional unit)')
@@ -58,7 +60,9 @@ def create_model():
     model.SLACK_UPPER_CNSTR = pyo.Constraint(model.PRODUCT, rule=slack_upper_constraint)
     model.SLACK_LOWER_CNSTR = pyo.Constraint(model.PRODUCT, rule=slack_lower_constraint)
     model.INV_CNSTR = pyo.Constraint(model.INV, rule=upper_env_constraint)
+    model.LOWER_INV_CNSTR = pyo.Constraint(model.INV, rule=lower_env_constraint)
     model.IMP_CNSTR = pyo.Constraint(model.INDICATOR, rule=upper_imp_constraint)
+    model.LOWER_IMP_CNSTR = pyo.Constraint(model.INDICATOR, rule=lower_imp_constraint)
 
     # Objective function
     model.OBJ = pyo.Objective(sense=pyo.minimize, rule=objective_function)
@@ -108,9 +112,17 @@ def upper_env_constraint(model, g):
     """Ensures that variables are within capacities (Maximum production constraint) """
     return model.inv_vector[g] <= model.UPPER_INV_LIMIT[g]
 
+def lower_env_constraint(model, g):
+    """Ensures that variables are within capacities (Minimum environmental flow constraint) """
+    return model.inv_vector[g] >= model.LOWER_INV_LIMIT[g]
+
 def upper_imp_constraint(model, h):
     """ Imposes upper limits on selected impact categories """
     return model.impacts[h] <= model.UPPER_IMP_LIMIT[h]
+
+def lower_imp_constraint(model, h):
+    """ Imposes lower limits on selected impact categories """
+    return model.impacts[h] >= model.LOWER_IMP_LIMIT[h]
 
 def slack_upper_constraint(model, j):
     """ Slack variable upper limit for activities where supply is specified instead of demand """
