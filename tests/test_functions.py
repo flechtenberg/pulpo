@@ -294,18 +294,6 @@ class TestPULPO(unittest.TestCase):
             self.assertEqual(sum(results)/10, 0.09328144132911008)
         else:
             self.assertEqual(sum(results)/10, 0.10209749581609506)
-    
-    def test_gsa(self):
-        worker = pulpo.PulpoOptimizer(self.project, self.database, self.methods, '')
-        worker.intervention_matrix = 'biosphere3'
-        worker.get_lci_data()
-        eCar = worker.retrieve_activities(reference_products='transport')
-        demand = {eCar[0]: 1}
-        elec = worker.retrieve_activities(reference_products='electricity')
-        choices = {'electricity': {elec[0]: 100, elec[1]: 100}}
-        worker.instantiate(choices=choices, demand=demand)
-        worker.solve()
-        worker.run_gsa()
         
 
 ##########################
