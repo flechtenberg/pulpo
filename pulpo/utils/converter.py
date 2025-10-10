@@ -1,7 +1,7 @@
 import scipy.sparse as sparse
 
 
-def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, upper_inv_limit, upper_imp_limit, lower_inv_limit, lower_imp_limit, methods, default_limits=None):
+def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, upper_inv_limit, upper_imp_limit, lower_inv_limit, lower_imp_limit, methods, dependent_constraints=None, default_limits=None):
     """
     Combines all the inputs into a dictionary as an input for the optimization model.
 
@@ -16,6 +16,8 @@ def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, upper_in
         lower_inv_limit (dict): Lower intervention limit constraints.
         lower_imp_limit (dict): Lower impact limit constraints.
         methods (dict): Methods for environmental impact assessment.
+        dependent_constraints (dict, optional): Dependent constraints between scaling vectors.
+                                               Format: {constraint_name: {'left': {activity: weight}, 'right': {activity: weight}}}
         default_limits (dict, optional): Custom default limits. If None, uses standard values.
                                         Expected keys: 'lower_bound', 'upper_bound', 'upper_inv_bound'
 
@@ -144,6 +146,25 @@ def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, upper_in
     # Create weights
     weights = {method: 1 for method in matrices} if methods == {} else methods
 
+    # Process dependent constraints
+    dependent_constraint_names = []
+    left_weights_dict = {}
+    right_weights_dict = {}
+    
+    if dependent_constraints:
+        for constraint_name, constraint_data in dependent_constraints.items():
+            dependent_constraint_names.append(constraint_name)
+            
+            # Process left side weights
+            for activity, weight in constraint_data.get('left', {}).items():
+                process_id = process_map[activity.key] if hasattr(activity, 'key') else process_map[activity]
+                left_weights_dict[(constraint_name, process_id)] = weight
+            
+            # Process right side weights  
+            for activity, weight in constraint_data.get('right', {}).items():
+                process_id = process_map[activity.key] if hasattr(activity, 'key') else process_map[activity]
+                right_weights_dict[(constraint_name, process_id)] = weight
+
     # Assemble the final data dictionary
     model_data = {
         None: {
@@ -167,6 +188,9 @@ def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, upper_in
             'UPPER_IMP_LIMIT': upper_imp_limit_dict,
             'LOWER_IMP_LIMIT': lower_imp_limit_dict,
             'WEIGHTS': weights,
+            'DEPENDENT_CONSTRAINTS': {None: dependent_constraint_names},
+            'LEFT_WEIGHTS': left_weights_dict,
+            'RIGHT_WEIGHTS': right_weights_dict,
         }
     }
     return model_data
