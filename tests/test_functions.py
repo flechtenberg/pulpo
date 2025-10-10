@@ -289,11 +289,17 @@ class TestPULPO(unittest.TestCase):
         worker.instantiate(choices=choices, demand=demand)
 
         # Run Monte Carlo simulation
-        results = worker.solve_MC(n_it=10)
+        mc_results = worker.solve_MC(n_it=10)
+        
+        # Extract climate change impacts
+        climate_key = "('my project', 'climate change')"
+        climate_impacts = [result[climate_key].value for result in mc_results]
+        climate_mean = sum(climate_impacts) / len(climate_impacts)
+        
         if is_bw25():
-            self.assertEqual(sum(results)/10, 0.09328144132911008)
+            self.assertEqual(climate_mean, 0.09328144132911008)
         else:
-            self.assertEqual(sum(results)/10, 0.10209749581609506)
+            self.assertEqual(climate_mean, 0.10209749581609506)
         
 
 ##########################
