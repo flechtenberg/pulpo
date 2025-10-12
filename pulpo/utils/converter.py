@@ -1,7 +1,7 @@
 import scipy.sparse as sparse
 
 
-def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, upper_inv_limit, upper_imp_limit, methods):
+def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, upper_inv_limit, upper_imp_limit, lower_inv_limit, lower_imp_limit, methods, dependent_constraints=None, default_limits=None):
     """
     Combines all the inputs into a dictionary as an input for the optimization model.
 
@@ -13,11 +13,28 @@ def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, upper_in
         lower_limit (dict): Lower limit constraints.
         upper_inv_limit (dict): Upper intervention limit constraints.
         upper_imp_limit (dict): Upper impact limit constraints.
+        lower_inv_limit (dict): Lower intervention limit constraints.
+        lower_imp_limit (dict): Lower impact limit constraints.
         methods (dict): Methods for environmental impact assessment.
+        dependent_constraints (dict, optional): Dependent constraints between scaling vectors.
+                                               Format: {constraint_name: {'left': {activity: weight}, 'right': {activity: weight}}}
+        default_limits (dict, optional): Custom default limits. If None, uses standard values.
+                                        Expected keys: 'lower_bound', 'upper_bound', 'upper_inv_bound'
 
     Returns:
         dict: Combined data dictionary for the optimization model.
     """
+
+    # Set default limits
+    if default_limits is None:
+        default_limits = {
+            'lower_bound': -1e20,
+            'upper_bound': 1e20,
+            'upper_inv_bound': 1e24,
+            'lower_inv_bound': -1e24,
+            'lower_imp_bound': -1e24,
+            'upper_imp_bound': 1e24, 
+        }
 
     # Load LCI data matrices and mappings
     matrices = lci_data['matrices']
@@ -85,7 +102,7 @@ def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, upper_in
             raise ValueError(f"'{dem}' is not found in process_map keys or values.")
 
     # Specify the lower limit
-    lower_limit_dict = {proc: -1e20 for proc in PROCESS[None]}
+    lower_limit_dict = {proc: default_limits['lower_bound'] for proc in PROCESS[None]}
     for choice in choices:
         for proc in choices[choice]:
             lower_limit_dict[process_map[proc]] = 0
@@ -93,7 +110,7 @@ def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, upper_in
         lower_limit_dict[process_map[proc]] = lower_limit[proc]
 
     # Specify the upper limit
-    upper_limit_dict = {proc: 1e20 for proc in PROCESS[None]}
+    upper_limit_dict = {proc: default_limits['upper_bound'] for proc in PROCESS[None]}
     for proc in upper_limit:
         upper_limit_dict[process_map[proc]] = upper_limit[proc]
     for choice in choices:
@@ -107,17 +124,46 @@ def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, upper_in
         supply_dict[process_map[proc]] = 1 if lower_limit[proc] == upper_limit[proc] else 0
 
     # Specify the upper elementary flow limit
-    upper_inv_limit_dict = {elem: 1e24 for elem in INV[None]}
+    upper_inv_limit_dict = {elem: default_limits['upper_inv_bound'] for elem in INV[None]}
     for inv in upper_inv_limit:
         upper_inv_limit_dict[intervention_map[inv.key]] = upper_inv_limit[inv]
 
+    # Specify the lower elementary flow limit
+    lower_inv_limit_dict = {elem: default_limits['lower_inv_bound'] for elem in INV[None]}
+    for inv in lower_inv_limit:
+        lower_inv_limit_dict[intervention_map[inv.key]] = lower_inv_limit[inv]
+
     # Specify the upper impact category limit
-    upper_imp_limit_dict = {imp: 1e24 for imp in INDICATOR[None]}
+    upper_imp_limit_dict = {imp: default_limits['upper_imp_bound'] for imp in INDICATOR[None]}
     for imp in upper_imp_limit:
         upper_imp_limit_dict[imp] = upper_imp_limit[imp]
 
+    # Specify the lower impact category limit
+    lower_imp_limit_dict = {imp: default_limits['lower_imp_bound'] for imp in INDICATOR[None]}
+    for imp in lower_imp_limit:
+        lower_imp_limit_dict[imp] = lower_imp_limit[imp]
+
     # Create weights
     weights = {method: 1 for method in matrices} if methods == {} else methods
+
+    # Process dependent constraints
+    dependent_constraint_names = []
+    left_weights_dict = {}
+    right_weights_dict = {}
+    
+    if dependent_constraints:
+        for constraint_name, constraint_data in dependent_constraints.items():
+            dependent_constraint_names.append(constraint_name)
+            
+            # Process left side weights
+            for activity, weight in constraint_data.get('left', {}).items():
+                process_id = process_map[activity.key] if hasattr(activity, 'key') else process_map[activity]
+                left_weights_dict[(constraint_name, process_id)] = weight
+            
+            # Process right side weights  
+            for activity, weight in constraint_data.get('right', {}).items():
+                process_id = process_map[activity.key] if hasattr(activity, 'key') else process_map[activity]
+                right_weights_dict[(constraint_name, process_id)] = weight
 
     # Assemble the final data dictionary
     model_data = {
@@ -138,8 +184,13 @@ def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, upper_in
             'LOWER_LIMIT': lower_limit_dict,
             'UPPER_LIMIT': upper_limit_dict,
             'UPPER_INV_LIMIT': upper_inv_limit_dict,
+            'LOWER_INV_LIMIT': lower_inv_limit_dict,
             'UPPER_IMP_LIMIT': upper_imp_limit_dict,
+            'LOWER_IMP_LIMIT': lower_imp_limit_dict,
             'WEIGHTS': weights,
+            'DEPENDENT_CONSTRAINTS': {None: dependent_constraint_names},
+            'LEFT_WEIGHTS': left_weights_dict,
+            'RIGHT_WEIGHTS': right_weights_dict,
         }
     }
     return model_data

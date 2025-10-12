@@ -30,19 +30,26 @@ def create_model():
     model.UPPER_LIMIT = pyo.Param(model.PROCESS, mutable=True, within=pyo.Reals, doc='Maximum production capacity of process j')
     model.LOWER_LIMIT = pyo.Param(model.PROCESS, mutable=True, within=pyo.Reals, doc='Minimum production capacity of process j')
     model.UPPER_INV_LIMIT = pyo.Param(model.INV, mutable=True, within=pyo.Reals, doc='Maximum intervention flow g')
+    model.LOWER_INV_LIMIT = pyo.Param(model.INV, mutable=True, within=pyo.Reals, doc='Minimum intervention flow g')
     model.UPPER_IMP_LIMIT = pyo.Param(model.INDICATOR, mutable=True, within=pyo.Reals, doc='Maximum impact on category h')
+    model.LOWER_IMP_LIMIT = pyo.Param(model.INDICATOR, mutable=True, within=pyo.Reals, doc='Minimum impact on category h')
     model.ENV_COST_MATRIX = pyo.Param(model.ENV_COST_PROCESS, mutable=True, doc='Enviornmental cost matrix Q*B describing the environmental cost flows e associated to process j')
     model.INV_MATRIX = pyo.Param(model.INV_PROCESS, mutable=True, doc='Intervention matrix B describing the intervention flow g entering/leaving process j')
     model.FINAL_DEMAND = pyo.Param(model.PRODUCT, mutable=True, within=pyo.Reals, doc='Final demand of intermediate product flows (i.e., functional unit)')
     model.SUPPLY = pyo.Param(model.PRODUCT, mutable=True, within=pyo.Binary, doc='Binary parameter which specifies whether or not a supply has been specified instead of a demand')
     model.TECH_MATRIX = pyo.Param(model.PRODUCT_PROCESS, mutable=True, doc='Technology matrix A describing the intermediate product i produced/absorbed by process j')
     model.WEIGHTS = pyo.Param(model.INDICATOR, mutable=True, within=pyo.NonNegativeReals, doc='Weighting factors for the impact assessment indicators in the objective function')
+    
+    # Dependent constraints parameters
+    model.DEPENDENT_CONSTRAINTS = pyo.Set(doc='Set of dependent constraint names')
+    model.LEFT_WEIGHTS = pyo.Param(model.DEPENDENT_CONSTRAINTS, model.PROCESS, mutable=True, default=0, doc='Left side weights for dependent constraints')
+    model.RIGHT_WEIGHTS = pyo.Param(model.DEPENDENT_CONSTRAINTS, model.PROCESS, mutable=True, default=0, doc='Right side weights for dependent constraints')
 
     # Variables
-    model.impacts = pyo.Var(model.INDICATOR, bounds=(-1e24, 1e24), doc='Environmental impact on indicator h evaluated with the established LCIA method')
-    model.scaling_vector = pyo.Var(model.PROCESS, bounds=(-1e24, 1e24), doc='Activity level of each process to meet the final demand')
-    model.inv_vector = pyo.Var(model.INV, bounds=(-1e24, 1e24), doc='Intervention flows')
-    model.slack = pyo.Var(model.PRODUCT, bounds=(-1e24, 1e24), doc='Supply slack variables')
+    model.impacts = pyo.Var(model.INDICATOR, doc='Environmental impact on indicator h evaluated with the established LCIA method')
+    model.scaling_vector = pyo.Var(model.PROCESS, doc='Activity level of each process to meet the final demand')
+    model.inv_vector = pyo.Var(model.INV, doc='Intervention flows')
+    model.slack = pyo.Var(model.PRODUCT, doc='Supply slack variables')
 
     # Building rules for sets
     model.Env_in_out = pyo.BuildAction(rule=populate_env)
@@ -58,7 +65,10 @@ def create_model():
     model.SLACK_UPPER_CNSTR = pyo.Constraint(model.PRODUCT, rule=slack_upper_constraint)
     model.SLACK_LOWER_CNSTR = pyo.Constraint(model.PRODUCT, rule=slack_lower_constraint)
     model.INV_CNSTR = pyo.Constraint(model.INV, rule=upper_env_constraint)
+    model.LOWER_INV_CNSTR = pyo.Constraint(model.INV, rule=lower_env_constraint)
     model.IMP_CNSTR = pyo.Constraint(model.INDICATOR, rule=upper_imp_constraint)
+    model.LOWER_IMP_CNSTR = pyo.Constraint(model.INDICATOR, rule=lower_imp_constraint)
+    model.DEPENDENT_CNSTR = pyo.Constraint(model.DEPENDENT_CONSTRAINTS, rule=dependent_constraint)
 
     # Objective function
     model.OBJ = pyo.Objective(sense=pyo.minimize, rule=objective_function)
@@ -108,9 +118,23 @@ def upper_env_constraint(model, g):
     """Ensures that variables are within capacities (Maximum production constraint) """
     return model.inv_vector[g] <= model.UPPER_INV_LIMIT[g]
 
+def lower_env_constraint(model, g):
+    """Ensures that variables are within capacities (Minimum environmental flow constraint) """
+    return model.inv_vector[g] >= model.LOWER_INV_LIMIT[g]
+
 def upper_imp_constraint(model, h):
     """ Imposes upper limits on selected impact categories """
     return model.impacts[h] <= model.UPPER_IMP_LIMIT[h]
+
+def lower_imp_constraint(model, h):
+    """ Imposes lower limits on selected impact categories """
+    return model.impacts[h] >= model.LOWER_IMP_LIMIT[h]
+
+def dependent_constraint(model, constraint_name):
+    """Dependent constraint: sum of left side weights * scaling <= sum of right side weights * scaling"""
+    left_sum = sum(model.LEFT_WEIGHTS[constraint_name, j] * model.scaling_vector[j] for j in model.PROCESS)
+    right_sum = sum(model.RIGHT_WEIGHTS[constraint_name, j] * model.scaling_vector[j] for j in model.PROCESS)
+    return left_sum <= right_sum
 
 def slack_upper_constraint(model, j):
     """ Slack variable upper limit for activities where supply is specified instead of demand """
@@ -310,14 +334,19 @@ def solve_gurobi(model_instance, options=None):
     `"TimeLimit": 600` or `"MIPGap": 1e-8` to the same dict.
     """
     
+    tee = False
+
     if options:
         for key, val in options.items():
-            solver.options[key] = val
+            if key is not "tee":
+                solver.options[key] = val
+            else:
+                tee = val
 
     # Solve. The results object is a standard Pyomo SolverResults.
     results = solver.solve(
         model_instance,
-        tee=False,               
+        tee=tee,               
         load_solutions=True      
     )
 
