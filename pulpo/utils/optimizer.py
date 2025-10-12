@@ -334,14 +334,19 @@ def solve_gurobi(model_instance, options=None):
     `"TimeLimit": 600` or `"MIPGap": 1e-8` to the same dict.
     """
     
+    tee = False
+
     if options:
         for key, val in options.items():
-            solver.options[key] = val
+            if key is not "tee":
+                solver.options[key] = val
+            else:
+                tee = val
 
     # Solve. The results object is a standard Pyomo SolverResults.
     results = solver.solve(
         model_instance,
-        tee=False,               
+        tee=tee,               
         load_solutions=True      
     )
 
