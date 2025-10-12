@@ -57,17 +57,19 @@ Feature requests are more than welcome!
 ### 🔧 Installation
 PULPO has been deployed to the pypi index. Depending on the version of brightway projects you want to work on, install either the bw2 or bw25 version via:
 ```sh
-pip install pulpo-dev[bw2]
+pip install "pulpo-dev[bw2]"
 ```
 or
 ```sh
-pip install pulpo-dev[bw25]
+pip install "pulpo-dev[bw25]"
 ```
 
 ### 🤖 Running pulpo
 
 Use this link to start a session and test PULPO
 [![launch - renku](https://renkulab.io/renku-badge.svg)](https://renkulab.io/v2/projects/fabian/pulpo-test/sessions/01JRM54S4NKMS84Y6BAYT832WH/start)
+
+here is a simple showcase revolving around [methanol production](https://github.com/flechtenberg/pulpo/blob/master/notebooks/pulpo_showcase.ipynb) with by-products and uncertainty treatment.
 
 Find further example notebooks for a [hydrogen case](https://github.com/flechtenberg/pulpo/blob/master/notebooks/hydrogen_showcase.ipynb), an [electricity case](https://github.com/flechtenberg/pulpo/blob/master/notebooks/electricity_showcase.ipynb), and a [plastic case](https://github.com/flechtenberg/pulpo/blob/master/notebooks/plastic_showcase.ipynb) here.
 
@@ -83,6 +85,13 @@ python -m unittest discover -s tests
 ```
 
 ---
+## What's new in 1.4.3?
+- Allow users to pass lower inventory flow and lower impact limits via `lower_inv_limit` and `lower_imp_limit` dicts.
+- Provide new [showcase](https://github.com/flechtenberg/pulpo/blob/master/notebooks/pulpo_showcase.ipynb) notebook.
+- Enable users to pass custom default upper limits on elements, given that gurobi identified the `1e20` (and `1e24`) as infinite in some cases. Check out in section 8 of the new [showcase](https://github.com/flechtenberg/pulpo/blob/master/notebooks/pulpo_showcase.ipynb) how to use these limits. Setting them lower may also improve convergence speed in some cases.
+- Enable dependent constraint definition. Check out in section 9 of the new [showcase](https://github.com/flechtenberg/pulpo/blob/master/notebooks/pulpo_showcase.ipynb) how to use these these.
+
+
 ## What's new in 1.4.2?
 - Enable the use of gurobi solver
 
