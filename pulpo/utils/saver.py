@@ -303,24 +303,24 @@ def compare_subsequent_paretosolutions(result_data_CC:Dict[float,LCIDataDict], c
         display(choice)
         display(choice_result)
 
-    # Changes in the scaling vector and the characterized and scaled inventories
-    lambda_array = list(result_data_CC.keys())
-    for lambda_1, lambda_2 in zip(lambda_array[:len(lambda_array)-1], lambda_array[1:len(lambda_array)]):
-        print(f'lambda_1: {lambda_1}\nlambda_2: {lambda_2}\n')
-        scaling_vector_diff = ((result_data_CC[lambda_1]['Scaling Vector']['Value'] - result_data_CC[lambda_2]['Scaling Vector']['Value']))
-        scaling_vector_ratio = (scaling_vector_diff / result_data_CC[lambda_1]['Scaling Vector']['Value']).abs().sort_values(ascending=False)
-        environmental_cost_mean = {env_cost_index[0]: env_cost['Value'] for env_cost_index, env_cost in result_data_CC[lambda_1]['ENV_COST_MATRIX'].iterrows()}
-        characterized_scaling_vector_diff = (scaling_vector_diff * pd.Series(environmental_cost_mean).reindex(scaling_vector_diff.index)).abs()
-        characterized_scaling_vector_diff_relative = (characterized_scaling_vector_diff / result_data_CC[lambda_1]['Impacts'].loc[method, 'Value']).abs().sort_values(ascending=False)
+    # # Changes in the scaling vector and the characterized and scaled inventories
+    # lambda_array = list(result_data_CC.keys())
+    # for lambda_1, lambda_2 in zip(lambda_array[:len(lambda_array)-1], lambda_array[1:len(lambda_array)]):
+    #     print(f'lambda_1: {lambda_1}\nlambda_2: {lambda_2}\n')
+    #     scaling_vector_diff = ((result_data_CC[lambda_1]['Scaling Vector']['Value'] - result_data_CC[lambda_2]['Scaling Vector']['Value']))
+    #     scaling_vector_ratio = (scaling_vector_diff / result_data_CC[lambda_1]['Scaling Vector']['Value']).abs().sort_values(ascending=False)
+    #     environmental_cost_mean = {env_cost_index[0]: env_cost['Value'] for env_cost_index, env_cost in result_data_CC[lambda_1]['ENV_COST_MATRIX'].iterrows()}
+    #     characterized_scaling_vector_diff = (scaling_vector_diff * pd.Series(environmental_cost_mean).reindex(scaling_vector_diff.index)).abs()
+    #     characterized_scaling_vector_diff_relative = (characterized_scaling_vector_diff / result_data_CC[lambda_1]['Impacts'].loc[method, 'Value']).abs().sort_values(ascending=False)
 
-        print('Amount of process scaling variables that changed:\n{}: >1% \n{}: >10%\n{}: >100%\n{}: >1000%\n'.format((scaling_vector_ratio > 0.01).sum(), (scaling_vector_ratio > 0.1).sum(), (scaling_vector_ratio > 1).sum(), (scaling_vector_ratio > 10).sum()))
-        print('Amount of process characterized scaling variables (impacts per process) that changed:\n{}: >1% \n{}: >10%\n{}: >100%\n{}: >1000%\n'.format((characterized_scaling_vector_diff_relative > 0.01).sum(), (characterized_scaling_vector_diff_relative > 0.1).sum(), (characterized_scaling_vector_diff_relative > 1).sum(), (characterized_scaling_vector_diff_relative > 10).sum()))
-        print('{:.5e}: is the maximum impact change in one process\n{:.5e}: is the total impact change\n'.format(characterized_scaling_vector_diff_relative.max(), characterized_scaling_vector_diff_relative.sum()))
+    #     print('Amount of process scaling variables that changed:\n{}: >1% \n{}: >10%\n{}: >100%\n{}: >1000%\n'.format((scaling_vector_ratio > 0.01).sum(), (scaling_vector_ratio > 0.1).sum(), (scaling_vector_ratio > 1).sum(), (scaling_vector_ratio > 10).sum()))
+    #     print('Amount of process characterized scaling variables (impacts per process) that changed:\n{}: >1% \n{}: >10%\n{}: >100%\n{}: >1000%\n'.format((characterized_scaling_vector_diff_relative > 0.01).sum(), (characterized_scaling_vector_diff_relative > 0.1).sum(), (characterized_scaling_vector_diff_relative > 1).sum(), (characterized_scaling_vector_diff_relative > 10).sum()))
+    #     print('{:.5e}: is the maximum impact change in one process\n{:.5e}: is the total impact change\n'.format(characterized_scaling_vector_diff_relative.max(), characterized_scaling_vector_diff_relative.sum()))
 
-        amount_of_rows_for_visiualization = 10
-        # print('The relative change of the scaling vector (s_lambda_1 - s_lambda_2)/s_lambda_1:\n')
-        # display(scaling_vector_ratio.iloc[:amount_of_rows_for_visiualization].rename(result_data_CC[lambda_2]['Scaling Vector']['Metadata']).sort_values(ascending=False))
-        # print('\n---\n')
-        print('The relative change of the characterized scaling vector (s_lambda_1 - s_lambda_2)*QB_s / QBs:\n')
-        display(characterized_scaling_vector_diff_relative.iloc[:amount_of_rows_for_visiualization].rename(result_data_CC[lambda_2]['Scaling Vector']['Metadata']))
-        print('\n---\n')
+    #     amount_of_rows_for_visiualization = 10
+    #     # print('The relative change of the scaling vector (s_lambda_1 - s_lambda_2)/s_lambda_1:\n')
+    #     # display(scaling_vector_ratio.iloc[:amount_of_rows_for_visiualization].rename(result_data_CC[lambda_2]['Scaling Vector']['Metadata']).sort_values(ascending=False))
+    #     # print('\n---\n')
+    #     print('The relative change of the characterized scaling vector (s_lambda_1 - s_lambda_2)*QB_s / QBs:\n')
+    #     display(characterized_scaling_vector_diff_relative.iloc[:amount_of_rows_for_visiualization].rename(result_data_CC[lambda_2]['Scaling Vector']['Metadata']))
+    #     print('\n---\n')
