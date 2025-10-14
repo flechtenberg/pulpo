@@ -132,7 +132,7 @@ def plot_total_env_impact_contribution(
     plot_linked_contribution_barplot(data_plot, metadata=metadata_plot, impact_category=method, colormap_base=colormap_base, colormap_linked=colormap_SA_barplot, savefig=False, bbox_to_anchor_center=1.7, bbox_to_anchor_lower=-.6)
     return data_plot
 
-def create_choices_data_for_CC_plots(result_data_CC:Dict[float,ResultDataDict]) -> Dict[str,pd.DataFrame]:
+def create_choices_data_for_CC_plots(result_data_CC:Dict[float,ResultDataDict], group_act_by:Optional[Literal['process', 'product', 'location']]=None) -> Dict[str,pd.DataFrame]:
     # The changs in the choices of the optimizer
     choices_results = {}
     for i_CC, (lambda_QB, result_data) in enumerate(result_data_CC.items()):
@@ -144,6 +144,14 @@ def create_choices_data_for_CC_plots(result_data_CC:Dict[float,ResultDataDict]) 
             choices_results[choice] = choices_results[choice].join(choice_data['Value'].rename(lambda_QB), how='left')
     # Delete all rows that are all zero
     for choice in choices_results.keys():
+        if group_act_by:
+            metadata_df = pd.Series(choices_results[choice].index, index=choices_results[choice].index).str.split(' | ', expand=True, regex=False)
+            metadata_labels = ['process', 'product', 'location']
+            metadata_df.columns = metadata_labels
+            choices_results[choice] = choices_results[choice].merge(metadata_df, left_index=True, right_index=True, how='left')
+            choices_results[choice].set_index(metadata_labels, inplace=True)
+            # Group by product to see the contribution of each product group
+            choices_results[choice] = choices_results[choice].groupby(group_act_by).sum()        
         choices_results[choice] = choices_results[choice].loc[~(choices_results[choice]==0).all(axis=1)]
     return choices_results
 
@@ -200,7 +208,7 @@ def create_data_for_CC_plots(result_data_CC:Dict[float,ResultDataDict], cutoff_v
             data_QBs_main_df.loc['positive rest', metadata_labels] = ['positive rest']*len(metadata_labels)
             data_QBs_main_df.set_index(metadata_labels, inplace=True)
             # Group by product to see the contribution of each product group
-            data_QBs_main_df = data_QBs_main_df.groupby('process').sum()
+            data_QBs_main_df = data_QBs_main_df.groupby(group_act_by).sum()
             print('by grouping the processes by product, we reduce the number of variables to {}'.format(data_QBs_main_df.shape[0]))
         else:
             process_map_updated = process_map_metadata.copy()
@@ -224,10 +232,13 @@ def create_cmap_for_CC_plots(CC_bar_plot_labels:pd.Index, choices_labels:Optiona
     else:
         all_labels = CC_bar_plot_labels.unique()
     # Create metadata out of the index for better color grouping
-    all_labels_metadata = pd.Series(all_labels, index=all_labels).str.split(' | ', expand=True, regex=False)
-    all_labels_metadata.columns = ['process', 'product', 'location']
-    # Sort by product to have similar colors for similar products
-    all_labels_metadata = all_labels_metadata.sort_values(by='product')
+    if pd.Series(all_labels, index=all_labels).str.contains('|', regex=False).any():
+        all_labels_metadata = pd.Series(all_labels, index=all_labels).str.split(' | ', expand=True, regex=False)
+        all_labels_metadata.columns = ['process', 'product', 'location']
+        # Sort by product to have similar colors for similar products
+        all_labels_metadata = all_labels_metadata.sort_values(by='product')
+    else:
+        all_labels_metadata = pd.Series(all_labels, index=all_labels).sort_index()
     cmap_list = sns.color_palette(cmap_name, n_colors=len(all_labels_metadata.index))  # a list of RGB tuples
     cmap = {idx: cmap_val for idx, cmap_val in zip(all_labels_metadata.index, cmap_list)}
     # cmap_list = discrete_cmap(l en(all_labels), base_cmap=cmap_name)
@@ -244,6 +255,7 @@ def plot_pareto_front(
         rel_abs:Literal['relative', 'absolute'] = 'absolute',
         bbox_to_anchor:Tuple[float, float] = (0.65, -1.),
         cmap_name:str = 'gist_ncar',
+        group_act_by:Optional[Literal['process', 'product', 'location']]=None
         ):
     """
     Plot the Pareto front and highlight main contributing variables.
@@ -267,17 +279,17 @@ def plot_pareto_front(
         cmap_name (str):
             Name of the colormap to use for the plots. Default is 'gist_ncar'.
     """
-    data_QBs_main_df = create_data_for_CC_plots(result_data_CC, cutoff_value, process_map_metadata)
-    choices_data = create_choices_data_for_CC_plots(result_data_CC)
+    data_QBs_main_df = create_data_for_CC_plots(result_data_CC, cutoff_value, process_map_metadata, group_act_by=group_act_by)
+    choices_data = create_choices_data_for_CC_plots(result_data_CC, group_act_by=group_act_by)
     choices_labels = pd.Index([idx for choice in choices_data.keys() for idx in choices_data[choice].index])
     cmap, legend_elements = create_cmap_for_CC_plots(data_QBs_main_df.index, choices_labels=choices_labels, cmap_name=cmap_name, create_legend=True)
     match rel_abs:
         case 'relative':
-            _, axs = plt.subplots(len(choices_data.keys())+1, 1, figsize=(6,6), sharex=True, gridspec_kw={'hspace': 0.1}, height_ratios= [8]+[1]*len(choices_data.keys()))
+            _, axs = plt.subplots(len(choices_data.keys())+1, 1, figsize=(6,6), dpi=300, sharex=True, gridspec_kw={'hspace': 0.1}, height_ratios= [8]+[1]*len(choices_data.keys()))
             plot_pareto_solution_normalized_bar_plots(data_QBs_main_df, method, bbox_to_anchor=bbox_to_anchor, cmap_name=cmap_name, cmap=cmap, ax=axs[0], legend_elements=legend_elements)
             plot_choices_pareto_solutions_bar_plots(choices_data, cmap=cmap, shared_xaxis=axs[1:])
         case 'absolute':
-            _, axs2 = plt.subplots(len(choices_data.keys())+1, 1, figsize=(6,6), sharex=True, gridspec_kw={'hspace': 0.1}, height_ratios= [8]+[1]*len(choices_data.keys()))
+            _, axs2 = plt.subplots(len(choices_data.keys())+1, 1, figsize=(6,6), dpi=300, sharex=True, gridspec_kw={'hspace': 0.1}, height_ratios= [8]+[1]*len(choices_data.keys()))
             plot_pareto_solution_bar_plots(data_QBs_main_df, method, bbox_to_anchor=bbox_to_anchor, cmap_name=cmap_name, cmap=cmap, ax=axs2[0], legend_elements=legend_elements)
             plot_choices_pareto_solutions_bar_plots(choices_data, cmap=cmap, shared_xaxis=axs2[1:])
 # === General Plots ===
@@ -591,7 +603,7 @@ def plot_choices_pareto_solutions_bar_plots(
         data_cumsum = data_norm.sort_values(by=data.columns.tolist()[1]).cumsum(axis=0)
         # Set the bar plot style
         # cmap = discrete_cmap(data_cumsum.shape[0], cmap_name)
-        width_bars = .6*set_size(width,height)[1] / data.shape[1]
+        width_bars = 1.5*(plt.gcf().get_size_inches()[0] / data.shape[1])
         labels = ["{:.3f}".format(label) for label in data.columns.astype(float).values]
         bottom_data = np.zeros(len(labels))
         for type, row_data in data_cumsum.iterrows():
