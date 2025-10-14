@@ -1,5 +1,5 @@
-from pulpo.utils import optimizer, bw_parser, converter, saver, plots
-from pulpo.utils.uncertainty import preparer, processor, gsa
+from pulpo.utils import optimizer, bw_parser, converter, saver
+from pulpo.utils.uncertainty import preparer, processor, gsa, plots
 from pulpo.utils.uncertainty.preparer import UncertaintySpec
 from pulpo.utils.saver import ResultDataDict
 from typing import List, Union, Literal, Dict, Tuple, Optional
@@ -294,7 +294,7 @@ class PulpoOptimizer:
                 method=next(iter(self.method)),
                 uncertainty_data=self.uncertainty_data,
                 scaling_factor_if=scaling_factor_if,
-                scaling_factor_cf=scaling_factor_if,
+                scaling_factor_cf=scaling_factor_cf,
                 scaling_factor_var_bounds=scaling_factor_var_bounds
             )
         processor.apply_uncertainty_strategies(self.uncertainty_data, strategies)
