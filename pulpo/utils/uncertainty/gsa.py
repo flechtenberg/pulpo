@@ -9,26 +9,7 @@ and in the Characterization matrix (characterization factors, Q).
 """
 
 import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
 import scipy.sparse
-import stats_arrays
-import scipy.stats
-import pandas as pd
-import numpy as np
-import os
-from pulpo import pulpo
-import scipy.sparse as sparse
-from time import time
-import stats_arrays
-import matplotlib.pyplot as plt
-import matplotlib as mpl
-import textwrap
-import bw2data
-import bw2calc
-import ast
-import array
-from typing import Union, List, Optional, Dict, Tuple
 import warnings
 
 from pulpo.utils.uncertainty import plots, processor
@@ -74,6 +55,7 @@ class GlobalSensitivityAnalysis:
         sample_size: int,
         method:str,
         plot_gsa_results:bool=False,
+        random_seed: int=161,
     ):
         """
         Initialize the global sensitivity analysis.
@@ -96,6 +78,8 @@ class GlobalSensitivityAnalysis:
                 Number of samples to generate for the analysis.
             plot_gsa_results (bool):
                 Whether to generate plots of the GSA results.
+            random_seed (int, optional):
+                Random seed for SALib sampling reproducibility. Defaults to 161.
         """
         self.result_data = result_data # This is the optimization solution at which we compute the GSA
         self.method = method # ATTN: This might generate errors in the future
@@ -106,6 +90,7 @@ class GlobalSensitivityAnalysis:
         self.sampler = sampler # from SALib.sample
         self.analyser = analyser # from SALib.analyze
         self.sample_size = sample_size
+        self.random_seed = random_seed
         self.sample_impacts = None
         self.sample_characterized_inventories = None
         self.sensitivity_indices = None
@@ -190,7 +175,7 @@ class GlobalSensitivityAnalysis:
             sample_data_if: DataFrame of IF samples (sparse).
             sample_data_cf: DataFrame of CF samples (sparse).
         """
-        sample_data = self.sampler.sample(problem, self.sample_size)
+        sample_data = self.sampler.sample(problem, self.sample_size, seed=self.random_seed)
         sample_data_if = pd.DataFrame.sparse.from_spmatrix(
             scipy.sparse.csr_matrix(sample_data[:,:all_bounds_indx_dict['cf_start']]), 
             columns=problem['names'][:all_bounds_indx_dict['cf_start']]

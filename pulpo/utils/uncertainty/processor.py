@@ -8,23 +8,12 @@ updating data or comupting metrics from the uncertainty data.
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import scipy.sparse
 import stats_arrays
 import scipy.stats
 import pandas as pd
 import numpy as np
-import os
-from pulpo import pulpo
-import scipy.sparse as sparse
-from time import time
 import stats_arrays
 import matplotlib.pyplot as plt
-import matplotlib as mpl
-import textwrap
-import bw2data
-import bw2calc
-import ast
-import array
 from typing import Union, List, Optional, Dict, Tuple, Literal
 
 from pulpo.utils.uncertainty.preparer import UncertaintyData, UncertaintySpec
@@ -42,6 +31,7 @@ class UncertaintyStrategyBase:
             self, 
             uncertain_param_type:Literal['If', 'Cf', 'Var_bounds'], 
             uncertain_param_subgroup:str,
+            random_seed:Optional[int] = 161,
         ):
         """
         Initialize the UncertaintyStrategyBase with metadata and index lists.
@@ -54,9 +44,13 @@ class UncertaintyStrategyBase:
                 uncertain_param_type, the BW databse name for 'If', the 
                 LCIA method for 'Cf' and the types of variable bounds for 
                 'Var_bounds'
+            random_seed (Optional[int]):
+                Seed for random number generator. If None, uses system time.
+                Default is 161 for reproducibility.
         """
         self.uncertain_param_type = uncertain_param_type
         self.uncertain_param_subgroup = uncertain_param_subgroup
+        self.random_seed = random_seed
 
     def add_random_noise_to_scaling_factor(self, undefined_param_amt:int, scaling_factor:Union[float, list], low:float, high:float) -> list:
         """
@@ -81,7 +75,7 @@ class UncertaintyStrategyBase:
         """
         if isinstance(scaling_factor, float):
             scaling_factor = [scaling_factor] * undefined_param_amt
-        rng = np.random.default_rng(seed=161)
+        rng = np.random.default_rng(seed=self.random_seed)
         random_noise = rng.uniform(1-low, 1+high, undefined_param_amt)
         scaling_factor_randomized = random_noise * np.array(scaling_factor)
         return scaling_factor_randomized.tolist()
@@ -100,7 +94,8 @@ class ExpertKnowledgeStrategy(UncertaintyStrategyBase):
             self,
             uncertain_param_type:Literal['If', 'Cf', 'Var_bounds'], 
             uncertain_param_subgroup:str,
-            prob_metadata:Dict[int, Dict[str,Union[int, float]]]
+            prob_metadata:Dict[int, Dict[str,Union[int, float]]],
+            random_seed:Optional[int] = 161,
             ):
         """
         Initialize the ExpertKnowledgeStrategy with 'prob_metadata' containing the expert knowledge 
@@ -128,8 +123,11 @@ class ExpertKnowledgeStrategy(UncertaintyStrategyBase):
                     },
                     ...
                 }
+            random_seed (Optional[int]):
+                Seed for random number generator. If None, uses system time.
+                Default is 161 for reproducibility.
         """
-        super().__init__(uncertain_param_type, uncertain_param_subgroup)
+        super().__init__(uncertain_param_type, uncertain_param_subgroup, random_seed)
         self.prob_metadata = prob_metadata  
 
 
@@ -173,7 +171,8 @@ class UniformBaseStrategy(UncertaintyStrategyBase):
             uncertain_param_subgroup:str,
             upper_scaling_factor:float, 
             lower_scaling_factor:float,
-            noise_interval:Dict[str,float]={'min':0., 'max':0.}
+            noise_interval:Dict[str,float]={'min':0., 'max':0.},
+            random_seed:Optional[int] = 161,
             ) -> None:
         """
         Initialize the UniformBaseStrategy with metadata and index lists and scaling factors.
@@ -195,8 +194,11 @@ class UniformBaseStrategy(UncertaintyStrategyBase):
             noise_interval (Dict[str,float]): Dict containing "min" and "max" keywords 
                 holding the upper and lower bound of the noise generated with a uniform distribution 
                 and multiplied with the scaling factor vector as (1-min) and (1+max)
+            random_seed (Optional[int]):
+                Seed for random number generator. If None, uses system time.
+                Default is 161 for reproducibility.
         """
-        super().__init__(uncertain_param_type, uncertain_param_subgroup)
+        super().__init__(uncertain_param_type, uncertain_param_subgroup, random_seed)
         self.upper_scaling_factor = upper_scaling_factor
         self.lower_scaling_factor = lower_scaling_factor
         self.noise_interval = noise_interval
@@ -266,7 +268,8 @@ class TriangluarBaseStrategy(UncertaintyStrategyBase):
             uncertain_param_subgroup:str,
             upper_scaling_factor:float, 
             lower_scaling_factor:float, 
-            noise_interval:Dict[str,float]={'min':0., 'max':0.}
+            noise_interval:Dict[str,float]={'min':0., 'max':0.},
+            random_seed:Optional[int] = 161,
             ) -> None:
         """
         Initialize the TriangluarBaseStrategy with metadata and index lists and scaling factors.
@@ -289,8 +292,11 @@ class TriangluarBaseStrategy(UncertaintyStrategyBase):
                 Dict containing "min" and "max" keywords holding the upper and lower bound 
                 of the noise generated with a uniform distribution and multiplied with 
                 the scaling factor vector as (1-min) and (1+max)
+            random_seed (Optional[int]):
+                Seed for random number generator. If None, uses system time.
+                Default is 161 for reproducibility.
         """
-        super().__init__(uncertain_param_type, uncertain_param_subgroup)
+        super().__init__(uncertain_param_type, uncertain_param_subgroup, random_seed)
         self.upper_scaling_factor = upper_scaling_factor
         self.lower_scaling_factor = lower_scaling_factor
         self.noise_interval = noise_interval
@@ -363,7 +369,9 @@ class TriangularBoundInterpolationStrategy(TriangluarBaseStrategy):
             self, 
             uncertain_param_type:Literal['If', 'Cf', 'Var_bounds'], 
             uncertain_param_subgroup:str,
-            noise_interval:Dict[str,float]={'min':0., 'max':0.}):
+            noise_interval:Dict[str,float]={'min':0., 'max':0.},
+            random_seed:Optional[int] = 161,
+            ):
         """
         Initialize the TriangularBoundInterpolationStrategy with metadata and index lists.
 
@@ -379,8 +387,11 @@ class TriangularBoundInterpolationStrategy(TriangluarBaseStrategy):
                 Dict containing "min" and "max" keywords 
                 holding the upper and lower bound of the noise generated with a uniform distribution 
                 and multiplied with the scaling factor vector as (1-min) and (1+max)
+            random_seed (Optional[int]):
+                Seed for random number generator. If None, uses system time.
+                Default is 161 for reproducibility.
         """
-        super().__init__(uncertain_param_type, uncertain_param_subgroup, np.NaN, np.NaN, noise_interval)
+        super().__init__(uncertain_param_type, uncertain_param_subgroup, np.NaN, np.NaN, noise_interval, random_seed)
 
     def _get_bounds(
             self,
