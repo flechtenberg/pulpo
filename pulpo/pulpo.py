@@ -1,5 +1,5 @@
 from pulpo.utils import optimizer, bw_parser, converter, saver
-from pulpo.utils.uncertainty import preparer, processor, gsa, plots
+from pulpo.utils.uncertainty import preparer, processor, gsa, plots, monte_carlo
 from pulpo.utils.uncertainty.preparer import UncertaintySpec
 from pulpo.utils.saver import ResultDataDict
 from typing import List, Union, Literal, Dict, Tuple, Optional
@@ -91,23 +91,45 @@ class PulpoOptimizer:
         self.instance = optimizer.calculate_inv_flows(self.instance, self.lci_data)
         return results
     
-    def solve_MC(self, n_it=100, GAMS_PATH=False, solver_name=None, options=None):
+    def solve_MC(
+        self,
+        n_it=100,
+        GAMS_PATH=False,
+        solver_name=None,
+        options=None,
+        resample=("A", "B", "Q"),
+        n_jobs=-1,
+        seed=None,
+    ):
         """
-        Solves the optimization model using Monte Carlo simulation.
-
-        Args:
-            n_it (int): Number of Monte Carlo iterations.
-            GAMS_PATH (bool): Path to GAMS if needed.
-            options (dict): Additional options for the solver.
-
-        Returns:
-            results: Results of the optimization.
+        Runs Monte Carlo simulation using pre-sampled LCI data for safe parallelization.
         """
-        # # TODO: Analyse also the choices made in each iteration, parallelize? ...
-        # results = uncertainty.solve_model_MC(self, n_it, GAMS_PATH, solver_name=solver_name, options=options)
+        if self.lci_data is None:
+            raise Exception("No LCI data found. Please run get_lci_data() before solve_MC().")
 
-        # return results
-        raise NotImplementedError('Monte Carlo optimization not yet implemented.')
+        # Step 1: Pre-sample all LCI variants sequentially
+        print(f"Pre-sampling {n_it} LCI matrix sets...")
+        samples = monte_carlo.pre_sample_lci_matrices(
+            project=self.project,
+            databases=self.database,
+            method=self.method,
+            intervention_matrix_name=self.intervention_matrix,
+            n_samples=n_it,
+            resample=resample,
+            seed=seed,
+        )
+
+        # Step 2: Solve each sample in parallel
+        print(f"Solving {n_it} Monte Carlo optimizations in parallel...")
+        results = monte_carlo.solve_model_MC_pre_sampled(
+            pulpo_optimizer=self,
+            samples=samples,
+            GAMS_PATH=GAMS_PATH,
+            solver_name=solver_name,
+            options=options,
+            n_jobs=n_jobs,
+        )
+        return results
 
     def solve_CC_problem(
         self,
