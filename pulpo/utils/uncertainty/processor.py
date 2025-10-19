@@ -584,6 +584,29 @@ def check_missing_uncertainty_data(uncertainty_data: UncertaintyData) -> bool:
         print('No uncertainty data missing.')
     return missing_unc_data
 
+def drop_undefined_uncertainty_data(uncertainty_data:UncertaintyData) -> UncertaintyData:
+    """
+    Drops any undefined uncertainty data in the uncertainty_data dict.
+    
+    Args:
+        uncertainty_data (UncertaintyData): 
+            Dictionary containing metadata about uncertain intervention flows (IF) and characterization factors (CF).
+    Returns:
+        cleaned_uncertainty_data (UncertaintyData):
+            Dictionary containing metadata about uncertain intervention flows (IF) and characterization factors (CF),
+            with any undefined uncertainty data removed.
+    """
+    cleaned_uncertainty_data:UncertaintyData = {}
+    for unc_type, unc_type_data in uncertainty_data.items():
+        cleaned_uncertainty_data[unc_type] = {}
+        for unc_subgroup, unc_subgroup_data in unc_type_data.items():
+            cleaned_uncertainty_data[unc_type][unc_subgroup] = {}
+            cleaned_uncertainty_data[unc_type][unc_subgroup]['defined'] = unc_subgroup_data['defined']
+            cleaned_uncertainty_data[unc_type][unc_subgroup]['undefined'] = {}
+            if len(unc_subgroup_data['undefined']):
+                print('Dropping {} undefined uncertainty parameters for {} - {}'.format(len(unc_subgroup_data['undefined']), unc_type, unc_subgroup))
+    return cleaned_uncertainty_data
+
 
 def transform_to_normal(uncertainty_data:UncertaintyData, sample_size:int=100000, plot_distribution:bool=False) -> UncertaintyData:
     """

@@ -252,7 +252,7 @@ class PulpoOptimizer:
             upper_imp_limit=self.upper_imp_limit,
         )
 
-    def apply_uncertainty_strategies(self, strategies:List[processor.UncertaintyStrategyBase]=[], scaling_factor_if=0.5, scaling_factor_cf=0.3, scaling_factor_var_bounds=0.2):
+    def apply_uncertainty_strategies(self, strategies:List[processor.UncertaintyStrategyBase]=[], drop_undefined=False, scaling_factor_if=0.5, scaling_factor_cf=0.3, scaling_factor_var_bounds=0.2):
         """
         Applies the uncertainty gap filling and updating strategies.
         Wrapper for utils.uncertainty.processor.apply_uncertainty_strategies.
@@ -260,6 +260,9 @@ class PulpoOptimizer:
         Args:
             strategies (List[UncertaintyStrategyBase]):
                 All strategies as instatialized classes for which will manipulate the uncertainty_data
+            drop_undefined (bool):
+                If True, drops all uncertain parameters with undefined uncertainty types after applying the strategies.
+                Default is False.
             scaling_factor_if (float):
                 If no strategies are passed the missing uncerainty information in the intervention flows will be 
                 filled using triangular strategy either with interpolation or this scaling factor:
@@ -299,6 +302,8 @@ class PulpoOptimizer:
             )
         processor.apply_uncertainty_strategies(self.uncertainty_data, strategies)
         processor.check_missing_uncertainty_data(self.uncertainty_data)
+        if drop_undefined:
+            self.uncertainty_data = processor.drop_undefined_uncertainty_data(self.uncertainty_data)
 
     def run_gsa(self, result_data:dict, sample_method, SA_method, sample_size:int, plot_gsa_results:bool=False) -> tuple[pd.DataFrame, pd.DataFrame]:
         """
