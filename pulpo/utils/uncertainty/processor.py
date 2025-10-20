@@ -811,3 +811,92 @@ def rename_metadata_index(metadata_df, lci_data:dict, param_type:str):
             case _:
                 raise Exception(f'"rename_metadata_index" to <<{param_type}>> as "uncertainty_var_name" has not been implemented')
         return metadata_df
+
+# --- Unified uncertainty sampler that accepts both "prepared" and "transform_to_normal" shapes
+
+import numpy as np
+import stats_arrays
+from typing import Dict, Tuple, Union
+
+def _merge_defined_blocks(unc_data: dict, top_key: str) -> Dict[Union[Tuple[int,int],int], dict]:
+    """Collect & merge all 'defined' blocks under unc_data[top_key]."""
+    out = {}
+    block = unc_data.get(top_key, {})
+    if isinstance(block, dict):
+        for subgroup, d in block.items():
+            if isinstance(d, dict) and "defined" in d and isinstance(d["defined"], dict):
+                out.update(d["defined"])
+    return out
+
+def _get_cf_defined(unc_data: dict, method: str) -> Dict[Union[Tuple[int,int],int], dict]:
+    """
+    Pull CF 'defined' either from:
+      - unc_data["Cf"][method]["defined"], or
+      - unc_data[method]["defined"]  (some transform_to_normal dumps look like this).
+    """
+    if "Cf" in unc_data and isinstance(unc_data["Cf"], dict):
+        block = unc_data["Cf"].get(method, {})
+        if isinstance(block, dict) and "defined" in block:
+            return block["defined"]
+    # flat style (fallback)
+    block = unc_data.get(method, {})
+    if isinstance(block, dict) and "defined" in block and isinstance(block["defined"], dict):
+        return block["defined"]
+    return {}
+
+def _get_var_bounds_defined(unc_data: dict) -> Dict[str, Dict[Union[int,Tuple[int,int]], dict]]:
+    vb = unc_data.get("Var_bounds", {})
+    out = {}
+    if isinstance(vb, dict):
+        for subgroup, d in vb.items():
+            if isinstance(d, dict) and "defined" in d and isinstance(d["defined"], dict):
+                out[subgroup] = d["defined"]
+    return out
+
+def _sample_one_spec(spec: dict, rng: np.random.Generator) -> float:
+    """
+    Sample a single uncertainty spec. If it's Normal (id==3), use numpy;
+    otherwise fall back to stats_arrays (works for the prepared dicts).
+    """
+    utype = spec.get("uncertainty_type", None)
+    if utype == stats_arrays.NormalUncertainty.id or utype == 3:
+        loc = float(spec.get("loc", 0.0) or 0.0)
+        scale = float(spec.get("scale", 0.0) or 0.0)
+        # scale may be 0 for degenerate normals -> returns loc deterministically
+        return float(rng.normal(loc, scale)) if scale > 0 else loc
+    # generic fallback for triangular/lognormal/etc.
+    ua = stats_arrays.UncertaintyBase.from_dicts(spec)
+    choice = stats_arrays.uncertainty_choices[utype]
+    return float(choice.random_variables(ua, 1)[0])
+
+def draw_uncertainty_sample(
+    uncertainty_data: dict,
+    method: str,
+    seed: int | None = None,
+) -> dict:
+    """
+    Return a single draw as a dict with keys: 'If', 'Cf', 'Var_bounds'.
+
+    Works for:
+      - the original 'prepared' UncertaintyData
+      - the dict returned by processor.transform_to_normal(...)
+        (even when CF is nested directly under the method name)
+    """
+    rng = np.random.default_rng(seed)
+
+    # --- IF
+    if_defined = _merge_defined_blocks(uncertainty_data, "If")
+    if_draw = {k: _sample_one_spec(v, rng) for k, v in if_defined.items()}
+
+    # --- CF (accept two shapes)
+    cf_defined = _get_cf_defined(uncertainty_data, method)
+    cf_draw_raw = {k: _sample_one_spec(v, rng) for k, v in cf_defined.items()}
+
+    # leave keys as-is; downstream normalizer in MC code will map tuple keys -> diagonal idx
+
+    # --- variable bounds (optional)
+    vb_defined = _get_var_bounds_defined(uncertainty_data)
+    vb_draw = {name: {k: _sample_one_spec(v, rng) for k, v in block.items()}
+               for name, block in vb_defined.items()}
+
+    return {"If": if_draw, "Cf": cf_draw_raw, "Var_bounds": vb_draw}
