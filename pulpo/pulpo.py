@@ -130,6 +130,36 @@ class PulpoOptimizer:
             n_jobs=n_jobs,
         )
         return results
+    
+    def run_mc_from_uncertainty(
+        self,
+        n_samples: int,
+        seed: int | None = None,
+        n_jobs: int = -1,
+        GAMS_PATH=False,
+        solver_name: str | None = None,
+        options=None,
+    ):
+        """
+        Monte-Carlo optimization driven by prepared uncertainty distributions (no Brightway resample).
+        """
+        if self.uncertainty_data is None:
+            raise Exception("No uncertainty data found. Run import_and_filter_uncertainty_data + apply_uncertainty_strategies first.")
+        #if processor.check_missing_uncertainty_data(self.uncertainty_data):
+        #    raise Exception("uncertainty_data still contains 'undefined' entries. Fill or drop them before MC.")
+
+        overlays = monte_carlo.pre_sample_from_uncertainty(
+            pulpo_optimizer=self, n_samples=n_samples, seed=seed
+        )
+
+        return monte_carlo.solve_model_MC_pre_sampled_uncertainty(
+            pulpo_optimizer=self,
+            overlays=overlays,
+            GAMS_PATH=GAMS_PATH,
+            solver_name=solver_name,
+            options=options,
+            n_jobs=n_jobs,
+        )
 
     def solve_CC_problem(
         self,
