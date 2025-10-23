@@ -103,3 +103,4 @@ develop_tests/**
 !develop_tests/ammonia.xlsx
 notebooks/credentials.txt
 *.pkl
+notebooks/data/results/*.png
