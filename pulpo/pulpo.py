@@ -172,7 +172,7 @@ class PulpoOptimizer:
         neos_email=None,
         cutoff_value:float=0.01,
         plot_results:bool=False,
-        bbox_to_anchor:tuple=(1.40, .05),
+        bbox_to_anchor:tuple=(0.65,-3.5),
         cmap_name:str='tab20'
         ) -> Dict[float, ResultDataDict]:
         """
@@ -231,7 +231,7 @@ class PulpoOptimizer:
             plots.plot_pareto_front(
                 result_data_CC=results, 
                 cutoff_value=cutoff_value, 
-                method="\n".join(self.method.split("'")[1::2]), 
+                method="\n".join(next(iter(self.method)).split("'")[1::2]), 
                 process_map_metadata=self.lci_data['process_map_metadata'], 
                 bbox_to_anchor=bbox_to_anchor,
                 cmap_name=cmap_name
