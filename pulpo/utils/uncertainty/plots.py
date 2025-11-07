@@ -77,8 +77,8 @@ def plot_top_total_sensitivity_indices(total_Si:pd.DataFrame, total_Si_metadata:
         # Plot the contribution to variance
         top_total_Si = total_Si.sort_values('ST', ascending=False).iloc[:top_amount,:]
         top_total_Si_metadata = total_Si_metadata.loc[top_total_Si.index]
-        colormap_base = discrete_cmap(top_total_Si.shape[0].shape[0], cmap_name).colors
-        colormap_SA_barplot = pd.Series(colormap_base, index=top_total_Si.index)
+        colormap_base = discrete_cmap(base_cmap=cmap_name).colors
+        colormap_SA_barplot = pd.Series(colormap_base[:top_total_Si.shape[0]], index=top_total_Si.index)
         plot_contribution_barplot_with_err(data=top_total_Si, metadata=top_total_Si_metadata, colormap=colormap_SA_barplot, bbox_to_anchor_center=1.7, bbox_to_anchor_lower=-.6)
         return colormap_base, colormap_SA_barplot
 
@@ -294,14 +294,25 @@ def plot_pareto_front(
             plot_choices_pareto_solutions_bar_plots(choices_data, cmap=cmap, shared_xaxis=axs2[1:])
 # === General Plots ===
 
-def discrete_cmap(N, base_cmap=None):
-    """Create an N-bin discrete colormap from the specified input map"""
+def discrete_cmap(N:Optional[int]=None, base_cmap=None):
+    """
+    Create an N-bin discrete colormap from the specified input map
+
+    Args:
+        N (Optional[int]): Number of bins for the discrete colormap.
+        base_cmap: The base colormap to use (can be a string or a colormap instance).
+    
+    Returns:
+        ListedColormap: A discrete colormap with N bins.
+    """
 
     # Note that if base_cmap is a string or None, you can simply do
     #    return plt.cm.get_cmap(base_cmap, N)
     # The following works for string, None, or a colormap instance:
 
     base = mpl.colormaps.get_cmap(base_cmap)
+    if N is None:
+        N = base.N
     color_list = base(np.linspace(0, 1, N))
     return plt.cm.colors.ListedColormap(color_list, color_list, N)
 
@@ -430,6 +441,8 @@ def plot_linked_contribution_barplot(data:pd.DataFrame,  metadata:pd.DataFrame, 
         # colormap_red = pd.Series(colormap[act_indcs].values, index=[indcs[1] for indcs in act_indcs])
         colormap_red = colormap_linked.loc[colormap_linked.index.isin(data.index)]
         addtional_incs = data.index[~data.index.isin(colormap_red.index)]
+        if (colormap_linked.shape[0] + len(addtional_incs)) > len(colormap_base):
+            raise Exception('Not enough colors in colormap_base to assign colors to all additional indices.') 
         additional_colormap = pd.Series(
             colormap_base[colormap_linked.shape[0]:colormap_linked.shape[0]+len(addtional_incs)], 
             index = addtional_incs
@@ -596,6 +609,7 @@ def plot_choices_pareto_solutions_bar_plots(
         choices_labels = [idx for choice in choices_results.keys() for idx in choices_results[choice].index]
         cmap_list = discrete_cmap(len(choices_labels), cmap_name)
         cmap = {idx: cmap_val for idx, cmap_val in zip(choices_labels, cmap_list.colors)}   
+    # Get bar width from incoming axis
     for i_choice, (choice, data) in enumerate(choices_results.items()):
         # Normalize the data 
         data_norm = data.abs().divide(data.abs().sum()).fillna(0.)
@@ -603,7 +617,8 @@ def plot_choices_pareto_solutions_bar_plots(
         data_cumsum = data_norm.sort_values(by=data.columns.tolist()[1]).cumsum(axis=0)
         # Set the bar plot style
         # cmap = discrete_cmap(data_cumsum.shape[0], cmap_name)
-        width_bars = 1.5*(plt.gcf().get_size_inches()[0] / data.shape[1])
+        # width_bars = 1.5*(plt.gcf().get_size_inches()[0] / data.shape[1])
+        width_bars = .8 * (axs[0].get_window_extent().width / data.shape[1]) / plt.gcf().dpi
         labels = ["{:.3f}".format(label) for label in data.columns.astype(float).values]
         bottom_data = np.zeros(len(labels))
         for type, row_data in data_cumsum.iterrows():
