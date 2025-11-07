@@ -80,7 +80,7 @@ class UncertaintyStrategyBase:
         scaling_factor_randomized = random_noise * np.array(scaling_factor)
         return scaling_factor_randomized.tolist()
 
-    def assign(self, *args):
+    def assign(self, *args, **strategy_options):
         """
         Assign distribution parameters to parameters without predefined uncertainty.
         """
@@ -156,7 +156,7 @@ class ExpertKnowledgeStrategy(UncertaintyStrategyBase):
                 raise Exception(f'{indx} is not found in "defined" uncertainty data of {self.uncertain_param_subgroup} in {self.uncertain_param_type}.')
             uncertainty_data[self.uncertain_param_type][self.uncertain_param_subgroup]['defined'][indx].update(prob_metadata)
     
-    def assign(self, uncertainty_data:UncertaintyData):
+    def assign(self, uncertainty_data:UncertaintyData, **strategy_options):
         self.insert_expert_knowledge(uncertainty_data)
 class UniformBaseStrategy(UncertaintyStrategyBase):
     """
@@ -243,7 +243,7 @@ class UniformBaseStrategy(UncertaintyStrategyBase):
         # if ((metadata_df.loc[self.undefined_uncertainty_indices,'maximum'] - metadata_df.loc[self.undefined_uncertainty_indices,'minimum']) <= 0).any():
         #     raise Exception('There is a parameter with where the asigned minimum value is equal or larger than the asigned maximum value')
     
-    def assign(self, uncertainty_data:UncertaintyData):
+    def assign(self, uncertainty_data:UncertaintyData, **strategy_options):
         self._compute_uniform_dist_params(uncertainty_data)
 
 class TriangluarBaseStrategy(UncertaintyStrategyBase):
@@ -270,6 +270,7 @@ class TriangluarBaseStrategy(UncertaintyStrategyBase):
             lower_scaling_factor:float, 
             noise_interval:Dict[str,float]={'min':0., 'max':0.},
             random_seed:Optional[int] = 161,
+            inverse_bounds_for_negative_values:bool = True
             ) -> None:
         """
         Initialize the TriangluarBaseStrategy with metadata and index lists and scaling factors.
@@ -300,6 +301,7 @@ class TriangluarBaseStrategy(UncertaintyStrategyBase):
         self.upper_scaling_factor = upper_scaling_factor
         self.lower_scaling_factor = lower_scaling_factor
         self.noise_interval = noise_interval
+        self.inverse_bounds_for_negative_values = inverse_bounds_for_negative_values
 
 
     def _compute_triag_dist_params(self, uncertainty_data:UncertaintyData):
@@ -328,10 +330,10 @@ class TriangluarBaseStrategy(UncertaintyStrategyBase):
             uncertainty_data[self.uncertain_param_type][self.uncertain_param_subgroup]['defined'][undefined_indx] = undefined_dict
             amount = undefined_dict['amount']
             uncertainty_data[self.uncertain_param_type][self.uncertain_param_subgroup]['defined'][undefined_indx]['loc'] = amount
-            if amount > 0:
+            if amount > 0 or not self.inverse_bounds_for_negative_values:
                 uncertainty_data[self.uncertain_param_type][self.uncertain_param_subgroup]['defined'][undefined_indx]['maximum'] = amount + upper_scaling_fac * abs(amount)
                 uncertainty_data[self.uncertain_param_type][self.uncertain_param_subgroup]['defined'][undefined_indx]['minimum'] = amount - lower_scaling_fac * abs(amount)
-            elif amount < 0:
+            elif amount < 0 and self.inverse_bounds_for_negative_values:
                 uncertainty_data[self.uncertain_param_type][self.uncertain_param_subgroup]['defined'][undefined_indx]['maximum'] = amount + lower_scaling_fac * abs(amount)
                 uncertainty_data[self.uncertain_param_type][self.uncertain_param_subgroup]['defined'][undefined_indx]['minimum'] = amount - upper_scaling_fac * abs(amount)
             uncertainty_data[self.uncertain_param_type][self.uncertain_param_subgroup]['defined'][undefined_indx]['uncertainty_type'] = 5
@@ -344,7 +346,7 @@ class TriangluarBaseStrategy(UncertaintyStrategyBase):
         # print('uncertain parameters with negative median value:')
         # print(metadata_df.loc[self.undefined_uncertainty_indices].loc[metadata_df.loc[self.undefined_uncertainty_indices,'loc'] < 0])
     
-    def assign(self, uncertainty_data:UncertaintyData):
+    def assign(self, uncertainty_data:UncertaintyData, **strategy_options):
         self._compute_triag_dist_params(uncertainty_data)
     
 class TriangularBoundInterpolationStrategy(TriangluarBaseStrategy):
@@ -407,7 +409,7 @@ class TriangularBoundInterpolationStrategy(TriangluarBaseStrategy):
         return uncertainty_bounds
             
 
-    def _compute_bounds_statistics(self, uncertainty_bounds:pd.DataFrame, bound_statistic_fig:bool=False) -> tuple[float, float]:
+    def _compute_bounds_statistics(self, uncertainty_bounds:pd.DataFrame, plot_results:bool=False) -> tuple[float, float]:
         """
         Computes the scaling factors from the the bounds of the uncertain parameters with known distribution
         Assumes that the bounds of the median of 95% confidence interval can be used to compute scaling factors.
@@ -427,31 +429,54 @@ class TriangularBoundInterpolationStrategy(TriangluarBaseStrategy):
             raise Exception('There are only three uncertain parameters with uncertainty bounds, not enough to compute bounds statistics for interpolation')
         lower_spread = (uncertainty_bounds['amount'] - uncertainty_bounds['lower']).abs() / uncertainty_bounds['amount'].abs()
         upper_spread = (uncertainty_bounds['amount'] - uncertainty_bounds['upper']).abs() / uncertainty_bounds['amount'].abs()
-        if bound_statistic_fig:
-            ax = lower_spread.hist(bins=30, label='lower spread')
-            upper_spread.hist(bins=30, label='upper spread', ax=ax, alpha=0.5)
-            ax.legend()
+        lower_spread.name = 'lower spread'
+        upper_spread.name = 'upper spread'
+        print('Computed spread statistics for {} uncertain parameters with defined uncertainty bounds.'.format(len(uncertainty_bounds)))
+        if plot_results:
+            ax_box = plt.subplots()[1]
+            pd.concat([lower_spread, upper_spread], axis=1).plot(kind='box', ax=ax_box, title='Spread statistics for uncertain parameters with defined uncertainty bounds')
+            ax_box.legend()
         print('upper spread statistics')
-        print('mean: {:.4f}\nmode: {}\nmedian: {:.4f}\nstd: {:.4f}\nmin: {:.4f}\nmax: {:.4f}\n'.format(upper_spread.mean(), upper_spread.mode(), upper_spread.median(), upper_spread.std(), upper_spread.min(), upper_spread.max()))
+        print('geom: {:.4f} \nmean: {:.4f}\nmode: {}\nmedian: {:.4f}\nstd: {:.4f}\nmin: {:.4f}\nmax: {:.4f}\n'.format(scipy.stats.gmean(lower_spread.dropna()), upper_spread.mean(), upper_spread.mode(), upper_spread.median(), upper_spread.std(), upper_spread.min(), upper_spread.max()))
         print('\nlower spread statistics')
-        print('mean: {:.4f}\nmode: {}\nmedian: {:.4f}\nstd: {:.4f}\nmin: {:.4f}\nmax: {:.4f}\n'.format(lower_spread.mean(), lower_spread.mode(), lower_spread.median(), lower_spread.std(), lower_spread.min(), lower_spread.max()))
+        print('geom: {:.4f} \nmean: {:.4f}\nmode: {}\nmedian: {:.4f}\nstd: {:.4f}\nmin: {:.4f}\nmax: {:.4f}\n'.format(scipy.stats.gmean(lower_spread.dropna()), lower_spread.mean(), lower_spread.mode(), lower_spread.median(), lower_spread.std(), lower_spread.min(), lower_spread.max()))
+        # Cleaning out outliers
+        lower_spread_cleaned = lower_spread[np.abs(scipy.stats.zscore(lower_spread)) < 3]
+        upper_spread_cleaned = upper_spread[np.abs(scipy.stats.zscore(upper_spread)) < 3]
+        print('After cleaning out outliers (z-score > 3), the spread statistics are:')
+        if plot_results:
+            bins = lower_spread.shape[0] // 100 if lower_spread.shape[0] // 100 > 10 else 10
+            ax_hist = plt.subplots()[1]
+            lower_spread_cleaned.hist(bins=bins, label='lower spread', ax=ax_hist)
+            upper_spread_cleaned.hist(bins=bins, label='upper spread', ax=ax_hist, alpha=0.5)
+            ax_hist.set_xticks(np.arange(0, max(upper_spread_cleaned.max(), lower_spread_cleaned.max()), 1))
+            ax_hist.set_title('Histogram of spread statistics for uncertain parameters with defined uncertainty bounds (cleaned)')
+            ax_hist.legend()
+            ax_box_cleaned = plt.subplots()[1]
+            pd.concat([lower_spread_cleaned, upper_spread_cleaned], axis=1).plot(kind='box', ax=ax_box_cleaned, title='Spread statistics for uncertain parameters with defined uncertainty bounds (cleaned)')
+            ax_box_cleaned.set_yticks(np.arange(0, max(upper_spread_cleaned.max(), lower_spread_cleaned.max()), 1))
+            ax_box_cleaned.legend()
+        print('upper spread statistics')
+        print('geom: {:.4f} \nmean: {:.4f}\nmode: {}\nmedian: {:.4f}\nstd: {:.4f}\nmin: {:.4f}\nmax: {:.4f}\n'.format(scipy.stats.gmean(lower_spread_cleaned.dropna()), upper_spread_cleaned.mean(), upper_spread_cleaned.mode(), upper_spread_cleaned.median(), upper_spread_cleaned.std(), upper_spread_cleaned.min(), upper_spread_cleaned.max()))
+        print('\nlower spread statistics')
+        print('geom: {:.4f} \nmean: {:.4f}\nmode: {}\nmedian: {:.4f}\nstd: {:.4f}\nmin: {:.4f}\nmax: {:.4f}\n'.format(scipy.stats.gmean(lower_spread_cleaned.dropna()), lower_spread_cleaned.mean(), lower_spread_cleaned.mode(), lower_spread_cleaned.median(), lower_spread_cleaned.std(), lower_spread_cleaned.min(), lower_spread_cleaned.max()))
         # based on the statistics below, I decided to use the median of the amount fraction of the upper and lower bound, since the distribution of the spreads contains multiple modes and many "outliers" which will distort the mean greatly.
         # **ATTN:**
         # There are multiple modes in the spread statistics, which means there seems to be a few 'groups' or 'types' of intervention flows which have very different spreads, it might be good to analyze which these are to make the extrapolation more accurate.
-        upper_scaling_factor = upper_spread.median()
-        lower_scaling_factor = lower_spread.median()
+        upper_scaling_factor = upper_spread_cleaned.median()
+        lower_scaling_factor = lower_spread_cleaned.median()
         print('The upper spread scaling factor for intervention flows is: {}\nThe lower spread scaling factor for intervention flows is: {}'.format(upper_scaling_factor, lower_scaling_factor)) 
         return upper_scaling_factor, lower_scaling_factor
     
-    def assign(self, uncertainty_data:UncertaintyData):
+    def assign(self, uncertainty_data:UncertaintyData, **strategy_options):
         """
         Assign triangular distribution parameters derived averaged bounds, to parameters without predefined uncertainty.
         """
         uncertainty_bounds = self._get_bounds(uncertainty_data)
-        self.upper_scaling_factor, self.lower_scaling_factor = self._compute_bounds_statistics(uncertainty_bounds)
+        self.upper_scaling_factor, self.lower_scaling_factor = self._compute_bounds_statistics(uncertainty_bounds, **strategy_options)
         self._compute_triag_dist_params(uncertainty_data)
 
-def apply_uncertainty_strategies(uncertainty_data: UncertaintyData, strategies: List[UncertaintyStrategyBase]):
+def apply_uncertainty_strategies(uncertainty_data: UncertaintyData, strategies: List[UncertaintyStrategyBase], **strategy_options):
     """
     Applies the strategies, by passing the strategies as instatialized classes and then performs the assign method.
 
@@ -466,7 +491,7 @@ def apply_uncertainty_strategies(uncertainty_data: UncertaintyData, strategies: 
     did = id(uncertainty_data)
     for s in strategies:
         print('Applying uncertainy strategy {}, for {} in {}'.format(s.__class__.__name__, s.uncertain_param_subgroup, s.uncertain_param_type))
-        s.assign(uncertainty_data)
+        s.assign(uncertainty_data, **strategy_options)
         # guardrail: catch accidental rebinds
         assert id(uncertainty_data) == did, "Strategy must not rebind the data dict"
 
@@ -562,13 +587,15 @@ def uncertainty_strategy_base_case(
     strategies = If_strategies + Cf_strategies + Var_strategies
     return strategies
 
-def check_missing_uncertainty_data(uncertainty_data: UncertaintyData) -> bool:
+def check_missing_uncertainty_data(uncertainty_data: UncertaintyData, unc_types:List[Literal['If', 'Cf', 'Var_bounds']] = ['If', 'Cf', 'Var_bounds']) -> bool:
     """
     Check if there are any undefined uncertainty data in the uncertainty_data dict.
     
     Args:
         uncertainty_data (UncertaintyData): 
             Dictionary containing metadata about uncertain intervention flows (IF) and characterization factors (CF).
+        unc_types (List[Literal['If', 'Cf', 'Var_bounds']]):
+            List of uncertainty types to check for missing data. Defaults to all types.
     
     Returns:
         missing_unc_data (bool): 
@@ -576,6 +603,9 @@ def check_missing_uncertainty_data(uncertainty_data: UncertaintyData) -> bool:
     """
     missing_unc_data = False
     for unc_type, unc_type_data in uncertainty_data.items():
+        # Only check the specified uncertainty types as some CC formulations might just require a subset
+        if unc_type not in unc_types:
+            continue
         for unc_subgroup, unc_subgroup_data in unc_type_data.items():
             if len(unc_subgroup_data['undefined']):
                 missing_unc_data = True
@@ -608,7 +638,7 @@ def drop_undefined_uncertainty_data(uncertainty_data:UncertaintyData) -> Uncerta
     return cleaned_uncertainty_data
 
 
-def transform_to_normal(uncertainty_data:UncertaintyData, sample_size:int=100000, plot_distribution:bool=False) -> UncertaintyData:
+def transform_to_normal(uncertainty_data:UncertaintyData, sample_size:int=100000, plot_distribution:bool=False, unc_types:List[Literal['If', 'Cf', 'Var_bounds']] = ['If', 'Cf', 'Var_bounds']) -> UncertaintyData:
     """
     Fit Normal distributions to all CF and IF uncertainty metadata.
 
@@ -624,16 +654,21 @@ def transform_to_normal(uncertainty_data:UncertaintyData, sample_size:int=100000
         plot_distributions (bool):
             If True, display a histogram + fitted-normal curve for each parameter.
             Defaults to False.
+        unc_types (List[Literal['If', 'Cf', 'Var_bounds']]):
+            List of uncertainty types to transform. Defaults to all types.
     Returns:
         normal_metadata (UncertaintyData): 
             Fitted Normal loc/scale for parameters in chance constaints (e.g., "cf", "if").
     """
-    if check_missing_uncertainty_data(uncertainty_data):
+    if check_missing_uncertainty_data(uncertainty_data, unc_types=unc_types):
         raise Exception('There is undefined uncertainty data, you can only compute the env. cost statistics when all uncertainty data is defined')
     normal_metadata:UncertaintyData = {}
     for param_type, params_metadata in uncertainty_data.items():
+        if param_type not in unc_types:
+            continue
         normal_metadata[param_type] = {}
         for var_name, var_metadata in params_metadata.items():
+            print(f"Transforming {param_type}-{var_name} to normal distribution")
             normal_metadata[param_type][var_name] = {}
             normal_metadata[param_type][var_name]['defined'] = fit_normals(var_metadata['defined'], sample_size=sample_size, plot_distributions=plot_distribution)
     # ATTN: Check if the fit_normals runs through with 0 as standard deviations
@@ -642,7 +677,9 @@ def transform_to_normal(uncertainty_data:UncertaintyData, sample_size:int=100000
 def fit_normals(
         uncertainty_metadata:Dict[Union[Tuple[int,int],int], UncertaintySpec], 
         plot_distributions:bool=False, 
-        sample_size:int=1000000
+        sample_size:int=1000000,
+        lci_data:Optional[dict]=None,
+        param_type:Optional[str]=None
         ) -> Dict[Union[Tuple[int,int],int], UncertaintySpec]:
     """
     Fit normal distributions to parameters defined with non-normal uncertainty types.
@@ -655,25 +692,36 @@ def fit_normals(
             fitted normal, and `uncertainty_type` is set to 3 (normal).
 
     Args:
-        uncertainty_metadata_df (pd.DataFrame):
-            Indexed by parameter ID, with columns specifying the original distribution
-            type and its parameters (e.g. for lognormal, triangular, etc.).
+        uncertainty_metadata (Dict[Union[Tuple[int,int],int], UncertaintySpec]):
+            Dictionary containing metadata about uncertain parameters. Indexed by parameter ID.
         plot_distributions (bool):
             If True, display a histogram + fitted-normal curve for each parameter.
             Defaults to False.
         sample_size (int):
             Number of random draws per parameter when fitting. Defaults to 1_000_000.
+        lci_data
+
+        param_type
 
     Returns:
-        pd.DataFrame:
-            Indexed by parameter ID, with columns:
+        Dict[Union[Tuple[int,int],int], UncertaintySpec]:
+            Indexed by parameter ID, with UncertaintySpec:
                 - `loc` (float): Mean of the fitted normal distribution.
                 - `scale` (float): Standard deviation of the fitted normal.
                 - `uncertainty_type` (int): Always 3, indicating “normal” type.
     """
-    normal_uncertainty_metadata_dict = {}
+    normal_uncertainty_metadata_dict:Dict[Union[Tuple[int,int],int], UncertaintySpec] = {}
     if uncertainty_metadata:
         print('{} parameters with non normal distribution are transformed into normal distributions via max likelihood approximation'.format((pd.DataFrame(uncertainty_metadata).T['uncertainty_type'] != 3).sum()))
+    # Get the descriptive name of the paratemeters:
+    # ATTN: some error here if param_type not interventionflow, did not have time to chekc, mayeb also not relevant
+    if lci_data and param_type:
+        rename_df = rename_metadata_index(
+            pd.DataFrame.from_records(uncertainty_metadata).T, 
+            lci_data, 
+            param_type
+            )
+        rename_dict = rename_df['index'].reset_index().set_index('index').squeeze().to_dict()
     # For each parameter:
     #   - generate random samples from its original distribution
     #   - estimate mean and std via max likelihood fit of the percent‐point function samples (ppf)
@@ -711,10 +759,13 @@ def fit_normals(
             ax.plot(x.flatten(), y.flatten(), 'k-', lw=2, label='frozen {} pdf'.format(uncertainty_choice.description))
             # Plot the fitted normal distibution
             ax.plot(x, scipy.stats.norm.pdf(x,  loc=loc_norm, scale=scale_norm), 'b-', lw=2, label='fitted normal pdf')
-            ax.set_title(str(param_index))
+            if lci_data and param_type:
+                ax.set_title('{} : {}'.format(param_index, rename_dict[param_index]))
+            else:
+                ax.set_title(str(param_index))
             ax.legend(loc='best', frameon=False)
         # Overwrite the lognormal distribution statistics with the fitted normal 
-        normal_uncertainty_metadata = {
+        normal_uncertainty_metadata:UncertaintySpec = {
             'scale':scale_norm,
             'loc':loc_norm,
             'uncertainty_type':stats_arrays.NormalUncertainty.id
@@ -785,7 +836,7 @@ def rename_metadata_index(metadata_df, lci_data:dict, param_type:str):
                 The lci_data containing the "..._map_metadata" dicts needed to rename the index, from pulpo_worker.
             param_type (str):
                 The parameter name contained in the "metadata_df", 
-                options are: "intervention_flow" and "characterization_factor".
+                options are: "intervention_flow", "characterization_factor" and "process".
         
         Returns:
             metadata_df (pd.DataFrame):
@@ -804,9 +855,13 @@ def rename_metadata_index(metadata_df, lci_data:dict, param_type:str):
                 metadata_df = metadata_df.rename(index=if_index_map)
             case 'characterization_factor':
                 cf_index_map = {interv_indx:  '{} '.format(lci_data['intervention_map_metadata'][interv_indx]) for interv_indx in metadata_df.index}
+                metadata_df = metadata_df.reset_index()
+                metadata_df.index = metadata_df['index']
                 metadata_df.rename(index=cf_index_map)
             case 'process':
                 process_index_map = {process_indx:  '{} '.format(lci_data['process_map_metadata'][process_indx]) for process_indx in metadata_df.index}
+                metadata_df = metadata_df.reset_index()
+                metadata_df.index = metadata_df['index']
                 metadata_df = metadata_df.rename(index=process_index_map)
             case _:
                 raise Exception(f'"rename_metadata_index" to <<{param_type}>> as "uncertainty_var_name" has not been implemented')
