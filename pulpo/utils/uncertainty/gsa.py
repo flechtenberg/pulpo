@@ -56,6 +56,7 @@ class GlobalSensitivityAnalysis:
         method:str,
         plot_gsa_results:bool=False,
         random_seed: int=161,
+        top_sensitivity_amt:int=10,
     ):
         """
         Initialize the global sensitivity analysis.
@@ -80,6 +81,8 @@ class GlobalSensitivityAnalysis:
                 Whether to generate plots of the GSA results.
             random_seed (int, optional):
                 Random seed for SALib sampling reproducibility. Defaults to 161.
+            top_sensitivity_amt (int):
+                Number of top sensitivity indices to plot.
         """
         self.result_data = result_data # This is the optimization solution at which we compute the GSA
         self.method = method # ATTN: This might generate errors in the future
@@ -95,6 +98,7 @@ class GlobalSensitivityAnalysis:
         self.sample_characterized_inventories = None
         self.sensitivity_indices = None
         self.plot_gsa_results_bool = plot_gsa_results
+        self.top_sensitivity_amt = top_sensitivity_amt
 
     def perform_gsa(self) -> tuple[pd.DataFrame, dict]:
         """
@@ -106,11 +110,16 @@ class GlobalSensitivityAnalysis:
             sensitivity_indices (dict):
                 Full SALib sensitivity indices output.
         """
+        print("Define the GSA problem...")
         gsa_problem, all_bounds_indx_dict = self.define_problem()
+        print("Sample the GSA problem...")
         sample_data_if, sample_data_cf = self.sample(gsa_problem, all_bounds_indx_dict)
+        print("Run the model for all samples...")
         sample_impacts, sample_characterized_inventories = self.run_model(sample_data_if, sample_data_cf)
+        print("Analyze the GSA results...")
         total_Si, sensitivity_indices = self.analyze(gsa_problem, sample_impacts)
         if self.plot_gsa_results_bool:
+            print("Plot the GSA results...")
             self.plot_gsa_results(all_bounds_indx_dict, total_Si, sample_characterized_inventories)
         return total_Si, sensitivity_indices
 
@@ -253,7 +262,7 @@ class GlobalSensitivityAnalysis:
         print(sample_impacts.sparse.to_dense().describe())
         print('The deterministic impact is {}'.format('\n'.join(['{} : {:e}'.format(values[0], values[1]) for values in self.result_data['Impacts'].values])))
         # Show the z-value and the distribution of the output
-        sample_impacts.plot.hist(bins=50)
+        # sample_impacts.plot.hist(bins=50, title='Distribution of total environmental impacts ({})'.format(self.method), xlabel='Environmental impact', ylabel='Frequency',)
         print(sample_impacts.shape)
         # The z-value of the total environmental impact
         print('the z-value of the total impact: {}'.format(sample_impacts.sparse.to_dense().std()/abs(sample_impacts.mean())))
@@ -273,7 +282,7 @@ class GlobalSensitivityAnalysis:
             sensitivity_indices (dict):
                 Full SALib sensitivity indices output.
         """
-        sensitivity_indices = self.analyser.analyze(problem, sample_impacts.sparse.to_dense().values, parallel=True)
+        sensitivity_indices = self.analyser.analyze(problem, sample_impacts.sparse.to_dense().values, parallel=False)
         # total_Si, first_Si, second_Si = sensitivity_indices.to_df()
         total_Si = pd.DataFrame([sensitivity_indices['ST'].T, sensitivity_indices['ST_conf'].T], index=['ST', 'ST_conf'], columns=problem['names']).T
         # Calculate total explained variance
@@ -317,15 +326,16 @@ class GlobalSensitivityAnalysis:
                 flows × samples.
         """
         total_Si_metadata = self.generate_Si_metadata(all_bounds_indx_dict, total_Si)
-        colormap_base, colormap_SA_barplot = plots.plot_top_total_sensitivity_indices(total_Si, total_Si_metadata)
-        plots.plot_total_env_impact_contribution(
-            sample_characterized_inventories, 
-            total_Si_metadata, 
-            self.method, 
-            top_amount=10,
-            colormap_base=colormap_base, 
-            colormap_SA_barplot=colormap_SA_barplot,
-        )
+        colormap_base, colormap_SA_barplot = plots.plot_top_total_sensitivity_indices(total_Si, total_Si_metadata, top_amount=self.top_sensitivity_amt, cmap_name='tab20')
+        # ATTN: The results look really weird the plots need to be checked again
+        # plots.plot_total_env_impact_contribution(
+        #     sample_characterized_inventories, 
+        #     total_Si_metadata, 
+        #     self.method, 
+        #     top_amount=10,
+        #     colormap_base=colormap_base, 
+        #     colormap_SA_barplot=colormap_SA_barplot,
+        # )
 
     
 
