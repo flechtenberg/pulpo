@@ -386,7 +386,7 @@ class PulpoOptimizer:
         """
         if self.uncertainty_data is None:
             raise Exception('No uncertainty data found. Please run import_and_filter_uncertainty_data method first.')
-        if processor.check_missing_uncertainty_data(self.uncertainty_data):
+        if processor.check_missing_uncertainty_data(self.uncertainty_data, unc_types=['If', 'Cf']):
             raise Exception('The uncertainty data contains undefined uncertainty types. Please define all uncertainty types before running the GSA.')
         # Run the GSA
         gsa_study = gsa.GlobalSensitivityAnalysis(
