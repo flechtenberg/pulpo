@@ -94,7 +94,7 @@ class ExpertKnowledgeStrategy(UncertaintyStrategyBase):
             self,
             uncertain_param_type:Literal['If', 'Cf', 'Var_bounds'], 
             uncertain_param_subgroup:str,
-            prob_metadata:Dict[int, Dict[str,Union[int, float]]],
+            prob_metadata:Dict[Union[Tuple[int,int],int], UncertaintySpec],
             random_seed:Optional[int] = 161,
             ):
         """
