@@ -152,9 +152,15 @@ class ExpertKnowledgeStrategy(UncertaintyStrategyBase):
         # Writes the expert uncertainty information into the uncertainty_data
         for indx, prob_metadata_arr in zip(self.prob_metadata.keys(), prob_metadata_stats_array):
             prob_metadata = dict(zip(prob_metadata_stats_array.dtype.names, prob_metadata_arr))
-            if indx not in uncertainty_data[self.uncertain_param_type][self.uncertain_param_subgroup]['defined'].keys():
-                raise Exception(f'{indx} is not found in "defined" uncertainty data of {self.uncertain_param_subgroup} in {self.uncertain_param_type}.')
-            uncertainty_data[self.uncertain_param_type][self.uncertain_param_subgroup]['defined'][indx].update(prob_metadata)
+            if indx in uncertainty_data[self.uncertain_param_type][self.uncertain_param_subgroup]['undefined'].keys():
+                # raise Exception(f'{indx} is not found in "defined" uncertainty data of {self.uncertain_param_subgroup} in {self.uncertain_param_type}.')
+                undefined_dict = uncertainty_data[self.uncertain_param_type][self.uncertain_param_subgroup]['undefined'].pop(indx)
+                uncertainty_data[self.uncertain_param_type][self.uncertain_param_subgroup]['defined'][indx] = undefined_dict
+                uncertainty_data[self.uncertain_param_type][self.uncertain_param_subgroup]['defined'][indx].update(prob_metadata)
+            elif indx in uncertainty_data[self.uncertain_param_type][self.uncertain_param_subgroup]['defined'].keys():
+                uncertainty_data[self.uncertain_param_type][self.uncertain_param_subgroup]['defined'][indx].update(prob_metadata)
+            else:
+                raise Exception(f'{indx} is not found in uncertainty data of {self.uncertain_param_subgroup} in {self.uncertain_param_type}.')
     
     def assign(self, uncertainty_data:UncertaintyData, **strategy_options):
         self.insert_expert_knowledge(uncertainty_data)
