@@ -304,7 +304,7 @@ class PulpoOptimizer:
             upper_imp_limit=self.upper_imp_limit,
         )
 
-    def apply_uncertainty_strategies(self, strategies:List[processor.UncertaintyStrategyBase]=[], drop_undefined=False, scaling_factor_if=0.5, scaling_factor_cf=0.3, scaling_factor_var_bounds=0.2):
+    def apply_uncertainty_strategies(self, strategies:List[processor.UncertaintyStrategyBase]=[], drop_undefined=False, scaling_factor_if=0.5, scaling_factor_cf=0.3, scaling_factor_var_bounds=0.2, **strategy_options):
         """
         Applies the uncertainty gap filling and updating strategies.
         Wrapper for utils.uncertainty.processor.apply_uncertainty_strategies.
@@ -337,6 +337,9 @@ class PulpoOptimizer:
                 Default is 0.2, meaning that the min and max of the triangular distribution will be set to:
                 min = amount - 0.2 * abs(amount)
                 max = amount + 0.2 * abs(amount)
+            strategy_options:
+                Additional options to be passed to the strategy assign methods, e.g., plot_results (bool), which
+                shows a figure of the computed average bounds statistics when using the TriangularBaseStrategy.
 
         """
         if self.uncertainty_data is None:
@@ -352,12 +355,12 @@ class PulpoOptimizer:
                 scaling_factor_cf=scaling_factor_cf,
                 scaling_factor_var_bounds=scaling_factor_var_bounds
             )
-        processor.apply_uncertainty_strategies(self.uncertainty_data, strategies)
+        processor.apply_uncertainty_strategies(self.uncertainty_data, strategies, **strategy_options)
         processor.check_missing_uncertainty_data(self.uncertainty_data)
         if drop_undefined:
             self.uncertainty_data = processor.drop_undefined_uncertainty_data(self.uncertainty_data)
 
-    def run_gsa(self, result_data:dict, sample_method, SA_method, sample_size:int, plot_gsa_results:bool=False) -> tuple[pd.DataFrame, pd.DataFrame]:
+    def run_gsa(self, result_data:dict, sample_method, SA_method, sample_size:int, plot_gsa_results:bool=False, top_sensitivity_amt:int=10) -> tuple[pd.DataFrame, pd.DataFrame]:
         """
         Runs a global sensitivity analysis on the optimization model.
 
@@ -372,6 +375,8 @@ class PulpoOptimizer:
                 Sample size for the GSA.
             plot_gsa_results (bool):
                 If True, plots the GSA results.
+            top_sensitivity_amt (int):
+                Number of top sensitivity indices to plot.
 
         Returns:
             total_Si (pd.DataFrame): 
@@ -381,7 +386,7 @@ class PulpoOptimizer:
         """
         if self.uncertainty_data is None:
             raise Exception('No uncertainty data found. Please run import_and_filter_uncertainty_data method first.')
-        if processor.check_missing_uncertainty_data(self.uncertainty_data):
+        if processor.check_missing_uncertainty_data(self.uncertainty_data, unc_types=['If', 'Cf']):
             raise Exception('The uncertainty data contains undefined uncertainty types. Please define all uncertainty types before running the GSA.')
         # Run the GSA
         gsa_study = gsa.GlobalSensitivityAnalysis(
@@ -391,8 +396,9 @@ class PulpoOptimizer:
             sampler=sample_method,
             analyser=SA_method,
             sample_size=sample_size,
-            method=self.method,
-            plot_gsa_results=plot_gsa_results
+            method=next(iter(self.method)),
+            plot_gsa_results=plot_gsa_results,
+            top_sensitivity_amt=top_sensitivity_amt
         )
         total_Si, sensitivity_indices = gsa_study.perform_gsa()
         return total_Si, sensitivity_indices
@@ -400,7 +406,9 @@ class PulpoOptimizer:
     def create_CC_formulation(
             self, 
             CC_env_cost:bool=True, 
-            CC_var_bounds:List[Literal['upper_imp_limit', 'lower_limit', 'upper_elem_limit', 'upper_limit']] = []
+            CC_var_bounds:List[Literal['upper_imp_limit', 'lower_limit', 'upper_elem_limit', 'upper_limit']] = [],
+            plot_analysis_support_plots:bool=False,
+            normal_transformation_sample_size:int=100
             ) -> tuple[Dict[Tuple[int,str], UncertaintySpec], Dict[str, Dict[int,UncertaintySpec]]]:
         """
         Creates the data needed for the CC formulation, i.e., the mean and standard deviation of
@@ -412,6 +420,10 @@ class PulpoOptimizer:
             CC_var_bounds (List[Literal['upper_imp_limit', 'lower_limit', 'upper_elem_limit', 'upper_limit']]):
                 List of variable bounds to extract the standard deviation for. 
                 Options are 'upper_imp_limit', 'lower_limit', 'upper_elem_limit', 'upper_limit'.
+            plot_analysis_support_plots (bool):
+                If true, shows additional plots to support the analysis. Default is False.
+            normal_transformation_sample_size (int):
+                Sample size for the normal distribution transformation. Default is 100.
 
         Returns:
             normal_metadata_env_cost (Dict[Tuple[int,str], UncertaintySpec]):
@@ -419,13 +431,23 @@ class PulpoOptimizer:
             normal_metadata_var_bounds (Dict[str, Dict[int,UncertaintySpec]]):
                 Standard deviation of the variable bounds.
         """
-        if self.uncertainty_data is None or processor.check_missing_uncertainty_data(self.uncertainty_data):
+        # Determine which uncertainty types to check for missing data
+        if CC_env_cost is True and len(CC_var_bounds) > 0:
+            unc_types = ['If', 'Cf', 'Var_bounds']
+        elif CC_env_cost is True and len(CC_var_bounds) == 0:
+            unc_types = ['If', 'Cf']
+        elif CC_env_cost is False and  len(CC_var_bounds) > 0:
+            unc_types = ['Var_bounds']
+        else:
+            raise Exception('No CC formulation specified. Please set at least one of the arguments CC_env_cost or CC_var_bounds to True or a non-empty list, respectively.')
+        if self.uncertainty_data is None or processor.check_missing_uncertainty_data(self.uncertainty_data, unc_types=unc_types):
             raise Exception('None or incomplete uncertainty data found. Please run import_and_filter_uncertainty_data and apply_uncertainty_strategies methods first.')
         # Transform the uncertainty data to normal distributions
         normal_uncertainty_data = processor.transform_to_normal(
             self.uncertainty_data,
-            sample_size=100, 
-            plot_distribution=False
+            sample_size=normal_transformation_sample_size, 
+            plot_distribution=plot_analysis_support_plots,
+            unc_types=unc_types
             )
         # Calculate the mean and standard deviation of the environmental costs based on the L1 norm
         if CC_env_cost:
@@ -433,7 +455,7 @@ class PulpoOptimizer:
                     normal_uncertainty_data= normal_uncertainty_data,
                     lci_data=self.lci_data,
                     method=next(iter(self.method)),
-                    plot_analysis_support_plots=False
+                    plot_analysis_support_plots=plot_analysis_support_plots
                 )
         else:
             normal_metadata_env_cost = {}
