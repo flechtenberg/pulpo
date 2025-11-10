@@ -15,6 +15,7 @@ import scipy.sparse as sparse
 from time import time
 import ast
 from typing import List, Dict, Tuple, Dict, TypedDict, Optional, Literal, Union
+from typing_extensions import NotRequired
 import bw2calc
 from pulpo.utils.uncertainty import plots
 
@@ -23,14 +24,14 @@ The uncertainty data type
 """
 
 # One uncertainty spec (your inner dict for each indx)
-class UncertaintySpec(TypedDict):
+class UncertaintySpec(TypedDict, total=False):
     uncertainty_type: Literal[0,1,2,3,4,5,6,7,8,9,10,11,12]
     amount: float
-    loc: Optional[float]
-    scale: Optional[float]
-    shape: Optional[float]
-    minimum: Optional[float]
-    maximum: Optional[float]
+    loc: NotRequired[float]
+    scale: NotRequired[float]
+    shape: NotRequired[float]
+    minimum: NotRequired[float]
+    maximum: NotRequired[float]
 class DefUndefBlock(TypedDict, total=False):
     defined: Dict[Union[Tuple[int,int],int], UncertaintySpec]
     undefined: Dict[Union[Tuple[int,int],int], UncertaintySpec]
