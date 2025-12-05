@@ -3,7 +3,7 @@ import pandas as pd
 import os
 import matplotlib.pyplot as plt
 
-def plot_pareto_from_results(results_CC, results_dir='.', lambda_range:tuple=None, legend_abbreviations:dict=None, vlines:list=None):
+def plot_pareto_from_results(results_CC, results_dir='.', lambda_range:tuple=None, legend_abbreviations:dict=None, vlines:list=None, suffix:str=None, hline_y:float=None):
     """
     Streamlined plotting: treat Pareto as the top subplot showing impact cumsum,
     followed by choice bar charts showing technology cumsum and contribution analysis.
@@ -16,6 +16,12 @@ def plot_pareto_from_results(results_CC, results_dir='.', lambda_range:tuple=Non
     vlines : list, optional
         List of lambda values where vertical lines should be drawn. Default is [0.9, 0.96].
         Example: [0.8, 0.9, 0.95] or [] for no vertical lines.
+    suffix : str, optional
+        Suffix to append to the filename (e.g., "_iteration_0", "_iteration_1").
+        If None, no suffix is added.
+    hline_y : float, optional
+        Y-value for a significant red horizontal line with shadow on the Pareto plot.
+        If None, no horizontal line is drawn.
     """
 
     # Filter results by lambda_range
@@ -272,6 +278,15 @@ def plot_pareto_from_results(results_CC, results_dir='.', lambda_range:tuple=Non
         if abs(lambda_vals[closest_idx] - vline_lambda) < 0.005:
             pareto_ax.axvline(x=closest_idx, color='black', linestyle='-', alpha=0.7, linewidth=1)
     
+    # Add optional significant red horizontal line
+    if hline_y is not None:
+        # Main red line
+        pareto_ax.axhline(y=hline_y, color='darkred', linestyle='-', alpha=0.8, linewidth=2.5, zorder=6)
+        # Add "Planetary boundary" label in dark red above the line
+        pareto_ax.text(len(x_pos)*0.15, hline_y + 0.45*abs(hline_y) if hline_y != 0 else hline_y + 2, 
+                      'Planetary boundary\n(EU Chemical Industry)', color='darkred', fontsize=10, fontweight='normal', 
+                      verticalalignment='bottom', horizontalalignment='center', zorder=7)
+    
     # Legend for Pareto plot
     pareto_legend = pareto_ax.legend(loc='center left', bbox_to_anchor=(1.02, 0.5), 
                                      fontsize=8, frameon=True, fancybox=False, shadow=False)
@@ -359,12 +374,19 @@ def plot_pareto_from_results(results_CC, results_dir='.', lambda_range:tuple=Non
     # Save with bbox_inches='tight' to include legends
     os.makedirs(results_dir, exist_ok=True)
     
+    # Create filename with suffix if provided
+    base_filename = 'pareto_and_choices_combined'
+    if suffix:
+        filename = f'{base_filename}{suffix}'
+    else:
+        filename = base_filename
+    
     # Save as PNG
-    png_path = os.path.join(results_dir, 'pareto_and_choices_combined.png')
+    png_path = os.path.join(results_dir, f'{filename}.png')
     plt.savefig(png_path, dpi=300, bbox_inches='tight')
     
     # Save as SVG
-    svg_path = os.path.join(results_dir, 'pareto_and_choices_combined.svg')
+    svg_path = os.path.join(results_dir, f'{filename}.svg')
     plt.savefig(svg_path, format='svg', bbox_inches='tight')
     
     plt.show()
@@ -469,6 +491,182 @@ def plot_gsa_pie_chart(gsa_df, results_dir='.', figsize=(6, 6), save_plot=True, 
         
         # Save as SVG
         svg_path = os.path.join(results_dir, f'gsa_sensitivity_pie_chart{lambda_suffix}.svg')
+        plt.savefig(svg_path, format='svg', bbox_inches='tight')
+        save_paths['svg'] = svg_path
+    
+    # Show plot if requested
+    if show_plot:
+        plt.show()
+    
+    return save_paths
+
+
+def plot_gsa_bar_chart(total_Si, inv_map, proc_map, results_dir='.', figsize=(12, 6), save_plot=True, show_plot=True, lambda_value=None, top_n=9):
+    """
+    Create a bar chart visualization of GSA results with top contributions and variance whiskers.
+    
+    Parameters:
+    -----------
+    total_Si : pd.DataFrame
+        GSA results dataframe with sensitivity indices (ST, ST_conf columns)
+    inv_map : dict
+        Intervention mapping dictionary
+    proc_map : dict
+        Process mapping dictionary
+    results_dir : str
+        Directory to save the plot (default: current directory)
+    figsize : tuple
+        Figure size as (width, height) (default: (12, 6))
+    save_plot : bool
+        Whether to save the plot to file (default: True)
+    show_plot : bool
+        Whether to display the plot (default: True)
+    lambda_value : float, optional
+        Lambda value to include in filename (default: None)
+    top_n : int
+        Number of top parameters to display (default: 9, will add "Others" as 10th)
+        
+    Returns:
+    --------
+    dict
+        Dictionary with paths to saved plot files
+    """
+    # Sort by total sensitivity (ST) in descending order
+    total_Si_sorted = total_Si.sort_values('ST', ascending=False)
+    top_entries = total_Si_sorted.head(top_n)
+    
+    # Create labels and data lists
+    labels = []
+    st_values = []
+    st_conf_values = []
+    
+    # Process top N entries
+    for idx, row in top_entries.iterrows():
+        if isinstance(idx, tuple) and len(idx) == 2:
+            first_mapped = inv_map.get(idx[0], f"Unknown_inv_{idx[0]}")
+            second_mapped = proc_map.get(idx[1], f"Unknown_proc_{idx[1]}")
+            
+            # Create shortened labels
+            if "Carbon dioxide, in air" in first_mapped and "animal manure" in second_mapped:
+                short_label = "CO₂ uptake\n(AD-Manure)"
+            elif "Carbon dioxide, in air" in first_mapped and "agricultural residues" in second_mapped:
+                short_label = "CO₂ uptake\n(AD-Agri)"
+            elif "Carbon dioxide, non-fossil" in first_mapped and "animal manure" in second_mapped:
+                short_label = "CO₂ emission\n(AD-Manure)"
+            elif "Methane, non-fossil" in first_mapped and "animal manure" in second_mapped:
+                short_label = "CH₄ emission\n(AD-Manure)"
+            elif "Carbon dioxide, non-fossil" in first_mapped and "CCS 200km pipeline" in second_mapped:
+                short_label = "CO₂\n(CCS pipeline)"
+            elif "Methane, fossil" in first_mapped and "natural gas venting" in second_mapped:
+                short_label = "CH₄\n(NG venting)"
+            elif "Carbon dioxide, fossil" in first_mapped and "waste plastic" in second_mapped:
+                short_label = "CO₂\n(Plastics incin.)"
+            elif "Carbon dioxide, fossil" in first_mapped and "electricity production, hard coal" in second_mapped:
+                short_label = "CO₂\n(coal elec.)"
+            elif "Carbon dioxide, non-fossil" in first_mapped and "agricultural residues" in second_mapped:
+                short_label = "CO₂\n(AD-Agri Res)"
+            elif "Carbon dioxide" in first_mapped and ("sequential crop" in second_mapped.lower() or "sequential" in second_mapped.lower()):
+                short_label = "CO₂\n(AD-Seq Crop)"
+            elif "Methane, non-fossil" in first_mapped and "agricultural residues" in second_mapped:
+                short_label = "CH₄\n(AD-Agri Res)"
+            elif "Carbon dioxide" in first_mapped and "steam methane reforming" in second_mapped.lower() and "ccs" in second_mapped.lower():
+                short_label = "CO₂\n(SMR-CCS)"
+            elif "Carbon dioxide, fossil" in first_mapped and "electricity production" in second_mapped and "lignite" in second_mapped:
+                short_label = "CO₂\n(lignite elec.)"
+            elif "Carbon dioxide, fossil" in first_mapped and "transport" in second_mapped and "lorry" in second_mapped:
+                short_label = "CO₂\n(transport)"
+            elif "Carbon dioxide, fossil" in first_mapped and "natural gas" in second_mapped and "gas turbine" in second_mapped:
+                short_label = "CO₂\n(NG turbine)"
+            elif "Carbon dioxide" in first_mapped and "sawing" in second_mapped.lower():
+                short_label = "CO₂\n(sawing)"
+            else:
+                intervention_short = first_mapped.split(",")[0]
+                process_short = second_mapped.split("|")[0].strip()
+                short_label = f"{intervention_short}\n({process_short})"
+        else:
+            mapped_index = inv_map.get(idx, f"Unknown_inv_{idx}")
+            if "Methane, non-fossil" in mapped_index:
+                short_label = "CH₄ emissions\n(CF)"
+            elif "Methane, fossil" in mapped_index:
+                short_label = "CH₄ emissions\n(CF)"
+            else:
+                short_label = mapped_index.split(",")[0]
+        
+        labels.append(short_label)
+        st_values.append(row['ST'])
+        st_conf_values.append(row.get('ST_conf', 0) if row.get('ST_conf') is not None else 0)
+    
+    # Add "Others" as the remaining contribution
+    sum_top_st = sum(st_values)
+    remaining_contribution = 1.0 - sum_top_st
+    labels.append("Others")
+    st_values.append(remaining_contribution)
+    st_conf_values.append(0)  # No confidence interval for "Others"
+    
+    # Create figure
+    fig, ax = plt.subplots(figsize=figsize)
+    
+    # Color scheme: use consistent colors with slight variation
+    consistent_colors = [
+        "#5C8A91",   # Teal (main)
+        "#E8B668",   # Orange (main)
+        "#C75E52",   # Red (main)
+        "#7A2E2A",   # Burgundy (main)
+        "#83538C",   # Purple (main)
+        "#65915C",   # Green (main)
+        "#6E7A8A",   # Slate (main)
+        "#D4A574",   # Tan (main)
+        "#8B6F47",   # Brown (main)
+        "#B0B0B0",   # Gray (for Others)
+    ]
+    colors = consistent_colors[:len(labels)]
+    
+    # Create bar positions
+    x_pos = np.arange(len(labels))
+    
+    # Plot bars with error bars (whiskers for variance)
+    bars = ax.bar(x_pos, st_values, color=colors, alpha=0.8, edgecolor='black', linewidth=0.8)
+    
+    # Add error bars (confidence intervals as whiskers)
+    ax.errorbar(x_pos, st_values, yerr=st_conf_values, fmt='none', ecolor='black', 
+                capsize=5, capthick=1.5, linewidth=1.5, zorder=3)
+    
+    # Formatting
+    ax.set_ylabel('Total Sensitivity Index (ST)', fontsize=11, fontweight='bold')
+    ax.set_xlabel('Parameters', fontsize=11, fontweight='bold')
+    ax.set_xticks(x_pos)
+    ax.set_xticklabels(labels, fontsize=9)
+    ax.set_ylim(0, max(st_values) * 1.15)  # Add 15% padding for labels
+    ax.grid(True, axis='y', alpha=0.3, linestyle='--')
+    ax.set_axisbelow(True)
+    
+    # Add value labels on top of bars
+    for i, (bar, val) in enumerate(zip(bars, st_values)):
+        height = bar.get_height()
+        ax.text(bar.get_x() + bar.get_width()/2., height,
+               f'{val:.3f}',
+               ha='center', va='bottom', fontsize=8, fontweight='bold')
+    
+    plt.tight_layout()
+    
+    # Save plot if requested
+    save_paths = {}
+    if save_plot:
+        os.makedirs(results_dir, exist_ok=True)
+        
+        # Create filename with lambda suffix if provided
+        if lambda_value is not None:
+            lambda_suffix = f"_lambda_{lambda_value:.2f}"
+        else:
+            lambda_suffix = ""
+        
+        # Save as PNG
+        png_path = os.path.join(results_dir, f'gsa_sensitivity_bar_chart{lambda_suffix}.png')
+        plt.savefig(png_path, dpi=300, bbox_inches='tight')
+        save_paths['png'] = png_path
+        
+        # Save as SVG
+        svg_path = os.path.join(results_dir, f'gsa_sensitivity_bar_chart{lambda_suffix}.svg')
         plt.savefig(svg_path, format='svg', bbox_inches='tight')
         save_paths['svg'] = svg_path
     

@@ -68,6 +68,23 @@ def process_gsa_results(total_Si, inv_map, proc_map, top_n=5):
                 short_label = "CO₂ (Plastics incineration)"
             elif "Carbon dioxide, fossil" in first_mapped and "electricity production, hard coal" in second_mapped:
                 short_label = "CO₂ (coal electricity)"
+            elif "Carbon dioxide, non-fossil" in first_mapped and "agricultural residues" in second_mapped and "sequential" not in second_mapped:
+                short_label = "CO₂ (AD-Agri Res)"
+            elif "Carbon dioxide" in first_mapped and ("sequential crop" in second_mapped.lower() or "sequential" in second_mapped.lower()):
+                short_label = "CO₂ (AD-Seq Crop)"
+            elif "Methane, non-fossil" in first_mapped and "agricultural residues" in second_mapped:
+                short_label = "CH₄ (AD-Agri Res)"
+            elif "Carbon dioxide" in first_mapped and "steam methane reforming" in second_mapped.lower() and "ccs" in second_mapped.lower():
+                short_label = "CO₂ (SMR-CCS)"
+            elif "Carbon dioxide, fossil" in first_mapped and "electricity production" in second_mapped and "lignite" in second_mapped:
+                short_label = "CO₂ (lignite elec.)"
+            elif "Carbon dioxide, fossil" in first_mapped and "transport" in second_mapped and "lorry" in second_mapped:
+                short_label = "CO₂ (transport)"
+            elif "Carbon dioxide, fossil" in first_mapped and "natural gas" in second_mapped and "gas turbine" in second_mapped:
+                short_label = "CO₂ (NG turbine)"
+            elif "Carbon dioxide" in first_mapped and "sawing" in second_mapped.lower():
+                print("Matched sawing case")
+                short_label = "CO₂ (sawing)"
             else:
                 # Generic shortening logic
                 intervention_short = first_mapped.split(",")[0]  # Take first part before comma
@@ -76,10 +93,22 @@ def process_gsa_results(total_Si, inv_map, proc_map, top_n=5):
         else:
             # Single entry - apply only inv_map
             mapped_index = inv_map.get(idx, f"Unknown_inv_{idx}")
-            if "Methane, non-fossil" in mapped_index:
+            if "Methane" in mapped_index and "non-fossil" in mapped_index:
                 short_label = "CH₄ emissions (CF)"
-            elif "Methane, fossil" in mapped_index:
+            elif "Methane" in mapped_index and "fossil" in mapped_index:
                 short_label = "CH₄ emissions (CF)"
+            elif "lignite" in mapped_index.lower():
+                short_label = "CO₂ (lignite elec.)"
+            elif "hard coal" in mapped_index.lower() or "coal" in mapped_index.lower():
+                short_label = "CO₂ (coal elec.)"
+            elif "lorry" in mapped_index.lower():
+                short_label = "CO₂ (transport)"
+            elif "gas turbine" in mapped_index.lower():
+                short_label = "CO₂ (NG turbine)"
+            elif "sawing" in mapped_index.lower():
+                short_label = "CO₂ (sawing)"
+            elif "steam methane reforming" in mapped_index.lower() and "ccs" in mapped_index.lower():
+                short_label = "CO₂ (SMR-CCS)"
             else:
                 short_label = mapped_index.split(",")[0]  # Take first part before comma
         
