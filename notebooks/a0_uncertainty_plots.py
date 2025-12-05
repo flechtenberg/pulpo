@@ -3,10 +3,16 @@ import pandas as pd
 import os
 import matplotlib.pyplot as plt
 
-def plot_pareto_from_results(results_CC, results_dir='.', lambda_range:tuple=None):
+def plot_pareto_from_results(results_CC, results_dir='.', lambda_range:tuple=None, legend_abbreviations:dict=None):
     """
     Streamlined plotting: treat Pareto as the top subplot showing impact cumsum,
     followed by choice bar charts showing technology cumsum. No PIL needed.
+    
+    Parameters:
+    -----------
+    legend_abbreviations : dict, optional
+        Dictionary to abbreviate legend entries. Keys are original names, values are abbreviations.
+        Example: {"steam methane reforming": "SMR", "alkaline electrolysis": "AE"}
     """
 
     # Filter results by lambda_range
@@ -50,14 +56,14 @@ def plot_pareto_from_results(results_CC, results_dir='.', lambda_range:tuple=Non
         if choices_data[choice].empty:
             del choices_data[choice]
 
-    # Create single figure with all subplots - increased Pareto height
+    # Create single figure with all subplots - increased Pareto height and width for legends
     n_choices = len(choices_data)
     n_total = 1 + n_choices  # Pareto + choices
     
     # Height ratios: give more space to Pareto, compact for choices
-    height_ratios = [1.5] + [0.4] * n_choices  # Pareto gets 2.5x height, choices get 0.6x
+    height_ratios = [2.0] + [0.50] * n_choices  # Pareto gets 2.5x height, choices get 0.6x
     
-    fig, axs = plt.subplots(n_total, 1, figsize=(4, sum(height_ratios)), 
+    fig, axs = plt.subplots(n_total, 1, figsize=(6, sum(height_ratios)),  # Increased width for legends
                            sharex=True, gridspec_kw={'height_ratios': height_ratios})
     if n_total == 1:
         axs = [axs]
@@ -71,13 +77,14 @@ def plot_pareto_from_results(results_CC, results_dir='.', lambda_range:tuple=Non
     xtick_labels = [f"{lambda_vals[i]:.1f}" for i in xtick_positions]
     
     # Plot 1: Pareto (impact line)
-    axs[0].plot(x_pos, impacts, marker='o', linestyle='-', color='#355C63', linewidth=2, markersize=6)
+    axs[0].plot(x_pos, impacts, marker='o', linestyle='-', color='#355C63', linewidth=2, markersize=6, markeredgecolor='black', markeredgewidth=0.5)
+    axs[0].axhline(y=0, color='black', linestyle='-', linewidth=0.8, alpha=0.6)  # Add y=0 reference line
     axs[0].set_ylabel('Impact\n(kg CO₂-eq)', fontsize=10)
     axs[0].grid(True, alpha=0.25)
     axs[0].tick_params(axis='y', labelsize=8)
     
     # Plot 2+: Choice bar charts using your color palette mixed up
-    
+
     color_schemes = {
         # 0: Teal Gradient (Base: #355C63)
         0: ["#5C8A91", "#1F3B40", "#C4E0E5"], 
@@ -107,20 +114,39 @@ def plot_pareto_from_results(results_CC, results_dir='.', lambda_range:tuple=Non
             color = colors[j % len(colors)]
             values = row.values
             
+            # Get abbreviated label if available
+            label = str(tech_name)
+            if legend_abbreviations and label in legend_abbreviations:
+                label = legend_abbreviations[label]
+            
+            # Add hatching for second and third entries
+            hatch = None
+            if j == 1:  # Second entry
+                hatch = '///'
+            elif j == 2:  # Third entry
+                hatch = '...'
+            
             # Plot bars with absolute values
             ax.bar(x_pos, values, 0.8, bottom=bottom, 
-                   color=color, label=str(tech_name), alpha=0.85, 
-                   edgecolor='white', linewidth=0.5)
+                   color=color, label=label, alpha=0.85, 
+                   edgecolor='white', linewidth=0.5, hatch=hatch)
             bottom += values
         
         # Plot total line
         totals = choice_data.sum().values
         if len(totals) > 0:
-            ax.plot(x_pos, totals, "k-", markersize=2, linewidth=1, alpha=0.7)
+            ax.plot(x_pos, totals, "o-", markersize=3, linewidth=1.5, alpha=0.7, 
+                   color='gray', markeredgecolor='black', markeredgewidth=0.5)
         
         # Labels and formatting
         ax.set_ylabel(choice_name, rotation=0, labelpad=30, va='center', fontsize=9)
         ax.set_yticks([])
+        
+        # Add individual legend for this choice
+        legend = ax.legend(loc='center left', bbox_to_anchor=(1.02, 0.5), 
+                          fontsize=8, frameon=True, fancybox=False, shadow=False)
+        legend.get_frame().set_facecolor('white')
+        legend.get_frame().set_alpha(0.9)
     
     # Set x-axis only on bottom subplot
     axs[-1].set_xticks(xtick_positions)
@@ -130,7 +156,7 @@ def plot_pareto_from_results(results_CC, results_dir='.', lambda_range:tuple=Non
     plt.subplots_adjust(hspace=0.1)
     plt.tight_layout()
     
-    # Save
+    # Save with bbox_inches='tight' to include legends
     os.makedirs(results_dir, exist_ok=True)
     save_path = os.path.join(results_dir, 'pareto_and_choices_combined.png')
     plt.savefig(save_path, dpi=300, bbox_inches='tight')
