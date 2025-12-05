@@ -358,14 +358,21 @@ def plot_pareto_from_results(results_CC, results_dir='.', lambda_range:tuple=Non
     
     # Save with bbox_inches='tight' to include legends
     os.makedirs(results_dir, exist_ok=True)
-    save_path = os.path.join(results_dir, 'pareto_and_choices_combined.png')
-    plt.savefig(save_path, dpi=300, bbox_inches='tight')
+    
+    # Save as PNG
+    png_path = os.path.join(results_dir, 'pareto_and_choices_combined.png')
+    plt.savefig(png_path, dpi=300, bbox_inches='tight')
+    
+    # Save as SVG
+    svg_path = os.path.join(results_dir, 'pareto_and_choices_combined.svg')
+    plt.savefig(svg_path, format='svg', bbox_inches='tight')
+    
     plt.show()
     
-    return {'combined': save_path}
+    return {'png': png_path, 'svg': svg_path}
 
 
-def plot_gsa_pie_chart(gsa_df, results_dir='.', figsize=(6, 6), save_plot=True, show_plot=True):
+def plot_gsa_pie_chart(gsa_df, results_dir='.', figsize=(6, 6), save_plot=True, show_plot=True, lambda_value=None):
     """
     Create a pie chart visualization of Global Sensitivity Analysis results.
     
@@ -381,11 +388,13 @@ def plot_gsa_pie_chart(gsa_df, results_dir='.', figsize=(6, 6), save_plot=True, 
         Whether to save the plot to file (default: True)
     show_plot : bool
         Whether to display the plot (default: True)
+    lambda_value : float, optional
+        Lambda value to include in filename (default: None)
         
     Returns:
     --------
     dict
-        Dictionary with path to saved plot file
+        Dictionary with paths to saved plot files
     """
     # Create figure
     fig, ax = plt.subplots(figsize=figsize)
@@ -409,7 +418,7 @@ def plot_gsa_pie_chart(gsa_df, results_dir='.', figsize=(6, 6), save_plot=True, 
     colors = colors[:len(labels)]
     
     # Create smaller pie chart with black borders and slight explosion
-    explode = [0.01] * len(sizes)  # Slight explosion for all slices
+    explode = [0.02] * len(sizes)  # Slight explosion for all slices
     wedges, texts = ax.pie(sizes, colors=colors, startangle=90, radius=0.35, 
                            center=(0, -0.05), explode=explode,
                            wedgeprops={'edgecolor': 'black', 'linewidth': 1.0})
@@ -443,17 +452,31 @@ def plot_gsa_pie_chart(gsa_df, results_dir='.', figsize=(6, 6), save_plot=True, 
     plt.tight_layout()
     
     # Save plot if requested
-    save_path = None
+    save_paths = {}
     if save_plot:
         os.makedirs(results_dir, exist_ok=True)
-        save_path = os.path.join(results_dir, 'gsa_sensitivity_pie_chart.png')
-        plt.savefig(save_path, dpi=300, bbox_inches='tight')
+        
+        # Create filename with lambda suffix if provided
+        if lambda_value is not None:
+            lambda_suffix = f"_lambda_{lambda_value:.2f}"
+        else:
+            lambda_suffix = ""
+        
+        # Save as PNG
+        png_path = os.path.join(results_dir, f'gsa_sensitivity_pie_chart{lambda_suffix}.png')
+        plt.savefig(png_path, dpi=300, bbox_inches='tight')
+        save_paths['png'] = png_path
+        
+        # Save as SVG
+        svg_path = os.path.join(results_dir, f'gsa_sensitivity_pie_chart{lambda_suffix}.svg')
+        plt.savefig(svg_path, format='svg', bbox_inches='tight')
+        save_paths['svg'] = svg_path
     
     # Show plot if requested
     if show_plot:
         plt.show()
     
-    return {'pie_chart': save_path} if save_path else {}
+    return save_paths
 
 
 def print_gsa_summary(gsa_df, print_mapping_reference=True):
