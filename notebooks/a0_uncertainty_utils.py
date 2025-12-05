@@ -60,6 +60,14 @@ def process_gsa_results(total_Si, inv_map, proc_map, top_n=5):
                 short_label = "CO₂ emission (AD-Manure)"
             elif "Methane, non-fossil" in first_mapped and "animal manure" in second_mapped:
                 short_label = "CH₄ emission (AD-Manure)"
+            elif "Carbon dioxide, non-fossil" in first_mapped and "CCS 200km pipeline" in second_mapped:
+                short_label = "CO₂ (CCS pipeline)"
+            elif "Methane, fossil" in first_mapped and "natural gas venting" in second_mapped:
+                short_label = "CH₄ (NG venting)"
+            elif "Carbon dioxide, fossil" in first_mapped and "waste plastic" in second_mapped:
+                short_label = "CO₂ (Plastics incineration)"
+            elif "Carbon dioxide, fossil" in first_mapped and "electricity production, hard coal" in second_mapped:
+                short_label = "CO₂ (coal electricity)"
             else:
                 # Generic shortening logic
                 intervention_short = first_mapped.split(",")[0]  # Take first part before comma
@@ -69,6 +77,8 @@ def process_gsa_results(total_Si, inv_map, proc_map, top_n=5):
             # Single entry - apply only inv_map
             mapped_index = inv_map.get(idx, f"Unknown_inv_{idx}")
             if "Methane, non-fossil" in mapped_index:
+                short_label = "CH₄ emissions (CF)"
+            elif "Methane, fossil" in mapped_index:
                 short_label = "CH₄ emissions (CF)"
             else:
                 short_label = mapped_index.split(",")[0]  # Take first part before comma
