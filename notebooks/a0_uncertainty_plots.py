@@ -677,6 +677,227 @@ def plot_gsa_bar_chart(total_Si, inv_map, proc_map, results_dir='.', figsize=(12
     return save_paths
 
 
+def plot_gsa_bar_chart_comparison(results_dict, inv_map, proc_map, results_dir='.', figsize=(14, 18), save_plot=True, show_plot=True, top_n=9):
+    """
+    Create a 4x1 subplot figure comparing GSA results across four lambda values with consistent colors and y-axis scaling.
+    
+    Parameters:
+    -----------
+    results_dict : dict
+        Dictionary with lambda values as keys and (total_Si, gsa_df) tuples as values
+        Example: {0.50: (total_Si_05, gsa_df_05), 0.74: (total_Si_074, gsa_df_074), ...}
+    inv_map : dict
+        Intervention mapping dictionary
+    proc_map : dict
+        Process mapping dictionary
+    results_dir : str
+        Directory to save the plot (default: current directory)
+    figsize : tuple
+        Figure size as (width, height) (default: (16, 18))
+    save_plot : bool
+        Whether to save the plot to file (default: True)
+    show_plot : bool
+        Whether to display the plot (default: True)
+    top_n : int
+        Number of top parameters to display per subplot (default: 9)
+        
+    Returns:
+    --------
+    dict
+        Dictionary with paths to saved plot files
+    """
+    import matplotlib.pyplot as plt
+    import numpy as np
+    import os
+    
+    # Extended color palette with harmonious additions
+    consistent_colors = [
+        "#5C8A91",   # Teal
+        "#E8B668",   # Orange
+        "#C75E52",   # Red
+        "#7A2E2A",   # Burgundy
+        "#83538C",   # Purple
+        "#65915C",   # Green
+        "#6E7A8A",   # Slate
+        "#D4A574",   # Tan
+        "#8B6F47",   # Brown
+        "#4A7C8A",   # Deep Teal
+        "#D68A4A",   # Burnt Orange
+        "#A84E44",   # Dark Red
+        "#9B6B98",   # Mauve
+        "#88A67E",   # Sage Green
+        "#B0B0B0",   # Gray (for Others)
+    ]
+    
+    # Hatch patterns for when colors repeat (cycle through these)
+    hatch_patterns = ['', '///', '\\\\\\', '...', 'xxx', '+++', '|||']
+    
+    # Helper function to get abbreviated label
+    def get_label(idx, inv_map, proc_map):
+        if isinstance(idx, tuple) and len(idx) == 2:
+            first_mapped = inv_map.get(idx[0], f"Unknown_inv_{idx[0]}")
+            second_mapped = proc_map.get(idx[1], f"Unknown_proc_{idx[1]}")
+            
+            # Create shortened labels (same logic as in plot_gsa_bar_chart)
+            if "Carbon dioxide, in air" in first_mapped and "animal manure" in second_mapped:
+                return "CO₂ uptake\n(AD-Manure)"
+            elif "Carbon dioxide, in air" in first_mapped and "agricultural residues" in second_mapped:
+                return "CO₂ uptake\n(AD-Agri)"
+            elif "Carbon dioxide, non-fossil" in first_mapped and "animal manure" in second_mapped:
+                return "CO₂ emission\n(AD-Manure)"
+            elif "Methane, non-fossil" in first_mapped and "animal manure" in second_mapped:
+                return "CH₄ emission\n(AD-Manure)"
+            elif "Carbon dioxide, non-fossil" in first_mapped and "CCS 200km pipeline" in second_mapped:
+                return "CO₂\n(CCS pipeline)"
+            elif "Methane, fossil" in first_mapped and "natural gas venting" in second_mapped:
+                return "CH₄\n(NG venting)"
+            elif "Carbon dioxide, fossil" in first_mapped and "waste plastic" in second_mapped:
+                return "CO₂\n(Plastics incin.)"
+            elif "Carbon dioxide, fossil" in first_mapped and "electricity production, hard coal" in second_mapped:
+                return "CO₂\n(coal elec.)"
+            elif "Carbon dioxide, non-fossil" in first_mapped and "agricultural residues" in second_mapped and "sequential" not in second_mapped:
+                return "CO₂\n(AD-Agri Res)"
+            elif "Carbon dioxide" in first_mapped and ("sequential crop" in second_mapped.lower() or "sequential" in second_mapped.lower()):
+                return "CO₂\n(AD-Seq Crop)"
+            elif "Methane, non-fossil" in first_mapped and "agricultural residues" in second_mapped:
+                return "CH₄\n(AD-Agri Res)"
+            elif "Carbon dioxide" in first_mapped and "steam methane reforming" in second_mapped.lower() and "ccs" in second_mapped.lower():
+                return "CO₂\n(SMR-CCS)"
+            elif "Carbon dioxide, fossil" in first_mapped and "electricity production" in second_mapped and "lignite" in second_mapped:
+                return "CO₂\n(lignite elec.)"
+            elif "Carbon dioxide, fossil" in first_mapped and "transport" in second_mapped and "lorry" in second_mapped:
+                return "CO₂\n(transport)"
+            elif "Carbon dioxide, fossil" in first_mapped and "natural gas" in second_mapped and "gas turbine" in second_mapped:
+                return "CO₂\n(NG turbine)"
+            elif "Carbon dioxide" in first_mapped and "sawing" in second_mapped.lower():
+                return "CO₂\n(sawing)"
+            else:
+                intervention_short = first_mapped.split(",")[0]
+                process_short = second_mapped.split("|")[0].strip()
+                return f"{intervention_short}\n({process_short})"
+        else:
+            # Handle non-tuple indices (single intervention/process)
+            mapped_index = inv_map.get(idx, f"Unknown_inv_{idx}")
+            if "Methane, non-fossil" in mapped_index:
+                return "CH₄ emissions\n(CF)"
+            elif "Methane, fossil" in mapped_index:
+                return "CH₄ emissions\n(CF)"
+            else:
+                return mapped_index.split(",")[0]
+    
+    # Build a unified label set across all lambdas for consistent color mapping
+    all_unique_labels = set()
+    all_data = {}
+    
+    for lambda_val, (total_Si, _) in results_dict.items():
+        total_Si_sorted = total_Si.sort_values('ST', ascending=False)
+        top_entries = total_Si_sorted.head(top_n)
+        
+        labels = []
+        st_values = []
+        st_conf_values = []
+        
+        for idx, row in top_entries.iterrows():
+            label = get_label(idx, inv_map, proc_map)
+            labels.append(label)
+            st_values.append(row['ST'])
+            st_conf_values.append(row['ST_conf'] if 'ST_conf' in row.index else 0)
+            all_unique_labels.add(label)
+        
+        # Add "Others" row
+        remaining_st = total_Si_sorted.iloc[top_n:]['ST'].sum()
+        labels.append("Others")
+        st_values.append(remaining_st)
+        st_conf_values.append(0)
+        all_unique_labels.add("Others")
+        
+        all_data[lambda_val] = {
+            'labels': labels,
+            'st_values': st_values,
+            'st_conf_values': st_conf_values
+        }
+    
+    # Create a mapping from labels to colors (consistent across all subplots)
+    sorted_unique_labels = sorted(list(all_unique_labels))
+    label_to_color = {label: consistent_colors[i % len(consistent_colors)] 
+                      for i, label in enumerate(sorted_unique_labels)}
+    
+    # Calculate global max for y-axis
+    global_max = 0
+    for lambda_val in all_data:
+        st_values = all_data[lambda_val]['st_values']
+        st_conf_values = all_data[lambda_val]['st_conf_values']
+        max_with_whisker = max([st + conf for st, conf in zip(st_values, st_conf_values)])
+        global_max = max(global_max, max_with_whisker)
+    
+    # Add 10% padding to global max
+    global_max = global_max * 1.1
+    
+    # Create 4x1 subplot figure
+    fig, axes = plt.subplots(4, 1, figsize=figsize)
+    
+    # Sort lambda values for consistent subplot ordering
+    lambda_vals = sorted(results_dict.keys())
+    
+    for plot_idx, lambda_val in enumerate(lambda_vals):
+        ax = axes[plot_idx]
+        data = all_data[lambda_val]
+        labels = data['labels']
+        st_values = data['st_values']
+        st_conf_values = data['st_conf_values']
+        
+        # Assign colors based on consistent mapping
+        colors = [label_to_color[label] for label in labels]
+        
+        # Assign hatch patterns based on label index to add visual distinction
+        hatches = [hatch_patterns[sorted_unique_labels.index(label) // len(consistent_colors)] for label in labels]
+        
+        # Create bar positions
+        x_pos = np.arange(len(labels))
+        
+        # Plot bars with error bars (whiskers for variance) and hatch patterns
+        bars = ax.bar(x_pos, st_values, color=colors, alpha=0.8, edgecolor='black', 
+                      linewidth=0.8, hatch=[hatches[i] for i in range(len(labels))])
+        
+        # Add error bars (confidence intervals as whiskers)
+        ax.errorbar(x_pos, st_values, yerr=st_conf_values, fmt='none', ecolor='black', capsize=5, capthick=1.5, elinewidth=1)
+        
+        # Set uniform y-axis limits
+        ax.set_ylim(0, global_max)
+        
+        # Customize subplot
+        ax.set_ylabel('Total Sensitivity (ST)', fontsize=13, fontweight='bold')
+        ax.set_title(f'λ = {lambda_val:.2f}', fontsize=14, fontweight='bold', pad=10)
+        ax.set_xticks(x_pos)
+        ax.set_xticklabels(labels, fontsize=11)
+        ax.grid(axis='y', alpha=0.3, linestyle='--')
+        ax.set_axisbelow(True)
+        ax.tick_params(axis='y', labelsize=11)
+    
+    plt.tight_layout()
+    
+    # Save plot if requested
+    save_paths = {}
+    if save_plot:
+        os.makedirs(results_dir, exist_ok=True)
+        
+        # Save as PNG
+        png_path = os.path.join(results_dir, 'gsa_sensitivity_bar_chart_comparison.png')
+        plt.savefig(png_path, dpi=300, bbox_inches='tight')
+        save_paths['png'] = png_path
+        
+        # Save as SVG
+        svg_path = os.path.join(results_dir, 'gsa_sensitivity_bar_chart_comparison.svg')
+        plt.savefig(svg_path, format='svg', bbox_inches='tight')
+        save_paths['svg'] = svg_path
+    
+    # Show plot if requested
+    if show_plot:
+        plt.show()
+    
+    return save_paths
+
+
 def print_gsa_summary(gsa_df, print_mapping_reference=True):
     """
     Print a formatted summary of GSA results.
