@@ -123,34 +123,17 @@ def plot_comparative_mc_analysis(analysis_strategies, analysis_normal,
 
 def plot_cc_pareto_distributions(impact_distributions, results_dir):
     """
-    Create four subsequent figures showing CC-Pareto impact distributions.
-    Each figure adds the next confidence level in this order: 0.5, 0.74, 0.86, 0.98.
+    Create incremental figures showing CC-Pareto impact distributions.
+    Each figure adds the next confidence level in sorted order.
     """
-    # Desired sequence of lambda values
-    target_lambdas = [0.5, 0.74, 0.86, 0.98]
-    available_lambdas = [l for l in target_lambdas if l in impact_distributions]
+    # Use whatever lambda values are actually in the impact_distributions
+    available_lambdas = sorted(list(impact_distributions.keys()))
 
     if not available_lambdas:
-        print("No CC-Pareto impact distributions found for the target confidence levels.")
+        print("No CC-Pareto impact distributions found.")
         return
-
-    # Combine all impacts to determine fixed x-limits and bin edges
-    combined_impacts = np.concatenate([impact_distributions[l] for l in available_lambdas])
-    x_min, x_max = np.min(combined_impacts), np.max(combined_impacts)
-    x_range = x_max - x_min if x_max > x_min else max(1.0, abs(x_min))
-    x_min_plot = x_min - 0.05 * x_range
-    x_max_plot = x_max + 0.05 * x_range
-
-    # Use common bins for all histograms
-    bins = np.linspace(x_min_plot, x_max_plot, 31)
-
-    # Determine a common y-limit for histograms (max bin count across all distributions)
-    max_count = 0
-    for l in available_lambdas:
-        counts, _ = np.histogram(impact_distributions[l], bins=bins)
-        if counts.max() > max_count:
-            max_count = counts.max()
-    y_max_hist = max(1, int(np.ceil(max_count * 1.1)))
+    
+    print(f"Plotting impact distributions for λ values: {available_lambdas}")
 
     # Color palette (keeps consistent ordering)
     colors = ["#355C63", "#D99A3C", "#A53D31", "#4E1512"]
@@ -160,33 +143,34 @@ def plot_cc_pareto_distributions(impact_distributions, results_dir):
         current_lambdas = available_lambdas[: idx + 1]
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
 
-        # Left: Histograms with polynomial fits and mean lines
+        # Determine x-limits for this specific figure based on current lambdas
+        current_impacts = np.concatenate([impact_distributions[l] for l in current_lambdas])
+        x_min, x_max = np.min(current_impacts), np.max(current_impacts)
+        x_range = x_max - x_min if x_max > x_min else max(1.0, abs(x_min))
+        x_min_plot = x_min - 0.05 * x_range
+        x_max_plot = x_max + 0.05 * x_range
+
+        # Left: Histograms with mean lines only (no fits)
+        max_count = 0
         for i, lambda_val in enumerate(current_lambdas):
             impacts = np.asarray(impact_distributions[lambda_val])
             color = colors[i % len(colors)]
 
-            # Plot histogram (lower opacity)
-            ax1.hist(impacts, bins=bins, alpha=0.4, color=color, edgecolor='black', 
-                    linewidth=0.5, label=f'λ = {lambda_val}')
-            
-            # Fit polynomial and plot
-            hist_counts, bin_edges = np.histogram(impacts, bins=bins)
-            bin_centers = (bin_edges[:-1] + bin_edges[1:]) / 2
-            coeffs = np.polyfit(bin_centers, hist_counts, deg=3)
-            poly_fn = np.poly1d(coeffs)
-            x_smooth = np.linspace(x_min_plot, x_max_plot, 300)
-            y_smooth = poly_fn(x_smooth)
-            ax1.plot(x_smooth, y_smooth, color=color, linewidth=2, alpha=0.8)
+            # Plot histogram with automatic binning for this distribution
+            counts, bins, patches = ax1.hist(impacts, bins=30, alpha=0.5, color=color, 
+                                             edgecolor='black', linewidth=0.5, 
+                                             label=f'λ = {lambda_val}')
+            max_count = max(max_count, counts.max())
             
             # Mean line
             mean_val = np.mean(impacts)
-            ax1.axvline(mean_val, color=color, linestyle='--', linewidth=1.5, alpha=0.7)
+            ax1.axvline(mean_val, color=color, linestyle='--', linewidth=2, alpha=0.8)
 
         # Increase font sizes
         ax1.set_xlabel('Impact Value (kg CO₂-eq)', fontsize=14)
         ax1.set_ylabel('Frequency', fontsize=14)
         ax1.set_xlim(x_min_plot, x_max_plot)
-        ax1.set_ylim(0, y_max_hist)
+        ax1.set_ylim(0, max_count * 1.1)
         ax1.grid(True, alpha=0.3)
         ax1.legend(fontsize=11)
         ax1.tick_params(axis='both', which='major', labelsize=12)
@@ -276,11 +260,21 @@ def plot_choice_analysis(results, mc_results, save_path=None):
         impacts = np.sort(res["impact_range"])
         imp_min, imp_max = impacts[0], impacts[-1]
 
-        valid_iters = [
-            it for it in mc_results.values()
-            if isinstance(it, dict)
-            and imp_min <= it['Impacts'].iloc[0, 1] <= imp_max
-        ]
+        valid_iters = []
+        for it in mc_results.values():
+            if not isinstance(it, dict) or 'Impacts' not in it or 'Choices' not in it:
+                continue
+            
+            imp_df = it['Impacts']
+            if imp_df is None or imp_df.empty:
+                continue
+            
+            # Get the impact value (first method, "Value" column)
+            impact_val = imp_df.iloc[0]['Value'] if 'Value' in imp_df.columns else imp_df.iloc[0, 1]
+            
+            if imp_min <= impact_val <= imp_max:
+                valid_iters.append(it)
+        
         if not valid_iters:
             continue
 
@@ -292,17 +286,28 @@ def plot_choice_analysis(results, mc_results, save_path=None):
                     choice_df = choices[cat]
                     if isinstance(choice_df, pd.DataFrame):
                         cat_values.append(choice_df["Value"].sum())
-            if cat_values:
                 mean_values[cat][risk_label] = np.mean(cat_values)
 
     # Plot each category
-    for ax, cat in zip(axes, categories):
-        tech_data = {}
-        for risk_name, res in results.items():
+    for idx, (ax, cat) in enumerate(zip(axes, categories)):
+        # Determine column position (0=left, 1=middle, 2=right)
+        col_idx = idx % n_cols
+        
+        # Collect all unique technologies across all risk ranges
+        all_techs = set()
+        for res in results.values():
+            counts = res["choice_counts"].get(cat, {})
+            all_techs.update(counts.keys())
+        
+        # Build tech_data ensuring each tech has a value for every risk range
+        tech_data = {tech: [] for tech in all_techs}
+        for risk_name in risk_labels:
+            res = results[risk_name]
             counts = res["choice_counts"].get(cat, {})
             total_count = res["n_samples"]
-            for tech_name, count in counts.items():
-                tech_data.setdefault(tech_name, []).append((count / total_count) * 100)
+            for tech_name in all_techs:
+                count = counts.get(tech_name, 0)
+                tech_data[tech_name].append((count / total_count) * 100)
 
         if not tech_data:
             ax.text(0.5, 0.5, f'No data for {cat}', ha='center', va='center', fontsize=10)
@@ -314,38 +319,95 @@ def plot_choice_analysis(results, mc_results, save_path=None):
         bottom = np.zeros(len(risk_labels))
 
         tech_names = list(tech_data.items())
+        
+        # Dictionary mapping for technology name abbreviations
+        name_mapping = {
+            'steam reforming, integrated': 'Steam Reform',
+            'steam reforming, integrated (CCS)': 'Steam Reform (CCS)',
+            'steam methane reforming': 'Steam Reform',
+            'steam methane reforming (CCS)': 'Steam Reform (CCS)',
+            'methane pyrolysis | hydrogen | RER': 'Methane Pyrolysis',
+            'anaerobic digestion of agricultural residues': 'Agri Residue AD',
+            'anaerobic digestion of sequential crop': 'Sequential Crop AD',
+            'anaerobic digestion of animal manure': 'Animal Manure AD',
+            'upgrading chemical scrubbing': 'Chemical Scrub',
+            'upgrading chemical scrubbing (CCS)': 'Chemical Scrub (CCS)',
+            'upgrading water scrubbing': 'Water Scrub',
+            'upgrading water scrubbing (CCS)': 'Water Scrub (CCS)',
+            'alkaline electrolysis': 'Alkaline Electrol.',
+            'plastics gasification': 'Plastic Gasif',
+            'plastics gasification (CCS)': 'Plastic Gasif (CCS)',
+            'market for biomethane': 'Biomethane',
+            'market for methane fg': 'Methane FG',
+            'nitrogen + hydrogen': 'N₂ + H₂',
+            'heat from hydrogen': 'Heat from H₂',
+            'heat from methane': 'Heat from CH₄',
+            'heat from methane (CCS)': 'Heat from CH₄ (CCS)',
+            'grid electricity': 'Grid Elec.'
+        }
+        
+        # Helper function to shorten technology names for legend
+        def shorten_name(name):
+            """Shorten technology names for better legend readability."""
+            if isinstance(name, tuple):
+                name = str(name[0]) if len(name) > 0 else str(name)
+            name = str(name).strip()
+            
+            # Check dictionary mapping first (case-insensitive)
+            name_lower = name.lower()
+            for key, short in name_mapping.items():
+                if key.lower() in name_lower:
+                    return short
+            
+            # Fallback to generic replacements
+            name = name.replace('production', 'prod.')
+            name = name.replace('electricity', 'elec.')
+            name = name.replace('generation', 'gen.')
+            # Truncate if still too long
+            if len(name) > 40:
+                name = name[:37] + '...'
+            return name
 
-        # Bars: technology selection frequencies
+        # Bars: technology selection frequencies with labels for legend
         for i, (name, vals) in enumerate(tech_names):
-            clean = clean_name(name)
-            short = label_shortening_map.get(clean, clean)
             color = palette[i % len(palette)]
-            ax.bar(x, vals, 0.8, bottom=bottom, color=color, label=short, alpha=0.85, edgecolor='white', linewidth=0.5)
+            short_name = shorten_name(name)
+            ax.bar(x, vals, 0.8, bottom=bottom, color=color, alpha=0.85, 
+                   edgecolor='white', linewidth=0.5, label=short_name)
             bottom += vals
 
-        # Formatting
+        # Formatting with vertical y-labels to save space for legend
         ax.set_xticks(x)
         ax.set_xticklabels(risk_labels, rotation=45, ha='right', fontsize=9)
-        ax.set_ylabel("Selection Frequency (%)", fontsize=10)
+        
+        # Primary y-axis label: only show for first (left) column
+        if col_idx == 0:
+            ax.set_ylabel("Selection\nFrequency (%)", rotation=90, labelpad=10, va='center', fontsize=9)
+        
         ax.set_ylim(0, 100)
         ax.grid(True, alpha=0.25, linestyle=':')
         ax.set_box_aspect(1)
+        
+        # Add category title at top
+        ax.set_title(cat, fontsize=10, fontweight='bold', pad=5)
+        
+        # Add legend with reversed order (bottom stacks first) inside plot at lower left
+        handles, labels = ax.get_legend_handles_labels()
+        ax.legend(handles[::-1], labels[::-1], loc='lower left', fontsize=8, 
+                  frameon=True, framealpha=0.9, edgecolor='gray')
 
-        # Secondary axis: mean "Value"
+        # Secondary axis: mean "Value" (vertical label)
         ax2 = ax.twinx()
         y_vals = [mean_values[cat][r] for r in risk_labels]
         if any(np.isfinite(y_vals)):
-            ax2.plot(x, y_vals, 'o-', color='black', linewidth=2, markersize=5, alpha=0.7, label='Mean Total Value')
-        ax2.set_ylabel("Mean Total Value", fontsize=9, color="black")
+            ax2.plot(x, y_vals, 'o-', color='black', linewidth=2, markersize=5, alpha=0.7)
+        
+        # Secondary y-axis label: only show for last (right) column
+        if col_idx == n_cols - 1:
+            ax2.set_ylabel("Mean Total\nValue", rotation=90, labelpad=10, va='center', fontsize=8, color="black")
+        
         ax2.tick_params(axis='y', labelsize=8)
         ax2.set_ylim(0, max(y_vals) * 1.1 if any(np.isfinite(y_vals)) else 1)
-
-        # Legend
-        handles, labels = ax.get_legend_handles_labels()
-        handles, labels = handles[::-1], labels[::-1]
-        
-        if handles:
-            ax.legend(handles, labels, loc='upper left', fontsize=7, frameon=True, framealpha=0.9)
 
     # Hide unused axes
     for ax in axes[len(categories):]:

@@ -268,11 +268,20 @@ def analyze_choices_in_risk_range(mc_results, analysis_data, risk_min=0.2, risk_
     print(f"\n{label} — Risk {risk_min:.0%}–{risk_max:.0%} | Impact range: [{imp_min:.2e}, {imp_max:.2e}] kg CO₂-eq")
 
     # Filter iterations within the risk range
-    valid_iters = [
-        it['Choices'] for it in mc_results.values()
-        if isinstance(it, dict)
-        and imp_min <= it['Impacts'].iloc[0, 1] <= imp_max
-    ]
+    valid_iters = []
+    for it in mc_results.values():
+        if not isinstance(it, dict) or 'Impacts' not in it or 'Choices' not in it:
+            continue
+        
+        imp_df = it['Impacts']
+        if imp_df is None or imp_df.empty:
+            continue
+        
+        # Get the impact value (first method, "Value" column)
+        impact_val = imp_df.iloc[0]['Value'] if 'Value' in imp_df.columns else imp_df.iloc[0, 1]
+        
+        if imp_min <= impact_val <= imp_max:
+            valid_iters.append(it['Choices'])
 
     if not valid_iters:
         print("No iterations found in this risk range.")
@@ -280,18 +289,27 @@ def analyze_choices_in_risk_range(mc_results, analysis_data, risk_min=0.2, risk_
 
     print(f"Found {len(valid_iters)} iterations in range.")
 
-    # Count technology choices
+    # Count dominant technology choices (highest value in each category)
     counts = {}
     for choices in valid_iters:
-        for cat, tech in choices.items():
-            tech_name = tech[0] if isinstance(tech, tuple) else str(tech)
-            counts.setdefault(cat, {}).setdefault(tech_name, 0)
-            counts[cat][tech_name] += 1
+        for cat, choice_df in choices.items():
+            if isinstance(choice_df, pd.DataFrame) and not choice_df.empty:
+                # Find the technology with the highest Value
+                if 'Value' in choice_df.columns:
+                    dominant_tech = choice_df['Value'].idxmax()
+                    # Get clean name
+                    if isinstance(dominant_tech, tuple):
+                        tech_name = dominant_tech[0] if len(dominant_tech) > 0 else str(dominant_tech)
+                    else:
+                        tech_name = str(dominant_tech)
+                    
+                    counts.setdefault(cat, {}).setdefault(tech_name, 0)
+                    counts[cat][tech_name] += 1
 
     # Report percentages
     total = len(valid_iters)
     for cat, techs in counts.items():
-        print(f"\n{cat.upper()} Technology Choices:")
+        print(f"\n{cat.upper()} Dominant Technology:")
         for t, c in sorted(techs.items(), key=lambda x: x[1], reverse=True):
             print(f"  {t}: {c}/{total} ({c / total * 100:.1f}%)")
 
@@ -307,18 +325,24 @@ def calculate_impact_distribution(overlay_samples, scaling_vector, level_name):
     """Calculate impact distribution for given scaling vector across all overlay samples."""
     impacts = []
     
-    # Extract scaling values
-    scaling_values = []
-    for entry in scaling_vector.values:
-        if isinstance(entry, (list, tuple)):
-            value = entry[-1]
-            scaling_values.append(value if not isinstance(value, (list, np.ndarray)) else value[0])
-        elif isinstance(entry, np.ndarray):
-            scaling_values.append(entry[0] if len(entry) > 0 else 0)
+    # Extract scaling values from the DataFrame's 'Value' column
+    if isinstance(scaling_vector, pd.DataFrame):
+        if 'Value' in scaling_vector.columns:
+            scaling_values = scaling_vector['Value'].values
         else:
-            scaling_values.append(entry)
+            # Fallback: try to get the last column
+            scaling_values = scaling_vector.iloc[:, -1].values
+    elif isinstance(scaling_vector, pd.Series):
+        scaling_values = scaling_vector.values
+    else:
+        # Assume it's already an array-like
+        scaling_values = np.array(scaling_vector)
     
-    S = diags(scaling_values, format='csr')
+    # Convert to float array
+    scaling_array = np.array(scaling_values, dtype=float)
+    
+    # Create diagonal sparse matrix
+    S = diags([scaling_array], offsets=[0], format='csr')
     
     # Calculate impact for each sample
     for i in range(len(overlay_samples)):
