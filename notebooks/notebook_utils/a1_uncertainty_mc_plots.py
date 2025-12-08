@@ -27,10 +27,13 @@ def format_plot(ax, xlabel, ylabel, xlim, ylim=None):
 
 
 def plot_comparative_mc_analysis(analysis_strategies, analysis_normal, 
-                                cc_pareto_results, results_dir):
+                                cc_pareto_results, results_dir='data/results'):
     """
     Create four progressive comparison plots for Monte Carlo analysis approaches.
     """
+    # Ensure results directory exists
+    os.makedirs(results_dir, exist_ok=True)
+    
     # Calculate consistent axis ranges for all plots
     all_values = np.concatenate([
         analysis_strategies['impact_values'], 
@@ -121,11 +124,17 @@ def plot_comparative_mc_analysis(analysis_strategies, analysis_normal,
     print(f"  4. {results_dir}/mc_comparison_4_cc_vs_mc.png - CC-Pareto vs MC comparison")
 
 
-def plot_cc_pareto_distributions(impact_distributions, results_dir):
+def plot_cc_pareto_distributions(impact_distributions, results_dir='data/results'):
     """
     Create incremental figures showing CC-Pareto impact distributions.
     Each figure adds the next confidence level in sorted order.
     """
+    from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+    from matplotlib.patches import Rectangle
+    
+    # Ensure results directory exists
+    os.makedirs(results_dir, exist_ok=True)
+    
     # Use whatever lambda values are actually in the impact_distributions
     available_lambdas = sorted(list(impact_distributions.keys()))
 
@@ -193,7 +202,6 @@ def plot_cc_pareto_distributions(impact_distributions, results_dir):
         ax2.tick_params(axis='both', which='major', labelsize=12)
 
         # Add inset zoom for high confidence region
-        from mpl_toolkits.axes_grid1.inset_locator import inset_axes
         axins = inset_axes(ax2, width="30%", height="30%", loc='center left',
                           bbox_to_anchor=(0.10, 0.13, 1, 1), bbox_transform=ax2.transAxes)
         
@@ -227,12 +235,16 @@ def plot_cc_pareto_distributions(impact_distributions, results_dir):
     print(f"\n✓ Saved {len(available_lambdas)} incremental CC-Pareto distribution figures to {results_dir}")
 
 
-def plot_choice_analysis(results, mc_results, save_path=None):
+def plot_choice_analysis(results, mc_results, save_path='data/results/choice_analysis_by_risk.png'):
     """Plot technology choice frequencies and mean total values across risk ranges."""
     
     if not results:
         print("No analysis results to plot.")
         return
+    
+    # Ensure directory exists for save_path
+    if save_path:
+        os.makedirs(os.path.dirname(save_path), exist_ok=True)
 
     # Setup categories
     categories = [c for c in sorted({c for r in results.values() for c in r['choice_counts']})

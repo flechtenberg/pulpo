@@ -321,6 +321,146 @@ def analyze_choices_in_risk_range(mc_results, analysis_data, risk_min=0.2, risk_
     )
 
 
+def apply_expert_knowledge_co2_uptake(pulpo_worker, lower_scaling=0.5, upper_scaling=0.1):
+    """
+    Apply expert knowledge strategy for CO2 uptake from biogas processes.
+    
+    Args:
+        pulpo_worker: PULPO optimizer instance with uncertainty data
+        lower_scaling: Lower bound scaling factor (default: 0.5)
+        upper_scaling: Upper bound scaling factor (default: 0.1)
+        
+    Returns:
+        list: Expert knowledge strategy for intervention flows
+    """
+    # Get descriptive names of intervention flows for ammonia processes
+    If_ammonia_unc = processor.rename_metadata_index(
+        pd.DataFrame.from_records(pulpo_worker.uncertainty_data['If']['ammonia']['defined']).T, 
+        pulpo_worker.lci_data, 
+        'intervention_flow'
+    )
+    
+    # Intervention flows requiring special attention (CO2 from biogas processes)
+    If_names = [
+        "anaerobic digestion of agricultural residues | biogas | RER --- Carbon dioxide, in air | ('natural resource', 'in air')",
+        "anaerobic digestion of animal manure | biogas | RER --- Carbon dioxide, in air | ('natural resource', 'in air')",
+        "anaerobic digestion of sequential crop | biogas | RER --- Carbon dioxide, in air | ('natural resource', 'in air')"
+    ]
+    
+    # Extract and refine intervention flow uncertainty
+    matched_If_indcs = If_ammonia_unc.loc[If_names, 'index'].values
+    matched_If_unc_metadata = {indx: pulpo_worker.uncertainty_data['If']['ammonia']['defined'][indx] for indx in matched_If_indcs}
+    processor.fit_normals(matched_If_unc_metadata, plot_distributions=False, lci_data=pulpo_worker.lci_data)
+    
+    # Apply refined bounds for intervention flows
+    for indx, unc_metadata in matched_If_unc_metadata.items():
+        matched_If_unc_metadata[indx]['minimum'] = unc_metadata['amount'] - unc_metadata['amount'] * lower_scaling
+        matched_If_unc_metadata[indx]['maximum'] = unc_metadata['amount'] + unc_metadata['amount'] * upper_scaling
+    processor.fit_normals(matched_If_unc_metadata, plot_distributions=False, lci_data=pulpo_worker.lci_data)
+    
+    # Create and return expert knowledge strategy
+    return [processor.ExpertKnowledgeStrategy(
+        uncertain_param_type='If',
+        uncertain_param_subgroup='ammonia',
+        prob_metadata=matched_If_unc_metadata
+    )]
+
+
+def apply_expert_knowledge_biomass_bounds(pulpo_worker, lower_multiplier=0.1, upper_multiplier=1.1):
+    """
+    Apply expert knowledge strategy for biomass feedstock availability bounds.
+    
+    Args:
+        pulpo_worker: PULPO optimizer instance with uncertainty data
+        lower_multiplier: Lower bound multiplier (default: 0.1)
+        upper_multiplier: Upper bound multiplier (default: 1.1)
+        
+    Returns:
+        list: Combined expert knowledge and triangular base strategies for variable bounds
+    """
+    # Get descriptive names of variable bounds for biomass processes
+    var_bounds_unc = processor.rename_metadata_index(
+        pd.DataFrame.from_records(pulpo_worker.uncertainty_data['Var_bounds']['upper_limit']['undefined']).T, 
+        pulpo_worker.lci_data, 
+        'process'
+    )
+    
+    # Biomass processes requiring special attention
+    process_name_patterns = [
+        "anaerobic digestion of agricultural residues | biogas | RER",
+        "anaerobic digestion of animal manure | biogas | RER",
+        "anaerobic digestion of sequential crop | biogas | RER"
+    ]
+    
+    # Find matching process names in the dataframe index
+    process_names = []
+    for pattern in process_name_patterns:
+        matches = [idx for idx in var_bounds_unc.index if pattern in idx]
+        if matches:
+            process_names.append(matches[0])
+        else:
+            print(f"Warning: Could not find process matching '{pattern}'")
+    
+    if not process_names:
+        print("Warning: No matching biomass processes found in var_bounds_unc")
+        return []
+    
+    # Extract and refine variable bounds uncertainty
+    matched_process_indcs = var_bounds_unc.loc[process_names, 'index'].values
+    matched_varbound_unc_metadata = {indx: pulpo_worker.uncertainty_data['Var_bounds']['upper_limit']['undefined'][indx] 
+                                     for indx in matched_process_indcs}
+    
+    # Apply refined bounds for variable bounds
+    for indx, unc_metadata in matched_varbound_unc_metadata.items():
+        matched_varbound_unc_metadata[indx]['minimum'] = unc_metadata['amount'] * lower_multiplier
+        matched_varbound_unc_metadata[indx]['maximum'] = unc_metadata['amount'] * upper_multiplier
+        matched_varbound_unc_metadata[indx]['loc'] = unc_metadata['amount']
+        matched_varbound_unc_metadata[indx]['uncertainty_type'] = 5
+    processor.fit_normals(matched_varbound_unc_metadata, plot_distributions=False, lci_data=pulpo_worker.lci_data)
+    
+    # Create expert knowledge strategy for variable bounds
+    expert_strategy = [processor.ExpertKnowledgeStrategy(
+        uncertain_param_type='Var_bounds',
+        uncertain_param_subgroup='upper_limit',
+        prob_metadata=matched_varbound_unc_metadata
+    )]
+    
+    # Add triangular base strategy for remaining variable bounds
+    base_strategy = [processor.TriangluarBaseStrategy(
+        uncertain_param_type='Var_bounds',
+        uncertain_param_subgroup='upper_limit',
+        upper_scaling_factor=.001,
+        lower_scaling_factor=.001,
+        noise_interval={'min': .05, 'max': .05}
+    )]
+    
+    return expert_strategy + base_strategy
+
+
+def apply_all_expert_strategies(pulpo_worker, base_strategies):
+    """
+    Apply all expert knowledge refinements in one call.
+    
+    Args:
+        pulpo_worker: PULPO optimizer instance
+        base_strategies: List of base uncertainty strategies to apply first
+        
+    Returns:
+        None (modifies pulpo_worker in place)
+    """
+    # Apply base strategies
+    pulpo_worker.apply_uncertainty_strategies(strategies=base_strategies, plot_results=False)
+    
+    # Apply CO2 uptake expert knowledge
+    co2_strategies = apply_expert_knowledge_co2_uptake(pulpo_worker)
+    pulpo_worker.apply_uncertainty_strategies(strategies=co2_strategies)
+    
+    # Apply biomass bounds expert knowledge
+    biomass_strategies = apply_expert_knowledge_biomass_bounds(pulpo_worker)
+    if biomass_strategies:
+        pulpo_worker.apply_uncertainty_strategies(strategies=biomass_strategies)
+
+
 def calculate_impact_distribution(overlay_samples, scaling_vector, level_name):
     """Calculate impact distribution for given scaling vector across all overlay samples."""
     impacts = []
