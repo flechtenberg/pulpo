@@ -192,6 +192,32 @@ def plot_cc_pareto_distributions(impact_distributions, results_dir):
         ax2.legend(fontsize=11)
         ax2.tick_params(axis='both', which='major', labelsize=12)
 
+        # Add inset zoom for high confidence region
+        from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+        axins = inset_axes(ax2, width="30%", height="30%", loc='center left',
+                          bbox_to_anchor=(0.10, 0.13, 1, 1), bbox_transform=ax2.transAxes)
+        
+        # Plot the same data in the inset
+        for i, lambda_val in enumerate(current_lambdas):
+            impacts = np.asarray(impact_distributions[lambda_val])
+            color = colors[i % len(colors)]
+            sorted_impacts = np.sort(impacts)
+            cumulative = np.arange(1, len(sorted_impacts) + 1) / len(sorted_impacts)
+            axins.plot(sorted_impacts, cumulative, color=color, linewidth=1.5)
+        
+        # Set the zoom region
+        axins.set_xlim(1.4e10, 2.2e10)
+        axins.set_ylim(0.98, 1.0)
+        axins.grid(True, alpha=0.3, linewidth=0.5)
+        axins.tick_params(labelsize=8)
+        
+        # Add box around the zoomed region in the main plot
+        from matplotlib.patches import Rectangle
+        zoom_box = Rectangle((1.4e10, 0.98), 0.8e10, 0.02, 
+                             linewidth=1.5, edgecolor='gray', 
+                             facecolor='none', linestyle='--', alpha=0.7)
+        ax2.add_patch(zoom_box)
+
         plt.tight_layout()
         step = idx + 1
         out_path = f"{results_dir}/cc_pareto_impact_distributions_step{step}.png"
