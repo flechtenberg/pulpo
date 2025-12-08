@@ -3,7 +3,7 @@ import pandas as pd
 import os
 import matplotlib.pyplot as plt
 
-def plot_pareto_from_results(results_CC, results_dir='.', lambda_range:tuple=None, legend_abbreviations:dict=None, vlines:list=None, suffix:str=None, hline_y:float=None):
+def plot_pareto_from_results(results_CC, results_dir='data/results', lambda_range:tuple=None, legend_abbreviations:dict=None, vlines:list=None, suffix:str=None, hline_y:float=None):
     """
     Streamlined plotting: treat Pareto as the top subplot showing impact cumsum,
     followed by choice bar charts showing technology cumsum and contribution analysis.
@@ -394,7 +394,7 @@ def plot_pareto_from_results(results_CC, results_dir='.', lambda_range:tuple=Non
     return {'png': png_path, 'svg': svg_path}
 
 
-def plot_gsa_pie_chart(gsa_df, results_dir='.', figsize=(6, 6), save_plot=True, show_plot=True, lambda_value=None):
+def plot_gsa_pie_chart(gsa_df, results_dir='data/results', figsize=(6, 6), save_plot=True, show_plot=True, lambda_value=None):
     """
     Create a pie chart visualization of Global Sensitivity Analysis results.
     
@@ -501,7 +501,7 @@ def plot_gsa_pie_chart(gsa_df, results_dir='.', figsize=(6, 6), save_plot=True, 
     return save_paths
 
 
-def plot_gsa_bar_chart(total_Si, inv_map, proc_map, results_dir='.', figsize=(12, 6), save_plot=True, show_plot=True, lambda_value=None, top_n=9):
+def plot_gsa_bar_chart(total_Si, inv_map, proc_map, results_dir='data/results', figsize=(12, 6), save_plot=True, show_plot=True, lambda_value=None, top_n=9):
     """
     Create a bar chart visualization of GSA results with top contributions and variance whiskers.
     
@@ -677,7 +677,7 @@ def plot_gsa_bar_chart(total_Si, inv_map, proc_map, results_dir='.', figsize=(12
     return save_paths
 
 
-def plot_gsa_bar_chart_comparison(results_dict, inv_map, proc_map, results_dir='.', figsize=(14, 18), save_plot=True, show_plot=True, top_n=9):
+def plot_gsa_bar_chart_comparison(results_dict, inv_map, proc_map, results_dir='data/results', figsize=(14, 18), save_plot=True, show_plot=True, top_n=9):
     """
     Create a 4x1 subplot figure comparing GSA results across four lambda values with consistent colors and y-axis scaling.
     
