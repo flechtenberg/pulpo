@@ -104,3 +104,4 @@ develop_tests/**
 notebooks/credentials.txt
 *.pkl
 notebooks/data/results/*.png
+notebooks/data/results/*.svg
