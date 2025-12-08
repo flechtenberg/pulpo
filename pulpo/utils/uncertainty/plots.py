@@ -255,7 +255,8 @@ def plot_pareto_front(
         rel_abs:Literal['relative', 'absolute'] = 'absolute',
         bbox_to_anchor:Tuple[float, float] = (0.65, -1.),
         cmap_name:str = 'gist_ncar',
-        group_act_by:Optional[Literal['process', 'product', 'location']]=None
+        group_act_by:Optional[Literal['process', 'product', 'location']]=None,
+        include_choices: bool = True
         ):
     """
     Plot the Pareto front and highlight main contributing variables.
@@ -278,20 +279,29 @@ def plot_pareto_front(
             Default value is (0.65, -1.).
         cmap_name (str):
             Name of the colormap to use for the plots. Default is 'gist_ncar'.
+        group_act_by (str, optional):
+            Specifies how to group activities, e.g., by 'process', 'product', or 'location'. Default is None.
+        include_choices (bool, optional):
+            Whether to include choices in the plot. Default is True.
     """
     data_QBs_main_df = create_data_for_CC_plots(result_data_CC, cutoff_value, process_map_metadata, group_act_by=group_act_by)
     choices_data = create_choices_data_for_CC_plots(result_data_CC, group_act_by=group_act_by)
     choices_labels = pd.Index([idx for choice in choices_data.keys() for idx in choices_data[choice].index])
     cmap, legend_elements = create_cmap_for_CC_plots(data_QBs_main_df.index, choices_labels=choices_labels, cmap_name=cmap_name, create_legend=True)
+    if include_choices:
+        _, axs = plt.subplots(len(choices_data.keys()) + 1, 1, figsize=(6,6), dpi=300, sharex=True, gridspec_kw={'hspace': 0.1}, height_ratios= [8]+[1]*(len(choices_data.keys())))
+    else:
+        _, ax = plt.subplots(1, 1, figsize=(6,3), dpi=300, sharex=True, gridspec_kw={'hspace': 0.1}) 
+        axs = [ax]
     match rel_abs:
         case 'relative':
-            _, axs = plt.subplots(len(choices_data.keys())+1, 1, figsize=(6,6), dpi=300, sharex=True, gridspec_kw={'hspace': 0.1}, height_ratios= [8]+[1]*len(choices_data.keys()))
             plot_pareto_solution_normalized_bar_plots(data_QBs_main_df, method, bbox_to_anchor=bbox_to_anchor, cmap_name=cmap_name, cmap=cmap, ax=axs[0], legend_elements=legend_elements)
-            plot_choices_pareto_solutions_bar_plots(choices_data, cmap=cmap, shared_xaxis=axs[1:])
+            if include_choices:
+                plot_choices_pareto_solutions_bar_plots(choices_data, cmap=cmap, shared_xaxis=axs[1:])
         case 'absolute':
-            _, axs2 = plt.subplots(len(choices_data.keys())+1, 1, figsize=(6,6), dpi=300, sharex=True, gridspec_kw={'hspace': 0.1}, height_ratios= [8]+[1]*len(choices_data.keys()))
-            plot_pareto_solution_bar_plots(data_QBs_main_df, method, bbox_to_anchor=bbox_to_anchor, cmap_name=cmap_name, cmap=cmap, ax=axs2[0], legend_elements=legend_elements)
-            plot_choices_pareto_solutions_bar_plots(choices_data, cmap=cmap, shared_xaxis=axs2[1:])
+            plot_pareto_solution_bar_plots(data_QBs_main_df, method, bbox_to_anchor=bbox_to_anchor, cmap_name=cmap_name, cmap=cmap, ax=axs[0], legend_elements=legend_elements)
+            if include_choices:
+                plot_choices_pareto_solutions_bar_plots(choices_data, cmap=cmap, shared_xaxis=axs[1:])
 # === General Plots ===
 
 def discrete_cmap(N:Optional[int]=None, base_cmap=None):
