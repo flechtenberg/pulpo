@@ -3,7 +3,7 @@ import pandas as pd
 import os
 import matplotlib.pyplot as plt
 
-def plot_pareto_from_results(results_CC, results_dir='data/results', lambda_range:tuple=None, legend_abbreviations:dict=None, vlines:list=None, suffix:str=None, hline_y:float=None):
+def plot_pareto_from_results(results_CC, results_dir='data/results', lambda_range:tuple=None, legend_abbreviations:dict=None, vlines:list=None, suffix:str=None, hline_y:float=None, previous_results:dict=None, previous_label:str='Previous iteration', previous_alpha:float=0.35, previous_color:str=None):
     """
     Streamlined plotting: treat Pareto as the top subplot showing impact cumsum,
     followed by choice bar charts showing technology cumsum and contribution analysis.
@@ -22,6 +22,16 @@ def plot_pareto_from_results(results_CC, results_dir='data/results', lambda_rang
     hline_y : float, optional
         Y-value for a significant red horizontal line with shadow on the Pareto plot.
         If None, no horizontal line is drawn.
+    previous_results : dict, optional
+        Optional secondary results mapping (same structure as `results_CC`) whose
+        Pareto impacts will be drawn translucent in the Pareto subplot to show a
+        previous iteration or baseline. Keys are lambda values.
+    previous_label : str, optional
+        Legend label for the previous_results overlay (default: 'Previous iteration').
+    previous_alpha : float, optional
+        Alpha transparency for the overlay (default: 0.35).
+    previous_color : str, optional
+        Color for the overlay line/area. If None a neutral gray is used.
     """
 
     # Filter results by lambda_range
@@ -49,6 +59,39 @@ def plot_pareto_from_results(results_CC, results_dir='data/results', lambda_rang
             impacts.append(float(res['Impacts'].iloc[0, 1]))
         else:
             impacts.append(0)
+
+    # If previous_results provided, build matching impacts for overlay plot
+    previous_impacts = None
+    if previous_results is not None:
+        # Filter previous results by same lambda_range (if given)
+        prev_selected = {}
+        for pk, pv in previous_results.items():
+            if lambda_range is None:
+                prev_selected[pk] = pv
+            else:
+                lam_min, lam_max = lambda_range
+                if lam_min <= float(pk) <= lam_max:
+                    prev_selected[pk] = pv
+
+        # Prepare sorted keys and numeric values for nearest-key lookup
+        if prev_selected:
+            prev_keys_sorted = sorted(prev_selected.keys(), key=lambda x: float(x))
+            prev_lambda_vals = [float(x) for x in prev_keys_sorted]
+            previous_impacts = []
+            for k in ordered_keys:
+                # find closest previous lambda
+                closest_idx = min(range(len(prev_lambda_vals)), key=lambda i: abs(prev_lambda_vals[i] - float(k)))
+                if abs(prev_lambda_vals[closest_idx] - float(k)) < 0.02:
+                    pk = prev_keys_sorted[closest_idx]
+                    pres = prev_selected[pk]
+                    if 'Impacts' in pres and not pres['Impacts'].empty:
+                        previous_impacts.append(float(pres['Impacts'].iloc[0, 1]))
+                    else:
+                        previous_impacts.append(0)
+                else:
+                    previous_impacts.append(0)
+        else:
+            previous_impacts = [0] * len(ordered_keys)
     
     # Calculate environmental impact contributions for each lambda
     def calculate_contributions(result):
@@ -152,7 +195,14 @@ def plot_pareto_from_results(results_CC, results_dir='data/results', lambda_rang
     
     # Plot main Pareto line
     pareto_ax.plot(x_pos, impacts, marker='o', linestyle='-', color='gray', linewidth=2, 
-                   markersize=6, markeredgecolor='black', markeredgewidth=0.5, label='Total Impact', zorder=10)
+                   markersize=6, markeredgecolor='black', markeredgewidth=0.5, label='Total impact', zorder=10)
+    # Overlay previous iteration impacts (if any) with transparency
+    if previous_impacts is not None:
+        overlay_color = previous_color if previous_color is not None else '#A0A0A0'
+        pareto_ax.plot(x_pos, previous_impacts, marker='s', linestyle='--', color=overlay_color, markeredgecolor='black', 
+                       linewidth=1.5, alpha=previous_alpha, label=previous_label, zorder=6, markeredgewidth=0.5,)
+        # Fill under the overlay to emphasize previous curve (subtle)
+        #pareto_ax.fill_between(x_pos, previous_impacts, 0, color=overlay_color, alpha=max(0.05, previous_alpha * 0.4), zorder=4)
     pareto_ax.axhline(y=0, color='black', linestyle='-', linewidth=0.8, alpha=0.6)
     
     # Prepare contribution data for stacked bars
@@ -189,10 +239,10 @@ def plot_pareto_from_results(results_CC, results_dir='data/results', lambda_rang
     neg_rest_data = []
     
     # Labels for legend
-    pos_1_label = "Other Burden"
-    pos_2_label = "Other Burden"
-    neg_1_label = "Other Benefit"
-    neg_2_label = "Other Benefit"
+    pos_1_label = "Other burden"
+    pos_2_label = "Other burden"
+    neg_1_label = "Other benefit"
+    neg_2_label = "Other benefit"
     
     for i, k in enumerate(ordered_keys):
         pos_contrib = all_positive_contributions[k]
@@ -255,7 +305,7 @@ def plot_pareto_from_results(results_CC, results_dir='data/results', lambda_rang
     
     # Positive contributions (stack upwards from 0) - plot in reverse order for legend
     pareto_ax.bar(x_pos, pos_rest_data, width, bottom=pos_1_data + pos_2_data, 
-                  color=contributor_colors['pos_rest'], alpha=0.7, label='Other Burdens', 
+                  color=contributor_colors['pos_rest'], alpha=0.7, label='Other burdens', 
                   edgecolor='white', linewidth=0.5)
     pareto_ax.bar(x_pos, pos_2_data, width, bottom=pos_1_data, color=contributor_colors['pos_2'], 
                   alpha=0.7, label=pos_2_label, edgecolor='white', linewidth=0.5, hatch='///')
@@ -268,7 +318,7 @@ def plot_pareto_from_results(results_CC, results_dir='data/results', lambda_rang
     pareto_ax.bar(x_pos, neg_2_data, width, bottom=neg_1_data, color=contributor_colors['neg_2'], 
                   alpha=0.7, label=neg_2_label, edgecolor='white', linewidth=0.5, hatch='///')
     pareto_ax.bar(x_pos, neg_rest_data, width, bottom=neg_1_data + neg_2_data, 
-                  color=contributor_colors['neg_rest'], alpha=0.7, label='Other Benefits', 
+                  color=contributor_colors['neg_rest'], alpha=0.7, label='Other benefits', 
                   edgecolor='white', linewidth=0.5)
     
     # Formatting
@@ -284,8 +334,8 @@ def plot_pareto_from_results(results_CC, results_dir='data/results', lambda_rang
     
     # Add optional significant red horizontal line
     if hline_y is not None:
-        # Main red line
-        pareto_ax.axhline(y=hline_y, color='darkred', linestyle='-', alpha=0.8, linewidth=2.5, zorder=6)
+        # Main red line (also add to legend as 'Planetary boundary')
+        pareto_ax.axhline(y=hline_y, color='darkred', linestyle='-', alpha=0.8, linewidth=2.5, zorder=6, label='Planetary boundary')
         # Add "Planetary boundary" label in dark red above the line
         pareto_ax.text(len(x_pos)*0.15, hline_y + 0.45*abs(hline_y) if hline_y != 0 else hline_y + 2, 
                       'Planetary boundary\n(EU Chemical Industry)', color='darkred', fontsize=10, fontweight='normal', 
