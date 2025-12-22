@@ -39,7 +39,7 @@ def plot_pareto_from_results(results_CC, results_dir='data/results', lambda_rang
     
     # Set default vertical lines if not specified
     if vlines is None:
-        vlines = [0.9, 0.96]
+        vlines = [0.94]
     
     # Extract impacts for Pareto
     impacts = []
@@ -126,8 +126,8 @@ def plot_pareto_from_results(results_CC, results_dir='data/results', lambda_rang
     x_pos = np.arange(len(ordered_keys))
     lambda_vals = [float(k) for k in ordered_keys]
     
-    # Define tick positions for specific lambda values including 0.92, 0.94, 0.96, 0.98
-    desired_ticks = [0.5, 0.6, 0.7, 0.8, 0.9, 0.92, 0.94, 0.96, 0.98]
+    # Define tick positions for specific lambda values: 0.5-0.94 in 0.04 steps, then 0.95-0.99 in 0.01 steps
+    desired_ticks = list(np.arange(0.5, 0.95, 0.04)) + list(np.arange(0.95, 1.0, 0.01))
     xtick_positions = []
     xtick_labels = []
     
@@ -142,6 +142,10 @@ def plot_pareto_from_results(results_CC, results_dir='data/results', lambda_rang
     if not xtick_positions:
         xtick_positions = [0, len(x_pos)-1]
         xtick_labels = [f"{lambda_vals[0]:.2f}", f"{lambda_vals[-1]:.2f}"]
+    
+    # Show every second tick
+    xtick_positions = xtick_positions[::2]
+    xtick_labels = xtick_labels[::2]
     
     # Plot 1: Pareto with integrated contribution analysis
     pareto_ax = axs[0]
@@ -363,9 +367,10 @@ def plot_pareto_from_results(results_CC, results_dir='data/results', lambda_rang
         legend.get_frame().set_facecolor('white')
         legend.get_frame().set_alpha(0.9)
     
-    # Set x-axis only on bottom subplot
-    axs[-1].set_xticks(xtick_positions)
-    axs[-1].set_xticklabels(xtick_labels)
+    # Set x-axis on all subplots
+    for ax in axs:
+        ax.set_xticks(xtick_positions)
+        ax.set_xticklabels(xtick_labels)
     axs[-1].set_xlabel('Risk-aversion level (λ)', fontsize=10)
     
     plt.subplots_adjust(hspace=0.1)
@@ -866,8 +871,12 @@ def plot_gsa_bar_chart_comparison(results_dict, inv_map, proc_map, results_dir='
         ax.set_ylim(0, global_max)
         
         # Customize subplot
-        ax.set_ylabel('Total Sensitivity (ST)', fontsize=13, fontweight='bold')
-        ax.set_title(f'λ = {lambda_val:.2f}', fontsize=14, fontweight='bold', pad=10)
+        ax.set_ylabel('Sensitivity', fontsize=13)
+        # Place lambda label in a boxed textbox at the upper-right of the subplot
+        title_text = f"λ = {lambda_val:.2f}"
+        ax.text(0.985, 0.9, title_text, transform=ax.transAxes, fontsize=14,
+            ha='right', va='top', zorder=20,
+            bbox=dict(boxstyle='round,pad=0.3', facecolor='white', edgecolor='black', linewidth=0.8))
         ax.set_xticks(x_pos)
         ax.set_xticklabels(labels, fontsize=11)
         ax.grid(axis='y', alpha=0.3, linestyle='--')
