@@ -3,7 +3,7 @@ import pandas as pd
 import os
 import matplotlib.pyplot as plt
 
-def plot_pareto_from_results(results_CC, results_dir='data/results', lambda_range:tuple=None, legend_abbreviations:dict=None, vlines:list=None, suffix:str=None, hline_y:float=None, previous_results:dict=None, previous_label:str='Previous iteration', previous_alpha:float=0.35, previous_color:str=None):
+def plot_pareto_from_results(results_CC, results_dir='data/results', lambda_range:tuple=None, legend_abbreviations:dict=None, vlines:list=None, suffix:str=None, hline_y:float=None, previous_results:dict=None, previous_label:str='Previous iteration', previous_alpha:float=0.35, previous_color:str=None, base_case_result:dict=None, base_case_label:str='Base'):
     """
     Streamlined plotting: treat Pareto as the top subplot showing impact cumsum,
     followed by choice bar charts showing technology cumsum and contribution analysis.
@@ -32,6 +32,12 @@ def plot_pareto_from_results(results_CC, results_dir='data/results', lambda_rang
         Alpha transparency for the overlay (default: 0.35).
     previous_color : str, optional
         Color for the overlay line/area. If None a neutral gray is used.
+    base_case_result : dict, optional
+        Optional base case result (from deterministic optimization without uncertainty).
+        Will be plotted as leftmost entry. Should have same structure as a single
+        results_CC entry (keys: 'Impacts', 'ENV_COST_MATRIX', 'Scaling Vector', 'Choices').
+    base_case_label : str, optional
+        Label for the base case entry on x-axis (default: 'Base').
     """
 
     # Filter results by lambda_range
@@ -46,6 +52,13 @@ def plot_pareto_from_results(results_CC, results_dir='data/results', lambda_rang
 
     # Sort keys numerically
     ordered_keys = sorted(selected.keys(), key=lambda x: float(x))
+    
+    # Prepend base case if provided
+    include_base_case = base_case_result is not None
+    if include_base_case:
+        # Insert base case at the beginning
+        ordered_keys = [base_case_label] + ordered_keys
+        selected = {base_case_label: base_case_result, **selected}
     
     # Set default vertical lines if not specified
     if vlines is None:
@@ -167,35 +180,64 @@ def plot_pareto_from_results(results_CC, results_dir='data/results', lambda_rang
     
     # Common x-axis setup
     x_pos = np.arange(len(ordered_keys))
-    lambda_vals = [float(k) for k in ordered_keys]
+    
+    # Build lambda_vals list (handle base case as special non-numeric entry)
+    lambda_vals = []
+    for k in ordered_keys:
+        if k == base_case_label:
+            lambda_vals.append(-1)  # Placeholder for base case (not used for tick matching)
+        else:
+            lambda_vals.append(float(k))
     
     # Define tick positions for specific lambda values: 0.5-0.94 in 0.04 steps, then 0.95-0.99 in 0.01 steps
     desired_ticks = list(np.arange(0.5, 0.95, 0.04)) + list(np.arange(0.95, 1.0, 0.01))
     xtick_positions = []
     xtick_labels = []
     
+    # Always include base case if present
+    if include_base_case:
+        xtick_positions.append(0)
+        xtick_labels.append(base_case_label)
+    
     for desired_tick in desired_ticks:
-        # Find the closest lambda value to the desired tick
-        closest_idx = min(range(len(lambda_vals)), key=lambda i: abs(lambda_vals[i] - desired_tick))
+        # Find the closest lambda value to the desired tick (skip base case entry)
+        start_idx = 1 if include_base_case else 0
+        closest_idx = min(range(start_idx, len(lambda_vals)), key=lambda i: abs(lambda_vals[i] - desired_tick))
         if abs(lambda_vals[closest_idx] - desired_tick) < 0.005:  # tolerance for matching
             xtick_positions.append(closest_idx)
             xtick_labels.append(f"{desired_tick:.2f}")
     
-    # Fallback if no ticks found
-    if not xtick_positions:
-        xtick_positions = [0, len(x_pos)-1]
-        xtick_labels = [f"{lambda_vals[0]:.2f}", f"{lambda_vals[-1]:.2f}"]
+    # Fallback if no ticks found (beyond base case)
+    if len(xtick_positions) == (1 if include_base_case else 0):
+        if include_base_case:
+            xtick_positions.append(len(x_pos)-1)
+            xtick_labels.append(f"{lambda_vals[-1]:.2f}")
+        else:
+            xtick_positions = [0, len(x_pos)-1]
+            xtick_labels = [f"{lambda_vals[0]:.2f}", f"{lambda_vals[-1]:.2f}"]
     
-    # Show every second tick
-    xtick_positions = xtick_positions[::2]
-    xtick_labels = xtick_labels[::2]
+    # Show every second tick (but always keep base case if present)
+    if include_base_case:
+        # Keep base case (index 0) and every second tick after that
+        xtick_positions = [xtick_positions[0]] + xtick_positions[1::2]
+        xtick_labels = [xtick_labels[0]] + xtick_labels[1::2]
+    else:
+        xtick_positions = xtick_positions[::2]
+        xtick_labels = xtick_labels[::2]
     
     # Plot 1: Pareto with integrated contribution analysis
     pareto_ax = axs[0]
     
-    # Plot main Pareto line
-    pareto_ax.plot(x_pos, impacts, marker='o', linestyle='-', color='gray', linewidth=2, 
+    # Plot main Pareto line (skip base case if present)
+    start_idx = 1 if include_base_case else 0
+    pareto_ax.plot(x_pos[start_idx:], impacts[start_idx:], marker='o', linestyle='-', color='gray', linewidth=2, 
                    markersize=6, markeredgecolor='black', markeredgewidth=0.5, label='Total impact', zorder=10)
+    
+    # Plot base case as separate standalone point with legend entry
+    if include_base_case:
+        pareto_ax.plot(x_pos[0], impacts[0], marker='D', markersize=8, color='darkgray', 
+                       markeredgecolor='black', markeredgewidth=0.5, linestyle='', 
+                       label='Deterministic', zorder=11)
     # Overlay previous iteration impacts (if any) with transparency
     if previous_impacts is not None:
         overlay_color = previous_color if previous_color is not None else '#A0A0A0'
@@ -326,19 +368,24 @@ def plot_pareto_from_results(results_CC, results_dir='data/results', lambda_rang
     pareto_ax.grid(True, alpha=0.25)
     pareto_ax.tick_params(axis='y', labelsize=8)
     
+    # Add vertical line to separate base case from lambda values
+    if include_base_case:
+        pareto_ax.axvline(x=0.5, color='darkgray', linestyle='--', alpha=0.6, linewidth=1.5, zorder=5)
+    
     # Add vertical lines to distinguish lambda ranges
     for vline_lambda in vlines:
-        closest_idx = min(range(len(lambda_vals)), key=lambda i: abs(lambda_vals[i] - vline_lambda))
+        start_idx = 1 if include_base_case else 0
+        closest_idx = min(range(start_idx, len(lambda_vals)), key=lambda i: abs(lambda_vals[i] - vline_lambda))
         if abs(lambda_vals[closest_idx] - vline_lambda) < 0.005:
             pareto_ax.axvline(x=closest_idx, color='black', linestyle='-', alpha=0.7, linewidth=1)
     
     # Add optional significant red horizontal line
     if hline_y is not None:
         # Main red line (also add to legend as 'Planetary boundary')
-        pareto_ax.axhline(y=hline_y, color='darkred', linestyle='-', alpha=0.8, linewidth=2.5, zorder=6, label='Planetary boundary')
+        pareto_ax.axhline(y=hline_y, color='darkred', linestyle='-', alpha=0.8, linewidth=2.5, zorder=6, label='Climate PB')
         # Add "Planetary boundary" label in dark red above the line
         pareto_ax.text(len(x_pos)*0.15, hline_y + 0.45*abs(hline_y) if hline_y != 0 else hline_y + 2, 
-                      'Planetary boundary\n(EU Chemical Industry)', color='darkred', fontsize=10, fontweight='normal', 
+                      'Climate PB emission limit\n(EU ammonia supply)', color='darkred', fontsize=10, fontweight='normal', 
                       verticalalignment='bottom', horizontalalignment='center', zorder=7)
     
     # Legend for Pareto plot
@@ -405,9 +452,14 @@ def plot_pareto_from_results(results_CC, results_dir='data/results', lambda_rang
         ax.set_ylabel(choice_name, rotation=0, labelpad=30, va='center', fontsize=9)
         ax.set_yticks([])
         
+        # Add vertical line to separate base case from lambda values
+        if include_base_case:
+            ax.axvline(x=0.5, color='darkgray', linestyle='--', alpha=0.6, linewidth=1.5, zorder=5)
+        
         # Add vertical lines to distinguish lambda ranges
         for vline_lambda in vlines:
-            closest_idx = min(range(len(lambda_vals)), key=lambda i: abs(lambda_vals[i] - vline_lambda))
+            start_idx = 1 if include_base_case else 0
+            closest_idx = min(range(start_idx, len(lambda_vals)), key=lambda i: abs(lambda_vals[i] - vline_lambda))
             if abs(lambda_vals[closest_idx] - vline_lambda) < 0.005:
                 ax.axvline(x=closest_idx, color='black', linestyle='-', alpha=0.7, linewidth=1)
         
@@ -421,7 +473,10 @@ def plot_pareto_from_results(results_CC, results_dir='data/results', lambda_rang
     for ax in axs:
         ax.set_xticks(xtick_positions)
         ax.set_xticklabels(xtick_labels)
-    axs[-1].set_xlabel('Risk-aversion level (λ)', fontsize=10)
+        # Shift base case label to the left if present
+        if include_base_case and len(ax.get_xticklabels()) > 0:
+            ax.get_xticklabels()[0].set_horizontalalignment('right')
+    axs[-1].set_xlabel('Reliability level (λ)', fontsize=10)
     
     plt.subplots_adjust(hspace=0.1)
     plt.tight_layout()
