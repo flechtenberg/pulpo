@@ -494,3 +494,113 @@ def calculate_impact_distribution(overlay_samples, scaling_vector, level_name):
     
     print(f"✓ {level_name}: Mean = {np.mean(impacts):.2e}, Std = {np.std(impacts):.2e}")
     return np.array(impacts)
+
+
+# ============================================================================
+# Analytical Distribution Functions for CC-Pareto Analysis
+# ============================================================================
+
+def extract_analytical_distribution_params(normal_metadata_env_cost, s_vector_df, method_key=None):
+    """
+    Extract the analytical parameters (mean, std) for the total impact distribution
+    by combining the per-process normal distributions with the scaling vector.
+    
+    For independent normal distributions X_i ~ N(μ_i, σ_i²) with weights s_i:
+    Sum(s_i * X_i) ~ N(Sum(s_i * μ_i), Sum(s_i² * σ_i²))
+    
+    Args:
+        normal_metadata_env_cost: Dict with keys (process_id, method) containing 'loc' and 'scale'
+        s_vector_df: pandas DataFrame with 'Value' column and ID index containing scaling factors
+        method_key: Optional method string to filter keys (if None, uses first found method)
+    
+    Returns:
+        dict: {'mean': total_mean, 'std': total_std, 'contributions': DataFrame with per-process details}
+    """
+    # Extract method key if not provided
+    if method_key is None:
+        method_key = list(normal_metadata_env_cost.keys())[0][1]
+    
+    # Build a DataFrame from the metadata
+    contributions = []
+    for (process_id, method), data in normal_metadata_env_cost.items():
+        if method == method_key:
+            # Get scaling factor for this process from the DataFrame
+            # s_vector_df has index=ID and column 'Value' with scaling factors
+            if process_id in s_vector_df.index:
+                s_i = s_vector_df.loc[process_id, 'Value']
+            else:
+                s_i = 0.0
+            
+            contributions.append({
+                'process_id': process_id,
+                'loc': data['loc'],
+                'scale': data['scale'],
+                'scaling_factor': s_i,
+                'weighted_mean': s_i * data['loc'],
+                'weighted_var': (s_i ** 2) * (data['scale'] ** 2)
+            })
+    
+    contributions_df = pd.DataFrame(contributions)
+    
+    # Compute total distribution parameters
+    total_mean = contributions_df['weighted_mean'].sum()
+    total_var = contributions_df['weighted_var'].sum()
+    total_std = np.sqrt(total_var)
+    
+    return {
+        'mean': total_mean,
+        'std': total_std,
+        'variance': total_var,
+        'contributions': contributions_df
+    }
+
+
+def find_matching_lambda_key(results_CC, target_lambda, tolerance=1e-6):
+    """
+    Find the matching key in results_CC for a target lambda value,
+    handling floating point precision issues.
+    
+    Args:
+        results_CC: Dict with lambda values as keys
+        target_lambda: The lambda value to find
+        tolerance: Tolerance for floating point comparison
+    
+    Returns:
+        The matching key or None if not found
+    """
+    for key in results_CC.keys():
+        if abs(key - target_lambda) < tolerance:
+            return key
+    return None
+
+
+def compute_analytical_distributions_for_all_lambdas(cc_pareto_results, confidence_levels):
+    """
+    Compute analytical distribution parameters for all specified confidence levels.
+    
+    Args:
+        cc_pareto_results: Results dict from CC-Pareto optimization
+        confidence_levels: List of lambda values to analyze
+    
+    Returns:
+        dict: {lambda_val: {'mean': ..., 'std': ..., 'variance': ..., 'contributions': ...}}
+    """
+    normal_metadata = cc_pareto_results['normal_metadata_env_cost']
+    results_CC = cc_pareto_results['results_CC']
+    
+    analytical_distributions = {}
+    
+    for lambda_val in confidence_levels:
+        # Find matching key with tolerance for floating point precision
+        matching_key = find_matching_lambda_key(results_CC, lambda_val)
+        
+        if matching_key is not None:
+            s_vector_df = results_CC[matching_key]['Scaling Vector'].sort_index()
+            params = extract_analytical_distribution_params(normal_metadata, s_vector_df)
+            # Store with the clean lambda value (not the floating point key)
+            analytical_distributions[lambda_val] = params
+            print(f"λ = {lambda_val:.2f}: Mean = {params['mean']:.4e}, Std = {params['std']:.4e}, CV = {params['std']/params['mean']*100:.2f}%")
+        else:
+            print(f"Warning: λ = {lambda_val} not found in CC-Pareto results")
+    
+    return analytical_distributions

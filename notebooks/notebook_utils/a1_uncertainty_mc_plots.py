@@ -8,6 +8,9 @@ import numpy as np
 import pandas as pd
 import os
 import matplotlib.pyplot as plt
+import scipy.stats
+from mpl_toolkits.axes_grid1.inset_locator import inset_axes, mark_inset
+from matplotlib.ticker import FormatStrFormatter
 
 
 def format_plot(ax, xlabel, ylabel, xlim, ylim=None):
@@ -497,3 +500,135 @@ def create_summary_table(analysis_strategies, analysis_normal):
     print("\n" + "="*80)
     
     return comparison_df
+
+
+def plot_analytical_distributions(analytical_distributions, save_path=None, figsize=(14, 6)):
+    """
+    Plot the analytical impact distributions (PDFs and CDFs) for each confidence level.
+    Uses consistent color scheme with other plots and includes zoom inset for CDFs.
+    
+    For a weighted sum of independent normal distributions:
+    - If X_i ~ N(μ_i, σ_i²) with scaling factors s_i
+    - Then Σ s_i X_i ~ N(Σ s_i μ_i, Σ s_i² σ_i²)
+    
+    Args:
+        analytical_distributions: Dict from compute_analytical_distributions_for_all_lambdas
+        save_path: Optional path to save the figure
+        figsize: Figure size tuple
+    
+    Returns:
+        matplotlib.figure.Figure: The created figure
+    """
+    n_levels = len(analytical_distributions)
+    
+    # Consistent color palette with other plots in the module
+    # Extended from the base palette ["#355C63", "#D99A3C", "#A53D31", "#4E1512"]
+    colors = [
+        "#355C63",  # Teal (low confidence)
+        "#5C8A8E",  # Light teal
+        "#D99A3C",  # Gold/amber
+        "#E6B861",  # Light gold
+        "#A53D31",  # Brick red
+        "#4E1512",  # Dark red (high confidence)
+        "#2E0C0B",  # Very dark red
+    ][:n_levels]
+    
+    # Create figure with 2 subplots (PDFs and CDFs)
+    fig, axes = plt.subplots(1, 2, figsize=figsize)
+    
+    # Collect all distributions for combined plot range
+    all_x_min = float('inf')
+    all_x_max = float('-inf')
+    
+    # Pre-calculate ranges
+    for lambda_val, params in analytical_distributions.items():
+        mean, std = params['mean'], params['std']
+        all_x_min = min(all_x_min, mean - 4*std)
+        all_x_max = max(all_x_max, mean + 4*std)
+    
+    # ========== Plot 1: PDFs ==========
+    ax1 = axes[0]
+    for i, (lambda_val, params) in enumerate(analytical_distributions.items()):
+        mean, std = params['mean'], params['std']
+        x = np.linspace(all_x_min, all_x_max, 500)
+        pdf = scipy.stats.norm.pdf(x, mean, std)
+        
+        # Format lambda label nicely
+        label = f'λ = {lambda_val:.2f}'
+        ax1.plot(x, pdf, color=colors[i], linewidth=2.5, label=label)
+        ax1.fill_between(x, pdf, alpha=0.15, color=colors[i])
+    
+    ax1.set_xlabel('Total environmental impact [kg CO₂-eq]', fontsize=14)
+    ax1.set_ylabel('Probability density', fontsize=14)
+    ax1.legend(loc='lower left', fontsize=11)
+    ax1.grid(True, alpha=0.3)
+    ax1.ticklabel_format(style='scientific', axis='x', scilimits=(0,0))
+    ax1.tick_params(axis='both', which='major', labelsize=12)
+    ax1.set_ylim(bottom=0)
+    
+    # ========== Plot 2: CDFs with zoom inset ==========
+    ax2 = axes[1]
+    
+    x = np.linspace(all_x_min, all_x_max, 500)
+    
+    # Store data for zoom
+    cdf_data = []
+    
+    for i, (lambda_val, params) in enumerate(analytical_distributions.items()):
+        mean, std = params['mean'], params['std']
+        cdf = scipy.stats.norm.cdf(x, mean, std)
+        
+        label = f'λ = {lambda_val:.2f}'
+        ax2.plot(x, cdf, color=colors[i], linewidth=2.5, label=label)
+        cdf_data.append((lambda_val, mean, std, colors[i]))
+    
+    ax2.set_xlabel('Total environmental impact [kg CO₂-eq]', fontsize=14)
+    ax2.legend(loc='lower left', fontsize=11)
+    ax2.grid(True, alpha=0.3)
+    ax2.ticklabel_format(style='scientific', axis='x', scilimits=(0,0))
+    ax2.tick_params(axis='both', which='major', labelsize=12)
+    ax2.set_ylim(0, 1)
+    
+    # Move y-axis to the right side
+    ax2.yaxis.set_label_position('right')
+    ax2.yaxis.tick_right()
+    ax2.set_ylabel('Cumulative probability', fontsize=14)
+    
+    # ========== Add zoom inset for high confidence region ==========
+    zoom_x_min = 1e10
+    zoom_x_max = 2.5e10
+    zoom_y_min = 0.997
+    zoom_y_max = 1.0
+    
+    # Create inset axes
+    axins = inset_axes(ax2, width="40%", height="40%", loc='center left',
+                       bbox_to_anchor=(0.08, 0.25, 1, 1), bbox_transform=ax2.transAxes)
+    
+    # Plot CDFs in inset
+    x_zoom = np.linspace(zoom_x_min, zoom_x_max, 300)
+    for lambda_val, mean, std, color in cdf_data:
+        cdf_zoom = scipy.stats.norm.cdf(x_zoom, mean, std)
+        axins.plot(x_zoom, cdf_zoom, color=color, linewidth=2)
+    
+    # Set zoom limits
+    axins.set_xlim(zoom_x_min, zoom_x_max)
+    axins.set_ylim(zoom_y_min, zoom_y_max)
+    axins.grid(True, alpha=0.3)
+    axins.ticklabel_format(style='scientific', axis='x', scilimits=(0,0))
+    axins.tick_params(axis='both', labelsize=10)
+    axins.yaxis.set_major_formatter(FormatStrFormatter('%.3f'))
+    
+    # Draw rectangle and connecting lines to indicate zoom region
+    mark_inset(ax2, axins, loc1=1, loc2=4, fc="none", ec="0.5", linestyle='--', linewidth=1)
+    
+    plt.tight_layout()
+    
+    if save_path:
+        # Ensure directory exists
+        os.makedirs(os.path.dirname(save_path), exist_ok=True)
+        plt.savefig(save_path, dpi=300, bbox_inches='tight')
+        print(f"✓ Figure saved to: {save_path}")
+    
+    plt.show()
+    
+    return fig
