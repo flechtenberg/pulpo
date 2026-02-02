@@ -502,7 +502,8 @@ def create_summary_table(analysis_strategies, analysis_normal):
     return comparison_df
 
 
-def plot_analytical_distributions(analytical_distributions, save_path=None, figsize=(14, 6)):
+def plot_analytical_distributions(analytical_distributions, save_path=None, figsize=(14, 6),
+                                   thresholds=None):
     """
     Plot the analytical impact distributions (PDFs and CDFs) for each confidence level.
     Uses consistent color scheme with other plots and includes zoom inset for CDFs.
@@ -515,6 +516,9 @@ def plot_analytical_distributions(analytical_distributions, save_path=None, figs
         analytical_distributions: Dict from compute_analytical_distributions_for_all_lambdas
         save_path: Optional path to save the figure
         figsize: Figure size tuple
+        thresholds: Optional dict of {label: value} for threshold lines (in kg CO2-eq).
+                    E.g., {"PB": 3.70144e9, "20 Mt": 20e9}
+                    Calculates P(impact < threshold) for each distribution.
     
     Returns:
         matplotlib.figure.Figure: The created figure
@@ -533,6 +537,13 @@ def plot_analytical_distributions(analytical_distributions, save_path=None, figs
         "#2E0C0B",  # Very dark red
     ][:n_levels]
     
+    # Threshold line styles for multiple thresholds
+    threshold_styles = [
+        {'color': 'black', 'linestyle': '--', 'linewidth': 2},
+        {'color': 'darkred', 'linestyle': '-.', 'linewidth': 2},
+        {'color': 'darkblue', 'linestyle': ':', 'linewidth': 2},
+    ]
+    
     # Create figure with 2 subplots (PDFs and CDFs)
     fig, axes = plt.subplots(1, 2, figsize=figsize)
     
@@ -546,21 +557,43 @@ def plot_analytical_distributions(analytical_distributions, save_path=None, figs
         all_x_min = min(all_x_min, mean - 4*std)
         all_x_max = max(all_x_max, mean + 4*std)
     
-    # ========== Plot 1: PDFs ==========
+    # ========== Plot 1: PDFs with threshold probabilities in legend ==========
     ax1 = axes[0]
     for i, (lambda_val, params) in enumerate(analytical_distributions.items()):
         mean, std = params['mean'], params['std']
         x = np.linspace(all_x_min, all_x_max, 500)
         pdf = scipy.stats.norm.pdf(x, mean, std)
         
-        # Format lambda label nicely
-        label = f'λ = {lambda_val:.2f}'
+        # Format lambda label with threshold probabilities if provided
+        if thresholds is not None and len(thresholds) > 0:
+            prob_parts = []
+            for j, (th_label, th_value) in enumerate(thresholds.items()):
+                prob_below = scipy.stats.norm.cdf(th_value, mean, std)
+                # Use more digits for second threshold onwards
+                if j == 0:
+                    prob_parts.append(f"P<{th_label}: {prob_below:.1%}")
+                else:
+                    prob_parts.append(f"P<{th_label}: {prob_below:.3%}")
+            label = f'λ = {lambda_val:.2f} ({", ".join(prob_parts)})'
+        else:
+            label = f'λ = {lambda_val:.2f}'
+        
         ax1.plot(x, pdf, color=colors[i], linewidth=2.5, label=label)
         ax1.fill_between(x, pdf, alpha=0.15, color=colors[i])
     
+    # Add vertical threshold lines if provided
+    if thresholds is not None:
+        y_max = ax1.get_ylim()[1]
+        for j, (th_label, th_value) in enumerate(thresholds.items()):
+            style = threshold_styles[j % len(threshold_styles)]
+            ax1.axvline(th_value, **style, alpha=0.7)
+            # Add label for threshold
+            ax1.text(th_value, y_max * (0.95 - j * 0.08), f' {th_label}', fontsize=11, 
+                     fontweight='bold', va='top', ha='left', color=style['color'])
+    
     ax1.set_xlabel('Total environmental impact [kg CO₂-eq]', fontsize=14)
     ax1.set_ylabel('Probability density', fontsize=14)
-    ax1.legend(loc='lower left', fontsize=11)
+    ax1.legend(loc='upper left', fontsize=9)
     ax1.grid(True, alpha=0.3)
     ax1.ticklabel_format(style='scientific', axis='x', scilimits=(0,0))
     ax1.tick_params(axis='both', which='major', labelsize=12)
