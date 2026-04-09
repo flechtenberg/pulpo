@@ -628,9 +628,9 @@ def plot_analytical_distributions(analytical_distributions, save_path=None, figs
     ax2.set_ylabel('Cumulative probability', fontsize=14)
     
     # ========== Add zoom inset for high confidence region ==========
-    zoom_x_min = 1e10
-    zoom_x_max = 2.5e10
-    zoom_y_min = 0.997
+    zoom_x_min = 0
+    zoom_x_max = 3e+10
+    zoom_y_min = 0.65
     zoom_y_max = 1.0
     
     # Create inset axes

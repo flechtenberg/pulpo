@@ -537,16 +537,18 @@ def extract_analytical_distribution_params(normal_metadata_env_cost, s_vector_df
                 'scale': data['scale'],
                 'scaling_factor': s_i,
                 'weighted_mean': s_i * data['loc'],
-                'weighted_var': (s_i ** 2) * (data['scale'] ** 2)
+                'weighted_var': (s_i ** 2) * (data['scale'] ** 2),
+                'weighted_var_L1': s_i * data['scale']  # For L1 norm contribution (not used in total variance)
             })
     
     contributions_df = pd.DataFrame(contributions)
     
     # Compute total distribution parameters
     total_mean = contributions_df['weighted_mean'].sum()
-    total_var = contributions_df['weighted_var'].sum()
-    total_std = np.sqrt(total_var)
-    
+    # total_var = contributions_df['weighted_var'].sum()
+    # total_std = np.sqrt(total_var)
+    total_var = contributions_df['weighted_var_L1'].sum()
+    total_std = total_var  # For L1 norm, we can use the sum of weighted std as a proxy for total uncertainty    
     return {
         'mean': total_mean,
         'std': total_std,
