@@ -1,8 +1,22 @@
 import pandas as pd
 import os
-from typing import Dict, Any
-from pyomo.environ import ConcreteModel
+from pyomo.environ import ConcreteModel, Param
+from typing import TypedDict, Dict, Any
+import pandas as pd
+from pulpo.utils.bw_parser import LCIDataDict
 
+class ResultDataDict(TypedDict, total=False):
+    Scaling_Vector: pd.DataFrame
+    Intervention_Vector: pd.DataFrame
+    Slack: pd.DataFrame
+    Impacts: pd.DataFrame
+    Demand: pd.DataFrame
+    Choices: Dict[str, pd.DataFrame]
+    Constraints_Upper: pd.DataFrame
+    Constraints_Lower: pd.DataFrame
+    Constraints_Upper_Elem: pd.DataFrame
+    # Optionally, add parameter DataFrames if extractparams=True
+    # e.g. param_name: pd.DataFrame
 
 def extract_flows(instance: ConcreteModel, mapping: Dict[str, str], metadata: Dict[str, str], flow_type: str) -> pd.DataFrame:
     """
@@ -44,7 +58,7 @@ def extract_impacts(instance: ConcreteModel) -> pd.DataFrame:
     Extracts impact values and corresponding weights from the Pyomo instance.
     """
 
-    data = {'Method': [], 'Weight': [], 'Value': []}
+    data:dict = {'Method': [], 'Weight': [], 'Value': []}
 
     for i in instance.impacts.keys():
         data['Method'].append(i)
@@ -64,7 +78,7 @@ def extract_choices(instance: ConcreteModel, choices: Dict[str, Dict[Any, float]
 
     results = {}
     for choice, processes in choices.items():
-        data = {
+        data:dict = {
             "Value": [],
             "Capacity": [],
             "Metadata": []
@@ -113,7 +127,7 @@ def extract_constraints(instance: ConcreteModel, constraints: Dict[Any, float], 
         raise ValueError("Invalid flow_type. Use 'scaling' or 'intervention'.")
 
     # Retrieve data from flows
-    data = {'ID': [], 'Key': [], 'Metadata': [], 'Value': [], 'Limit': []}
+    data:dict = {'ID': [], 'Key': [], 'Metadata': [], 'Value': [], 'Limit': []}
     for constraint in constraints:
         flow = mapping.get(constraint.key)
         data['ID'].append(flow)
@@ -124,8 +138,20 @@ def extract_constraints(instance: ConcreteModel, constraints: Dict[Any, float], 
 
     return pd.DataFrame(data).set_index('ID').sort_values('Value', ascending=False)
 
+def extract_params(instance: ConcreteModel) -> Dict[str,pd.DataFrame]:
+    """
+    Extracts the Parameter values from the optimization model
+    """
+    data_all:dict = {}
+    for param in instance.component_objects(ctype=Param):
+        data = {}
+        extracted_values = param.extract_values()
+        data['ID'] = list(extracted_values.keys())
+        data['Value'] = list(extracted_values.values())
+        data_all[param.name] = pd.DataFrame(data).set_index('ID').sort_values('Value', ascending=False)
+    return data_all
 
-def extract_results(worker: Any) -> Dict[str, Any]:
+def extract_results(worker: Any, extractparams:bool=False) -> ResultDataDict:
     """
     Extracts results from the Pyomo model instance and organizes them into a structured format. Calls all other extract functions.
     """
@@ -151,6 +177,10 @@ def extract_results(worker: Any) -> Dict[str, Any]:
         "Constraints Upper Elem": extract_constraints(instance, worker.upper_elem_limit, interv_map, interv_map_meta, 'intervention')
     }
 
+    # Append the parameter values to it
+    if extractparams:
+        param_data = extract_params(instance)
+        result_data.update(param_data)
     return result_data
 
 def save_results(worker: Any, file_name: str) -> None:
@@ -240,3 +270,57 @@ def summarize_results(worker: Any, zeroes: bool = False) -> None:
 
     if not constraints_found:
         display("No constraint data to display.")
+
+
+# ATTN: This function is to be deleted later or integrated into another function
+def compare_subsequent_paretosolutions(result_data_CC:Dict[float,LCIDataDict], choices:dict, method:str):
+    """
+    TO BE DELETED LATER OR INTEGRATED INTO ANOTHER FUNCTION 
+
+    Compare impacts and decision choices across multiple Pareto solutions.
+
+    Args:
+        result_data_CC (dict of float to dict): Mapping from each lambda level
+            to its corresponding solver result dictionary.
+    """
+    try:
+        from IPython.display import display
+    except ImportError:
+        display = globals()['print']
+    impacts = {}
+    print(method)
+    for lambda_QB, result_data in result_data_CC.items():
+        impacts[lambda_QB] = result_data['Impacts'].loc[method,'Value']
+        print('{}: {}'.format(lambda_QB, impacts[lambda_QB]))
+    # The changs in the choices of the optimizer
+    choices_results = {}
+    for i_CC, (lambda_QB, result_data) in enumerate(result_data_CC.items()):
+        for choice in choices.keys():
+            if i_CC == 0:
+                choices_results[choice] = result_data['Choices'][choice][['Capacity']]
+            choices_results[choice] = choices_results[choice].join(result_data['Choices'][choice]['Value'].rename(lambda_QB), how='left')
+    for choice, choice_result in choices_results.items():
+        display(choice)
+        display(choice_result)
+
+    # # Changes in the scaling vector and the characterized and scaled inventories
+    # lambda_array = list(result_data_CC.keys())
+    # for lambda_1, lambda_2 in zip(lambda_array[:len(lambda_array)-1], lambda_array[1:len(lambda_array)]):
+    #     print(f'lambda_1: {lambda_1}\nlambda_2: {lambda_2}\n')
+    #     scaling_vector_diff = ((result_data_CC[lambda_1]['Scaling Vector']['Value'] - result_data_CC[lambda_2]['Scaling Vector']['Value']))
+    #     scaling_vector_ratio = (scaling_vector_diff / result_data_CC[lambda_1]['Scaling Vector']['Value']).abs().sort_values(ascending=False)
+    #     environmental_cost_mean = {env_cost_index[0]: env_cost['Value'] for env_cost_index, env_cost in result_data_CC[lambda_1]['ENV_COST_MATRIX'].iterrows()}
+    #     characterized_scaling_vector_diff = (scaling_vector_diff * pd.Series(environmental_cost_mean).reindex(scaling_vector_diff.index)).abs()
+    #     characterized_scaling_vector_diff_relative = (characterized_scaling_vector_diff / result_data_CC[lambda_1]['Impacts'].loc[method, 'Value']).abs().sort_values(ascending=False)
+
+    #     print('Amount of process scaling variables that changed:\n{}: >1% \n{}: >10%\n{}: >100%\n{}: >1000%\n'.format((scaling_vector_ratio > 0.01).sum(), (scaling_vector_ratio > 0.1).sum(), (scaling_vector_ratio > 1).sum(), (scaling_vector_ratio > 10).sum()))
+    #     print('Amount of process characterized scaling variables (impacts per process) that changed:\n{}: >1% \n{}: >10%\n{}: >100%\n{}: >1000%\n'.format((characterized_scaling_vector_diff_relative > 0.01).sum(), (characterized_scaling_vector_diff_relative > 0.1).sum(), (characterized_scaling_vector_diff_relative > 1).sum(), (characterized_scaling_vector_diff_relative > 10).sum()))
+    #     print('{:.5e}: is the maximum impact change in one process\n{:.5e}: is the total impact change\n'.format(characterized_scaling_vector_diff_relative.max(), characterized_scaling_vector_diff_relative.sum()))
+
+    #     amount_of_rows_for_visiualization = 10
+    #     # print('The relative change of the scaling vector (s_lambda_1 - s_lambda_2)/s_lambda_1:\n')
+    #     # display(scaling_vector_ratio.iloc[:amount_of_rows_for_visiualization].rename(result_data_CC[lambda_2]['Scaling Vector']['Metadata']).sort_values(ascending=False))
+    #     # print('\n---\n')
+    #     print('The relative change of the characterized scaling vector (s_lambda_1 - s_lambda_2)*QB_s / QBs:\n')
+    #     display(characterized_scaling_vector_diff_relative.iloc[:amount_of_rows_for_visiualization].rename(result_data_CC[lambda_2]['Scaling Vector']['Metadata']))
+    #     print('\n---\n')
