@@ -6,7 +6,6 @@ from typing import List, Union, Literal, Dict, Tuple, Optional
 import pandas as pd
 import numpy as np
 import array
-import webbrowser
 from tests.rice_database import setup_rice_husk_db
 from tests.sample_database import setup_sample_db
 
