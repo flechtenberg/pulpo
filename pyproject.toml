@@ -45,11 +45,11 @@ bw25 = [
     "bw2data>=4.0.0"
 ]
 uncertainty = [
-    "stats_arrays",
-    "SALib",
-    "seaborn",
-    "matplotlib",
-    "typing_extensions"
+    "stats_arrays==0.7.0",
+    "SALib==1.4.8",
+    "seaborn==0.13.2",
+    "matplotlib==3.10.7",
+    "typing_extensions==4.15.0"
 ]
 
 [project.urls]
