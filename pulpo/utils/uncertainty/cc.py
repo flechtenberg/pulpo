@@ -112,13 +112,14 @@ def compute_L1_env_cost_mean_var(
 
     def _compute_envcost_mean(lci_data: dict, normal_uncertainty_data: UncertaintyData, method: str) -> dict:
         Cf_means = _extract_characterization_factors_for_env_cost_variance(normal_uncertainty_data, lci_data, method)
-        intervention_flows_extracted = pd.DataFrame.sparse.from_spmatrix(lci_data['intervention_matrix'])
-        intervention_flows_extracted_stacked = intervention_flows_extracted.stack().astype('float')
+        intervention_matrix_updated = lci_data['intervention_matrix'].tolil(copy=True)
         for If_db in normal_uncertainty_data['If'].keys():
             normal_means = pd.DataFrame.from_dict(normal_uncertainty_data['If'][If_db]['defined']).T['loc']
-            intervention_flows_extracted_stacked.update(normal_means)
-        If_means = intervention_flows_extracted_stacked.unstack()
-        envcost_mean = (Cf_means @ If_means).to_dict()
+            for (intervention_idx, process_id), mean_value in normal_means.items():
+                intervention_matrix_updated[intervention_idx, process_id] = mean_value
+        envcost_mean_array = np.asarray(Cf_means.values) @ intervention_matrix_updated.tocsr()
+        envcost_mean_values = np.asarray(envcost_mean_array).ravel()
+        envcost_mean = {process_id: float(value) for process_id, value in enumerate(envcost_mean_values)}
         return envcost_mean
 
     def _check_envcost_variance(envcost_std: dict, envcost_mean: dict, lci_data: dict, plot_details: bool = False):
