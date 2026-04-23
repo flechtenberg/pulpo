@@ -3,6 +3,19 @@ import bw2calc as bc
 import bw2data as bd
 from pulpo.utils.utils import get_bw_version
 from stats_arrays.random import MCRandomNumberGenerator
+from typing import TypedDict, Dict, Any
+import numpy as np
+
+class LCIDataDict(TypedDict):
+    matrices: Dict[str, np.ndarray]
+    intervention_matrix: np.ndarray
+    technology_matrix: np.ndarray
+    process_map: Dict[Any, Any]
+    intervention_params: Any
+    characterization_params: Dict[str, Any]
+    intervention_map: Dict[Any, Any]
+    intervention_map_metadata: Dict[Any, str]
+    process_map_metadata: Dict[Any, str]
 
 def set_project(project: str):
     # Set project and check if it exists
@@ -11,7 +24,7 @@ def set_project(project: str):
     bd.projects.set_current(project)
 
 def import_data(project: str, databases: Union[str, List[str]], method: Union[str, List[str], Dict[str, int]],
-                intervention_matrix_name: str, seed: Union[None, int] = None) -> Dict[str, Union[dict, Any]]:
+                intervention_matrix_name: str, seed: Union[None, int] = None, resample: Union[str, List[str]] = ("A", "B", "Q"),) -> LCIDataDict:
     """
     Main function to import LCI data for a project from one or more databases.
 
@@ -66,6 +79,10 @@ def import_data(project: str, databases: Union[str, List[str]], method: Union[st
     
     dist = seed is not None
 
+    if isinstance(resample, str):
+        resample = [resample.upper()]
+    resample = [r.upper() for r in resample]
+
     match bw_version:
         case 'bw25':
             for eidb in eidbs:
@@ -79,7 +96,7 @@ def import_data(project: str, databases: Union[str, List[str]], method: Union[st
                     m = str(method)
                     cf_base = data_objs[2].data[2]
                     characterization_params[m] = cf_base
-                    if dist:
+                    if dist and "Q" in resample:
                         next(lca.characterization_mm)
                         lca.characterization_matrix = lca.characterization_mm.matrix
                     characterization_matrices[m] = lca.characterization_matrix
@@ -95,9 +112,13 @@ def import_data(project: str, databases: Union[str, List[str]], method: Union[st
                 # process map + final matrices
                 process_map.update({act.key: lca.dicts.product[act.id] for act in eidb})
                 if dist:
-                    next(lca.technosphere_mm); next(lca.biosphere_mm)
-                    lca.technosphere_matrix = lca.technosphere_mm.matrix
-                    lca.biosphere_matrix   = lca.biosphere_mm.matrix
+                    if "A" in resample:
+                        next(lca.technosphere_mm)
+                        lca.technosphere_matrix = lca.technosphere_mm.matrix
+                    if "B" in resample:
+                        next(lca.biosphere_mm)
+                        lca.biosphere_matrix = lca.biosphere_mm.matrix
+
 
         case 'bw2':
             for eidb in eidbs:
@@ -107,7 +128,7 @@ def import_data(project: str, databases: Union[str, List[str]], method: Union[st
 
                     m = str(method)
                     characterization_params[m] = lca.cf_params
-                    if dist:
+                    if dist and "Q" in resample:
                         rng = MCRandomNumberGenerator(lca.cf_params, seed=seed)
                         lca.rebuild_characterization_matrix(rng.next())
                     characterization_matrices[m] = lca.characterization_matrix
@@ -116,10 +137,13 @@ def import_data(project: str, databases: Union[str, List[str]], method: Union[st
                 tech_params, bio_params = lca.tech_params, lca.bio_params
 
             if dist:
-                tech_rng = MCRandomNumberGenerator(tech_params, seed=seed)
-                bio_rng  = MCRandomNumberGenerator(bio_params,  seed=seed)
-                lca.rebuild_technosphere_matrix(tech_rng.next())
-                lca.rebuild_biosphere_matrix(   bio_rng.next())
+                if "A" in resample:
+                    tech_rng = MCRandomNumberGenerator(tech_params, seed=seed)
+                    lca.rebuild_technosphere_matrix(tech_rng.next())
+                if "B" in resample:
+                    bio_rng  = MCRandomNumberGenerator(bio_params,  seed=seed)
+                    lca.rebuild_biosphere_matrix(bio_rng.next())
+
 
     # final A & B matrices
     technology_matrix   = lca.technosphere_matrix
@@ -147,11 +171,10 @@ def import_data(project: str, databases: Union[str, List[str]], method: Union[st
             if act.key in intervention_map:
                 intervention_map_metadata[intervention_map[act.key]] = act['name'] + ' | ' + str(act['categories'])
     else:
-        print(
+        raise Exception(
             "The name of the biosphere is not '" + intervention_matrix_name + "'. Please specify the correct biosphere.")
-        return {}
 
-    lci_data = {
+    lci_data:LCIDataDict = {
         'matrices': characterization_matrices,
         'intervention_matrix': intervention_matrix,
         'technology_matrix': technology_matrix,
@@ -166,16 +189,16 @@ def import_data(project: str, databases: Union[str, List[str]], method: Union[st
     return lci_data
 
 
-def update_lci_data(lci_data: Dict[str, Any], seed: int) -> Dict[str, Any]:
+def update_lci_data(lci_data: LCIDataDict, seed: int) -> LCIDataDict:
     """
     Update the LCI data dictionary with new data. For that, c
 
     Args:
-        lci_data (Dict[str, Any]): Original LCI data dictionary.
+        lci_data (LCIDataDict): Original LCI data dictionary.
         new_data (Dict[str, Any]): New data to be added to the LCI data dictionary.
 
     Returns:
-        Dict[str, Any]: Updated LCI data dictionary.
+        LCIDataDict: Updated LCI data dictionary.
     """
 
     return lci_data
