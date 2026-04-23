@@ -27,6 +27,9 @@ test_ignore/
 
 desktop.ini
 
+# Development / internal test notebooks
+develop_tests/
+
 # PyInstaller
 #  Usually these files are written by a python script from a template
 #  before PyInstaller builds the exe, so as to inject date/other infos into it.
@@ -99,4 +102,10 @@ pulpo_install_methanol_case.ipynb
 
 /notebooks/energy_transition_showcase_figures.ipynb
 develop_tests/**
+!develop_tests/stats_notebook_final.ipynb
+!develop_tests/ammonia.xlsx
 notebooks/credentials.txt
+*.pkl
+notebooks/data/results
+notebooks/data/results/*.png
+notebooks/data/results/*.svg

@@ -1,7 +1,10 @@
+import os
+import pandas as pd
+import numpy as np
+import scipy
 import pyomo.environ as pyo
 from pyomo.contrib import appsi
 from .saver import extract_flows
-import os
 
 def create_model():
     """
@@ -51,10 +54,82 @@ def create_model():
     model.inv_vector = pyo.Var(model.INV, doc='Intervention flows')
     model.slack = pyo.Var(model.PRODUCT, doc='Supply slack variables')
 
+    # Rule functions
+    def populate_env(model):
+        """Relates the environmental flows to the processes."""
+        for j, h in model.ENV_COST_PROCESS:
+            if j not in model.ENV_COST_IN[h]:
+                model.ENV_COST_IN[h].add(j)
+
+    def populate_in_and_out(model):
+        """Relates the inputs of an activity to its outputs."""
+        for i, j in model.PRODUCT_PROCESS:
+            model.PROCESS_OUT[i].add(j)
+            model.PROCESS_IN[j].add(i)
+
+    def populate_inv(model):
+        """Relates the impacts to the environmental flows"""
+        for a, j in model.INV_PROCESS:
+            model.INV_OUT[a].add(j)
+
     # Building rules for sets
     model.Env_in_out = pyo.BuildAction(rule=populate_env)
     model.Process_in_out = pyo.BuildAction(rule=populate_in_and_out)
     model.Inv_in_out = pyo.BuildAction(rule=populate_inv)
+
+    def demand_constraint(model, i):
+        """Fixes a value in the demand vector"""
+        return sum(model.TECH_MATRIX[i, j] * model.scaling_vector[j] for j in model.PROCESS_OUT[i]) == model.FINAL_DEMAND[i] + model.slack[i]
+
+    def impact_constraint(model, h):
+        """Calculates all the impact categories"""
+        return model.impacts[h] == sum(model.ENV_COST_MATRIX[j, h] * model.scaling_vector[j] for j in model.ENV_COST_IN[h])
+
+    def inventory_constraint(model, g):
+        """Calculates the environmental flows"""
+        return model.inv_vector[g] == sum(model.INV_MATRIX[g, j] * model.scaling_vector[j] for j in model.INV_OUT[g])
+
+    def upper_constraint(model, j):
+        """Ensures that variables are within capacities (Maximum production constraint) """
+        return model.scaling_vector[j] <= model.UPPER_LIMIT[j]
+
+    def lower_constraint(model, j):
+        """ Minimum production constraint """
+        return model.scaling_vector[j] >= model.LOWER_LIMIT[j]
+
+    def upper_env_constraint(model, g):
+        """Ensures that variables are within capacities (Maximum production constraint) """
+        return model.inv_vector[g] <= model.UPPER_INV_LIMIT[g]
+
+    def lower_env_constraint(model, g):
+        """Ensures that variables are within capacities (Minimum environmental flow constraint) """
+        return model.inv_vector[g] >= model.LOWER_INV_LIMIT[g]
+
+    def upper_imp_constraint(model, h):
+        """ Imposes upper limits on selected impact categories """
+        return model.impacts[h] <= model.UPPER_IMP_LIMIT[h]
+
+    def lower_imp_constraint(model, h):
+        """ Imposes lower limits on selected impact categories """
+        return model.impacts[h] >= model.LOWER_IMP_LIMIT[h]
+
+    def dependent_constraint(model, constraint_name):
+        """Dependent constraint: sum of left side weights * scaling <= sum of right side weights * scaling"""
+        left_sum = sum(model.LEFT_WEIGHTS[constraint_name, j] * model.scaling_vector[j] for j in model.PROCESS)
+        right_sum = sum(model.RIGHT_WEIGHTS[constraint_name, j] * model.scaling_vector[j] for j in model.PROCESS)
+        return left_sum <= right_sum
+
+    def slack_upper_constraint(model, j):
+        """ Slack variable upper limit for activities where supply is specified instead of demand """
+        return model.slack[j] <= 1e20 * model.SUPPLY[j]
+
+    def slack_lower_constraint(model, j):
+        """ Slack variable upper limit for activities where supply is specified instead of demand """
+        return model.slack[j] >= -1e20 * model.SUPPLY[j]
+
+    def objective_function(model):
+        """Objective is a sum over all indicators with weights. Typically, the indicator of study has weight 1, the rest 0"""
+        return sum(model.impacts[h] * model.WEIGHTS[h] for h in model.INDICATOR)
 
     # Constraints
     model.FINAL_DEMAND_CNSTR = pyo.Constraint(model.PRODUCT, rule=demand_constraint)
@@ -75,78 +150,6 @@ def create_model():
 
     return model
 
-
-# Rule functions
-def populate_env(model):
-    """Relates the environmental flows to the processes."""
-    for j, h in model.ENV_COST_PROCESS:
-        if j not in model.ENV_COST_IN[h]:
-            model.ENV_COST_IN[h].add(j)
-
-def populate_in_and_out(model):
-    """Relates the inputs of an activity to its outputs."""
-    for i, j in model.PRODUCT_PROCESS:
-        model.PROCESS_OUT[i].add(j)
-        model.PROCESS_IN[j].add(i)
-
-def populate_inv(model):
-    """Relates the impacts to the environmental flows"""
-    for a, j in model.INV_PROCESS:
-        model.INV_OUT[a].add(j)
-
-def demand_constraint(model, i):
-    """Fixes a value in the demand vector"""
-    return sum(model.TECH_MATRIX[i, j] * model.scaling_vector[j] for j in model.PROCESS_OUT[i]) == model.FINAL_DEMAND[i] + model.slack[i]
-
-def impact_constraint(model, h):
-    """Calculates all the impact categories"""
-    return model.impacts[h] == sum(model.ENV_COST_MATRIX[j, h] * model.scaling_vector[j] for j in model.ENV_COST_IN[h])
-
-def inventory_constraint(model, g):
-    """Calculates the environmental flows"""
-    return model.inv_vector[g] == sum(model.INV_MATRIX[g, j] * model.scaling_vector[j] for j in model.INV_OUT[g])
-
-def upper_constraint(model, j):
-    """Ensures that variables are within capacities (Maximum production constraint) """
-    return model.scaling_vector[j] <= model.UPPER_LIMIT[j]
-
-def lower_constraint(model, j):
-    """ Minimum production constraint """
-    return model.scaling_vector[j] >= model.LOWER_LIMIT[j]
-
-def upper_env_constraint(model, g):
-    """Ensures that variables are within capacities (Maximum production constraint) """
-    return model.inv_vector[g] <= model.UPPER_INV_LIMIT[g]
-
-def lower_env_constraint(model, g):
-    """Ensures that variables are within capacities (Minimum environmental flow constraint) """
-    return model.inv_vector[g] >= model.LOWER_INV_LIMIT[g]
-
-def upper_imp_constraint(model, h):
-    """ Imposes upper limits on selected impact categories """
-    return model.impacts[h] <= model.UPPER_IMP_LIMIT[h]
-
-def lower_imp_constraint(model, h):
-    """ Imposes lower limits on selected impact categories """
-    return model.impacts[h] >= model.LOWER_IMP_LIMIT[h]
-
-def dependent_constraint(model, constraint_name):
-    """Dependent constraint: sum of left side weights * scaling <= sum of right side weights * scaling"""
-    left_sum = sum(model.LEFT_WEIGHTS[constraint_name, j] * model.scaling_vector[j] for j in model.PROCESS)
-    right_sum = sum(model.RIGHT_WEIGHTS[constraint_name, j] * model.scaling_vector[j] for j in model.PROCESS)
-    return left_sum <= right_sum
-
-def slack_upper_constraint(model, j):
-    """ Slack variable upper limit for activities where supply is specified instead of demand """
-    return model.slack[j] <= 1e20 * model.SUPPLY[j]
-
-def slack_lower_constraint(model, j):
-    """ Slack variable upper limit for activities where supply is specified instead of demand """
-    return model.slack[j] >= -1e20 * model.SUPPLY[j]
-
-def objective_function(model):
-    """Objective is a sum over all indicators with weights. Typically, the indicator of study has weight 1, the rest 0"""
-    return sum(model.impacts[h] * model.WEIGHTS[h] for h in model.INDICATOR)
 
 
 def calculate_methods(instance, lci_data, methods):
@@ -183,7 +186,6 @@ def calculate_methods(instance, lci_data, methods):
         instance.impacts_calculated = pyo.Var(impacts.keys(), initialize=impacts)
 
     return instance
-
 
 def calculate_inv_flows(instance, lci_data):
     """
@@ -249,7 +251,16 @@ def solve_highspy(model_instance):
     """Solve the model using Highspy."""
     opt = appsi.solvers.Highs()
     results = opt.solve(model_instance)
-    print('Optimization problem solved using Highspy')
+    if results.termination_condition == appsi.base.TerminationCondition.optimal: 
+        print('optimal solution found: ', results.best_feasible_objective) 
+        results.solution_loader.load_vars() 
+    elif results.best_feasible_objective is not None: 
+        print('sub-optimal but feasible solution found: ', results.best_feasible_objective) 
+    elif results.termination_condition in {appsi.base.TerminationCondition.maxIterations, appsi.base.TerminationCondition.maxTimeLimit}: 
+        print('No feasible solution was found. The best lower bound found was ', results.best_objective_bound) 
+    else: 
+        print('The following termination condition was encountered: ', results.termination_condition) 
+        print('Optimization problem solved using Highspy')
     return results, model_instance
 
 def solve_neos(model_instance, solver_name, options, neos_email):
@@ -264,12 +275,13 @@ def solve_neos(model_instance, solver_name, options, neos_email):
         print("If you do not have a NEOS account, please create one at https://neos-server.org/neos/ \n")
         print("Alternatively, you can pass the 'neos_email' argument to the solve function. \n")
         return None, model_instance
-
     solver_manager = pyo.SolverManagerFactory('neos')
-    kwargs = {'solver': solver_name}
-    if options:
-        kwargs['options'] = options
-    results = solver_manager.solve(model_instance, **kwargs)
+    # ATTN: deleted the 'options' use as kwargs, since I do not think it makes sense, it holds options for the PULPO solver and for the pyomo solver_manager, 
+    # it needs to be either different options or completely differently structured. Now I have hard programmed the seetings.
+    #  Also solver_name is a solver_manager option, it kind of does not make sense
+    results = solver_manager.solve(model_instance, opt=solver_name, tee=True)
+    if not results.solver.termination_condition == pyo.TerminationCondition.optimal:
+        raise Exception('Could not find an optimal solutions to the problem.')
 
     print("Optimization problem solved using NEOS")
     return results, model_instance
@@ -329,7 +341,7 @@ def solve_gurobi(model_instance, options=None):
             "ScaleFlag"     : 2       # > geometric scaling for better conditioning
         }
 
-    These values keep residuals ~1×10⁻⁹ (enough for 6-8 significant-digit LCA
+    These values keep residuals ~1Ã—10â»â¹ (enough for 6-8 significant-digit LCA
     results) while guarding against ill-scaled data.  Add extras like
     `"TimeLimit": 600` or `"MIPGap": 1e-8` to the same dict.
     """
