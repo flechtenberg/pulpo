@@ -11,8 +11,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from scipy.sparse import diags
 
-# PULPO imports
-from pulpo import pulpo
+# PULPO imports (uncertainty features -> pulpo_unc facade)
 from pulpo.utils.uncertainty import processor
 
 
@@ -141,7 +140,7 @@ def get_uncertainty_strategies(method_name):
 
 def analyze_MC_results(results_MC, impact_method=None, show_plot=True):
     """
-    Analyze Monte Carlo results from PulpoOptimizer.
+    Analyze Monte Carlo results from PulpoOptimizerUnc.
     
     Args:
         results_MC (dict): Monte Carlo results dictionary
