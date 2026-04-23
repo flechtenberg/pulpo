@@ -74,11 +74,9 @@ Use this link to start a cloud session and test PULPO right away:
 
 [![launch - renku](https://renkulab.io/renku-badge.svg)](https://renkulab.io/v2/projects/fabian/pulpo-test/sessions/01JRM54S4NKMS84Y6BAYT832WH/start)
 
-A general showcase revolving around [methanol production](https://github.com/flechtenberg/pulpo/blob/master/notebooks/pulpo_showcase.ipynb) covers the core optimization features as well as Monte Carlo uncertainty treatment.
+The main reference is the [PULPO showcase notebook](https://github.com/flechtenberg/pulpo/blob/master/notebooks/pulpo_showcase.ipynb), which revolves around methanol production and covers both the core optimization features (Sections 1–9) and the full **advanced uncertainty workflow** of the `pulpo_unc` module (Section 10): uncertainty data import and filtering, gap-filling strategies, Monte Carlo from prepared distributions, Chance-Constrained optimization, and Global Sensitivity Analysis.
 
 Additional example notebooks are available for a [hydrogen case](https://github.com/flechtenberg/pulpo/blob/master/notebooks/showcases/hydrogen_showcase.ipynb), an [electricity case](https://github.com/flechtenberg/pulpo/blob/master/notebooks/showcases/electricity_showcase.ipynb), and a [plastic case](https://github.com/flechtenberg/pulpo/blob/master/notebooks/showcases/plastic_showcase.ipynb).
-
-For the new **uncertainty analysis** workflow, see the [ammonia uncertainty case study](https://github.com/flechtenberg/pulpo/blob/master/notebooks/uncertainty_case_study/), which demonstrates the full pipeline from uncertainty import through Global Sensitivity Analysis and Chance-Constrained optimization.
 
 There is also a workshop repository ([here](https://github.com/flechtenberg/pulpo_workshop)) created for the Brightcon 2024 conference, with guided notebooks and exercises.
 
@@ -93,14 +91,15 @@ python -m unittest discover -s tests
 ---
 ## What's new in 1.5.0?
 
-This release integrates the full **uncertainty analysis** pipeline into PULPO, turning the long-running development effort into a first-class feature:
+This release integrates the full **uncertainty analysis** pipeline into PULPO via the new `pulpo.pulpo_unc` module, turning the long-running development effort into a first-class feature:
 
+- **`PulpoOptimizerUnc`** — A subclass of `PulpoOptimizer` that exposes the entire uncertainty workflow through a single worker object.
 - **Uncertainty data import and filtering** — Import uncertain parameters directly from Brightway databases via `import_and_filter_uncertainty_data()`, with configurable cutoff-based filtering.
 - **Uncertainty strategies** — Fill missing or incomplete uncertainty specifications using `apply_uncertainty_strategies()`, with built-in strategies (e.g. triangular bound interpolation) and support for custom expert-knowledge distributions.
-- **Global Sensitivity Analysis (GSA)** — Identify the uncertain parameters that drive optimization outcomes using Sobol sensitivity indices via `run_gsa()`.
+- **Monte Carlo from prepared distributions** — Run MC on the curated uncertainty data (without re-sampling the full Brightway matrices) via `run_mc_from_uncertainty()`.
 - **Chance-Constrained (CC) optimization** — Formulate and solve chance-constrained programs with `create_CC_formulation()` and `solve_CC_problem()`, yielding a Pareto front of optimal solutions at varying probability (risk) levels.
-- **New uncertainty case study** — A multi-step [ammonia showcase](https://github.com/flechtenberg/pulpo/blob/master/notebooks/uncertainty_case_study/) illustrates the complete uncertainty workflow.
-- **L1-norm variance in CC formulation** — The analytical mean and variance computation for environmental costs now uses the L1 norm, improving numerical consistency.
+- **Global Sensitivity Analysis (GSA)** — Identify the uncertain parameters that drive optimization outcomes using Sobol sensitivity indices via `run_gsa()`.
+- **End-to-end showcase** — Section 10 of the [PULPO showcase notebook](https://github.com/flechtenberg/pulpo/blob/master/notebooks/pulpo_showcase.ipynb) walks through the complete `pulpo_unc` workflow on the methanol system.
 - Note: The uncertainty features in this release have been implemented and tested with Brightway `bw2` only; users working with `bw25` should validate workflows and may need to adapt configuration.
 - Minor bugfixes and code cleanup.
 
