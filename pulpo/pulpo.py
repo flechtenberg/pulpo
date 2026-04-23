@@ -1,5 +1,4 @@
-from pulpo.utils import optimizer, bw_parser, converter, saver
-from pulpo.utils.uncertainty import monte_carlo
+from pulpo.utils import optimizer, bw_parser, converter, saver, monte_carlo
 from typing import List, Union
 from tests.rice_database import setup_rice_husk_db
 from tests.sample_database import setup_sample_db
@@ -21,17 +20,18 @@ class PulpoOptimizer:
         self.intervention_matrix = 'biosphere3'
         self.method = converter.convert_to_dict(method)
         self.directory = directory
+        self.uncertainty_data = None
         self.lci_data = None
         self.instance = None
-        self.choices = {}
-        self.demand = {}
-        self.upper_limit = {}
-        self.lower_limit = {}
-        self.upper_elem_limit = {}
-        self.upper_imp_limit = {}
-        self.lower_elem_limit = {}
-        self.lower_imp_limit = {}
-        self.dependent_constraints = {}
+        self.choices: dict = {}
+        self.demand: dict = {}
+        self.upper_limit: dict = {}
+        self.lower_limit: dict = {}
+        self.upper_elem_limit: dict = {}
+        self.upper_imp_limit: dict = {}
+        self.lower_elem_limit: dict = {}
+        self.lower_imp_limit: dict = {}
+        self.dependent_constraints: dict = {}
 
         bw_parser.set_project(project)
 
@@ -96,21 +96,44 @@ class PulpoOptimizer:
         self.instance = optimizer.calculate_inv_flows(self.instance, self.lci_data)
         return results
     
-    def solve_MC(self, n_it=100, GAMS_PATH=False, solver_name=None, options=None):
+    def solve_MC(
+        self,
+        n_it=100,
+        GAMS_PATH=False,
+        solver_name=None,
+        options=None,
+        resample=("A", "B", "Q"),
+        n_jobs=-1,
+        seed=None,
+    ):
         """
-        Solves the optimization model using Monte Carlo simulation.
-
-        Args:
-            n_it (int): Number of Monte Carlo iterations.
-            GAMS_PATH (bool): Path to GAMS if needed.
-            options (dict): Additional options for the solver.
-
-        Returns:
-            results: Results of the optimization.
+        Runs Monte Carlo simulation using pre-sampled LCI data for safe parallelization.
         """
-        # TODO: Analyse also the choices made in each iteration, parallelize? ...
-        results = monte_carlo.solve_model_MC(self, n_it, GAMS_PATH, solver_name=solver_name, options=options)
+        if self.lci_data is None:
+            raise Exception("No LCI data found. Please run get_lci_data() before solve_MC().")
 
+        # Step 1: Pre-sample all LCI variants sequentially
+        print(f"Pre-sampling {n_it} LCI matrix sets...")
+        samples = monte_carlo.pre_sample_lci_matrices(
+            project=self.project,
+            databases=self.database,
+            method=self.method,
+            intervention_matrix_name=self.intervention_matrix,
+            n_samples=n_it,
+            resample=resample,
+            seed=seed,
+        )
+
+        # Step 2: Solve each sample in parallel
+        print(f"Solving {n_it} Monte Carlo optimizations in parallel...")
+        results = monte_carlo.solve_model_MC_pre_sampled(
+            pulpo_optimizer=self,
+            samples=samples,
+            GAMS_PATH=GAMS_PATH,
+            solver_name=solver_name,
+            options=options,
+            n_jobs=n_jobs,
+        )
         return results
     
     def retrieve_processes(self, keys=None, processes=None, reference_products=None, locations=None):
@@ -183,6 +206,11 @@ class PulpoOptimizer:
         """
         saver.summarize_results(self, zeroes)
 
+    def extract_results(self, extractparams:bool=False):
+        """
+        Summarizes the results of the optimization.
+        """
+        return saver.extract_results(self, extractparams=extractparams)
 
 def install_rice_husk_db():
     """

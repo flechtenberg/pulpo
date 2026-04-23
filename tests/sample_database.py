@@ -77,68 +77,68 @@ def setup_test_db():
     e_car_key = ('technosphere', 'e-Car')
 
     # Create technosphere database
-    if "technosphere" not in bd.databases:
-        technosphere_db = bd.Database("technosphere")
-        technosphere_db.write({})
+    if "technosphere" in bd.databases:
+        del bd.databases["technosphere"]
 
-        # Define activities
-        process_data = [
-            ("oil extraction", "kg", "GLO", "oil"),
-            ("lignite extraction", "kg", "GLO", "lignite"),
-            ("steam cycle", "kWh", "GLO", "electricity"),
-            ("wind turbine", "kWh", "GLO", "electricity"),
-            ("e-Car", "tkm", "GLO", "transport"),
-        ]
+    technosphere_db = bd.Database("technosphere")
+    technosphere_db.write({})
 
-        for name, unit, location, ref_product in process_data:
-            act = technosphere_db.new_activity(name)
-            act["unit"] = unit
-            act["location"] = location
-            act["name"] = name
-            act["reference product"] = ref_product
-            act.new_exchange(amount=1.0, input=act.key, type="production").save()
-            act.save()
+    # Define activities
+    process_data = [
+        ("oil extraction", "kg", "GLO", "oil"),
+        ("lignite extraction", "kg", "GLO", "lignite"),
+        ("steam cycle", "kWh", "GLO", "electricity"),
+        ("wind turbine", "kWh", "GLO", "electricity"),
+        ("e-Car", "tkm", "GLO", "transport"),
+    ]
 
-        # Exchanges (identical numeric structure)
-        exchange_data = [
-            [e_car_key, oil_extraction_key, 0.03, 'technosphere'],
-            [e_car_key, lignite_extraction_key, 0.03, 'technosphere'],
-            [oil_extraction_key, steam_cycle_key, 0.5, 'technosphere'],
-            [lignite_extraction_key, steam_cycle_key, 0.5, 'technosphere'],
-            [steam_cycle_key, e_car_key, 0.5, 'technosphere'],
-            [wind_turbine_key, e_car_key, 0.5, 'technosphere'],
-            [e_car_key, wind_turbine_key, 0.03, 'technosphere'],
-            [co2_key, oil_extraction_key, 0.2, 'biosphere'],
-            [co2_key, lignite_extraction_key, 0.3, 'biosphere'],
-            [co2_key, steam_cycle_key, 1, 'biosphere'],
-            [co2_key, wind_turbine_key, 0.1, 'biosphere'],
-            [ch4_key, oil_extraction_key, 0.01, 'biosphere'],
-            [ch4_key, lignite_extraction_key, 0.02, 'biosphere'],
-            [pm_key, steam_cycle_key, 2.0, 'biosphere'],
-            [pm_key, wind_turbine_key, 1.5, 'biosphere'],
-            [h2o_irrigation_key, steam_cycle_key, 2.0, 'biosphere'],
-            [h2o_irrigation_key, wind_turbine_key, 5.0, 'biosphere'],
-            [pm_key, e_car_key, 0.1, 'biosphere'],
-            [h2o_irrigation_key, e_car_key, 0.1, 'biosphere'],
-        ]
+    for name, unit, location, ref_product in process_data:
+        act = technosphere_db.new_activity(name)
+        act["unit"] = unit
+        act["location"] = location
+        act["name"] = name
+        act["reference product"] = ref_product
+        act.new_exchange(amount=1.0, input=act.key, type="production").save()
+        act.save()
 
-        for input_, target, amount, ex_type in exchange_data:
-            act = [a for a in technosphere_db if a.key == target][0]
-            act.new_exchange(amount=amount, input=input_, type=ex_type).save()
-            act.save()
+    # Exchanges (identical numeric structure)
+    exchange_data = [
+        [e_car_key, oil_extraction_key, 0.03, 'technosphere'],
+        [e_car_key, lignite_extraction_key, 0.03, 'technosphere'],
+        [oil_extraction_key, steam_cycle_key, 0.5, 'technosphere'],
+        [lignite_extraction_key, steam_cycle_key, 0.5, 'technosphere'],
+        [steam_cycle_key, e_car_key, 0.5, 'technosphere'],
+        [wind_turbine_key, e_car_key, 0.5, 'technosphere'],
+        [e_car_key, wind_turbine_key, 0.03, 'technosphere'],
+        [co2_key, oil_extraction_key, 0.2, 'biosphere'],
+        [co2_key, lignite_extraction_key, 0.3, 'biosphere'],
+        [co2_key, steam_cycle_key, 1, 'biosphere'],
+        [co2_key, wind_turbine_key, 0.1, 'biosphere'],
+        [ch4_key, oil_extraction_key, 0.01, 'biosphere'],
+        [ch4_key, lignite_extraction_key, 0.02, 'biosphere'],
+        [pm_key, steam_cycle_key, 2.0, 'biosphere'],
+        [pm_key, wind_turbine_key, 1.5, 'biosphere'],
+        [h2o_irrigation_key, steam_cycle_key, 2.0, 'biosphere'],
+        [h2o_irrigation_key, wind_turbine_key, 5.0, 'biosphere'],
+        [pm_key, e_car_key, 0.1, 'biosphere'],
+        [h2o_irrigation_key, e_car_key, 0.1, 'biosphere'],
+    ]
 
-        # Add uncertainties (unchanged logic)
-        for act in technosphere_db:
-            for exc in act.exchanges():
-                if str(exc["input"]) != str(exc["output"]):
-                    exc["uncertainty type"] = NormalUncertainty.id
-                    exc["loc"] = exc["amount"]
-                    exc["scale"] = 0.1 * exc["amount"]
-                    exc.save()
+    for input_, target, amount, ex_type in exchange_data:
+        act = [a for a in technosphere_db if a.key == target][0]
+        act.new_exchange(amount=amount, input=input_, type=ex_type).save()
+        act.save()
 
-        print(f"technosphere database created with {len(technosphere_db)} activities.")
-    else:
-        print("technosphere already exists; reusing.")
+    # Add uncertainties (unchanged logic)
+    for act in technosphere_db:
+        for exc in act.exchanges():
+            if str(exc["input"]) != str(exc["output"]):
+                exc["uncertainty type"] = NormalUncertainty.id
+                exc["loc"] = exc["amount"]
+                exc["scale"] = 0.1 * exc["amount"]
+                exc.save()
+
+    print(f"technosphere database created with {len(technosphere_db)} activities.")
 
 
 # ---------------------------------------------------------------------------

@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.5.0] - 2026-04-23
+* Integrate full uncertainty analysis pipeline as a first-class feature via the new `pulpo.pulpo_unc` module (`PulpoOptimizerUnc`):
+  * Import and filter uncertain LCI parameters from Brightway databases (`import_and_filter_uncertainty_data()`)
+  * Apply uncertainty strategies to fill missing distributions (`apply_uncertainty_strategies()`)
+  * Monte Carlo sampling from prepared uncertainty distributions (`run_mc_from_uncertainty()`)
+  * Chance-Constrained optimization with Pareto front solving (`create_CC_formulation()`, `solve_CC_problem()`)
+  * Global Sensitivity Analysis via Sobol indices (`run_gsa()`)
+* Section 10 of the main showcase notebook (`notebooks/pulpo_showcase.ipynb`) demonstrates the complete uncertainty workflow on the methanol system.
+* Enhanced Pareto front visualization (base case overlay, choice highlighting, grouping by process/product/location)
+* L1-norm variance used in CC formulation
+* Minor bugfixes and code cleanup
+
 ## [1.4.2] - 2025-06-06
 * Enable the use of Gurobi solver
 * Pass email as argument to NEOS solver
