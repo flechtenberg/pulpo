@@ -30,6 +30,7 @@ dependencies = [
     "pandas",
     "scipy<=1.14.1",
     "tqdm",
+    "joblib",
     "xlsxwriter",
     "openpyxl"
 ]
@@ -42,6 +43,13 @@ bw2 = [
 bw25 = [
     "bw2calc>=2.0.0",
     "bw2data>=4.0.0"
+]
+uncertainty = [
+    "stats_arrays",
+    "SALib",
+    "seaborn",
+    "matplotlib",
+    "typing_extensions"
 ]
 
 [project.urls]
