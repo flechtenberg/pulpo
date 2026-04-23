@@ -109,4 +109,3 @@ notebooks/credentials.txt
 notebooks/data/results
 notebooks/data/results/*.png
 notebooks/data/results/*.svg
-notebooks/uncertainty_case_study/data/results
