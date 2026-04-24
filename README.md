@@ -92,6 +92,8 @@ python -m unittest discover -s tests
 ## What's new in 1.5.1?
 - Hotfix for chance-constrained uncertainty workflow: corrected environmental-cost mean computation in `pulpo.utils.uncertainty.cc` by replacing fragile pandas sparse updates with direct sparse-matrix updates and multiplication.
 - Updated Section 10 of the main [showcase](https://github.com/flechtenberg/pulpo/blob/master/notebooks/pulpo_showcase.ipynb) to include the deterministic reference result used by `run_gsa`, and re-ran the workflow end-to-end.
+- Moved the sample and rice-husk database helpers into a new `pulpo.datasets` subpackage so that `pulpo.install_sample_db()` and `pulpo.install_rice_husk_db()` work from an installed wheel.
+- Packaging fixes: `tests/` is no longer included in the wheel, and the `bw2` / `bw25` extras are now declared as mutually exclusive in `[tool.uv] conflicts` so that `uv` can resolve the lockfile cleanly.
 
 ## What's new in 1.5.0?
 
