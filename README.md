@@ -74,7 +74,7 @@ Use this link to start a cloud session and test PULPO right away:
 
 [![launch - renku](https://renkulab.io/renku-badge.svg)](https://renkulab.io/v2/projects/fabian/pulpo-test/sessions/01JRM54S4NKMS84Y6BAYT832WH/start)
 
-The main reference is the [PULPO showcase notebook](https://github.com/flechtenberg/pulpo/blob/master/notebooks/pulpo_showcase.ipynb), which revolves around methanol production and covers both the core optimization features (Sections 1–9) and the full **advanced uncertainty workflow** of the `pulpo_unc` module (Section 10): uncertainty data import and filtering, gap-filling strategies, Monte Carlo from prepared distributions, Chance-Constrained optimization, and Global Sensitivity Analysis.
+The main reference is the [PULPO showcase notebook](https://github.com/flechtenberg/pulpo/blob/master/notebooks/pulpo_showcase.ipynb), which revolves around methanol production and covers both the core optimization features (Sections 1–9) and the full workflow of the `pulpo_unc` module (Section 10): uncertainty data import and filtering, gap-filling strategies, Monte Carlo from prepared distributions, Chance-Constrained optimization, and Global Sensitivity Analysis.
 
 Additional example notebooks are available for a [hydrogen case](https://github.com/flechtenberg/pulpo/blob/master/notebooks/showcases/hydrogen_showcase.ipynb), an [electricity case](https://github.com/flechtenberg/pulpo/blob/master/notebooks/showcases/electricity_showcase.ipynb), and a [plastic case](https://github.com/flechtenberg/pulpo/blob/master/notebooks/showcases/plastic_showcase.ipynb).
 
@@ -89,6 +89,10 @@ python -m unittest discover -s tests
 ```
 
 ---
+## What's new in 1.5.1?
+- Hotfix for chance-constrained uncertainty workflow: corrected environmental-cost mean computation in `pulpo.utils.uncertainty.cc` by replacing fragile pandas sparse updates with direct sparse-matrix updates and multiplication.
+- Updated Section 10 of the main [showcase](https://github.com/flechtenberg/pulpo/blob/master/notebooks/pulpo_showcase.ipynb) to include the deterministic reference result used by `run_gsa`, and re-ran the workflow end-to-end.
+
 ## What's new in 1.5.0?
 
 This release integrates the full **uncertainty analysis** pipeline into PULPO via the new `pulpo.pulpo_unc` module, turning the long-running development effort into a first-class feature:
@@ -164,6 +168,6 @@ Please cite this article if PULPO is used to produce results for a publication o
 - [@flechtenberg](https://www.github.com/flechtenberg)
 - [@robyistrate](https://www.github.com/robyistrate)
 - [@vtulus](https://www.github.com/vtulus)
-- [@bhaeusslingloewgren](https://www.github.com/bhaeusslingloewgren) — Bartolomeus Haeussling Loewgren
+- Bartolomeus Haeussling Loewgren
 ---
 [↑ Return](#Top)

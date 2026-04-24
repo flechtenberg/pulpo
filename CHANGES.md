@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.5.1] - 2026-04-24
+* Fix chance-constrained environmental-cost mean computation by replacing fragile pandas sparse updates with direct sparse matrix updates and multiplication in `pulpo.utils.uncertainty.cc`.
+* Update and re-run the Section 10 uncertainty showcase notebook to include the deterministic reference result used by `run_gsa` and validate the hotfix workflow end-to-end.
+
 ## [1.5.0] - 2026-04-23
 * Integrate full uncertainty analysis pipeline as a first-class feature via the new `pulpo.pulpo_unc` module (`PulpoOptimizerUnc`):
   * Import and filter uncertain LCI parameters from Brightway databases (`import_and_filter_uncertainty_data()`)
