@@ -57,7 +57,15 @@ homepage = "https://github.com/flechtenberg/pulpo"
 repository = "https://github.com/flechtenberg/pulpo"
 
 [tool.setuptools.packages.find]
-include = ["pulpo*", "utils*", "tests*"]
+include = ["pulpo*"]
+
+[tool.uv]
+conflicts = [
+    [
+        { extra = "bw2" },
+        { extra = "bw25" },
+    ],
+]
 
 [tool.flake8]
 max_line_length = 88

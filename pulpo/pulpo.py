@@ -1,7 +1,7 @@
 from pulpo.utils import optimizer, bw_parser, converter, saver, monte_carlo
 from typing import List, Union
-from tests.rice_database import setup_rice_husk_db
-from tests.sample_database import setup_sample_db
+from pulpo.datasets.rice_database import setup_rice_husk_db
+from pulpo.datasets.sample_database import setup_sample_db
 
 class PulpoOptimizer:
     def __init__(self, project: str, database: Union[str, List[str]], method: Union[str, List[str], dict], directory: str):
