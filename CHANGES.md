@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.5.1] - 2026-04-24
+* Fix chance-constrained environmental-cost mean computation by replacing fragile pandas sparse updates with direct sparse matrix updates and multiplication in `pulpo.utils.uncertainty.cc`.
+* Update and re-run the Section 10 uncertainty showcase notebook to include the deterministic reference result used by `run_gsa` and validate the hotfix workflow end-to-end.
+* Move the sample and rice-husk database helpers from `tests/` into a new `pulpo.datasets` subpackage so that `pulpo.install_sample_db()` / `pulpo.install_rice_husk_db()` work from an installed wheel (previously they imported from `tests/`, which is not shipped).
+* Fix wheel packaging: exclude `tests/` from the distribution and drop the redundant `utils*` include in `[tool.setuptools.packages.find]`.
+* Declare the mutual exclusivity of the `bw2` and `bw25` extras via `[tool.uv] conflicts` so that `uv` can resolve the environment without picking one over the other.
+
 ## [1.5.0] - 2026-04-23
 * Integrate full uncertainty analysis pipeline as a first-class feature via the new `pulpo.pulpo_unc` module (`PulpoOptimizerUnc`):
   * Import and filter uncertain LCI parameters from Brightway databases (`import_and_filter_uncertainty_data()`)
