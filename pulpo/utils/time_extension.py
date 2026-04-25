@@ -217,7 +217,14 @@ def combine_inputs_time(
         if isinstance(key, str) and key in union_choices:
             return key  # choice label is already used as a product index
         if key in process_map:
-            return process_map[key]
+            product_id = process_map[key]
+            # If this product belongs to a choice group, the technology-matrix
+            # rename above has replaced ``product_id`` with the choice label in
+            # PRODUCTS — the storage reference must follow the same remapping
+            # or the product index will be missing from the PRODUCT set.
+            if product_id in keys:
+                return keys[product_id]
+            return product_id
         raise KeyError(
             f"Storage product reference {key!r} not found in process_map "
             f"or in choice labels {sorted(union_choices)!r}."
@@ -405,6 +412,18 @@ def create_time_model():
     model.Process_in_out = pyo.BuildAction(rule=populate_in_and_out)
     model.Inv_in_out = pyo.BuildAction(rule=populate_inv)
 
+    # Carry-over targets are stored as a per-target dict so that the demand
+    # constraint can look them up in O(1) instead of scanning the full
+    # ``PRODUCT_PRODUCT`` set for every (t, i) pair (which made constraint
+    # construction quadratic in the number of timesteps × products).
+    def populate_carryover(model):
+        carryover = {}
+        for i, i2 in model.PRODUCT_PRODUCT:
+            carryover.setdefault(i, []).append(i2)
+        model._carryover_sources = carryover
+
+    model.Carryover_index = pyo.BuildAction(rule=populate_carryover)
+
     # Constraint rules
     def demand_constraint(model, t, i):
         """Demand balance at time t for product i.
@@ -426,16 +445,21 @@ def create_time_model():
         tech = sum(model.TECH_MATRIX[i, j] * model.scaling_vector[t, j]
                    for j in model.PROCESS_OUT[i])
 
-        time_list = list(model.TIME.ordered_data())
-        idx = time_list.index(t)
-        if idx > 0:
-            t_prev = time_list[idx - 1]
+        # Use the ordered Set's O(1) `prev` lookup rather than rebuilding the
+        # time list and doing a linear search on every call.
+        try:
+            t_prev = model.TIME.prev(t)
+        except (IndexError, ValueError):
+            t_prev = None
+
+        sources = model._carryover_sources.get(i, ())
+        if t_prev is not None and sources:
             prev = sum(
                 model.K[i, i2] * sum(
                     model.TECH_MATRIX[i2, j] * model.scaling_vector[t_prev, j]
                     for j in model.PROCESS_OUT[i2]
                 )
-                for (ii, i2) in model.PRODUCT_PRODUCT if ii == i
+                for i2 in sources
             )
         else:
             prev = 0
