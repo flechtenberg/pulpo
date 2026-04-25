@@ -1,24 +1,45 @@
 """Minimal toy database for the time-dependent PULPO formulation.
 
-Two-timestep electricity dispatch with a battery:
+Five-step electricity dispatch with a battery, modelled in the four-activity
+*ESM-style* pattern (CHARGE / HOLD / HOLD t-1 / DISCHARGE) so that the
+storage logic is energy-conserving under PULPO's product×product carry-over
+matrix ``K`` (see :mod:`pulpo.utils.time_extension`).
 
     Activities (each is its own product)
         solar              -- produces 1 kWh; no emissions
         coal               -- produces 1 kWh; 1 kg CO2/kWh
-        battery_discharge  -- produces 1 kWh; consumes 1 unit "battery state"
-        battery_charge     -- produces 1 unit "battery state"; consumes 1 kWh
-                              electricity (modelled as solar input; the choice
-                              group rewires this to the electricity pool)
+        battery_charge     -- CHARGE: consumes 1 kWh electricity, produces
+                              1 unit of "charge_product" (its self-product)
+        battery_hold       -- HOLD: produces 1 unit of "charge_product" at t,
+                              consuming 1 unit of "holdtm1_product" at t (the
+                              carried storage state; see K below)
+        battery_discharge  -- DISCHARGE: consumes 1 unit of "charge_product",
+                              produces 1 kWh of electricity
+        battery_holdtm1    -- HOLD t-1 phantom: ref product is
+                              "holdtm1_product"; locked at scaling 0 by
+                              the upper-bound. Exists only so that the
+                              technosphere matrix has a producer for the
+                              storage-state product; the real injection
+                              comes from the K matrix.
 
-    Choices group {solar, coal, battery_discharge} into a virtual product
-    "electricity". Demand is placed on this group at every timestep.
+    Choices group {solar, coal, battery_discharge} into a virtual
+    "electricity" product (where the demand is placed), and group
+    {battery_charge, battery_hold} into a virtual "charge_product" so that
+    DISCHARGE can draw from either fresh charge or held-over carry.
 
-    Storage triple: ``(battery_charge, battery_charge, K)`` carries
-    ``K * s[t-1, battery_charge]`` over to the battery-state balance at t.
+    Storage triple: ``("holdtm1_product", "charge_product", K)`` sets
+    ``K[holdtm1_product, charge_product] = K``. The carry term in the
+    Pyomo demand_constraint becomes
 
-A toy run with K=0.9, demand 50 kWh per step, t=0 with abundant solar and
-t=1 with no solar should charge the battery at t=0 and discharge most of it
-at t=1, beating the no-battery (coal only at t=1) baseline.
+        carry_t = K * net_production_of_charge_product_at_{t-1}
+                = K * (CHARGE[t-1] + HOLD[t-1] - DISCHARGE[t-1])
+
+    which is exactly the running storage level after one step of K decay.
+    The constraint on holdtm1_product (PRODUCT_STOR, >=) then bounds
+    ``HOLD[t] <= K * net_production_of_charge_product[t-1]``, while the
+    constraint on charge_product (also >=) bounds
+    ``DISCHARGE[t] <= CHARGE[t] + HOLD[t]``. Together this is an
+    energy-conserving battery with round-trip efficiency K per held step.
 """
 
 from __future__ import annotations
@@ -37,7 +58,14 @@ CO2_KEY = (BIOSPHERE_NAME, "CO2")
 SOLAR_KEY = (DB_NAME, "solar")
 COAL_KEY = (DB_NAME, "coal")
 BATTERY_CHARGE_KEY = (DB_NAME, "battery_charge")
+BATTERY_HOLD_KEY = (DB_NAME, "battery_hold")
 BATTERY_DISCHARGE_KEY = (DB_NAME, "battery_discharge")
+BATTERY_HOLDTM1_KEY = (DB_NAME, "battery_holdtm1")
+
+# PULPO choice labels exposed for the storage spec (the K matrix references
+# the 'charge_product' choice, not any individual activity).
+CHARGE_PRODUCT_CHOICE = "charge_product"
+ELECTRICITY_CHOICE = "electricity"
 
 
 def _setup_biosphere():
@@ -63,8 +91,10 @@ def _setup_technosphere():
     process_data = [
         ("solar",             "kWh", "GLO", "electricity, solar"),
         ("coal",              "kWh", "GLO", "electricity, coal"),
-        ("battery_charge",    "kWh", "GLO", "battery state"),
+        ("battery_charge",    "kWh", "GLO", "charge_product"),
+        ("battery_hold",      "kWh", "GLO", "charge_product"),
         ("battery_discharge", "kWh", "GLO", "electricity, battery"),
+        ("battery_holdtm1",   "kWh", "GLO", "holdtm1_product"),
     ]
     for name, unit, location, ref_product in process_data:
         act = db.new_activity(name)
@@ -76,16 +106,24 @@ def _setup_technosphere():
         act.save()
 
     # Technosphere/biosphere exchanges.
-    # Conventions: "input -> target" means target consumes 1 unit of input.
+    # Convention: (input, target, amount, type) means the *target* activity
+    # has an exchange of `amount` units of `input`. With type='technosphere'
+    # this is a consumption (the matrix entry is -amount).
     exchange_data = [
-        # battery_charge consumes 1 kWh of solar electricity. Once the choice
-        # group rewires {solar, coal, battery_discharge} -> "electricity",
+        # battery_charge consumes 1 kWh of solar electricity. After the
+        # 'electricity' choice rewires {solar, coal, discharge} -> 'electricity',
         # this becomes a generic draw from the electricity pool.
-        [SOLAR_KEY, BATTERY_CHARGE_KEY, 1.0, "technosphere"],
-        # battery_discharge consumes 1 unit of battery state.
-        [BATTERY_CHARGE_KEY, BATTERY_DISCHARGE_KEY, 1.0, "technosphere"],
+        [SOLAR_KEY,           BATTERY_CHARGE_KEY,    1.0, "technosphere"],
+        # battery_hold consumes 1 unit of holdtm1_product (the carried state).
+        # holdtm1_product is supplied at runtime via the K-matrix injection,
+        # not by the static phantom activity (which is locked at 0).
+        [BATTERY_HOLDTM1_KEY, BATTERY_HOLD_KEY,      1.0, "technosphere"],
+        # battery_discharge consumes 1 unit of charge_product. Pre-rewiring
+        # this is wired to battery_charge's product; the 'charge_product'
+        # choice then redirects it to the {charge, hold} virtual product.
+        [BATTERY_CHARGE_KEY,  BATTERY_DISCHARGE_KEY, 1.0, "technosphere"],
         # Emissions: only coal emits.
-        [CO2_KEY, COAL_KEY, 1.0, "biosphere"],
+        [CO2_KEY,             COAL_KEY,              1.0, "biosphere"],
     ]
     for input_, target, amount, ex_type in exchange_data:
         target_act = next(a for a in db if a.key == target)

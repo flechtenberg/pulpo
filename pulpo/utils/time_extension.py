@@ -15,14 +15,26 @@ The time-coupling mechanism is expressed via an optional ``storage`` argument
 of :func:`combine_inputs_time`, given as a list of triples::
 
     storage = [
-        (stored_product_activity, producing_activity, factor),
+        (target_product, source_product, factor),
         ...
     ]
 
-Each triple says: *the scaling of ``producing_activity`` at time t-1
-contributes ``factor`` units of the stored product towards demand
-satisfaction at time t.* This generalises a battery / storage tank: charging
-(non-zero scaling of the charge process) at t-1 enables discharge at t.
+Each triple says: *the net production of ``source_product`` at time t-1
+contributes ``factor`` units to the balance of ``target_product`` at time t.*
+Formally it sets ``K[target_product, source_product] = factor`` in a
+product-by-product carry-over matrix; the demand balance at t becomes
+
+    A_i · s[t]  +  Σ_{i2} K[i, i2] · ( A_{i2} · s[t-1] )  ≥ / =  d[t, i].
+
+Products that appear as ``target_product`` (and ``source_product``) in any
+storage triple are added to the set ``PRODUCT_STOR`` and use a ``>=``
+balance instead of ``==``, allowing within-step over-production (the
+classical battery slack: charge[t] need not be discharged at t).
+
+This matches the four-activity (CHARGE / HOLD / HOLD t-1 / DISCHARGE)
+pattern used by larger ESM integrations: there the ``source`` is
+*"Charge product"* (or "Hold-t-1 product"), and ``K`` is the round-trip
+efficiency / self-discharge factor.
 
 Aggregated impact bounds
 ------------------------
@@ -96,10 +108,12 @@ def combine_inputs_time(
 
     Args:
         time_steps: Ordered list of timestep labels. Must be non-empty.
-        storage: Optional list of triples ``(stored_product, producing_activity,
-            factor)``. Each triple couples ``producing_activity`` at t-1 to the
-            demand of ``stored_product`` at t. Activity arguments accept either
-            Brightway activities or their ``.key`` tuples.
+        storage: Optional list of triples ``(target_product, source_product,
+            factor)``. Each triple sets ``K[target, source] = factor`` in a
+            product×product carry-over matrix and adds both products to
+            ``PRODUCT_STOR`` (relaxes their balance from ``==`` to ``>=``).
+            Activity arguments are accepted and resolved to their self-product
+            via ``process_map``.
         upper_imp_agg_limit: Optional ``{indicator: bound}`` constraining the
             *sum* of an indicator's impact across all timesteps.
 
@@ -192,28 +206,39 @@ def combine_inputs_time(
     INDICATOR = {None: list({h for h in matrices})}
     TIME = {None: list(time_steps)}
 
-    # Resolve storage specification into pyomo-friendly indexable form.
+    # Resolve storage specification into a product×product carry-over matrix.
+    # Each triple (target_product, source_product, factor) sets
+    #   K[target_idx, source_idx] = factor
+    # and marks both products as "storable" (>= balance instead of ==).
+    # Products may be either Brightway activities (resolved via process_map)
+    # or PULPO choice-label strings (e.g. 'charge_product').
+    def _resolve_product(arg):
+        key = arg.key if hasattr(arg, 'key') else arg
+        if isinstance(key, str) and key in union_choices:
+            return key  # choice label is already used as a product index
+        if key in process_map:
+            return process_map[key]
+        raise KeyError(
+            f"Storage product reference {key!r} not found in process_map "
+            f"or in choice labels {sorted(union_choices)!r}."
+        )
+
     storage = storage or []
     storage_pairs = {}
     storable_products = set()
     for spec in storage:
         if not (isinstance(spec, (list, tuple)) and len(spec) == 3):
             raise ValueError(
-                "Each `storage` entry must be a (stored_product, producing_activity, factor) triple."
+                "Each `storage` entry must be a (target_product, source_product, factor) triple."
             )
-        stored_act, producing_act, factor = spec
-        stored_key = stored_act.key if hasattr(stored_act, 'key') else stored_act
-        producing_key = producing_act.key if hasattr(producing_act, 'key') else producing_act
-        if stored_key not in process_map:
-            raise KeyError(f"Stored product activity {stored_key!r} not in process_map.")
-        if producing_key not in process_map:
-            raise KeyError(f"Producing activity {producing_key!r} not in process_map.")
-        i = process_map[stored_key]
-        j = process_map[producing_key]
-        storage_pairs[(i, j)] = float(factor)
+        target, source, factor = spec
+        i = _resolve_product(target)
+        i2 = _resolve_product(source)
+        storage_pairs[(i, i2)] = float(factor)
         storable_products.add(i)
+        storable_products.add(i2)
     PRODUCT_STOR = {None: list(storable_products)}
-    PRODUCT_PROCESS_STOR = {None: list(storage_pairs.keys())}
+    PRODUCT_PRODUCT = {None: list(storage_pairs.keys())}
 
     demand_dict = {(t, prod): 0 for t in time_steps for prod in PRODUCTS[None]}
     for t in time_steps:
@@ -242,7 +267,13 @@ def combine_inputs_time(
         common = lower_limit_t[t].keys() & upper_limit_t[t].keys()
         for proc in common:
             if lower_limit_t[t][proc] == upper_limit_t[t][proc]:
-                supply_dict[(t, process_map[proc])] = 1
+                prod_id = process_map[proc]
+                # Skip products that were rewired into a choice label;
+                # locking a single option to 0 does not mean the choice
+                # supply is fixed.
+                if prod_id in keys:
+                    continue
+                supply_dict[(t, prod_id)] = 1
 
     upper_inv_limit_dict = {(t, g): default_limits['upper_inv_bound'] for t in time_steps for g in INV[None]}
     lower_inv_limit_dict = {(t, g): default_limits['lower_inv_bound'] for t in time_steps for g in INV[None]}
@@ -283,7 +314,7 @@ def combine_inputs_time(
             'ENV_COST_PROCESS': ENV_COST_PROCESS,
             'INV_PROCESS': INV_PROCESS,
             'PRODUCT_STOR': PRODUCT_STOR,
-            'PRODUCT_PROCESS_STOR': PRODUCT_PROCESS_STOR,
+            'PRODUCT_PRODUCT': PRODUCT_PRODUCT,
             'TECH_MATRIX': technology_matrix_dict,
             'ENV_COST_MATRIX': env_cost_dict,
             'INV_MATRIX': inv_dict,
@@ -325,9 +356,10 @@ def create_time_model():
     model.PRODUCT_PROCESS = pyo.Set(within=model.PRODUCT * model.PROCESS)
     model.INV_PROCESS = pyo.Set(within=model.INV * model.PROCESS)
     model.INV_OUT = pyo.Set(model.INV, within=model.PROCESS)
-    model.PRODUCT_STOR = pyo.Set(within=model.PRODUCT, doc='Storable products')
-    model.PRODUCT_PROCESS_STOR = pyo.Set(
-        within=model.PRODUCT * model.PROCESS, doc='Storage carry-over relations',
+    model.PRODUCT_STOR = pyo.Set(within=model.PRODUCT, doc='Storable products (use >= balance)')
+    model.PRODUCT_PRODUCT = pyo.Set(
+        within=model.PRODUCT * model.PRODUCT,
+        doc='Carry-over relations: (target_product, source_product) pairs with K[target, source] != 0',
     )
 
     # Parameters: per-timestep
@@ -343,7 +375,8 @@ def create_time_model():
     model.ENV_COST_MATRIX = pyo.Param(model.ENV_COST_PROCESS, mutable=True)
     model.INV_MATRIX = pyo.Param(model.INV_PROCESS, mutable=True)
     model.TECH_MATRIX = pyo.Param(model.PRODUCT_PROCESS, mutable=True)
-    model.K = pyo.Param(model.PRODUCT_PROCESS_STOR, mutable=True, default=0)
+    model.K = pyo.Param(model.PRODUCT_PRODUCT, mutable=True, default=0,
+                        doc='Carry-over matrix K[target_product, source_product]')
     model.WEIGHTS = pyo.Param(model.INDICATOR, mutable=True, within=pyo.NonNegativeReals)
     model.UPPER_IMP_AGG_LIMIT = pyo.Param(model.INDICATOR, mutable=True, within=pyo.Reals)
 
@@ -376,30 +409,40 @@ def create_time_model():
     def demand_constraint(model, t, i):
         """Demand balance at time t for product i.
 
-        For non-storable products this is the standard ``A * s == d + slack``.
+        Within-step contribution from all producers/consumers of i:
 
-        For *storable* products the producing process at time t does not
-        release its production in the same timestep -- instead, it accumulates
-        and shows up at t+1 via the ``K`` coefficient. We therefore omit the
-        producing activity from the within-timestep technology sum and rely on
-        the carry-over term alone for replenishment.
+            tech_t = Σ_j A[i, j] · s[t, j]
+
+        Carry-over from t-1 (only for products that appear as a target in K):
+
+            prev_t = Σ_{i2 : (i, i2) ∈ PRODUCT_PRODUCT} K[i, i2] · Σ_j A[i2, j] · s[t-1, j]
+
+        For *storable* products (i ∈ PRODUCT_STOR) the balance is relaxed to
+        ``>=``: the optimizer may over-produce within a step, which is the
+        natural slack for batteries (charge at t need not be discharged at t).
+        For non-storable products the standard ``==`` balance with the supply
+        slack mechanism applies.
         """
-        if i in model.PRODUCT_STOR:
-            stor_processes = {j for (ii, j) in model.PRODUCT_PROCESS_STOR if ii == i}
-            tech = sum(model.TECH_MATRIX[i, j] * model.scaling_vector[t, j]
-                       for j in model.PROCESS_OUT[i] if j not in stor_processes)
-            time_list = list(model.TIME.ordered_data())
-            idx = time_list.index(t)
-            if idx > 0:
-                t_prev = time_list[idx - 1]
-                carry = sum(model.K[i, j] * model.scaling_vector[t_prev, j]
-                            for j in stor_processes)
-            else:
-                carry = 0
-            return tech + carry == model.FINAL_DEMAND[t, i] + model.slack[t, i]
         tech = sum(model.TECH_MATRIX[i, j] * model.scaling_vector[t, j]
                    for j in model.PROCESS_OUT[i])
-        return tech == model.FINAL_DEMAND[t, i] + model.slack[t, i]
+
+        time_list = list(model.TIME.ordered_data())
+        idx = time_list.index(t)
+        if idx > 0:
+            t_prev = time_list[idx - 1]
+            prev = sum(
+                model.K[i, i2] * sum(
+                    model.TECH_MATRIX[i2, j] * model.scaling_vector[t_prev, j]
+                    for j in model.PROCESS_OUT[i2]
+                )
+                for (ii, i2) in model.PRODUCT_PRODUCT if ii == i
+            )
+        else:
+            prev = 0
+
+        if i in model.PRODUCT_STOR:
+            return tech + prev >= model.FINAL_DEMAND[t, i]
+        return tech + prev == model.FINAL_DEMAND[t, i] + model.slack[t, i]
 
     def impact_constraint(model, t, h):
         return model.impacts[t, h] == sum(
