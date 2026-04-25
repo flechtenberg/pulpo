@@ -2,6 +2,7 @@ from pulpo.utils import optimizer, bw_parser, converter, saver, monte_carlo, tim
 from typing import List, Optional, Union
 from pulpo.datasets.rice_database import setup_rice_husk_db
 from pulpo.datasets.sample_database import setup_sample_db
+from pulpo.datasets.elec_time_database import setup_elec_time_db
 
 class PulpoOptimizer:
     def __init__(self, project: str, database: Union[str, List[str]], method: Union[str, List[str], dict], directory: str):
@@ -269,3 +270,10 @@ def install_sample_db():
     Sets up the sample LCI database in Brightway2.
     """
     setup_sample_db()
+
+
+def install_elec_time_db():
+    """
+    Sets up the toy time-dependent electricity database in Brightway2.
+    """
+    setup_elec_time_db()

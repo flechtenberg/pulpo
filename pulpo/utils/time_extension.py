@@ -374,20 +374,31 @@ def create_time_model():
 
     # Constraint rules
     def demand_constraint(model, t, i):
-        """Demand balance at time t for product i, with optional carry-over from t-1."""
-        tech = sum(model.TECH_MATRIX[i, j] * model.scaling_vector[t, j]
-                   for j in model.PROCESS_OUT[i])
+        """Demand balance at time t for product i.
+
+        For non-storable products this is the standard ``A * s == d + slack``.
+
+        For *storable* products the producing process at time t does not
+        release its production in the same timestep -- instead, it accumulates
+        and shows up at t+1 via the ``K`` coefficient. We therefore omit the
+        producing activity from the within-timestep technology sum and rely on
+        the carry-over term alone for replenishment.
+        """
         if i in model.PRODUCT_STOR:
+            stor_processes = {j for (ii, j) in model.PRODUCT_PROCESS_STOR if ii == i}
+            tech = sum(model.TECH_MATRIX[i, j] * model.scaling_vector[t, j]
+                       for j in model.PROCESS_OUT[i] if j not in stor_processes)
             time_list = list(model.TIME.ordered_data())
             idx = time_list.index(t)
-            carry = 0
             if idx > 0:
                 t_prev = time_list[idx - 1]
-                carry = sum(
-                    model.K[i, j] * model.scaling_vector[t_prev, j]
-                    for (ii, j) in model.PRODUCT_PROCESS_STOR if ii == i
-                )
+                carry = sum(model.K[i, j] * model.scaling_vector[t_prev, j]
+                            for j in stor_processes)
+            else:
+                carry = 0
             return tech + carry == model.FINAL_DEMAND[t, i] + model.slack[t, i]
+        tech = sum(model.TECH_MATRIX[i, j] * model.scaling_vector[t, j]
+                   for j in model.PROCESS_OUT[i])
         return tech == model.FINAL_DEMAND[t, i] + model.slack[t, i]
 
     def impact_constraint(model, t, h):
