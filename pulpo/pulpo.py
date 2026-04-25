@@ -1,8 +1,7 @@
-from pulpo.utils import optimizer, bw_parser, converter, saver, monte_carlo, time_extension
-from typing import List, Optional, Union
+from pulpo.utils import optimizer, bw_parser, converter, saver, monte_carlo
+from typing import List, Union
 from pulpo.datasets.rice_database import setup_rice_husk_db
 from pulpo.datasets.sample_database import setup_sample_db
-from pulpo.datasets.elec_time_database import setup_elec_time_db
 
 class PulpoOptimizer:
     def __init__(self, project: str, database: Union[str, List[str]], method: Union[str, List[str], dict], directory: str):
@@ -33,9 +32,6 @@ class PulpoOptimizer:
         self.lower_elem_limit: dict = {}
         self.lower_imp_limit: dict = {}
         self.dependent_constraints: dict = {}
-        self.time_steps: Optional[list] = None
-        self.storage: list = []
-        self.upper_imp_agg_limit: dict = {}
 
         bw_parser.set_project(project)
 
@@ -46,8 +42,7 @@ class PulpoOptimizer:
         self.lci_data = bw_parser.import_data(self.project, self.database, self.method, self.intervention_matrix, seed)
 
     def instantiate(self, choices={}, demand={}, upper_limit={}, lower_limit={}, upper_elem_limit={},
-                    upper_imp_limit={}, lower_elem_limit={}, lower_imp_limit={}, dependent_constraints={}, default_limits=None,
-                    time_steps=None, storage=None, upper_imp_agg_limit=None):
+                    upper_imp_limit={}, lower_elem_limit={}, lower_imp_limit={}, dependent_constraints={}, default_limits=None):
         """
         Combines inputs and instantiates the optimization model.
 
@@ -64,44 +59,12 @@ class PulpoOptimizer:
                                         Format: {constraint_name: {'left': {activity: weight}, 'right': {activity: weight}}}
             default_limits (dict, optional): Custom default limits. If None, uses standard values.
                                             Expected keys: 'lower_bound', 'upper_bound', 'upper_inv_bound'
-            time_steps (list, optional): When provided, activates the time-dependent
-                formulation (see :mod:`pulpo.utils.time_extension`). Each of
-                ``demand``, ``choices`` and the limit dicts may then be supplied
-                either as a static dict (broadcast across all timesteps) or as
-                ``{t: dict}``. ``dependent_constraints`` is not yet supported in
-                the time-dependent path.
-            storage (list, optional): Carry-over specification used only when
-                ``time_steps`` is set. List of triples
-                ``(stored_product, producing_activity, factor)``.
-            upper_imp_agg_limit (dict, optional): Bound on the *sum* of an
-                indicator's impact across all timesteps (time-dependent path
-                only).
         """
-        if time_steps is not None:
-            if dependent_constraints:
-                raise NotImplementedError(
-                    "`dependent_constraints` is not yet supported in the "
-                    "time-dependent path. Open an issue if you need this."
-                )
-            methods = {h: self.method[h] for h in self.method
-                       if self.method[h] != 0
-                       or any(h in (upper_imp_limit.get(t, upper_imp_limit) if isinstance(upper_imp_limit, dict) else {}) for t in time_steps)
-                       or any(h in (lower_imp_limit.get(t, lower_imp_limit) if isinstance(lower_imp_limit, dict) else {}) for t in time_steps)
-                       or h in (upper_imp_agg_limit or {})}
-            data = time_extension.combine_inputs_time(
-                self.lci_data, demand, choices, upper_limit, lower_limit,
-                upper_elem_limit, upper_imp_limit, lower_elem_limit, lower_imp_limit,
-                methods, time_steps,
-                storage=storage, upper_imp_agg_limit=upper_imp_agg_limit,
-                default_limits=default_limits,
-            )
-            self.instance = time_extension.instantiate_time(data)
-        else:
-            # Instantiate only for those methods that are part of the objective or the limits
-            methods = {h: self.method[h] for h in self.method if self.method[h] != 0 or h in upper_imp_limit or h in lower_imp_limit}
-            data = converter.combine_inputs(self.lci_data, demand, choices, upper_limit, lower_limit, upper_elem_limit,
-                                            upper_imp_limit, lower_elem_limit, lower_imp_limit, methods, dependent_constraints, default_limits)
-            self.instance = optimizer.instantiate(data)
+        # Instantiate only for those methods that are part of the objective or the limits
+        methods = {h: self.method[h] for h in self.method if self.method[h] != 0 or h in upper_imp_limit or h in lower_imp_limit}
+        data = converter.combine_inputs(self.lci_data, demand, choices, upper_limit, lower_limit, upper_elem_limit,
+                                        upper_imp_limit, lower_elem_limit, lower_imp_limit, methods, dependent_constraints, default_limits)
+        self.instance = optimizer.instantiate(data)
         self.choices = choices
         self.demand = demand
         self.upper_limit = upper_limit
@@ -111,9 +74,6 @@ class PulpoOptimizer:
         self.lower_elem_limit = lower_elem_limit
         self.lower_imp_limit = lower_imp_limit
         self.dependent_constraints = dependent_constraints
-        self.time_steps = list(time_steps) if time_steps is not None else None
-        self.storage = list(storage) if storage else []
-        self.upper_imp_agg_limit = dict(upper_imp_agg_limit) if upper_imp_agg_limit else {}
 
     def solve(self, GAMS_PATH=False, solver_name=None, options=None, neos_email=None):
         """
@@ -127,12 +87,6 @@ class PulpoOptimizer:
             results: Results of the optimization.
         """
         results, self.instance = optimizer.solve_model(self.instance, GAMS_PATH, solver_name=solver_name, options=options, neos_email=neos_email)
-
-        # The post-processing helpers below assume the static, single-timestep
-        # variable layout. The time-dependent path stores its own results on
-        # the instance directly and skips post-processing for now.
-        if self.time_steps is not None:
-            return results
 
         # Post calculate additional methods, in case several methods have been specified and one of them is 0
         if not isinstance(self.method, str):
@@ -270,10 +224,3 @@ def install_sample_db():
     Sets up the sample LCI database in Brightway2.
     """
     setup_sample_db()
-
-
-def install_elec_time_db():
-    """
-    Sets up the toy time-dependent electricity database in Brightway2.
-    """
-    setup_elec_time_db()
