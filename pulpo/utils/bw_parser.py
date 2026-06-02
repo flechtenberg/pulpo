@@ -1,9 +1,9 @@
-from typing import List, Union, Dict, Any
+from typing import List, Union, Dict, Any, TypedDict
+import warnings
 import bw2calc as bc
 import bw2data as bd
-from pulpo.utils.utils import get_bw_version
+from pulpo.utils.utils import get_bw_version, build_bw25_params
 from stats_arrays.random import MCRandomNumberGenerator
-from typing import TypedDict, Dict, Any
 import numpy as np
 
 class LCIDataDict(TypedDict):
@@ -85,29 +85,50 @@ def import_data(project: str, databases: Union[str, List[str]], method: Union[st
 
     match bw_version:
         case 'bw25':
+            bio_params_parts = []
+            bio_incomplete_any = False
             for eidb in eidbs:
+                lca = None
                 for method in methods:
                     # prepare LCA
                     fu, data_objs, _ = bd.prepare_lca_inputs({eidb.random(): 1}, method=method)
                     lca = bc.LCA(demand=fu, data_objs=data_objs, use_distributions=dist, seed_override=seed)
                     lca.load_lci_data(); lca.load_lcia_data()
 
-                    # characterization
                     m = str(method)
-                    cf_base = data_objs[2].data[2]
-                    characterization_params[m] = cf_base
+
+                    # characterization factor uncertainty parameters (method specific,
+                    # identical across databases -> only compute once per method)
+                    if m not in characterization_params:
+                        cf_params, cf_incomplete = build_bw25_params(
+                            data_objs, 'characterization_matrix', lca.dicts.biosphere
+                        )
+                        if cf_params is None:
+                            characterization_params[m] = None
+                            warnings.warn(
+                                f"No{' complete' if cf_incomplete else ''} characterization factor "
+                                f"uncertainty information found for method '{m}'. "
+                                f"Storing 'characterization_params' as None.",
+                                UserWarning, stacklevel=2,
+                            )
+                        else:
+                            characterization_params[m] = cf_params
+
                     if dist and "Q" in resample:
                         next(lca.characterization_mm)
                         lca.characterization_matrix = lca.characterization_mm.matrix
                     characterization_matrices[m] = lca.characterization_matrix
 
-                    # extract tech/bio & any extra CF hacks
-                    for obj in data_objs:
-                        name = obj.metadata['name']
-                        if name == 'technosphere':
-                            tech_params, bio_params = obj.data[4], obj.data[7]
-                        elif name != 'biosphere':
-                            characterization_params[m] = obj.data[2]
+                # intervention (biosphere) uncertainty parameters (method independent;
+                # accumulate across databases so the foreground and background flows
+                # are both represented)
+                eidb_bio_params, eidb_bio_incomplete = build_bw25_params(
+                    data_objs, 'biosphere_matrix', lca.dicts.biosphere, lca.dicts.product
+                )
+                if eidb_bio_params is None:
+                    bio_incomplete_any = True
+                else:
+                    bio_params_parts.append(eidb_bio_params)
 
                 # process map + final matrices
                 process_map.update({act.key: lca.dicts.product[act.id] for act in eidb})
@@ -118,6 +139,23 @@ def import_data(project: str, databases: Union[str, List[str]], method: Union[st
                     if "B" in resample:
                         next(lca.biosphere_mm)
                         lca.biosphere_matrix = lca.biosphere_mm.matrix
+
+            # combine intervention params across databases (deduplicating on row/col).
+            if bio_incomplete_any or not bio_params_parts:
+                bio_params = None
+                warnings.warn(
+                    f"No{' complete' if bio_incomplete_any else ''} intervention flow "
+                    f"uncertainty information found for the provided databases. "
+                    f"Storing 'intervention_params' as None.",
+                    UserWarning, stacklevel=2,
+                )
+            else:
+                bio_params = np.concatenate(bio_params_parts)
+                _, unique_idx = np.unique(
+                    np.stack([bio_params['row'], bio_params['col']], axis=1),
+                    axis=0, return_index=True,
+                )
+                bio_params = bio_params[np.sort(unique_idx)]
 
 
         case 'bw2':

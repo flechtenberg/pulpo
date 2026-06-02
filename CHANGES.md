@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.5.2] - 2026-06-02
+* Fix bw25 uncertainty parameter extraction: dynamically inspect datapackage resources by metadata instead of relying on hard-coded indices. This resolves failures when extracting uncertainty information from brightway databases that lack uncertainty distributions.
+* Add comprehensive uncertainty handling to the rice-husk example database, matching the uncertainty specification pattern used in the sample database.
+* Fix multi-database parameter accumulation in bw25 path: ensure both foreground and background database flows are included in the combined parameter array (previously only the last database's bio_params were retained).
+* Refactor `bw_parser.py` for improved maintainability: move the rarely-used bw25 uncertainty handling utilities (`build_bw25_params()`, `BW25_PARAM_DTYPE`, `BW25_DISTRIBUTION_FIELDS`) to `pulpo.utils.utils`, keeping the primary import orchestration logic lean and focused.
+* Add comprehensive test coverage for bw25 uncertainty extraction with and without complete uncertainty information in both sample and rice-husk databases.
+
 ## [1.5.1] - 2026-04-24
 * Fix chance-constrained environmental-cost mean computation by replacing fragile pandas sparse updates with direct sparse matrix updates and multiplication in `pulpo.utils.uncertainty.cc`.
 * Update and re-run the Section 10 uncertainty showcase notebook to include the deterministic reference result used by `run_gsa` and validate the hotfix workflow end-to-end.
