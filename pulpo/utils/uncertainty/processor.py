@@ -863,7 +863,7 @@ def rename_metadata_index(metadata_df, lci_data:dict, param_type:str):
                 cf_index_map = {interv_indx:  '{} '.format(lci_data['intervention_map_metadata'][interv_indx]) for interv_indx in metadata_df.index}
                 metadata_df = metadata_df.reset_index()
                 metadata_df.index = metadata_df['index']
-                metadata_df.rename(index=cf_index_map)
+                metadata_df = metadata_df.rename(index=cf_index_map)
             case 'process':
                 process_index_map = {process_indx:  '{} '.format(lci_data['process_map_metadata'][process_indx]) for process_indx in metadata_df.index}
                 metadata_df = metadata_df.reset_index()
