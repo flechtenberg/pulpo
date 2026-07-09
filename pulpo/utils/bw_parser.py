@@ -1,3 +1,4 @@
+import ast
 from typing import List, Union, Dict, Any, TypedDict
 import warnings
 import bw2calc as bc
@@ -301,15 +302,85 @@ def update_lci_data(lci_data: LCIDataDict, seed: int) -> LCIDataDict:
     return lci_data
 
 
+def _activity_orm():
+    """Return (ActivityDataset, Activity) ORM handles for the installed bw2data version.
+
+    Both bw2 and bw25 store activities in a SQLite ``activitydataset`` table whose
+    ``name``, ``product`` (reference product) and ``location`` are real columns, so
+    exact-match filters can run server-side instead of loading every activity proxy.
+    Returns ``(None, None)`` if the ORM is unavailable (unexpected backend/version).
+    """
+    try:  # bw25
+        from bw2data.backends import ActivityDataset, Activity
+        return ActivityDataset, Activity
+    except ImportError:
+        pass
+    try:  # bw2 (peewee backend)
+        from bw2data.backends.peewee.schema import ActivityDataset
+        from bw2data.backends.peewee.proxies import Activity
+        return ActivityDataset, Activity
+    except ImportError:
+        return None, None
+
+
+# Backends whose activities live in the SQLite activitydataset table and can be
+# queried server-side. Anything else falls back to iterating the database.
+_SQL_BACKENDS = {'sqlite', 'iotable'}
+
+
+def _query_processes_sql(ActivityDataset, Activity, db_name, keys, activities,
+                         reference_products, locations):
+    """Fetch matching activities of one database with a single SQL query.
+
+    Only the matching rows are materialized into ``Activity`` proxies, instead of
+    unpickling the whole database as the iteration fallback does.
+    """
+    query = ActivityDataset.select().where(ActivityDataset.database == db_name)
+    if keys is not None:
+        codes = [code for key_db, code in keys if key_db == db_name]
+        if not codes:
+            return []
+        query = query.where(ActivityDataset.code.in_(codes))
+    else:
+        if activities is not None:
+            query = query.where(ActivityDataset.name.in_(activities))
+        if reference_products is not None:
+            query = query.where(ActivityDataset.product.in_(reference_products))
+        if locations is not None:
+            query = query.where(ActivityDataset.location.in_(locations))
+    return [Activity(document) for document in query]
+
+
+def _iterate_processes(db_name, keys, activities, reference_products, locations):
+    """Legacy fallback: load every activity of the database and filter in Python."""
+    eidb = bd.Database(db_name)
+    if keys is not None:
+        keys_set = set(keys)
+        return [proc for proc in eidb if proc.key in keys_set]
+    activity_set = set(activities) if activities is not None else None
+    reference_product_set = set(reference_products) if reference_products is not None else None
+    location_set = set(locations) if locations is not None else None
+    return [
+        proc for proc in eidb
+        if (activity_set is None or proc['name'] in activity_set) and
+           (reference_product_set is None or proc.get('reference product') in reference_product_set) and
+           (location_set is None or proc['location'] in location_set)
+    ]
+
+
 def retrieve_processes(project: str, databases: Union[str, List[str]], keys=None, activities=None,
                        reference_products=None, locations=None):
     """
     Retrieve activities from one or more databases based on specified keys, activities, reference products, and locations.
 
+    Filters are matched exactly and combined with AND; ``keys`` takes precedence over
+    the other filters. Uses a server-side SQL query where possible (SQLite-backed
+    databases) and falls back to iterating the database otherwise.
+
     Args:
         project (str): Name of the project.
         databases (Union[str, List[str]]): Name of the primary database or a list of databases (foreground, background).
-        keys (list, optional): List of keys to filter activities.
+        keys (list, optional): List of keys to filter activities, as "('db', 'code')" strings or (db, code) tuples.
         activities (list, optional): List of activity names to filter.
         reference_products (list, optional): List of reference products to filter.
         locations (list, optional): List of locations to filter.
@@ -317,46 +388,38 @@ def retrieve_processes(project: str, databases: Union[str, List[str]], keys=None
     Returns:
         list: List of matching activities from the specified databases.
     """
-    # Set project
     _ensure_project_current(project)
 
-    # Normalize databases to a list
+    # Normalize inputs to lists
     if isinstance(databases, str):
         databases = [databases]
-
-    # Ensure filters are lists
     if activities is not None and not isinstance(activities, list):
         activities = [activities]
     if reference_products is not None and not isinstance(reference_products, list):
         reference_products = [reference_products]
     if locations is not None and not isinstance(locations, list):
         locations = [locations]
+    if keys is not None:
+        if isinstance(keys, str):
+            keys = [keys]
+        keys = [key if isinstance(key, tuple) else ast.literal_eval(key) for key in keys]
+
+    ActivityDataset, Activity = _activity_orm()
 
     matching_processes = []
-
-    # Search each database
     for db_name in databases:
-        eidb = bd.Database(db_name)
-
-        # Preprocess keys for fast lookup if provided
-        if keys is not None:
-            if isinstance(keys, str):
-                keys = [keys]
-            keys_set = set(eval(key) for key in keys)  # Use a set for faster lookup
-            matching_processes.extend([proc for proc in eidb if proc.key in keys_set])
+        use_sql = (
+            ActivityDataset is not None
+            and bd.databases.get(db_name, {}).get('backend', 'sqlite') in _SQL_BACKENDS
+        )
+        if use_sql:
+            matching_processes.extend(_query_processes_sql(
+                ActivityDataset, Activity, db_name, keys, activities, reference_products, locations
+            ))
         else:
-            # Preprocess filters for fast lookup
-            activity_set = set(activities) if activities is not None else None
-            reference_product_set = set(reference_products) if reference_products is not None else None
-            location_set = set(locations) if locations is not None else None
-
-            # Filter processes efficiently
-            matching_processes.extend([
-                proc for proc in eidb
-                if (activity_set is None or proc['name'] in activity_set) and
-                   (reference_product_set is None or proc['reference product'] in reference_product_set) and
-                   (location_set is None or proc['location'] in location_set)
-            ])
+            matching_processes.extend(_iterate_processes(
+                db_name, keys, activities, reference_products, locations
+            ))
 
     if not matching_processes:
         print("No activities match the given specifications or the input format is incorrect.")
