@@ -10,10 +10,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import stats_arrays
 import scipy.stats
-import pandas as pd
-import numpy as np
-import stats_arrays
-import matplotlib.pyplot as plt
 from typing import Union, List, Optional, Dict, Tuple, Literal
 
 from pulpo.utils.uncertainty.preparer import UncertaintyData, UncertaintySpec
@@ -236,7 +232,7 @@ class UniformBaseStrategy(UncertaintyStrategyBase):
             undefined_dict = uncertainty_data[self.uncertain_param_type][self.uncertain_param_subgroup]['undefined'].pop(undefined_indx)
             uncertainty_data[self.uncertain_param_type][self.uncertain_param_subgroup]['defined'][undefined_indx] = undefined_dict
             amount = undefined_dict['amount']
-            uncertainty_data[self.uncertain_param_type][self.uncertain_param_subgroup]['defined'][undefined_indx]['loc'] = np.NaN
+            uncertainty_data[self.uncertain_param_type][self.uncertain_param_subgroup]['defined'][undefined_indx]['loc'] = np.nan
             if amount > 0:
                 uncertainty_data[self.uncertain_param_type][self.uncertain_param_subgroup]['defined'][undefined_indx]['maximum'] = amount + upper_scaling_factor * abs(amount)
                 uncertainty_data[self.uncertain_param_type][self.uncertain_param_subgroup]['defined'][undefined_indx]['minimum'] = amount - lower_scaling_factor * abs(amount)
@@ -399,7 +395,7 @@ class TriangularBoundInterpolationStrategy(TriangluarBaseStrategy):
                 Seed for random number generator. If None, uses system time.
                 Default is 161 for reproducibility.
         """
-        super().__init__(uncertain_param_type, uncertain_param_subgroup, np.NaN, np.NaN, noise_interval, random_seed)
+        super().__init__(uncertain_param_type, uncertain_param_subgroup, np.nan, np.nan, noise_interval, random_seed)
 
     def _get_bounds(
             self,
@@ -874,10 +870,6 @@ def rename_metadata_index(metadata_df, lci_data:dict, param_type:str):
         return metadata_df
 
 # --- Unified uncertainty sampler that accepts both "prepared" and "transform_to_normal" shapes
-
-import numpy as np
-import stats_arrays
-from typing import Dict, Tuple, Union
 
 def _merge_defined_blocks(unc_data: dict, top_key: str) -> Dict[Union[Tuple[int,int],int], dict]:
     """Collect & merge all 'defined' blocks under unc_data[top_key]."""

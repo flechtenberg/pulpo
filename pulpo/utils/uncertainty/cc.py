@@ -147,10 +147,10 @@ def compute_L1_env_cost_mean_var(
             'loc': envcost_mean[process_id],
             'scale': envcost_std[process_id],
             'uncertainty_type': stats_arrays.NormalUncertainty.id,
-            'amount': np.NaN,
-            'maximum': np.NaN,
-            'minimum': np.NaN,
-            'shape': np.NaN,
+            'amount': np.nan,
+            'maximum': np.nan,
+            'minimum': np.nan,
+            'shape': np.nan,
         } for process_id in envcost_std.keys()
     }
     return normal_metadata_env_cost
