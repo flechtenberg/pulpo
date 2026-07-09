@@ -39,6 +39,11 @@ def pre_sample_lci_matrices(
             intervention_matrix_name=intervention_matrix_name,
             seed=seed_i,
             resample=resample,
+            # Only the resampled A/B/Q matrices are kept per sample (see below);
+            # skip assembling the bw25 uncertainty-parameter arrays, which are
+            # otherwise rebuilt from scratch on every one of the n_samples calls
+            # for no benefit.
+            compute_uncertainty_params=False,
         )
         # Keep only the matrices needed to solve the model
         samples.append({

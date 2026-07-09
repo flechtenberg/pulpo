@@ -1,8 +1,5 @@
 import copy
-import numpy as np
 import bw2data as bd
-
-np.NaN = np.nan  # Ensures compatibility with the latest NumPy versions
 
 def setup_rice_husk_db():
     # Set the current project to "rice_husk_example"

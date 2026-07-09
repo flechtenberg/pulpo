@@ -21,10 +21,23 @@ def set_project(project: str):
     # Set project and check if it exists
     if project not in bd.projects:
         raise ValueError(f"Project '{project}' does not exist. Please check the project name.")
-    bd.projects.set_current(project)
+    _ensure_project_current(project)
+
+
+def _ensure_project_current(project: str):
+    """Activate ``project`` only if it is not already the active bw2data project.
+
+    ``bd.projects.set_current()`` always tears down and rebuilds bw2data's sqlite3
+    connections (including a full ``gc.collect()``) even when re-selecting the active
+    project. Skipping that redundant reset matters because this runs once per
+    ``import_data`` call, i.e. once per Monte Carlo iteration.
+    """
+    if bd.projects.current != project:
+        bd.projects.set_current(project)
 
 def import_data(project: str, databases: Union[str, List[str]], method: Union[str, List[str], Dict[str, int]],
-                intervention_matrix_name: str, seed: Union[None, int] = None, resample: Union[str, List[str]] = ("A", "B", "Q"),) -> LCIDataDict:
+                intervention_matrix_name: str, seed: Union[None, int] = None, resample: Union[str, List[str]] = ("A", "B", "Q"),
+                compute_uncertainty_params: bool = True) -> LCIDataDict:
     """
     Main function to import LCI data for a project from one or more databases.
 
@@ -35,6 +48,11 @@ def import_data(project: str, databases: Union[str, List[str]], method: Union[st
         method (Union[str, List[str], Dict[str, int]]): Method(s) for data retrieval.
         intervention_matrix_name (str): Name of the intervention matrix.
         seed (Union[None, int], optional): Seed for RNG. If None, the default A, B, and Q matrices are used.
+        compute_uncertainty_params (bool, optional): Whether to assemble the bw25
+            'intervention_params' / 'characterization_params' structured arrays. These are
+            only needed by the uncertainty sub-package (chance-constraints, GSA), not by
+            A/B/Q resampling, so skipping them speeds up repeated Monte Carlo calls.
+            Default True to preserve the full LCIDataDict.
 
     Returns:
         Dict[str, Union[dict, Any]]: Dictionary containing imported LCI data.
@@ -73,10 +91,6 @@ def import_data(project: str, databases: Union[str, List[str]], method: Union[st
         eidbs.append(bd.Database(database))
 
     bw_version = get_bw_version()
-    characterization_matrices = {}
-    characterization_params = {}
-    process_map = {}
-    
     dist = seed is not None
 
     if isinstance(resample, str):
@@ -85,103 +99,11 @@ def import_data(project: str, databases: Union[str, List[str]], method: Union[st
 
     match bw_version:
         case 'bw25':
-            bio_params_parts = []
-            bio_incomplete_any = False
-            for eidb in eidbs:
-                lca = None
-                for method in methods:
-                    # prepare LCA
-                    fu, data_objs, _ = bd.prepare_lca_inputs({eidb.random(): 1}, method=method)
-                    lca = bc.LCA(demand=fu, data_objs=data_objs, use_distributions=dist, seed_override=seed)
-                    lca.load_lci_data(); lca.load_lcia_data()
-
-                    m = str(method)
-
-                    # characterization factor uncertainty parameters (method specific,
-                    # identical across databases -> only compute once per method)
-                    if m not in characterization_params:
-                        cf_params, cf_incomplete = build_bw25_params(
-                            data_objs, 'characterization_matrix', lca.dicts.biosphere
-                        )
-                        if cf_params is None:
-                            characterization_params[m] = None
-                            warnings.warn(
-                                f"No{' complete' if cf_incomplete else ''} characterization factor "
-                                f"uncertainty information found for method '{m}'. "
-                                f"Storing 'characterization_params' as None.",
-                                UserWarning, stacklevel=2,
-                            )
-                        else:
-                            characterization_params[m] = cf_params
-
-                    if dist and "Q" in resample:
-                        next(lca.characterization_mm)
-                        lca.characterization_matrix = lca.characterization_mm.matrix
-                    characterization_matrices[m] = lca.characterization_matrix
-
-                # intervention (biosphere) uncertainty parameters (method independent;
-                # accumulate across databases so the foreground and background flows
-                # are both represented)
-                eidb_bio_params, eidb_bio_incomplete = build_bw25_params(
-                    data_objs, 'biosphere_matrix', lca.dicts.biosphere, lca.dicts.product
-                )
-                if eidb_bio_params is None:
-                    bio_incomplete_any = True
-                else:
-                    bio_params_parts.append(eidb_bio_params)
-
-                # process map + final matrices
-                process_map.update({act.key: lca.dicts.product[act.id] for act in eidb})
-                if dist:
-                    if "A" in resample:
-                        next(lca.technosphere_mm)
-                        lca.technosphere_matrix = lca.technosphere_mm.matrix
-                    if "B" in resample:
-                        next(lca.biosphere_mm)
-                        lca.biosphere_matrix = lca.biosphere_mm.matrix
-
-            # combine intervention params across databases (deduplicating on row/col).
-            if bio_incomplete_any or not bio_params_parts:
-                bio_params = None
-                warnings.warn(
-                    f"No{' complete' if bio_incomplete_any else ''} intervention flow "
-                    f"uncertainty information found for the provided databases. "
-                    f"Storing 'intervention_params' as None.",
-                    UserWarning, stacklevel=2,
-                )
-            else:
-                bio_params = np.concatenate(bio_params_parts)
-                _, unique_idx = np.unique(
-                    np.stack([bio_params['row'], bio_params['col']], axis=1),
-                    axis=0, return_index=True,
-                )
-                bio_params = bio_params[np.sort(unique_idx)]
-
-
+            lca, characterization_matrices, characterization_params, process_map, bio_params = \
+                _load_lci_bw25(eidbs, methods, seed, dist, resample, compute_uncertainty_params)
         case 'bw2':
-            for eidb in eidbs:
-                for method in methods:
-                    lca = bc.LCA({eidb.random(): 1}, method)
-                    lca.load_lci_data(); lca.load_lcia_data()
-
-                    m = str(method)
-                    characterization_params[m] = lca.cf_params
-                    if dist and "Q" in resample:
-                        rng = MCRandomNumberGenerator(lca.cf_params, seed=seed)
-                        lca.rebuild_characterization_matrix(rng.next())
-                    characterization_matrices[m] = lca.characterization_matrix
-
-                process_map.update(lca.product_dict)
-                tech_params, bio_params = lca.tech_params, lca.bio_params
-
-            if dist:
-                if "A" in resample:
-                    tech_rng = MCRandomNumberGenerator(tech_params, seed=seed)
-                    lca.rebuild_technosphere_matrix(tech_rng.next())
-                if "B" in resample:
-                    bio_rng  = MCRandomNumberGenerator(bio_params,  seed=seed)
-                    lca.rebuild_biosphere_matrix(bio_rng.next())
-
+            lca, characterization_matrices, characterization_params, process_map, bio_params = \
+                _load_lci_bw2(eidbs, methods, seed, dist, resample)
 
     # final A & B matrices
     technology_matrix   = lca.technosphere_matrix
@@ -227,6 +149,143 @@ def import_data(project: str, databases: Union[str, List[str]], method: Union[st
     return lci_data
 
 
+def _load_lci_bw25(eidbs, methods, seed, dist, resample, compute_uncertainty_params):
+    """Build the (optionally resampled) A/B/Q matrices and maps for a bw25 project.
+
+    Returns ``(lca, characterization_matrices, characterization_params, process_map,
+    intervention_params)``. ``intervention_params`` is ``None`` when uncertainty
+    parameters are not requested or are unavailable/incomplete.
+    """
+    characterization_matrices = {}
+    characterization_params = {}
+    process_map = {}
+    bio_params_parts = []
+    bio_incomplete_any = False
+
+    for eidb in eidbs:
+        # Build technosphere/biosphere matrices ONCE per DB (heavy step)
+        fu, data_objs, _ = bd.prepare_lca_inputs({eidb.random(): 1}, method=methods[0])
+        lca = bc.LCA(demand=fu, data_objs=data_objs, use_distributions=dist, seed_override=seed)
+        lca.load_lci_data()
+
+        for method in methods:
+            lca.switch_method(method)  # cheap: swaps only the characterization datapackage/matrix
+            m = str(method)
+
+            # CF uncertainty params are method-specific but database-independent, so
+            # build them once per method.
+            if compute_uncertainty_params and m not in characterization_params:
+                cf_params, cf_incomplete = build_bw25_params(
+                    lca.packages, 'characterization_matrix', lca.dicts.biosphere
+                )
+                if cf_params is None:
+                    characterization_params[m] = None
+                    warnings.warn(
+                        f"No{' complete' if cf_incomplete else ''} characterization factor "
+                        f"uncertainty information found for method '{m}'. "
+                        f"Storing 'characterization_params' as None.",
+                        UserWarning, stacklevel=2,
+                    )
+                else:
+                    characterization_params[m] = cf_params
+
+            if dist and "Q" in resample:
+                next(lca.characterization_mm)
+                lca.characterization_matrix = lca.characterization_mm.matrix
+            characterization_matrices[m] = lca.characterization_matrix
+
+        # Intervention (biosphere) uncertainty params are method-independent; accumulate
+        # across databases so foreground and background flows are both represented. Uses
+        # the original data_objs, which is unaffected by switch_method.
+        if compute_uncertainty_params:
+            eidb_bio_params, _ = build_bw25_params(
+                data_objs, 'biosphere_matrix', lca.dicts.biosphere, lca.dicts.product
+            )
+            if eidb_bio_params is None:
+                bio_incomplete_any = True
+            else:
+                bio_params_parts.append(eidb_bio_params)
+
+        process_map.update({act.key: lca.dicts.product[act.id] for act in eidb})
+        if dist and "A" in resample:
+            next(lca.technosphere_mm)
+            lca.technosphere_matrix = lca.technosphere_mm.matrix
+        if dist and "B" in resample:
+            next(lca.biosphere_mm)
+            lca.biosphere_matrix = lca.biosphere_mm.matrix
+
+    # Combine per-database biosphere uncertainty params, deduplicating on (row, col).
+    if not compute_uncertainty_params:
+        intervention_params = None
+    elif bio_incomplete_any or not bio_params_parts:
+        intervention_params = None
+        warnings.warn(
+            f"No{' complete' if bio_incomplete_any else ''} intervention flow "
+            f"uncertainty information found for the provided databases. "
+            f"Storing 'intervention_params' as None.",
+            UserWarning, stacklevel=2,
+        )
+    else:
+        bio_params = np.concatenate(bio_params_parts)
+        _, unique_idx = np.unique(
+            np.stack([bio_params['row'], bio_params['col']], axis=1),
+            axis=0, return_index=True,
+        )
+        intervention_params = bio_params[np.sort(unique_idx)]
+
+    return lca, characterization_matrices, characterization_params, process_map, intervention_params
+
+
+def _load_lci_bw2(eidbs, methods, seed, dist, resample):
+    """Build the (optionally resampled) A/B/Q matrices and maps for a legacy bw2 project.
+
+    Returns ``(lca, characterization_matrices, characterization_params, process_map,
+    intervention_params)``.
+
+    Each resampled matrix (A, B and every method's Q) is drawn from its own child seed
+    derived from ``seed``. Reusing a single seed across all MCRandomNumberGenerators would
+    align their percentile draws (identical seed -> identical uniform stream) and inject
+    spurious cross-matrix correlation; independent child seeds reproduce the independent
+    draws bw25 performs while staying deterministic in ``seed``.
+    """
+    if dist:
+        child_seeds = np.random.SeedSequence(seed).spawn(2 + len(methods))
+        tech_seed = int(child_seeds[0].generate_state(1)[0])
+        bio_seed = int(child_seeds[1].generate_state(1)[0])
+        method_cf_seeds = {
+            str(mth): int(child_seeds[2 + i].generate_state(1)[0])
+            for i, mth in enumerate(methods)
+        }
+
+    characterization_matrices = {}
+    characterization_params = {}
+    process_map = {}
+
+    for eidb in eidbs:
+        # Build technosphere/biosphere matrices ONCE per DB (heavy step)
+        lca = bc.LCA({eidb.random(): 1}, methods[0])
+        lca.load_lci_data()
+
+        for method in methods:
+            lca.switch_method(method)  # cheap: swaps only the characterization factors
+            m = str(method)
+            characterization_params[m] = lca.cf_params
+            if dist and "Q" in resample:
+                rng = MCRandomNumberGenerator(lca.cf_params, seed=method_cf_seeds[m])
+                lca.rebuild_characterization_matrix(rng.next())
+            characterization_matrices[m] = lca.characterization_matrix
+
+        process_map.update(lca.product_dict)
+        tech_params, bio_params = lca.tech_params, lca.bio_params
+
+    if dist and "A" in resample:
+        lca.rebuild_technosphere_matrix(MCRandomNumberGenerator(tech_params, seed=tech_seed).next())
+    if dist and "B" in resample:
+        lca.rebuild_biosphere_matrix(MCRandomNumberGenerator(bio_params, seed=bio_seed).next())
+
+    return lca, characterization_matrices, characterization_params, process_map, bio_params
+
+
 def update_lci_data(lci_data: LCIDataDict, seed: int) -> LCIDataDict:
     """
     Update the LCI data dictionary with new data. For that, c
@@ -259,7 +318,7 @@ def retrieve_processes(project: str, databases: Union[str, List[str]], keys=None
         list: List of matching activities from the specified databases.
     """
     # Set project
-    bd.projects.set_current(project)
+    _ensure_project_current(project)
 
     # Normalize databases to a list
     if isinstance(databases, str):
@@ -321,7 +380,7 @@ def retrieve_env_interventions(project: str = '', intervention_matrix: str = 'bi
     """
 
     # Set project and get database
-    bd.projects.set_current(project)
+    _ensure_project_current(project)
     eidb = bd.Database(intervention_matrix)
 
     # Filter by keys if provided
@@ -356,5 +415,5 @@ def retrieve_methods(project: str, sub_string: List[str]) -> List[str]:
     Returns:
         List[str]: List of methods that match the substrings.
     """
-    bd.projects.set_current(project)
+    _ensure_project_current(project)
     return [method for method in bd.methods if any([x.lower() in str(method).lower() for x in sub_string])]
