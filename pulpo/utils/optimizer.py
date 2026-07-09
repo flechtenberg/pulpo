@@ -392,7 +392,7 @@ def solve_gurobi(model_instance, options=None):
 
     if options:
         for key, val in options.items():
-            if key is not "tee":
+            if key != "tee":
                 solver.options[key] = val
             else:
                 tee = val
