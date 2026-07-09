@@ -162,6 +162,24 @@ def import_data(project: str, databases: Union[str, List[str]], method: Union[st
 
 
         case 'bw2':
+            # Derive an independent child seed for each resampled matrix (A, B and
+            # every method's Q). Reusing a single `seed` across all the
+            # MCRandomNumberGenerators aligns their percentile draws (identical seed
+            # -> identical uniform stream), which injects spurious cross-matrix
+            # correlation between otherwise unrelated parameters - e.g. it couples
+            # the climate and resource characterization factors, so the two impacts
+            # appear correlated even when they are not. bw25 draws each matrix from
+            # its own stream; spawning child seeds here reproduces that independence
+            # while staying deterministic in `seed`.
+            if dist:
+                _child_seeds = np.random.SeedSequence(seed).spawn(2 + len(methods))
+                tech_seed = int(_child_seeds[0].generate_state(1)[0])
+                bio_seed = int(_child_seeds[1].generate_state(1)[0])
+                method_cf_seeds = {
+                    str(mth): int(_child_seeds[2 + i].generate_state(1)[0])
+                    for i, mth in enumerate(methods)
+                }
+
             for eidb in eidbs:
                 # Build technosphere/biosphere matrices ONCE per DB (heavy step)
                 lca = bc.LCA({eidb.random(): 1}, methods[0])
@@ -174,7 +192,7 @@ def import_data(project: str, databases: Union[str, List[str]], method: Union[st
                     m = str(method)
                     characterization_params[m] = lca.cf_params
                     if dist and "Q" in resample:
-                        rng = MCRandomNumberGenerator(lca.cf_params, seed=seed)
+                        rng = MCRandomNumberGenerator(lca.cf_params, seed=method_cf_seeds[m])
                         lca.rebuild_characterization_matrix(rng.next())
                     characterization_matrices[m] = lca.characterization_matrix
 
@@ -183,10 +201,10 @@ def import_data(project: str, databases: Union[str, List[str]], method: Union[st
 
             if dist:
                 if "A" in resample:
-                    tech_rng = MCRandomNumberGenerator(tech_params, seed=seed)
+                    tech_rng = MCRandomNumberGenerator(tech_params, seed=tech_seed)
                     lca.rebuild_technosphere_matrix(tech_rng.next())
                 if "B" in resample:
-                    bio_rng  = MCRandomNumberGenerator(bio_params,  seed=seed)
+                    bio_rng  = MCRandomNumberGenerator(bio_params,  seed=bio_seed)
                     lca.rebuild_biosphere_matrix(bio_rng.next())
 
 
