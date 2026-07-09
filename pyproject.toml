@@ -32,7 +32,8 @@ dependencies = [
     "tqdm",
     "joblib",
     "xlsxwriter",
-    "openpyxl"
+    "openpyxl",
+    "pypardiso>=0.4.7",
 ]
 
 [project.optional-dependencies]
