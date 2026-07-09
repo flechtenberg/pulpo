@@ -38,15 +38,15 @@ class PulpoOptimizerTime(PulpoOptimizer):
 
     def instantiate(
         self,
-        choices: dict = {},
-        demand: dict = {},
-        upper_limit: dict = {},
-        lower_limit: dict = {},
-        upper_elem_limit: dict = {},
-        upper_imp_limit: dict = {},
-        lower_elem_limit: dict = {},
-        lower_imp_limit: dict = {},
-        dependent_constraints: dict = {},
+        choices: Optional[dict] = None,
+        demand: Optional[dict] = None,
+        upper_limit: Optional[dict] = None,
+        lower_limit: Optional[dict] = None,
+        upper_elem_limit: Optional[dict] = None,
+        upper_imp_limit: Optional[dict] = None,
+        lower_elem_limit: Optional[dict] = None,
+        lower_imp_limit: Optional[dict] = None,
+        dependent_constraints: Optional[dict] = None,
         default_limits=None,
         time_steps: Optional[List] = None,
         storage: Optional[list] = None,
@@ -80,6 +80,16 @@ class PulpoOptimizerTime(PulpoOptimizer):
                 dependent_constraints=dependent_constraints,
                 default_limits=default_limits,
             )
+
+        choices = choices or {}
+        demand = demand or {}
+        upper_limit = upper_limit or {}
+        lower_limit = lower_limit or {}
+        upper_elem_limit = upper_elem_limit or {}
+        upper_imp_limit = upper_imp_limit or {}
+        lower_elem_limit = lower_elem_limit or {}
+        lower_imp_limit = lower_imp_limit or {}
+        dependent_constraints = dependent_constraints or {}
 
         if dependent_constraints:
             raise NotImplementedError(
