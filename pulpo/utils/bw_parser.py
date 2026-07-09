@@ -21,10 +21,28 @@ def set_project(project: str):
     # Set project and check if it exists
     if project not in bd.projects:
         raise ValueError(f"Project '{project}' does not exist. Please check the project name.")
-    bd.projects.set_current(project)
+    _ensure_project_current(project)
+
+
+def _ensure_project_current(project: str):
+    """Activate ``project`` unless it is already the active bw2data project.
+
+    ``bd.projects.set_current()`` unconditionally tears down and recreates
+    bw2data's sqlite3 connections, including a full ``gc.collect()`` sweep,
+    even when switching to the project that is already active. This function
+    is called on every ``import_data`` invocation (via ``retrieve_methods``),
+    i.e. once per Monte Carlo iteration in `monte_carlo.pre_sample_lci_matrices`,
+    so the redundant reset otherwise dominates the runtime of resampling - far
+    more than the actual matrix resampling work, and especially so in bw25
+    environments where the larger live object graph makes each gc.collect()
+    sweep more expensive.
+    """
+    if bd.projects.current != project:
+        bd.projects.set_current(project)
 
 def import_data(project: str, databases: Union[str, List[str]], method: Union[str, List[str], Dict[str, int]],
-                intervention_matrix_name: str, seed: Union[None, int] = None, resample: Union[str, List[str]] = ("A", "B", "Q"),) -> LCIDataDict:
+                intervention_matrix_name: str, seed: Union[None, int] = None, resample: Union[str, List[str]] = ("A", "B", "Q"),
+                compute_uncertainty_params: bool = True) -> LCIDataDict:
     """
     Main function to import LCI data for a project from one or more databases.
 
@@ -35,6 +53,12 @@ def import_data(project: str, databases: Union[str, List[str]], method: Union[st
         method (Union[str, List[str], Dict[str, int]]): Method(s) for data retrieval.
         intervention_matrix_name (str): Name of the intervention matrix.
         seed (Union[None, int], optional): Seed for RNG. If None, the default A, B, and Q matrices are used.
+        compute_uncertainty_params (bool, optional): Whether to assemble the 'intervention_params' /
+            'characterization_params' structured arrays (bw25 only). These are only needed for the
+            uncertainty sub-package (chance-constraints, GSA); resampling itself (the 'A'/'B'/'Q'
+            matrices) does not depend on them. Skipping this is a significant speedup when called
+            repeatedly, e.g. once per Monte Carlo iteration in `monte_carlo.pre_sample_lci_matrices`.
+            Default True to preserve the full LCIDataDict for callers that need it.
 
     Returns:
         Dict[str, Union[dict, Any]]: Dictionary containing imported LCI data.
@@ -101,7 +125,7 @@ def import_data(project: str, databases: Union[str, List[str]], method: Union[st
 
                     # characterization factor uncertainty parameters (method specific,
                     # identical across databases -> only compute once per method)
-                    if m not in characterization_params:
+                    if compute_uncertainty_params and m not in characterization_params:
                         cf_params, cf_incomplete = build_bw25_params(
                             lca.packages, 'characterization_matrix', lca.dicts.biosphere
                         )
@@ -125,13 +149,14 @@ def import_data(project: str, databases: Union[str, List[str]], method: Union[st
                 # accumulate across databases so the foreground and background flows
                 # are both represented). Uses the original data_objs, which is
                 # unaffected by switch_method.
-                eidb_bio_params, eidb_bio_incomplete = build_bw25_params(
-                    data_objs, 'biosphere_matrix', lca.dicts.biosphere, lca.dicts.product
-                )
-                if eidb_bio_params is None:
-                    bio_incomplete_any = True
-                else:
-                    bio_params_parts.append(eidb_bio_params)
+                if compute_uncertainty_params:
+                    eidb_bio_params, eidb_bio_incomplete = build_bw25_params(
+                        data_objs, 'biosphere_matrix', lca.dicts.biosphere, lca.dicts.product
+                    )
+                    if eidb_bio_params is None:
+                        bio_incomplete_any = True
+                    else:
+                        bio_params_parts.append(eidb_bio_params)
 
                 # process map + final matrices
                 process_map.update({act.key: lca.dicts.product[act.id] for act in eidb})
@@ -144,7 +169,9 @@ def import_data(project: str, databases: Union[str, List[str]], method: Union[st
                         lca.biosphere_matrix = lca.biosphere_mm.matrix
 
             # combine intervention params across databases (deduplicating on row/col).
-            if bio_incomplete_any or not bio_params_parts:
+            if not compute_uncertainty_params:
+                bio_params = None
+            elif bio_incomplete_any or not bio_params_parts:
                 bio_params = None
                 warnings.warn(
                     f"No{' complete' if bio_incomplete_any else ''} intervention flow "
@@ -284,7 +311,7 @@ def retrieve_processes(project: str, databases: Union[str, List[str]], keys=None
         list: List of matching activities from the specified databases.
     """
     # Set project
-    bd.projects.set_current(project)
+    _ensure_project_current(project)
 
     # Normalize databases to a list
     if isinstance(databases, str):
@@ -346,7 +373,7 @@ def retrieve_env_interventions(project: str = '', intervention_matrix: str = 'bi
     """
 
     # Set project and get database
-    bd.projects.set_current(project)
+    _ensure_project_current(project)
     eidb = bd.Database(intervention_matrix)
 
     # Filter by keys if provided
@@ -381,5 +408,5 @@ def retrieve_methods(project: str, sub_string: List[str]) -> List[str]:
     Returns:
         List[str]: List of methods that match the substrings.
     """
-    bd.projects.set_current(project)
+    _ensure_project_current(project)
     return [method for method in bd.methods if any([x.lower() in str(method).lower() for x in sub_string])]
