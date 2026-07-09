@@ -88,12 +88,14 @@ def import_data(project: str, databases: Union[str, List[str]], method: Union[st
             bio_params_parts = []
             bio_incomplete_any = False
             for eidb in eidbs:
-                lca = None
+                # Build technosphere/biosphere matrices ONCE per DB (heavy step)
+                fu, data_objs, _ = bd.prepare_lca_inputs({eidb.random(): 1}, method=methods[0])
+                lca = bc.LCA(demand=fu, data_objs=data_objs, use_distributions=dist, seed_override=seed)
+                lca.load_lci_data()
+
                 for method in methods:
-                    # prepare LCA
-                    fu, data_objs, _ = bd.prepare_lca_inputs({eidb.random(): 1}, method=method)
-                    lca = bc.LCA(demand=fu, data_objs=data_objs, use_distributions=dist, seed_override=seed)
-                    lca.load_lci_data(); lca.load_lcia_data()
+                    # Cheap: swaps only the characterization datapackage/matrix
+                    lca.switch_method(method)
 
                     m = str(method)
 
@@ -101,7 +103,7 @@ def import_data(project: str, databases: Union[str, List[str]], method: Union[st
                     # identical across databases -> only compute once per method)
                     if m not in characterization_params:
                         cf_params, cf_incomplete = build_bw25_params(
-                            data_objs, 'characterization_matrix', lca.dicts.biosphere
+                            lca.packages, 'characterization_matrix', lca.dicts.biosphere
                         )
                         if cf_params is None:
                             characterization_params[m] = None
@@ -121,7 +123,8 @@ def import_data(project: str, databases: Union[str, List[str]], method: Union[st
 
                 # intervention (biosphere) uncertainty parameters (method independent;
                 # accumulate across databases so the foreground and background flows
-                # are both represented)
+                # are both represented). Uses the original data_objs, which is
+                # unaffected by switch_method.
                 eidb_bio_params, eidb_bio_incomplete = build_bw25_params(
                     data_objs, 'biosphere_matrix', lca.dicts.biosphere, lca.dicts.product
                 )
@@ -160,9 +163,13 @@ def import_data(project: str, databases: Union[str, List[str]], method: Union[st
 
         case 'bw2':
             for eidb in eidbs:
+                # Build technosphere/biosphere matrices ONCE per DB (heavy step)
+                lca = bc.LCA({eidb.random(): 1}, methods[0])
+                lca.load_lci_data()
+
                 for method in methods:
-                    lca = bc.LCA({eidb.random(): 1}, method)
-                    lca.load_lci_data(); lca.load_lcia_data()
+                    # Cheap: swaps only the characterization factors, already loads lcia data
+                    lca.switch_method(method)
 
                     m = str(method)
                     characterization_params[m] = lca.cf_params
