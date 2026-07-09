@@ -152,7 +152,7 @@ def create_model():
 
 
 
-def calculate_methods(instance, lci_data, methods):
+def calculate_methods(instance, lci_data, methods, time_steps=None):
     """
     Calculates the impacts if a method with weight 0 has been specified.
 
@@ -160,6 +160,9 @@ def calculate_methods(instance, lci_data, methods):
         instance: The Pyomo model instance.
         lci_data (dict): LCI data containing matrices and mappings.
         methods (dict): Methods for environmental impact assessment.
+        time_steps (list, optional): Timestep labels for a time-indexed instance.
+            When given, `impacts_calculated` is populated per (t, method) instead
+            of per method.
 
     Returns:
         instance: The updated Pyomo model instance with calculated impacts.
@@ -172,46 +175,85 @@ def calculate_methods(instance, lci_data, methods):
     env_cost = {h: matrices[h] @ intervention_matrix for h in matrices}
 
     # Extract scaling vector
-    scaling_vector = extract_flows(instance, lci_data['process_map'], lci_data['process_map_metadata'], 'scaling').sort_index()
-    scaling_values = scaling_vector['Value'].to_numpy()
+    scaling_vector = extract_flows(instance, lci_data['process_map'], lci_data['process_map_metadata'], 'scaling')
 
-    # Calculate impacts
-    impacts = {h: (env_cost[h] @ scaling_values).sum() for h in matrices}
+    if time_steps is None:
+        scaling_values = scaling_vector.sort_index()['Value'].to_numpy()
 
-    # Update or create impacts_calculated variable
+        # Calculate impacts
+        impacts = {h: (env_cost[h] @ scaling_values).sum() for h in matrices}
+
+        # Update or create impacts_calculated variable
+        if hasattr(instance, 'impacts_calculated'):
+            for h, value in impacts.items():
+                instance.impacts_calculated[h].value = value
+        else:
+            instance.impacts_calculated = pyo.Var(impacts.keys(), initialize=impacts)
+
+        return instance
+
+    # Time-indexed: compute impacts per (t, method) from that timestep's scaling slice.
+    impacts = {}
+    for t in time_steps:
+        scaling_values = scaling_vector.xs(t, level='Time').sort_index()['Value'].to_numpy()
+        for h in matrices:
+            impacts[(t, h)] = (env_cost[h] @ scaling_values).sum()
+
     if hasattr(instance, 'impacts_calculated'):
-        for h, value in impacts.items():
-            instance.impacts_calculated[h].value = value
+        for key, value in impacts.items():
+            instance.impacts_calculated[key].value = value
     else:
-        instance.impacts_calculated = pyo.Var(impacts.keys(), initialize=impacts)
+        instance.impacts_calculated = pyo.Var(time_steps, list(matrices.keys()), initialize=impacts)
 
     return instance
 
-def calculate_inv_flows(instance, lci_data):
+def calculate_inv_flows(instance, lci_data, time_steps=None):
     """
     Calculates elementary flows post-optimization.
 
     Args:
         instance: The Pyomo model instance.
         lci_data (dict): LCI data containing matrices and mappings.
+        time_steps (list, optional): Timestep labels for a time-indexed instance.
+            When given, `inv_flows` is populated per (t, flow) instead of per flow.
 
     Returns:
         instance: The updated Pyomo model instance with calculated intervention flows.
     """
     # Extract intervention matrix and scaling vector
     intervention_matrix = lci_data['intervention_matrix']
-    scaling_vector = extract_flows(instance, lci_data['process_map'], lci_data['process_map_metadata'], 'scaling').sort_index()
-    scaling_values = scaling_vector['Value'].to_numpy()
+    scaling_vector = extract_flows(instance, lci_data['process_map'], lci_data['process_map_metadata'], 'scaling')
 
-    # Calculate intervention flows
-    flows = intervention_matrix @ scaling_values
+    if time_steps is None:
+        scaling_values = scaling_vector.sort_index()['Value'].to_numpy()
 
-    # Update or create inv_flows variable
+        # Calculate intervention flows
+        flows = intervention_matrix @ scaling_values
+
+        # Update or create inv_flows variable
+        if hasattr(instance, 'inv_flows'):
+            for i, flow_value in enumerate(flows):
+                instance.inv_flows[i].value = flow_value
+        else:
+            instance.inv_flows = pyo.Var(range(len(flows)), initialize=dict(enumerate(flows)))
+
+        return instance
+
+    # Time-indexed: compute the full intervention-flow vector per timestep from
+    # that timestep's scaling slice.
+    n_inv = intervention_matrix.shape[0]
+    init = {}
+    for t in time_steps:
+        scaling_values = scaling_vector.xs(t, level='Time').sort_index()['Value'].to_numpy()
+        flows = intervention_matrix @ scaling_values
+        for g, flow_value in enumerate(flows):
+            init[(t, g)] = flow_value
+
     if hasattr(instance, 'inv_flows'):
-        for i, flow_value in enumerate(flows):
-            instance.inv_flows[i].value = flow_value
+        for key, value in init.items():
+            instance.inv_flows[key].value = value
     else:
-        instance.inv_flows = pyo.Var(range(len(flows)), initialize=dict(enumerate(flows)))
+        instance.inv_flows = pyo.Var(time_steps, range(n_inv), initialize=init)
 
     return instance
 

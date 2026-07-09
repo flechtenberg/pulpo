@@ -52,33 +52,7 @@ from __future__ import annotations
 
 import pyomo.environ as pyo
 
-
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
-
-def _is_time_indexed(d, time_steps):
-    """Return True if dict ``d`` is keyed by the supplied timestep labels."""
-    if not isinstance(d, dict) or not d:
-        return False
-    return set(d.keys()) == set(time_steps)
-
-
-def _broadcast_over_time(d, time_steps):
-    """Convert a (possibly static) input dict into ``{t: dict}`` form."""
-    if d is None:
-        d = {}
-    if not isinstance(d, dict):
-        raise TypeError(f"Expected a dict, got {type(d).__name__}")
-    if _is_time_indexed(d, time_steps):
-        for t, sub in d.items():
-            if not isinstance(sub, dict):
-                raise TypeError(
-                    f"Time-indexed input must map each timestep to a dict; "
-                    f"got {type(sub).__name__} for t={t!r}"
-                )
-        return {t: dict(d[t]) for t in time_steps}
-    return {t: dict(d) for t in time_steps}
+from pulpo.utils.utils import broadcast_over_time as _broadcast_over_time
 
 
 # ---------------------------------------------------------------------------

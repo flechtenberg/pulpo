@@ -30,6 +30,37 @@ def get_bw_version():
 
 
 # ---------------------------------------------------------------------------
+# Time-indexed input helpers
+# ---------------------------------------------------------------------------
+# Shared by pulpo.utils.time_extension (data prep) and pulpo.utils.saver
+# (result extraction) so that both agree on what "time-indexed" means for a
+# user-supplied dict without duplicating the detection/broadcast logic.
+
+def is_time_indexed(d, time_steps):
+    """Return True if dict ``d`` is keyed by the supplied timestep labels."""
+    if not isinstance(d, dict) or not d:
+        return False
+    return set(d.keys()) == set(time_steps)
+
+
+def broadcast_over_time(d, time_steps):
+    """Convert a (possibly static) input dict into ``{t: dict}`` form."""
+    if d is None:
+        d = {}
+    if not isinstance(d, dict):
+        raise TypeError(f"Expected a dict, got {type(d).__name__}")
+    if is_time_indexed(d, time_steps):
+        for t, sub in d.items():
+            if not isinstance(sub, dict):
+                raise TypeError(
+                    f"Time-indexed input must map each timestep to a dict; "
+                    f"got {type(sub).__name__} for t={t!r}"
+                )
+        return {t: dict(d[t]) for t in time_steps}
+    return {t: dict(d) for t in time_steps}
+
+
+# ---------------------------------------------------------------------------
 # BW25 Uncertainty Parameter Handling
 # ---------------------------------------------------------------------------
 

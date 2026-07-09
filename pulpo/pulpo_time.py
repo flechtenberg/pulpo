@@ -127,9 +127,11 @@ class PulpoOptimizerTime(PulpoOptimizer):
 
     def solve(self, GAMS_PATH=False, solver_name=None, options=None, neos_email=None):
         """
-        Solve the model. The time-dependent path skips the static
-        post-processing helpers (which assume the single-timestep variable
-        layout); time-indexed results are stored on ``self.instance``.
+        Solve the model. Mirrors ``PulpoOptimizer.solve()``'s post-processing
+        (auxiliary zero-weight methods, elementary flows), generalized to the
+        per-timestep variable layout so that ``extract_results()``/
+        ``save_results()``/``summarize_results()`` work unchanged on a
+        time-indexed instance.
         """
         if self.time_steps is None:
             return super().solve(
@@ -141,6 +143,16 @@ class PulpoOptimizerTime(PulpoOptimizer):
         results, self.instance = optimizer.solve_model(
             self.instance, GAMS_PATH, solver_name=solver_name,
             options=options, neos_email=neos_email,
+        )
+
+        if not isinstance(self.method, str):
+            if len(self.method) > 1 and 0 in [self.method[x] for x in self.method]:
+                self.instance = optimizer.calculate_methods(
+                    self.instance, self.lci_data, self.method, time_steps=self.time_steps
+                )
+
+        self.instance = optimizer.calculate_inv_flows(
+            self.instance, self.lci_data, time_steps=self.time_steps
         )
         return results
 
