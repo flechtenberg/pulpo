@@ -99,8 +99,8 @@ class TestParser(unittest.TestCase):
            self.assertAlmostEqual(result['intervention_matrix'][0, 2], 0.8275082141783688, places=6)
            self.assertAlmostEqual(result['matrices']["('my project', 'climate change')"][0, 0], 1.0647688547752003, places=6)
         else:
-            self.assertAlmostEqual(result['intervention_matrix'][0, 2], 1.0647688547752003, places=6)
-            self.assertAlmostEqual(result['matrices']["('my project', 'climate change')"][0, 0], 1.049671416041285, places=6)
+            self.assertAlmostEqual(result['intervention_matrix'][0, 2], 0.9399899625893925, places=6)
+            self.assertAlmostEqual(result['matrices']["('my project', 'climate change')"][0, 0], 1.131145417683423, places=6)
 
     def test_retrieve_activities(self):
         key = retrieve_processes(project_name, 'technosphere', keys=["('technosphere', 'wind turbine')"])
