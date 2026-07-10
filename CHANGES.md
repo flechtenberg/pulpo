@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.6.0] - 2026-07-10
+* Add a time-dependent extension as a first-class feature via the new `pulpo.pulpo_time` module (`PulpoOptimizerTime`):
+  * Time-indexed LP formulation with per-timestep demands, limits, and impacts, plus aggregated impact bounds across timesteps.
+  * Storage / carry-over between timesteps via a product-by-product `K` matrix (`storage` argument), supporting the 4-activity CHARGE / HOLD / HOLD t-1 / DISCHARGE battery pattern.
+  * Time-indexed result extraction and saving; toy battery examples (daily, two-week, and hourly intra-day scenarios) in `notebooks/`.
+* Major model-construction speedup on ecoinvent-scale databases (several times faster instantiation):
+  * Build Pyomo models directly as `ConcreteModel` instead of `AbstractModel.create_instance()`.
+  * Embed the technology, intervention, and environmental cost matrices as plain float coefficients in `LinearExpression` constraint rows instead of per-entry mutable Params (near-zero coefficients no longer reach the solver).
+  * Apply production-capacity, intervention-flow, and impact limits as variable bounds instead of explicit constraints, and create supply slack variables only for products with a specified supply.
+  * The chance-constrained formulation updates environmental costs through the new `optimizer.update_env_cost()`, which rebuilds the impact constraints in place.
+* Faster and more robust Brightway data import:
+  * Build LCI matrices once per database rather than once per method, and push `retrieve_processes` filtering down to SQL.
+  * Load all databases in a single LCA so that the database order does not matter.
+  * Decouple Monte Carlo RNG seeds per matrix in the bw2 path and skip unused uncertainty parameters during MC sampling.
+* Fixes and maintenance: numpy 2.0 compatibility, `highspy` pinned to 1.15.1, `pypardiso` added as dependency, `None` defaults instead of mutable dict arguments in `instantiate()`, uncertainty characterization-factor index rename fix.
+
 ## [1.5.2] - 2026-06-02
 * Fix bw25 uncertainty parameter extraction: dynamically inspect datapackage resources by metadata instead of relying on hard-coded indices. This resolves failures when extracting uncertainty information from brightway databases that lack uncertainty distributions.
 * Add comprehensive uncertainty handling to the rice-husk example database, matching the uncertainty specification pattern used in the sample database.
