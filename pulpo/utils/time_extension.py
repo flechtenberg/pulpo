@@ -331,9 +331,10 @@ def instantiate_time(model_data):
     as Pyomo Params (nothing updates them after construction), which makes
     instantiation several times faster on ecoinvent-scale data. Only the
     per-timestep parameters that may be updated in place between solves remain
-    mutable Params. Production capacities enter as variable bounds; the bounds
-    reference the mutable limit Params, so they are re-evaluated whenever the
-    model is passed to a solver again. Slack variables exist only for the
+    mutable Params. Production capacities as well as intervention-flow and
+    impact limits enter as variable bounds; the bounds reference the mutable
+    limit Params, so they are re-evaluated whenever the model is passed to a
+    solver again. Slack variables exist only for the
     (t, product) pairs where a supply is specified (SUPPLY == 1); changing the
     supply pattern requires re-instantiating the model.
     """
@@ -397,11 +398,15 @@ def instantiate_time(model_data):
     # Variables. Capacity and slack-activation limits are variable bounds rather
     # than constraints; they reference the mutable Params, so updated limits take
     # effect on the next solve.
-    model.impacts = pyo.Var(model.TIME, model.INDICATOR, doc='Impact h at time t')
+    model.impacts = pyo.Var(model.TIME, model.INDICATOR,
+                            bounds=lambda model, t, h: (model.LOWER_IMP_LIMIT[t, h], model.UPPER_IMP_LIMIT[t, h]),
+                            doc='Impact h at time t')
     model.scaling_vector = pyo.Var(model.TIME, model.PROCESS,
                                    bounds=lambda model, t, j: (model.LOWER_LIMIT[t, j], model.UPPER_LIMIT[t, j]),
                                    doc='Activity level at time t')
-    model.inv_vector = pyo.Var(model.TIME, model.INV, doc='Intervention flow g at time t')
+    model.inv_vector = pyo.Var(model.TIME, model.INV,
+                               bounds=lambda model, t, g: (model.LOWER_INV_LIMIT[t, g], model.UPPER_INV_LIMIT[t, g]),
+                               doc='Intervention flow g at time t')
     model.slack = pyo.Var(model.PRODUCT_SUPPLY, bounds=(-1e20, 1e20),
                           doc='Supply slack (only (t, product) pairs with a specified supply)')
 
@@ -459,10 +464,6 @@ def instantiate_time(model_data):
     model.FINAL_DEMAND_CNSTR = pyo.Constraint(model.TIME, model.PRODUCT, rule=demand_constraint)
     model.IMPACTS_CNSTR = pyo.Constraint(model.TIME, model.INDICATOR, rule=impact_constraint)
     model.INVENTORY_CNSTR = pyo.Constraint(model.TIME, model.INV, rule=inventory_constraint)
-    model.INV_CNSTR = pyo.Constraint(model.TIME, model.INV, rule=lambda model, t, g: model.inv_vector[t, g] <= model.UPPER_INV_LIMIT[t, g])
-    model.LOWER_INV_CNSTR = pyo.Constraint(model.TIME, model.INV, rule=lambda model, t, g: model.inv_vector[t, g] >= model.LOWER_INV_LIMIT[t, g])
-    model.IMP_CNSTR = pyo.Constraint(model.TIME, model.INDICATOR, rule=lambda model, t, h: model.impacts[t, h] <= model.UPPER_IMP_LIMIT[t, h])
-    model.LOWER_IMP_CNSTR = pyo.Constraint(model.TIME, model.INDICATOR, rule=lambda model, t, h: model.impacts[t, h] >= model.LOWER_IMP_LIMIT[t, h])
     model.IMP_AGG_CNSTR = pyo.Constraint(model.INDICATOR, rule=lambda model, h: pyo.quicksum(model.impacts[t, h] for t in model.TIME) <= model.UPPER_IMP_AGG_LIMIT[h])
 
     model.OBJ = pyo.Objective(sense=pyo.minimize, expr=pyo.quicksum(

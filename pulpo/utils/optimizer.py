@@ -127,9 +127,10 @@ def instantiate(model_data):
     (and relation-set) components makes instantiation several times faster on
     ecoinvent-scale data. Only parameters that are updated in place between
     solves (environmental costs, limits, demand, weights) are mutable Params.
-    Production capacities enter as variable bounds instead of explicit
-    constraints; the bounds reference the mutable limit Params, so they are
-    re-evaluated whenever the model is passed to a solver again.
+    Production capacities as well as intervention-flow and impact limits enter
+    as variable bounds instead of explicit constraints; the bounds reference
+    the mutable limit Params, so they are re-evaluated whenever the model is
+    passed to a solver again.
     Slack variables exist only for the (typically few) products where a supply
     is specified (identical lower and upper limit, SUPPLY == 1); for all other
     products the slack would be fixed to zero, so it is not created at all.
@@ -191,10 +192,12 @@ def instantiate(model_data):
     # Variables. Capacity and slack-activation limits are variable bounds rather
     # than constraints; they reference the mutable Params, so updated limits take
     # effect on the next solve.
-    model.impacts = pyo.Var(model.INDICATOR, doc='Environmental impact on indicator h evaluated with the established LCIA method')
+    model.impacts = pyo.Var(model.INDICATOR, bounds=lambda model, h: (model.LOWER_IMP_LIMIT[h], model.UPPER_IMP_LIMIT[h]),
+                            doc='Environmental impact on indicator h evaluated with the established LCIA method')
     model.scaling_vector = pyo.Var(model.PROCESS, bounds=lambda model, j: (model.LOWER_LIMIT[j], model.UPPER_LIMIT[j]),
                                    doc='Activity level of each process to meet the final demand')
-    model.inv_vector = pyo.Var(model.INV, doc='Intervention flows')
+    model.inv_vector = pyo.Var(model.INV, bounds=lambda model, g: (model.LOWER_INV_LIMIT[g], model.UPPER_INV_LIMIT[g]),
+                               doc='Intervention flows')
     model.slack = pyo.Var(model.PRODUCT_SUPPLY, bounds=(-1e20, 1e20),
                           doc='Supply slack variables (only products with a specified supply)')
 
@@ -229,10 +232,6 @@ def instantiate(model_data):
     model.FINAL_DEMAND_CNSTR = pyo.Constraint(model.PRODUCT, rule=demand_constraint)
     model.IMPACTS_CNSTR = pyo.Constraint(model.INDICATOR, rule=impact_constraint)
     model.INVENTORY_CNSTR = pyo.Constraint(model.INV, rule=inventory_constraint)
-    model.INV_CNSTR = pyo.Constraint(model.INV, rule=lambda model, g: model.inv_vector[g] <= model.UPPER_INV_LIMIT[g])
-    model.LOWER_INV_CNSTR = pyo.Constraint(model.INV, rule=lambda model, g: model.inv_vector[g] >= model.LOWER_INV_LIMIT[g])
-    model.IMP_CNSTR = pyo.Constraint(model.INDICATOR, rule=lambda model, h: model.impacts[h] <= model.UPPER_IMP_LIMIT[h])
-    model.LOWER_IMP_CNSTR = pyo.Constraint(model.INDICATOR, rule=lambda model, h: model.impacts[h] >= model.LOWER_IMP_LIMIT[h])
     model.DEPENDENT_CNSTR = pyo.Constraint(model.DEPENDENT_CONSTRAINTS, rule=dependent_constraint)
 
     # Objective: a weighted sum over all indicators. Typically, the indicator of study has weight 1, the rest 0.
