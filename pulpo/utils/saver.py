@@ -167,7 +167,7 @@ def extract_demand(demand: Dict[Any, float], time_steps: Optional[List] = None) 
             for t in time_steps
             for e, v in demand_t[t].items()
         ]
-        return pd.DataFrame(data).set_index(["Reference Product", "Activity Name", "Location", "Time"])
+        return pd.DataFrame(data, columns=["Reference Product", "Activity Name", "Location", "Time", "Value"]).set_index(["Reference Product", "Activity Name", "Location", "Time"])
 
     data = [
         {
@@ -179,7 +179,9 @@ def extract_demand(demand: Dict[Any, float], time_steps: Optional[List] = None) 
         for e, v in demand.items()
     ]
 
-    return pd.DataFrame(data).set_index(["Reference Product", "Activity Name", "Location"])
+    # Explicit columns keep the frame well-formed when no demand is specified
+    # (supply-driven runs), where data is empty.
+    return pd.DataFrame(data, columns=["Reference Product", "Activity Name", "Location", "Value"]).set_index(["Reference Product", "Activity Name", "Location"])
 
 
 def extract_constraints(instance: ConcreteModel, constraints: Dict[Any, float], mapping: Dict[str, str], metadata: Dict[str, str], constraint_type: str, time_steps: Optional[List] = None) -> pd.DataFrame:
