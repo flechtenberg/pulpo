@@ -462,10 +462,11 @@ class TestSaver(unittest.TestCase):
     def test_extract_slack(self):
         result = extract_slack(self.worker.instance)
 
-        # Define the expected DataFrame
+        # Slack variables only exist for supply products (identical lower and
+        # upper limit); here that is only the e-Car (product 4).
         expected = pd.DataFrame({
-            'Value': [-0.00, -0.00, -0.00, -0.03]
-        }, index=[0, 1, 'electricity', 4])
+            'Value': [-0.03]
+        }, index=[4])
 
         # Assert the result matches the expected DataFrame
         assert_frame_equal(result, expected, check_exact=False, rtol=1e-5)

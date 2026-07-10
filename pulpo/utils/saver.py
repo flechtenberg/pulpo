@@ -59,9 +59,11 @@ def extract_flows(instance: ConcreteModel, mapping: Dict[str, str], metadata: Di
 def extract_slack(instance: ConcreteModel) -> pd.DataFrame:
     """
     Extracts and sorts slack values from a Pyomo model.
+
+    Slack variables only exist for products with a specified supply
+    (identical lower and upper limit), so the result contains one row per
+    supply product and is empty when no supply is specified.
     """
-    ...
-    
     return pd.DataFrame(
     {'Value': [v.value for v in instance.slack.values()]},  # Extract .value from each Pyomo variable
     index=instance.slack.keys()

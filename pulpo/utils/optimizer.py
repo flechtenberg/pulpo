@@ -127,10 +127,14 @@ def instantiate(model_data):
     (and relation-set) components makes instantiation several times faster on
     ecoinvent-scale data. Only parameters that are updated in place between
     solves (environmental costs, limits, demand, weights) are mutable Params.
-    Production capacities and the supply-slack activation enter as variable
-    bounds instead of explicit constraints; the bounds reference the mutable
-    limit Params, so they are re-evaluated whenever the model is passed to a
-    solver again.
+    Production capacities enter as variable bounds instead of explicit
+    constraints; the bounds reference the mutable limit Params, so they are
+    re-evaluated whenever the model is passed to a solver again.
+    Slack variables exist only for the (typically few) products where a supply
+    is specified (identical lower and upper limit, SUPPLY == 1); for all other
+    products the slack would be fixed to zero, so it is not created at all.
+    Consequently the supply pattern is baked in at construction time: changing
+    which products are supplies requires re-instantiating the model.
 
     Args:
         model_data (dict): Data dictionary for the optimization model.
@@ -168,6 +172,8 @@ def instantiate(model_data):
     model.INV = pyo.Set(initialize=data['INV'][None], doc='Set of intervention flows, indexed by g')
     model.ENV_COST_PROCESS = pyo.Set(initialize=data['ENV_COST_PROCESS'][None], dimen=2, doc='Relation set between processes and impact indicators')
     model.DEPENDENT_CONSTRAINTS = pyo.Set(initialize=data['DEPENDENT_CONSTRAINTS'][None], doc='Set of dependent constraint names')
+    supply_products = [i for i in data['PRODUCT'][None] if data['SUPPLY'][i]]
+    model.PRODUCT_SUPPLY = pyo.Set(initialize=supply_products, within=model.PRODUCT, doc='Products for which a supply is specified instead of a demand (slack active)')
 
     # Parameters (mutable: updated in place by the chance-constrained and Monte Carlo code)
     model.UPPER_LIMIT = pyo.Param(model.PROCESS, initialize=data['UPPER_LIMIT'], mutable=True, within=pyo.Reals, doc='Maximum production capacity of process j')
@@ -178,7 +184,6 @@ def instantiate(model_data):
     model.LOWER_IMP_LIMIT = pyo.Param(model.INDICATOR, initialize=data['LOWER_IMP_LIMIT'], mutable=True, within=pyo.Reals, doc='Minimum impact on category h')
     model.ENV_COST_MATRIX = pyo.Param(model.ENV_COST_PROCESS, initialize=env, mutable=True, doc='Environmental cost matrix Q*B describing the characterized impact of process j on indicator h')
     model.FINAL_DEMAND = pyo.Param(model.PRODUCT, initialize=data['FINAL_DEMAND'], mutable=True, within=pyo.Reals, doc='Final demand of intermediate product flows (i.e., functional unit)')
-    model.SUPPLY = pyo.Param(model.PRODUCT, initialize=data['SUPPLY'], mutable=True, within=pyo.Binary, doc='Binary parameter which specifies whether or not a supply has been specified instead of a demand')
     model.WEIGHTS = pyo.Param(model.INDICATOR, initialize=data['WEIGHTS'], mutable=True, within=pyo.NonNegativeReals, doc='Weighting factors for the impact assessment indicators in the objective function')
     model.LEFT_WEIGHTS = pyo.Param(model.DEPENDENT_CONSTRAINTS, model.PROCESS, initialize=data['LEFT_WEIGHTS'], mutable=True, default=0, doc='Left side weights for dependent constraints')
     model.RIGHT_WEIGHTS = pyo.Param(model.DEPENDENT_CONSTRAINTS, model.PROCESS, initialize=data['RIGHT_WEIGHTS'], mutable=True, default=0, doc='Right side weights for dependent constraints')
@@ -190,16 +195,19 @@ def instantiate(model_data):
     model.scaling_vector = pyo.Var(model.PROCESS, bounds=lambda model, j: (model.LOWER_LIMIT[j], model.UPPER_LIMIT[j]),
                                    doc='Activity level of each process to meet the final demand')
     model.inv_vector = pyo.Var(model.INV, doc='Intervention flows')
-    model.slack = pyo.Var(model.PRODUCT, bounds=lambda model, i: (-1e20 * model.SUPPLY[i], 1e20 * model.SUPPLY[i]),
-                          doc='Supply slack variables')
+    model.slack = pyo.Var(model.PRODUCT_SUPPLY, bounds=(-1e20, 1e20),
+                          doc='Supply slack variables (only products with a specified supply)')
 
     scaling = {j: model.scaling_vector[j] for j in data['PROCESS'][None]}
+    supply_set = set(supply_products)
 
     def demand_constraint(model, i):
         """Fixes a value in the demand vector"""
         processes, coefs = tech_rows[i]
         lhs = LinearExpression(constant=0, linear_coefs=coefs, linear_vars=[scaling[j] for j in processes])
-        return lhs == model.FINAL_DEMAND[i] + model.slack[i]
+        if i in supply_set:
+            return lhs == model.FINAL_DEMAND[i] + model.slack[i]
+        return lhs == model.FINAL_DEMAND[i]
 
     def impact_constraint(model, h):
         """Calculates all the impact categories"""

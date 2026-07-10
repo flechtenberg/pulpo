@@ -331,9 +331,11 @@ def instantiate_time(model_data):
     as Pyomo Params (nothing updates them after construction), which makes
     instantiation several times faster on ecoinvent-scale data. Only the
     per-timestep parameters that may be updated in place between solves remain
-    mutable Params. Production capacities and the supply-slack activation enter
-    as variable bounds; the bounds reference the mutable limit Params, so they
-    are re-evaluated whenever the model is passed to a solver again.
+    mutable Params. Production capacities enter as variable bounds; the bounds
+    reference the mutable limit Params, so they are re-evaluated whenever the
+    model is passed to a solver again. Slack variables exist only for the
+    (t, product) pairs where a supply is specified (SUPPLY == 1); changing the
+    supply pattern requires re-instantiating the model.
     """
     print('Creating time-indexed instance')
     data = model_data[None]
@@ -376,6 +378,8 @@ def instantiate_time(model_data):
     model.INV = pyo.Set(initialize=data['INV'][None], doc='Set of intervention flows, indexed by g')
     model.ENV_COST_PROCESS = pyo.Set(initialize=data['ENV_COST_PROCESS'][None], dimen=2, doc='Relation set between processes and impact indicators')
     model.PRODUCT_STOR = pyo.Set(initialize=data['PRODUCT_STOR'][None], doc='Storable products (use >= balance)')
+    supply_pairs = [ti for ti, flag in data['SUPPLY'].items() if flag]
+    model.PRODUCT_SUPPLY = pyo.Set(initialize=supply_pairs, dimen=2, doc='(t, product) pairs with a specified supply (slack active)')
 
     # Parameters: per-timestep (mutable: may be updated in place between solves)
     model.UPPER_LIMIT = pyo.Param(model.TIME, model.PROCESS, initialize=data['UPPER_LIMIT'], mutable=True, within=pyo.Reals)
@@ -385,7 +389,6 @@ def instantiate_time(model_data):
     model.UPPER_IMP_LIMIT = pyo.Param(model.TIME, model.INDICATOR, initialize=data['UPPER_IMP_LIMIT'], mutable=True, within=pyo.Reals)
     model.LOWER_IMP_LIMIT = pyo.Param(model.TIME, model.INDICATOR, initialize=data['LOWER_IMP_LIMIT'], mutable=True, within=pyo.Reals)
     model.FINAL_DEMAND = pyo.Param(model.TIME, model.PRODUCT, initialize=data['FINAL_DEMAND'], mutable=True, within=pyo.Reals)
-    model.SUPPLY = pyo.Param(model.TIME, model.PRODUCT, initialize=data['SUPPLY'], mutable=True, within=pyo.Binary)
     # Parameters: time-invariant
     model.ENV_COST_MATRIX = pyo.Param(model.ENV_COST_PROCESS, initialize=env, mutable=True)
     model.WEIGHTS = pyo.Param(model.INDICATOR, initialize=data['WEIGHTS'], mutable=True, within=pyo.NonNegativeReals)
@@ -399,11 +402,11 @@ def instantiate_time(model_data):
                                    bounds=lambda model, t, j: (model.LOWER_LIMIT[t, j], model.UPPER_LIMIT[t, j]),
                                    doc='Activity level at time t')
     model.inv_vector = pyo.Var(model.TIME, model.INV, doc='Intervention flow g at time t')
-    model.slack = pyo.Var(model.TIME, model.PRODUCT,
-                          bounds=lambda model, t, i: (-1e20 * model.SUPPLY[t, i], 1e20 * model.SUPPLY[t, i]),
-                          doc='Supply slack at time t')
+    model.slack = pyo.Var(model.PRODUCT_SUPPLY, bounds=(-1e20, 1e20),
+                          doc='Supply slack (only (t, product) pairs with a specified supply)')
 
     scaling = {(t, j): model.scaling_vector[t, j] for t in times for j in processes}
+    supply_set = set(supply_pairs)
 
     # Constraint rules
     def demand_constraint(model, t, i):
@@ -438,7 +441,9 @@ def instantiate_time(model_data):
         lhs = LinearExpression(constant=0, linear_coefs=lhs_coefs, linear_vars=lhs_vars)
         if i in storable:
             return lhs >= model.FINAL_DEMAND[t, i]
-        return lhs == model.FINAL_DEMAND[t, i] + model.slack[t, i]
+        if (t, i) in supply_set:
+            return lhs == model.FINAL_DEMAND[t, i] + model.slack[t, i]
+        return lhs == model.FINAL_DEMAND[t, i]
 
     def impact_constraint(model, t, h):
         return model.impacts[t, h] == pyo.quicksum(
