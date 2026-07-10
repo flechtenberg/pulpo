@@ -116,17 +116,85 @@ def calculate_inv_flows(instance, lci_data, time_steps=None):
     return instance
 
 
+def _group_env_cost_rows(env_cost):
+    """
+    Group a dense {(process j, indicator h): value} environmental cost
+    dictionary into constraint rows, keeping only nonzero coefficients.
+
+    Returns a defaultdict mapping indicator h -> ([process j], [coefficient]);
+    an indicator with an all-zero row yields an empty row (empty impact sum).
+    """
+    env_rows = defaultdict(lambda: ([], []))
+    for (j, h), value in env_cost.items():
+        if value:
+            row = env_rows[h]
+            row[0].append(j)
+            row[1].append(value)
+    return env_rows
+
+
+def update_env_cost(model, new_values):
+    """
+    Updates the environmental cost coefficients of an instantiated model.
+
+    The coefficients are embedded as plain floats in the impact constraints,
+    so unlike a mutable Param they cannot be changed in place: this merges
+    ``new_values`` (keyed ``(process j, indicator h)``) into the dense
+    ``model._env_cost`` dictionary and reconstructs the IMPACTS_CNSTR
+    component from the merged values. Works for both the plain and the
+    time-indexed model. Rebuilding the few impact constraint rows is cheap
+    compared to a solve; the next solver call picks up the new component.
+
+    Args:
+        model (ConcreteModel): An instance built by ``instantiate`` (or the
+            time extension's ``instantiate``).
+        new_values (dict): Mapping ``(process j, indicator h) -> value`` with
+            the coefficients to overwrite.
+    """
+    unknown = [key for key in new_values if key not in model._env_cost]
+    if unknown:
+        raise KeyError(f"Unknown environmental cost indices: {unknown[:5]}"
+                       + (" ..." if len(unknown) > 5 else ""))
+    model._env_cost.update(new_values)
+    env_rows = _group_env_cost_rows(model._env_cost)
+
+    model.del_component(model.IMPACTS_CNSTR)
+    # Remove the implicit index set Pyomo creates for multi-set constraints
+    if hasattr(model, 'IMPACTS_CNSTR_index'):
+        model.del_component(model.IMPACTS_CNSTR_index)
+
+    scaling = model.scaling_vector
+    if hasattr(model, 'TIME'):
+        def impact_constraint(model, t, h):
+            processes, coefs = env_rows[h]
+            lhs = LinearExpression(constant=0, linear_coefs=coefs,
+                                   linear_vars=[scaling[t, j] for j in processes])
+            return model.impacts[t, h] == lhs
+        model.add_component('IMPACTS_CNSTR', pyo.Constraint(model.TIME, model.INDICATOR, rule=impact_constraint))
+    else:
+        def impact_constraint(model, h):
+            processes, coefs = env_rows[h]
+            lhs = LinearExpression(constant=0, linear_coefs=coefs,
+                                   linear_vars=[scaling[j] for j in processes])
+            return model.impacts[h] == lhs
+        model.add_component('IMPACTS_CNSTR', pyo.Constraint(model.INDICATOR, rule=impact_constraint))
+
+
 def instantiate(model_data):
     """
     Builds an instance of the optimization model with specific data and objective function.
 
     The model is assembled as a ConcreteModel directly from the data dictionary.
-    The technology and intervention matrices are embedded as plain float
-    coefficients in LinearExpression constraint rows rather than as Pyomo Params:
-    nothing updates them after construction, and skipping their per-entry Param
-    (and relation-set) components makes instantiation several times faster on
-    ecoinvent-scale data. Only parameters that are updated in place between
-    solves (environmental costs, limits, demand, weights) are mutable Params.
+    The technology, intervention, and environmental cost matrices are embedded
+    as plain float coefficients in LinearExpression constraint rows rather than
+    as Pyomo Params: skipping their per-entry Param (and relation-set)
+    components makes instantiation several times faster on ecoinvent-scale
+    data. The dense environmental cost dictionary is kept on the model as
+    ``model._env_cost``; code that needs different coefficients (the
+    chance-constrained formulation) updates that dictionary and rebuilds the
+    impact constraints via :func:`update_env_cost`. Only parameters that are
+    updated in place between solves (limits, demand, weights) are mutable
+    Params.
     Production capacities as well as intervention-flow and impact limits enter
     as variable bounds instead of explicit constraints; the bounds reference
     the mutable limit Params, so they are re-evaluated whenever the model is
@@ -155,9 +223,7 @@ def instantiate(model_data):
         row = tech_rows[i]
         row[0].append(j)
         row[1].append(value)
-    env_in = defaultdict(list)  # indicator h -> [process j]
-    for (j, h) in env:
-        env_in[h].append(j)
+    env_rows = _group_env_cost_rows(env)
     inv_rows = defaultdict(lambda: ([], []))  # intervention g -> ([process j], [B[g, j]])
     for (g, j), value in inv.items():
         row = inv_rows[g]
@@ -165,13 +231,15 @@ def instantiate(model_data):
         row[1].append(value)
 
     model = pyo.ConcreteModel()
+    # Dense environmental cost dictionary (Q*B), kept for update_env_cost and
+    # for the saver (extract_params); the constraints embed only the nonzeros.
+    model._env_cost = dict(env)
 
     # Sets
     model.PRODUCT = pyo.Set(initialize=data['PRODUCT'][None], doc='Set of intermediate products (or technosphere exchanges), indexed by i')
     model.PROCESS = pyo.Set(initialize=data['PROCESS'][None], doc='Set of processes (or activities), indexed by j')
     model.INDICATOR = pyo.Set(initialize=data['INDICATOR'][None], doc='Set of impact assessment indicators, indexed by h')
     model.INV = pyo.Set(initialize=data['INV'][None], doc='Set of intervention flows, indexed by g')
-    model.ENV_COST_PROCESS = pyo.Set(initialize=data['ENV_COST_PROCESS'][None], dimen=2, doc='Relation set between processes and impact indicators')
     model.DEPENDENT_CONSTRAINTS = pyo.Set(initialize=data['DEPENDENT_CONSTRAINTS'][None], doc='Set of dependent constraint names')
     supply_products = [i for i in data['PRODUCT'][None] if data['SUPPLY'][i]]
     model.PRODUCT_SUPPLY = pyo.Set(initialize=supply_products, within=model.PRODUCT, doc='Products for which a supply is specified instead of a demand (slack active)')
@@ -183,7 +251,6 @@ def instantiate(model_data):
     model.LOWER_INV_LIMIT = pyo.Param(model.INV, initialize=data['LOWER_INV_LIMIT'], mutable=True, within=pyo.Reals, doc='Minimum intervention flow g')
     model.UPPER_IMP_LIMIT = pyo.Param(model.INDICATOR, initialize=data['UPPER_IMP_LIMIT'], mutable=True, within=pyo.Reals, doc='Maximum impact on category h')
     model.LOWER_IMP_LIMIT = pyo.Param(model.INDICATOR, initialize=data['LOWER_IMP_LIMIT'], mutable=True, within=pyo.Reals, doc='Minimum impact on category h')
-    model.ENV_COST_MATRIX = pyo.Param(model.ENV_COST_PROCESS, initialize=env, mutable=True, doc='Environmental cost matrix Q*B describing the characterized impact of process j on indicator h')
     model.FINAL_DEMAND = pyo.Param(model.PRODUCT, initialize=data['FINAL_DEMAND'], mutable=True, within=pyo.Reals, doc='Final demand of intermediate product flows (i.e., functional unit)')
     model.WEIGHTS = pyo.Param(model.INDICATOR, initialize=data['WEIGHTS'], mutable=True, within=pyo.NonNegativeReals, doc='Weighting factors for the impact assessment indicators in the objective function')
     model.LEFT_WEIGHTS = pyo.Param(model.DEPENDENT_CONSTRAINTS, model.PROCESS, initialize=data['LEFT_WEIGHTS'], mutable=True, default=0, doc='Left side weights for dependent constraints')
@@ -214,7 +281,9 @@ def instantiate(model_data):
 
     def impact_constraint(model, h):
         """Calculates all the impact categories"""
-        return model.impacts[h] == pyo.quicksum(model.ENV_COST_MATRIX[j, h] * scaling[j] for j in env_in[h])
+        processes, coefs = env_rows[h]
+        lhs = LinearExpression(constant=0, linear_coefs=coefs, linear_vars=[scaling[j] for j in processes])
+        return model.impacts[h] == lhs
 
     def inventory_constraint(model, g):
         """Calculates the environmental flows"""

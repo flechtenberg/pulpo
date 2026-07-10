@@ -17,6 +17,7 @@ import pandas as pd
 import scipy.stats
 import stats_arrays
 
+from pulpo.utils import optimizer
 from pulpo.utils.uncertainty.preparer import UncertaintyData, UncertaintySpec
 
 
@@ -172,7 +173,7 @@ def apply_CC_formulation(
             env_cost_indx: env_cost_data['loc'] + ppf_lambda * env_cost_data['scale']
             for env_cost_indx, env_cost_data in normal_metadata_env_cost.items()
         }
-        model_instance.ENV_COST_MATRIX.store_values(environmental_cost_updated, check=True)
+        optimizer.update_env_cost(model_instance, environmental_cost_updated)
     for bound_name, metadata_vb in normal_metadata_var_bounds.items():
         if metadata_vb:
             print(f'Applying CC constraints to the {bound_name} constraint with lambda: {lambda_level}')

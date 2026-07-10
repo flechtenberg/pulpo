@@ -236,6 +236,15 @@ def extract_params(instance: ConcreteModel) -> Dict[str,pd.DataFrame]:
         data['ID'] = list(extracted_values.keys())
         data['Value'] = list(extracted_values.values())
         data_all[param.name] = pd.DataFrame(data).set_index('ID').sort_values('Value', ascending=False)
+    # The environmental cost coefficients are embedded in the impact
+    # constraints rather than stored as a Param; report them from the dense
+    # dictionary kept on the instance so the result schema stays unchanged
+    # (the CC Pareto plots read result_data['ENV_COST_MATRIX']).
+    if hasattr(instance, '_env_cost'):
+        data_all['ENV_COST_MATRIX'] = pd.DataFrame({
+            'ID': list(instance._env_cost.keys()),
+            'Value': list(instance._env_cost.values()),
+        }).set_index('ID').sort_values('Value', ascending=False)
     return data_all
 
 def extract_results(worker: Any, extractparams:bool=False) -> ResultDataDict:

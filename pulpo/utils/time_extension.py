@@ -54,6 +54,7 @@ from collections import defaultdict
 import pyomo.environ as pyo
 from pyomo.core.expr.numeric_expr import LinearExpression
 
+from pulpo.utils.optimizer import _group_env_cost_rows
 from pulpo.utils.utils import broadcast_over_time as _broadcast_over_time
 
 
@@ -175,8 +176,6 @@ def combine_inputs_time(
     PRODUCTS = {None: list({i[0] for i in technology_matrix_dict})}
     PROCESS = {None: list({i[1] for i in technology_matrix_dict})}
     PRODUCT_PROCESS = {None: list({(i[0], i[1]) for i in technology_matrix_dict})}
-    ENV_COST = {None: list({i[0] for i in env_cost_dict})}
-    ENV_COST_PROCESS = {None: list({i for i in env_cost_dict})}
     INV = {None: list({i[0] for i in inv_dict})}
     INV_PROCESS = {None: list({(i[0], i[1]) for i in inv_dict})}
     INDICATOR = {None: list({h for h in matrices})}
@@ -290,11 +289,9 @@ def combine_inputs_time(
             'TIME': TIME,
             'PRODUCT': PRODUCTS,
             'PROCESS': PROCESS,
-            'ENV_COST': ENV_COST,
             'INDICATOR': INDICATOR,
             'INV': INV,
             'PRODUCT_PROCESS': PRODUCT_PROCESS,
-            'ENV_COST_PROCESS': ENV_COST_PROCESS,
             'INV_PROCESS': INV_PROCESS,
             'PRODUCT_STOR': PRODUCT_STOR,
             'PRODUCT_PRODUCT': PRODUCT_PRODUCT,
@@ -328,9 +325,13 @@ def instantiate_time(model_data):
     a ConcreteModel directly from the data dictionary. The time-invariant
     technology matrix, intervention matrix, and carry-over matrix K are embedded
     as plain float coefficients in LinearExpression constraint rows rather than
-    as Pyomo Params (nothing updates them after construction), which makes
-    instantiation several times faster on ecoinvent-scale data. Only the
-    per-timestep parameters that may be updated in place between solves remain
+    as Pyomo Params, which makes instantiation several times faster on
+    ecoinvent-scale data. This includes the environmental cost matrix: its
+    dense dictionary is kept on the model as ``model._env_cost``, and code
+    that needs different coefficients (the chance-constrained formulation)
+    rebuilds the impact constraints via
+    :func:`pulpo.utils.optimizer.update_env_cost`. Only the per-timestep
+    parameters that may be updated in place between solves remain
     mutable Params. Production capacities as well as intervention-flow and
     impact limits enter as variable bounds; the bounds reference the mutable
     limit Params, so they are re-evaluated whenever the model is passed to a
@@ -354,9 +355,7 @@ def instantiate_time(model_data):
         row = tech_rows[i]
         row[0].append(j)
         row[1].append(value)
-    env_in = defaultdict(list)  # indicator h -> [process j]
-    for (j, h) in env:
-        env_in[h].append(j)
+    env_rows = _group_env_cost_rows(env)
     inv_rows = defaultdict(lambda: ([], []))  # intervention g -> ([process j], [B[g, j]])
     for (g, j), value in inv.items():
         row = inv_rows[g]
@@ -370,6 +369,9 @@ def instantiate_time(model_data):
     prev_time = dict(zip(times[1:], times[:-1]))
 
     model = pyo.ConcreteModel()
+    # Dense environmental cost dictionary (Q*B), kept for update_env_cost and
+    # for the saver (extract_params); the constraints embed only the nonzeros.
+    model._env_cost = dict(env)
 
     # Sets
     model.TIME = pyo.Set(initialize=times, ordered=True, doc='Set of timesteps, indexed by t')
@@ -377,7 +379,6 @@ def instantiate_time(model_data):
     model.PROCESS = pyo.Set(initialize=processes, doc='Set of processes, indexed by j')
     model.INDICATOR = pyo.Set(initialize=data['INDICATOR'][None], doc='Set of impact assessment indicators, indexed by h')
     model.INV = pyo.Set(initialize=data['INV'][None], doc='Set of intervention flows, indexed by g')
-    model.ENV_COST_PROCESS = pyo.Set(initialize=data['ENV_COST_PROCESS'][None], dimen=2, doc='Relation set between processes and impact indicators')
     model.PRODUCT_STOR = pyo.Set(initialize=data['PRODUCT_STOR'][None], doc='Storable products (use >= balance)')
     supply_pairs = [ti for ti, flag in data['SUPPLY'].items() if flag]
     model.PRODUCT_SUPPLY = pyo.Set(initialize=supply_pairs, dimen=2, doc='(t, product) pairs with a specified supply (slack active)')
@@ -391,7 +392,6 @@ def instantiate_time(model_data):
     model.LOWER_IMP_LIMIT = pyo.Param(model.TIME, model.INDICATOR, initialize=data['LOWER_IMP_LIMIT'], mutable=True, within=pyo.Reals)
     model.FINAL_DEMAND = pyo.Param(model.TIME, model.PRODUCT, initialize=data['FINAL_DEMAND'], mutable=True, within=pyo.Reals)
     # Parameters: time-invariant
-    model.ENV_COST_MATRIX = pyo.Param(model.ENV_COST_PROCESS, initialize=env, mutable=True)
     model.WEIGHTS = pyo.Param(model.INDICATOR, initialize=data['WEIGHTS'], mutable=True, within=pyo.NonNegativeReals)
     model.UPPER_IMP_AGG_LIMIT = pyo.Param(model.INDICATOR, initialize=data['UPPER_IMP_AGG_LIMIT'], mutable=True, within=pyo.Reals)
 
@@ -451,9 +451,10 @@ def instantiate_time(model_data):
         return lhs == model.FINAL_DEMAND[t, i]
 
     def impact_constraint(model, t, h):
-        return model.impacts[t, h] == pyo.quicksum(
-            model.ENV_COST_MATRIX[j, h] * scaling[t, j] for j in env_in[h]
-        )
+        processes, coefs = env_rows[h]
+        lhs = LinearExpression(constant=0, linear_coefs=coefs,
+                               linear_vars=[scaling[t, j] for j in processes])
+        return model.impacts[t, h] == lhs
 
     def inventory_constraint(model, t, g):
         procs, coefs = inv_rows[g]
