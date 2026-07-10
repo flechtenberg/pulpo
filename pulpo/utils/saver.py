@@ -59,9 +59,11 @@ def extract_flows(instance: ConcreteModel, mapping: Dict[str, str], metadata: Di
 def extract_slack(instance: ConcreteModel) -> pd.DataFrame:
     """
     Extracts and sorts slack values from a Pyomo model.
+
+    Slack variables only exist for products with a specified supply
+    (identical lower and upper limit), so the result contains one row per
+    supply product and is empty when no supply is specified.
     """
-    ...
-    
     return pd.DataFrame(
     {'Value': [v.value for v in instance.slack.values()]},  # Extract .value from each Pyomo variable
     index=instance.slack.keys()
@@ -165,7 +167,7 @@ def extract_demand(demand: Dict[Any, float], time_steps: Optional[List] = None) 
             for t in time_steps
             for e, v in demand_t[t].items()
         ]
-        return pd.DataFrame(data).set_index(["Reference Product", "Activity Name", "Location", "Time"])
+        return pd.DataFrame(data, columns=["Reference Product", "Activity Name", "Location", "Time", "Value"]).set_index(["Reference Product", "Activity Name", "Location", "Time"])
 
     data = [
         {
@@ -177,7 +179,9 @@ def extract_demand(demand: Dict[Any, float], time_steps: Optional[List] = None) 
         for e, v in demand.items()
     ]
 
-    return pd.DataFrame(data).set_index(["Reference Product", "Activity Name", "Location"])
+    # Explicit columns keep the frame well-formed when no demand is specified
+    # (supply-driven runs), where data is empty.
+    return pd.DataFrame(data, columns=["Reference Product", "Activity Name", "Location", "Value"]).set_index(["Reference Product", "Activity Name", "Location"])
 
 
 def extract_constraints(instance: ConcreteModel, constraints: Dict[Any, float], mapping: Dict[str, str], metadata: Dict[str, str], constraint_type: str, time_steps: Optional[List] = None) -> pd.DataFrame:
@@ -232,6 +236,15 @@ def extract_params(instance: ConcreteModel) -> Dict[str,pd.DataFrame]:
         data['ID'] = list(extracted_values.keys())
         data['Value'] = list(extracted_values.values())
         data_all[param.name] = pd.DataFrame(data).set_index('ID').sort_values('Value', ascending=False)
+    # The environmental cost coefficients are embedded in the impact
+    # constraints rather than stored as a Param; report them from the dense
+    # dictionary kept on the instance so the result schema stays unchanged
+    # (the CC Pareto plots read result_data['ENV_COST_MATRIX']).
+    if hasattr(instance, '_env_cost'):
+        data_all['ENV_COST_MATRIX'] = pd.DataFrame({
+            'ID': list(instance._env_cost.keys()),
+            'Value': list(instance._env_cost.values()),
+        }).set_index('ID').sort_values('Value', ascending=False)
     return data_all
 
 def extract_results(worker: Any, extractparams:bool=False) -> ResultDataDict:

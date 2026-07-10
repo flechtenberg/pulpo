@@ -6,8 +6,7 @@ implementation in :mod:`pulpo.utils.converter` and :mod:`pulpo.utils.optimizer`.
 
 Public API:
     - :func:`combine_inputs_time` -- build a time-indexed pyomo data dict.
-    - :func:`create_time_model`   -- abstract pyomo model with TIME index.
-    - :func:`instantiate_time`    -- materialize a concrete instance.
+    - :func:`instantiate_time`    -- build the concrete time-indexed model.
 
 Storage / carry-over
 --------------------
@@ -50,8 +49,12 @@ formulation, pass ``time_steps=[...]`` to
 
 from __future__ import annotations
 
-import pyomo.environ as pyo
+from collections import defaultdict
 
+import pyomo.environ as pyo
+from pyomo.core.expr.numeric_expr import LinearExpression
+
+from pulpo.utils.optimizer import _group_env_cost_rows
 from pulpo.utils.utils import broadcast_over_time as _broadcast_over_time
 
 
@@ -173,8 +176,6 @@ def combine_inputs_time(
     PRODUCTS = {None: list({i[0] for i in technology_matrix_dict})}
     PROCESS = {None: list({i[1] for i in technology_matrix_dict})}
     PRODUCT_PROCESS = {None: list({(i[0], i[1]) for i in technology_matrix_dict})}
-    ENV_COST = {None: list({i[0] for i in env_cost_dict})}
-    ENV_COST_PROCESS = {None: list({i for i in env_cost_dict})}
     INV = {None: list({i[0] for i in inv_dict})}
     INV_PROCESS = {None: list({(i[0], i[1]) for i in inv_dict})}
     INDICATOR = {None: list({h for h in matrices})}
@@ -288,11 +289,9 @@ def combine_inputs_time(
             'TIME': TIME,
             'PRODUCT': PRODUCTS,
             'PROCESS': PROCESS,
-            'ENV_COST': ENV_COST,
             'INDICATOR': INDICATOR,
             'INV': INV,
             'PRODUCT_PROCESS': PRODUCT_PROCESS,
-            'ENV_COST_PROCESS': ENV_COST_PROCESS,
             'INV_PROCESS': INV_PROCESS,
             'PRODUCT_STOR': PRODUCT_STOR,
             'PRODUCT_PRODUCT': PRODUCT_PRODUCT,
@@ -316,87 +315,103 @@ def combine_inputs_time(
 
 
 # ---------------------------------------------------------------------------
-# Pyomo abstract model (time-indexed)
+# Pyomo model (time-indexed)
 # ---------------------------------------------------------------------------
 
-def create_time_model():
-    """Build the abstract time-indexed model."""
-    model = pyo.AbstractModel()
+def instantiate_time(model_data):
+    """Build a concrete instance of the time-indexed model.
+
+    Mirrors :func:`pulpo.utils.optimizer.instantiate`: the model is assembled as
+    a ConcreteModel directly from the data dictionary. The time-invariant
+    technology matrix, intervention matrix, and carry-over matrix K are embedded
+    as plain float coefficients in LinearExpression constraint rows rather than
+    as Pyomo Params, which makes instantiation several times faster on
+    ecoinvent-scale data. This includes the environmental cost matrix: its
+    dense dictionary is kept on the model as ``model._env_cost``, and code
+    that needs different coefficients (the chance-constrained formulation)
+    rebuilds the impact constraints via
+    :func:`pulpo.utils.optimizer.update_env_cost`. Only the per-timestep
+    parameters that may be updated in place between solves remain
+    mutable Params. Production capacities as well as intervention-flow and
+    impact limits enter as variable bounds; the bounds reference the mutable
+    limit Params, so they are re-evaluated whenever the model is passed to a
+    solver again. Slack variables exist only for the
+    (t, product) pairs where a supply is specified (SUPPLY == 1); changing the
+    supply pattern requires re-instantiating the model.
+    """
+    print('Creating time-indexed instance')
+    data = model_data[None]
+    tech = data['TECH_MATRIX']
+    env = data['ENV_COST_MATRIX']
+    inv = data['INV_MATRIX']
+    k_matrix = data['K']
+    times = list(data['TIME'][None])
+    processes = data['PROCESS'][None]
+    storable = set(data['PRODUCT_STOR'][None])
+
+    # Group the sparse matrix entries by constraint row
+    tech_rows = defaultdict(lambda: ([], []))  # product i -> ([process j], [A[i, j]])
+    for (i, j), value in tech.items():
+        row = tech_rows[i]
+        row[0].append(j)
+        row[1].append(value)
+    env_rows = _group_env_cost_rows(env)
+    inv_rows = defaultdict(lambda: ([], []))  # intervention g -> ([process j], [B[g, j]])
+    for (g, j), value in inv.items():
+        row = inv_rows[g]
+        row[0].append(j)
+        row[1].append(value)
+
+    # Carry-over sources per target product for O(1) lookup in the demand rule
+    carryover_sources = defaultdict(list)  # target i -> [source i2]
+    for (i, i2) in k_matrix:
+        carryover_sources[i].append(i2)
+    prev_time = dict(zip(times[1:], times[:-1]))
+
+    model = pyo.ConcreteModel()
+    # Dense environmental cost dictionary (Q*B), kept for update_env_cost and
+    # for the saver (extract_params); the constraints embed only the nonzeros.
+    model._env_cost = dict(env)
 
     # Sets
-    model.TIME = pyo.Set(ordered=True, doc='Set of timesteps, indexed by t')
-    model.PRODUCT = pyo.Set(doc='Set of intermediate products, indexed by i')
-    model.PROCESS = pyo.Set(doc='Set of processes, indexed by j')
-    model.ENV_COST = pyo.Set(doc='Set of environmental cost flows, indexed by e')
-    model.INDICATOR = pyo.Set(doc='Set of impact assessment indicators, indexed by h')
-    model.INV = pyo.Set(doc='Set of intervention flows, indexed by g')
-    model.ENV_COST_PROCESS = pyo.Set(within=model.PROCESS * model.INDICATOR)
-    model.ENV_COST_IN = pyo.Set(model.INDICATOR, within=model.ENV_COST)
-    model.PROCESS_IN = pyo.Set(model.PROCESS, within=model.PRODUCT)
-    model.PROCESS_OUT = pyo.Set(model.PRODUCT, within=model.PROCESS)
-    model.PRODUCT_PROCESS = pyo.Set(within=model.PRODUCT * model.PROCESS)
-    model.INV_PROCESS = pyo.Set(within=model.INV * model.PROCESS)
-    model.INV_OUT = pyo.Set(model.INV, within=model.PROCESS)
-    model.PRODUCT_STOR = pyo.Set(within=model.PRODUCT, doc='Storable products (use >= balance)')
-    model.PRODUCT_PRODUCT = pyo.Set(
-        within=model.PRODUCT * model.PRODUCT,
-        doc='Carry-over relations: (target_product, source_product) pairs with K[target, source] != 0',
-    )
+    model.TIME = pyo.Set(initialize=times, ordered=True, doc='Set of timesteps, indexed by t')
+    model.PRODUCT = pyo.Set(initialize=data['PRODUCT'][None], doc='Set of intermediate products, indexed by i')
+    model.PROCESS = pyo.Set(initialize=processes, doc='Set of processes, indexed by j')
+    model.INDICATOR = pyo.Set(initialize=data['INDICATOR'][None], doc='Set of impact assessment indicators, indexed by h')
+    model.INV = pyo.Set(initialize=data['INV'][None], doc='Set of intervention flows, indexed by g')
+    model.PRODUCT_STOR = pyo.Set(initialize=data['PRODUCT_STOR'][None], doc='Storable products (use >= balance)')
+    supply_pairs = [ti for ti, flag in data['SUPPLY'].items() if flag]
+    model.PRODUCT_SUPPLY = pyo.Set(initialize=supply_pairs, dimen=2, doc='(t, product) pairs with a specified supply (slack active)')
 
-    # Parameters: per-timestep
-    model.UPPER_LIMIT = pyo.Param(model.TIME, model.PROCESS, mutable=True, within=pyo.Reals)
-    model.LOWER_LIMIT = pyo.Param(model.TIME, model.PROCESS, mutable=True, within=pyo.Reals)
-    model.UPPER_INV_LIMIT = pyo.Param(model.TIME, model.INV, mutable=True, within=pyo.Reals)
-    model.LOWER_INV_LIMIT = pyo.Param(model.TIME, model.INV, mutable=True, within=pyo.Reals)
-    model.UPPER_IMP_LIMIT = pyo.Param(model.TIME, model.INDICATOR, mutable=True, within=pyo.Reals)
-    model.LOWER_IMP_LIMIT = pyo.Param(model.TIME, model.INDICATOR, mutable=True, within=pyo.Reals)
-    model.FINAL_DEMAND = pyo.Param(model.TIME, model.PRODUCT, mutable=True, within=pyo.Reals)
-    model.SUPPLY = pyo.Param(model.TIME, model.PRODUCT, mutable=True, within=pyo.Binary)
+    # Parameters: per-timestep (mutable: may be updated in place between solves)
+    model.UPPER_LIMIT = pyo.Param(model.TIME, model.PROCESS, initialize=data['UPPER_LIMIT'], mutable=True, within=pyo.Reals)
+    model.LOWER_LIMIT = pyo.Param(model.TIME, model.PROCESS, initialize=data['LOWER_LIMIT'], mutable=True, within=pyo.Reals)
+    model.UPPER_INV_LIMIT = pyo.Param(model.TIME, model.INV, initialize=data['UPPER_INV_LIMIT'], mutable=True, within=pyo.Reals)
+    model.LOWER_INV_LIMIT = pyo.Param(model.TIME, model.INV, initialize=data['LOWER_INV_LIMIT'], mutable=True, within=pyo.Reals)
+    model.UPPER_IMP_LIMIT = pyo.Param(model.TIME, model.INDICATOR, initialize=data['UPPER_IMP_LIMIT'], mutable=True, within=pyo.Reals)
+    model.LOWER_IMP_LIMIT = pyo.Param(model.TIME, model.INDICATOR, initialize=data['LOWER_IMP_LIMIT'], mutable=True, within=pyo.Reals)
+    model.FINAL_DEMAND = pyo.Param(model.TIME, model.PRODUCT, initialize=data['FINAL_DEMAND'], mutable=True, within=pyo.Reals)
     # Parameters: time-invariant
-    model.ENV_COST_MATRIX = pyo.Param(model.ENV_COST_PROCESS, mutable=True)
-    model.INV_MATRIX = pyo.Param(model.INV_PROCESS, mutable=True)
-    model.TECH_MATRIX = pyo.Param(model.PRODUCT_PROCESS, mutable=True)
-    model.K = pyo.Param(model.PRODUCT_PRODUCT, mutable=True, default=0,
-                        doc='Carry-over matrix K[target_product, source_product]')
-    model.WEIGHTS = pyo.Param(model.INDICATOR, mutable=True, within=pyo.NonNegativeReals)
-    model.UPPER_IMP_AGG_LIMIT = pyo.Param(model.INDICATOR, mutable=True, within=pyo.Reals)
+    model.WEIGHTS = pyo.Param(model.INDICATOR, initialize=data['WEIGHTS'], mutable=True, within=pyo.NonNegativeReals)
+    model.UPPER_IMP_AGG_LIMIT = pyo.Param(model.INDICATOR, initialize=data['UPPER_IMP_AGG_LIMIT'], mutable=True, within=pyo.Reals)
 
-    # Variables
-    model.impacts = pyo.Var(model.TIME, model.INDICATOR, doc='Impact h at time t')
-    model.scaling_vector = pyo.Var(model.TIME, model.PROCESS, doc='Activity level at time t')
-    model.inv_vector = pyo.Var(model.TIME, model.INV, doc='Intervention flow g at time t')
-    model.slack = pyo.Var(model.TIME, model.PRODUCT, doc='Supply slack at time t')
+    # Variables. Capacity and slack-activation limits are variable bounds rather
+    # than constraints; they reference the mutable Params, so updated limits take
+    # effect on the next solve.
+    model.impacts = pyo.Var(model.TIME, model.INDICATOR,
+                            bounds=lambda model, t, h: (model.LOWER_IMP_LIMIT[t, h], model.UPPER_IMP_LIMIT[t, h]),
+                            doc='Impact h at time t')
+    model.scaling_vector = pyo.Var(model.TIME, model.PROCESS,
+                                   bounds=lambda model, t, j: (model.LOWER_LIMIT[t, j], model.UPPER_LIMIT[t, j]),
+                                   doc='Activity level at time t')
+    model.inv_vector = pyo.Var(model.TIME, model.INV,
+                               bounds=lambda model, t, g: (model.LOWER_INV_LIMIT[t, g], model.UPPER_INV_LIMIT[t, g]),
+                               doc='Intervention flow g at time t')
+    model.slack = pyo.Var(model.PRODUCT_SUPPLY, bounds=(-1e20, 1e20),
+                          doc='Supply slack (only (t, product) pairs with a specified supply)')
 
-    # Build helpers (identical structure to the static model).
-    def populate_env(model):
-        for j, h in model.ENV_COST_PROCESS:
-            if j not in model.ENV_COST_IN[h]:
-                model.ENV_COST_IN[h].add(j)
-
-    def populate_in_and_out(model):
-        for i, j in model.PRODUCT_PROCESS:
-            model.PROCESS_OUT[i].add(j)
-            model.PROCESS_IN[j].add(i)
-
-    def populate_inv(model):
-        for a, j in model.INV_PROCESS:
-            model.INV_OUT[a].add(j)
-
-    model.Env_in_out = pyo.BuildAction(rule=populate_env)
-    model.Process_in_out = pyo.BuildAction(rule=populate_in_and_out)
-    model.Inv_in_out = pyo.BuildAction(rule=populate_inv)
-
-    # Carry-over targets are stored as a per-target dict so that the demand
-    # constraint can look them up in O(1) instead of scanning the full
-    # ``PRODUCT_PRODUCT`` set for every (t, i) pair (which made constraint
-    # construction quadratic in the number of timesteps × products).
-    def populate_carryover(model):
-        carryover = {}
-        for i, i2 in model.PRODUCT_PRODUCT:
-            carryover.setdefault(i, []).append(i2)
-        model._carryover_sources = carryover
-
-    model.Carryover_index = pyo.BuildAction(rule=populate_carryover)
+    scaling = {(t, j): model.scaling_vector[t, j] for t in times for j in processes}
+    supply_set = set(supply_pairs)
 
     # Constraint rules
     def demand_constraint(model, t, i):
@@ -408,7 +423,7 @@ def create_time_model():
 
         Carry-over from t-1 (only for products that appear as a target in K):
 
-            prev_t = Σ_{i2 : (i, i2) ∈ PRODUCT_PRODUCT} K[i, i2] · Σ_j A[i2, j] · s[t-1, j]
+            prev_t = Σ_{i2 : (i, i2) ∈ K} K[i, i2] · Σ_j A[i2, j] · s[t-1, j]
 
         For *storable* products (i ∈ PRODUCT_STOR) the balance is relaxed to
         ``>=``: the optimizer may over-produce within a step, which is the
@@ -416,99 +431,45 @@ def create_time_model():
         For non-storable products the standard ``==`` balance with the supply
         slack mechanism applies.
         """
-        tech = sum(model.TECH_MATRIX[i, j] * model.scaling_vector[t, j]
-                   for j in model.PROCESS_OUT[i])
+        procs, coefs = tech_rows[i]
+        lhs_coefs = list(coefs)
+        lhs_vars = [scaling[t, j] for j in procs]
 
-        # Use the ordered Set's O(1) `prev` lookup rather than rebuilding the
-        # time list and doing a linear search on every call.
-        try:
-            t_prev = model.TIME.prev(t)
-        except (IndexError, ValueError):
-            t_prev = None
+        t_prev = prev_time.get(t)
+        if t_prev is not None:
+            for i2 in carryover_sources.get(i, ()):
+                k = k_matrix[(i, i2)]
+                procs2, coefs2 = tech_rows[i2]
+                lhs_coefs.extend(k * c for c in coefs2)
+                lhs_vars.extend(scaling[t_prev, j] for j in procs2)
 
-        sources = model._carryover_sources.get(i, ())
-        if t_prev is not None and sources:
-            prev = sum(
-                model.K[i, i2] * sum(
-                    model.TECH_MATRIX[i2, j] * model.scaling_vector[t_prev, j]
-                    for j in model.PROCESS_OUT[i2]
-                )
-                for i2 in sources
-            )
-        else:
-            prev = 0
-
-        if i in model.PRODUCT_STOR:
-            return tech + prev >= model.FINAL_DEMAND[t, i]
-        return tech + prev == model.FINAL_DEMAND[t, i] + model.slack[t, i]
+        lhs = LinearExpression(constant=0, linear_coefs=lhs_coefs, linear_vars=lhs_vars)
+        if i in storable:
+            return lhs >= model.FINAL_DEMAND[t, i]
+        if (t, i) in supply_set:
+            return lhs == model.FINAL_DEMAND[t, i] + model.slack[t, i]
+        return lhs == model.FINAL_DEMAND[t, i]
 
     def impact_constraint(model, t, h):
-        return model.impacts[t, h] == sum(
-            model.ENV_COST_MATRIX[j, h] * model.scaling_vector[t, j]
-            for j in model.ENV_COST_IN[h]
-        )
+        processes, coefs = env_rows[h]
+        lhs = LinearExpression(constant=0, linear_coefs=coefs,
+                               linear_vars=[scaling[t, j] for j in processes])
+        return model.impacts[t, h] == lhs
 
     def inventory_constraint(model, t, g):
-        return model.inv_vector[t, g] == sum(
-            model.INV_MATRIX[g, j] * model.scaling_vector[t, j]
-            for j in model.INV_OUT[g]
-        )
-
-    def upper_constraint(model, t, j):
-        return model.scaling_vector[t, j] <= model.UPPER_LIMIT[t, j]
-
-    def lower_constraint(model, t, j):
-        return model.scaling_vector[t, j] >= model.LOWER_LIMIT[t, j]
-
-    def upper_env_constraint(model, t, g):
-        return model.inv_vector[t, g] <= model.UPPER_INV_LIMIT[t, g]
-
-    def lower_env_constraint(model, t, g):
-        return model.inv_vector[t, g] >= model.LOWER_INV_LIMIT[t, g]
-
-    def upper_imp_constraint(model, t, h):
-        return model.impacts[t, h] <= model.UPPER_IMP_LIMIT[t, h]
-
-    def lower_imp_constraint(model, t, h):
-        return model.impacts[t, h] >= model.LOWER_IMP_LIMIT[t, h]
-
-    def upper_imp_agg_constraint(model, h):
-        return sum(model.impacts[t, h] for t in model.TIME) <= model.UPPER_IMP_AGG_LIMIT[h]
-
-    def slack_upper_constraint(model, t, j):
-        return model.slack[t, j] <= 1e20 * model.SUPPLY[t, j]
-
-    def slack_lower_constraint(model, t, j):
-        return model.slack[t, j] >= -1e20 * model.SUPPLY[t, j]
-
-    def objective_function(model):
-        return sum(
-            model.impacts[t, h] * model.WEIGHTS[h]
-            for t in model.TIME for h in model.INDICATOR
-        )
+        procs, coefs = inv_rows[g]
+        lhs = LinearExpression(constant=0, linear_coefs=coefs, linear_vars=[scaling[t, j] for j in procs])
+        return model.inv_vector[t, g] == lhs
 
     # Constraints
     model.FINAL_DEMAND_CNSTR = pyo.Constraint(model.TIME, model.PRODUCT, rule=demand_constraint)
     model.IMPACTS_CNSTR = pyo.Constraint(model.TIME, model.INDICATOR, rule=impact_constraint)
     model.INVENTORY_CNSTR = pyo.Constraint(model.TIME, model.INV, rule=inventory_constraint)
-    model.UPPER_CNSTR = pyo.Constraint(model.TIME, model.PROCESS, rule=upper_constraint)
-    model.LOWER_CNSTR = pyo.Constraint(model.TIME, model.PROCESS, rule=lower_constraint)
-    model.SLACK_UPPER_CNSTR = pyo.Constraint(model.TIME, model.PRODUCT, rule=slack_upper_constraint)
-    model.SLACK_LOWER_CNSTR = pyo.Constraint(model.TIME, model.PRODUCT, rule=slack_lower_constraint)
-    model.INV_CNSTR = pyo.Constraint(model.TIME, model.INV, rule=upper_env_constraint)
-    model.LOWER_INV_CNSTR = pyo.Constraint(model.TIME, model.INV, rule=lower_env_constraint)
-    model.IMP_CNSTR = pyo.Constraint(model.TIME, model.INDICATOR, rule=upper_imp_constraint)
-    model.LOWER_IMP_CNSTR = pyo.Constraint(model.TIME, model.INDICATOR, rule=lower_imp_constraint)
-    model.IMP_AGG_CNSTR = pyo.Constraint(model.INDICATOR, rule=upper_imp_agg_constraint)
+    model.IMP_AGG_CNSTR = pyo.Constraint(model.INDICATOR, rule=lambda model, h: pyo.quicksum(model.impacts[t, h] for t in model.TIME) <= model.UPPER_IMP_AGG_LIMIT[h])
 
-    model.OBJ = pyo.Objective(sense=pyo.minimize, rule=objective_function)
-    return model
+    model.OBJ = pyo.Objective(sense=pyo.minimize, expr=pyo.quicksum(
+        model.impacts[t, h] * model.WEIGHTS[h] for t in times for h in model.INDICATOR
+    ))
 
-
-def instantiate_time(model_data):
-    """Build a concrete instance of the time-indexed abstract model."""
-    print('Creating time-indexed instance')
-    model = create_time_model()
-    problem = model.create_instance(model_data, report_timing=False)
     print('Time-indexed instance created')
-    return problem
+    return model
