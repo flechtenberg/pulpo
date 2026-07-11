@@ -5,6 +5,7 @@ Module for processing the uncertainty data, by filling in missing data,
 updating data or comupting metrics from the uncertainty data.
 """
 
+import warnings
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -156,7 +157,14 @@ class ExpertKnowledgeStrategy(UncertaintyStrategyBase):
             elif indx in uncertainty_data[self.uncertain_param_type][self.uncertain_param_subgroup]['defined'].keys():
                 uncertainty_data[self.uncertain_param_type][self.uncertain_param_subgroup]['defined'][indx].update(prob_metadata)
             else:
-                raise Exception(f'{indx} is not found in uncertainty data of {self.uncertain_param_subgroup} in {self.uncertain_param_type}.')
+                # The parameter may have been dropped by the contribution cutoff filter
+                # (import_and_filter_uncertainty_data), e.g. when the strategy is reused
+                # on a worker filtered against a different solution.
+                warnings.warn(
+                    f'{indx} is not found in uncertainty data of {self.uncertain_param_subgroup} '
+                    f'in {self.uncertain_param_type}. Skipping this expert knowledge entry '
+                    f'(it was likely removed by the cutoff filter).'
+                )
     
     def assign(self, uncertainty_data:UncertaintyData, **strategy_options):
         self.insert_expert_knowledge(uncertainty_data)
