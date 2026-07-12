@@ -9,12 +9,10 @@ This module filter and imports uncertainty data to then be used for uncertainty 
 import pandas as pd
 import numpy as np
 import scipy.sparse
-import pandas as pd
-import numpy as np
 import scipy.sparse as sparse
 from time import time
 import ast
-from typing import List, Dict, Tuple, Dict, TypedDict, Optional, Literal, Union
+from typing import List, Dict, Tuple, TypedDict, Optional, Literal, Union
 from typing_extensions import NotRequired
 import bw2calc
 from pulpo.utils.uncertainty import plots

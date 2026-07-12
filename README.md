@@ -89,42 +89,11 @@ python -m unittest discover -s tests
 ```
 
 ---
-## What's new in 1.5.1?
-- Hotfix for chance-constrained uncertainty workflow: corrected environmental-cost mean computation in `pulpo.utils.uncertainty.cc` by replacing fragile pandas sparse updates with direct sparse-matrix updates and multiplication.
-- Updated Section 10 of the main [showcase](https://github.com/flechtenberg/pulpo/blob/master/notebooks/pulpo_showcase.ipynb) to include the deterministic reference result used by `run_gsa`, and re-ran the workflow end-to-end.
-- Moved the sample and rice-husk database helpers into a new `pulpo.datasets` subpackage so that `pulpo.install_sample_db()` and `pulpo.install_rice_husk_db()` work from an installed wheel.
-- Packaging fixes: `tests/` is no longer included in the wheel, and the `bw2` / `bw25` extras are now declared as mutually exclusive in `[tool.uv] conflicts` so that `uv` can resolve the lockfile cleanly.
+## What's new in 1.6.0?
+- **Time-dependent optimization** — New `pulpo.pulpo_time` module (`PulpoOptimizerTime`) adds a time-indexed formulation with inter-timestep storage / carry-over.
+- **Faster model building** — Several-times-faster instantiation on ecoinvent-scale databases, plus a quicker and order-independent Brightway data import.
 
-## What's new in 1.5.0?
-
-This release integrates the full **uncertainty analysis** pipeline into PULPO via the new `pulpo.pulpo_unc` module, turning the long-running development effort into a first-class feature:
-
-- **`PulpoOptimizerUnc`** — A subclass of `PulpoOptimizer` that exposes the entire uncertainty workflow through a single worker object.
-- **Uncertainty data import and filtering** — Import uncertain parameters directly from Brightway databases via `import_and_filter_uncertainty_data()`, with configurable cutoff-based filtering.
-- **Uncertainty strategies** — Fill missing or incomplete uncertainty specifications using `apply_uncertainty_strategies()`, with built-in strategies (e.g. triangular bound interpolation) and support for custom expert-knowledge distributions.
-- **Monte Carlo from prepared distributions** — Run MC on the curated uncertainty data (without re-sampling the full Brightway matrices) via `run_mc_from_uncertainty()`.
-- **Chance-Constrained (CC) optimization** — Formulate and solve chance-constrained programs with `create_CC_formulation()` and `solve_CC_problem()`, yielding a Pareto front of optimal solutions at varying probability (risk) levels.
-- **Global Sensitivity Analysis (GSA)** — Identify the uncertain parameters that drive optimization outcomes using Sobol sensitivity indices via `run_gsa()`.
-- **End-to-end showcase** — Section 10 of the [PULPO showcase notebook](https://github.com/flechtenberg/pulpo/blob/master/notebooks/pulpo_showcase.ipynb) walks through the complete `pulpo_unc` workflow on the methanol system.
-- Note: The uncertainty features in this release have been implemented and tested with Brightway `bw2` only; users working with `bw25` should validate workflows and may need to adapt configuration.
-- Minor bugfixes and code cleanup.
-
-## What's new in 1.4.3?
-- Allow users to pass lower inventory flow and lower impact limits via `lower_inv_limit` and `lower_imp_limit` dicts.
-- Provide new [showcase](https://github.com/flechtenberg/pulpo/blob/master/notebooks/pulpo_showcase.ipynb) notebook.
-- Enable users to pass custom default upper limits on elements, given that Gurobi identified `1e20` (and `1e24`) as infinite in some cases. See section 8 of the [showcase](https://github.com/flechtenberg/pulpo/blob/master/notebooks/pulpo_showcase.ipynb) for usage. Setting them lower may also improve convergence speed.
-- Enable dependent constraint definition. See section 9 of the [showcase](https://github.com/flechtenberg/pulpo/blob/master/notebooks/pulpo_showcase.ipynb) for usage.
-
-## What's new in 1.4.2?
-- Enable the use of Gurobi solver.
-
-## What's new in 1.4.0?
-- Enable the use of NEOS solver (commercial solvers without a local license).
-- Enable Monte Carlo sampling feature.
-- Retrieve uncertainty information to `lci_data` for future use.
-
-## What's new in 1.3.0?
-- Switch packaging logic from `setup.py` to `pyproject.toml` and align PyPI with GitHub versioning.
+See the [changelog](CHANGES.md) for the full details and earlier releases.
 
 ---
 
