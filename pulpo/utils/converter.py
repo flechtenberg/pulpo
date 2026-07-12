@@ -82,8 +82,6 @@ def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, upper_in
     PRODUCTS = {None: list({i[0] for i in technology_matrix_dict})}
     PROCESS = {None: list({i[1] for i in technology_matrix_dict})}
     PRODUCT_PROCESS = {None: list({(i[0], i[1]) for i in technology_matrix_dict})}
-    ENV_COST = {None: list({i[0] for i in env_cost_dict})}
-    ENV_COST_PROCESS = {None: list({i for i in env_cost_dict})}
     INV = {None: list({i[0] for i in inv_dict})}
     INV_PROCESS = {None: list({(i[0], i[1]) for i in inv_dict})}
     INDICATOR = {None: list({h for h in matrices})}
@@ -170,11 +168,9 @@ def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, upper_in
         None: {
             'PRODUCT': PRODUCTS,
             'PROCESS': PROCESS,
-            'ENV_COST': ENV_COST,
             'INDICATOR': INDICATOR,
             'INV': INV,
             'PRODUCT_PROCESS': PRODUCT_PROCESS,
-            'ENV_COST_PROCESS': ENV_COST_PROCESS,
             'INV_PROCESS': INV_PROCESS,
             'TECH_MATRIX': technology_matrix_dict,
             'ENV_COST_MATRIX': env_cost_dict,

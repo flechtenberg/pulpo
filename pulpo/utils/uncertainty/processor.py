@@ -5,15 +5,12 @@ Module for processing the uncertainty data, by filling in missing data,
 updating data or comupting metrics from the uncertainty data.
 """
 
+import warnings
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import stats_arrays
 import scipy.stats
-import pandas as pd
-import numpy as np
-import stats_arrays
-import matplotlib.pyplot as plt
 from typing import Union, List, Optional, Dict, Tuple, Literal
 
 from pulpo.utils.uncertainty.preparer import UncertaintyData, UncertaintySpec
@@ -160,7 +157,14 @@ class ExpertKnowledgeStrategy(UncertaintyStrategyBase):
             elif indx in uncertainty_data[self.uncertain_param_type][self.uncertain_param_subgroup]['defined'].keys():
                 uncertainty_data[self.uncertain_param_type][self.uncertain_param_subgroup]['defined'][indx].update(prob_metadata)
             else:
-                raise Exception(f'{indx} is not found in uncertainty data of {self.uncertain_param_subgroup} in {self.uncertain_param_type}.')
+                # The parameter may have been dropped by the contribution cutoff filter
+                # (import_and_filter_uncertainty_data), e.g. when the strategy is reused
+                # on a worker filtered against a different solution.
+                warnings.warn(
+                    f'{indx} is not found in uncertainty data of {self.uncertain_param_subgroup} '
+                    f'in {self.uncertain_param_type}. Skipping this expert knowledge entry '
+                    f'(it was likely removed by the cutoff filter).'
+                )
     
     def assign(self, uncertainty_data:UncertaintyData, **strategy_options):
         self.insert_expert_knowledge(uncertainty_data)
@@ -236,7 +240,7 @@ class UniformBaseStrategy(UncertaintyStrategyBase):
             undefined_dict = uncertainty_data[self.uncertain_param_type][self.uncertain_param_subgroup]['undefined'].pop(undefined_indx)
             uncertainty_data[self.uncertain_param_type][self.uncertain_param_subgroup]['defined'][undefined_indx] = undefined_dict
             amount = undefined_dict['amount']
-            uncertainty_data[self.uncertain_param_type][self.uncertain_param_subgroup]['defined'][undefined_indx]['loc'] = np.NaN
+            uncertainty_data[self.uncertain_param_type][self.uncertain_param_subgroup]['defined'][undefined_indx]['loc'] = np.nan
             if amount > 0:
                 uncertainty_data[self.uncertain_param_type][self.uncertain_param_subgroup]['defined'][undefined_indx]['maximum'] = amount + upper_scaling_factor * abs(amount)
                 uncertainty_data[self.uncertain_param_type][self.uncertain_param_subgroup]['defined'][undefined_indx]['minimum'] = amount - lower_scaling_factor * abs(amount)
@@ -399,7 +403,7 @@ class TriangularBoundInterpolationStrategy(TriangluarBaseStrategy):
                 Seed for random number generator. If None, uses system time.
                 Default is 161 for reproducibility.
         """
-        super().__init__(uncertain_param_type, uncertain_param_subgroup, np.NaN, np.NaN, noise_interval, random_seed)
+        super().__init__(uncertain_param_type, uncertain_param_subgroup, np.nan, np.nan, noise_interval, random_seed)
 
     def _get_bounds(
             self,
@@ -863,7 +867,7 @@ def rename_metadata_index(metadata_df, lci_data:dict, param_type:str):
                 cf_index_map = {interv_indx:  '{} '.format(lci_data['intervention_map_metadata'][interv_indx]) for interv_indx in metadata_df.index}
                 metadata_df = metadata_df.reset_index()
                 metadata_df.index = metadata_df['index']
-                metadata_df.rename(index=cf_index_map)
+                metadata_df = metadata_df.rename(index=cf_index_map)
             case 'process':
                 process_index_map = {process_indx:  '{} '.format(lci_data['process_map_metadata'][process_indx]) for process_indx in metadata_df.index}
                 metadata_df = metadata_df.reset_index()
@@ -874,10 +878,6 @@ def rename_metadata_index(metadata_df, lci_data:dict, param_type:str):
         return metadata_df
 
 # --- Unified uncertainty sampler that accepts both "prepared" and "transform_to_normal" shapes
-
-import numpy as np
-import stats_arrays
-from typing import Dict, Tuple, Union
 
 def _merge_defined_blocks(unc_data: dict, top_key: str) -> Dict[Union[Tuple[int,int],int], dict]:
     """Collect & merge all 'defined' blocks under unc_data[top_key]."""
