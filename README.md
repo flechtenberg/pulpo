@@ -89,9 +89,10 @@ python -m unittest discover -s tests
 ```
 
 ---
-## What's new in 1.6.0?
-- **Time-dependent optimization** — New `pulpo.pulpo_time` module (`PulpoOptimizerTime`) adds a time-indexed formulation with inter-timestep storage / carry-over.
-- **Faster model building** — Several-times-faster instantiation on ecoinvent-scale databases, plus a quicker and order-independent Brightway data import.
+## What's new in 1.6.1?
+- **Windows solve-hang fix** — Unspecified limits are now truly infinite instead of ±1e20/±1e24, removing HiGHS bound warnings that deadlocked pyomo ≥ 6.6's output capture during model construction.
+- **Python 3.13 & numpy 2** — numpy 2 is unpinned (the `<2` cap remains only in the legacy `bw2` extra) and pyomo is relaxed to `>=6.8,<7`.
+- **From 1.6.0: time-dependent optimization** — The `pulpo.pulpo_time` module (`PulpoOptimizerTime`) adds a time-indexed formulation with inter-timestep storage / carry-over, alongside several-times-faster model instantiation.
 
 See the [changelog](CHANGES.md) for the full details and earlier releases.
 
