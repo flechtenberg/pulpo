@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.6.1] - 2026-07-13
+* Fix a solver hang on Windows with pyomo >= 6.6: the huge finite default limits (±1e20 / ±1e24) made HiGHS log "treated as ±Infinity" warnings during model construction, which deadlocked pyomo's appsi output capture (solve stuck forever at zero CPU). Unspecified limits and supply-slack bounds are now truly infinite (`float('inf')`), which HiGHS, Gurobi, and GAMS all handle natively — the resulting LP is unchanged. The choices documentation now recommends `float('inf')` instead of `1e20` for unconstrained capacities.
+* Modernize dependencies to enable Python 3.13: unpin numpy 2 (the `<2` cap now lives only in the legacy `bw2` extra, where bw2data 3.x needs it), relax pyomo to `>=6.8.0,<7` (6.7.3 still touches the removed `np.float_` under numpy 2), and replace the phantom `bw2data<=3.9.9` pin with `bw2data<4.0.0`.
+* Skip `pypardiso` on macOS via an environment marker (no wheels there; scipy's solver is used instead).
+* Use a stable sort for result ordering in the saver so extracted results are deterministic across numpy versions.
+* Dev: configure pytest discovery and ignore project virtualenvs.
+
 ## [1.6.0] - 2026-07-10
 * Add a time-dependent extension as a first-class feature via the new `pulpo.pulpo_time` module (`PulpoOptimizerTime`):
   * Time-indexed LP formulation with per-timestep demands, limits, and impacts, plus aggregated impact bounds across timesteps.
