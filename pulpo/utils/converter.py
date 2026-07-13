@@ -25,15 +25,19 @@ def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, upper_in
         dict: Combined data dictionary for the optimization model.
     """
 
-    # Set default limits
+    # Set default limits. Unspecified limits must be truly infinite: huge
+    # finite defaults (e.g. ±1e20) make HiGHS log "treated as ±Infinity"
+    # warnings for every variable batch, which deadlocks pyomo>=6.6's
+    # appsi output capture on Windows (GIL held during addVars while the
+    # capture pipe fills).
     if default_limits is None:
         default_limits = {
-            'lower_bound': -1e20,
-            'upper_bound': 1e20,
-            'upper_inv_bound': 1e24,
-            'lower_inv_bound': -1e24,
-            'lower_imp_bound': -1e24,
-            'upper_imp_bound': 1e24, 
+            'lower_bound': -float('inf'),
+            'upper_bound': float('inf'),
+            'upper_inv_bound': float('inf'),
+            'lower_inv_bound': -float('inf'),
+            'lower_imp_bound': -float('inf'),
+            'upper_imp_bound': float('inf'),
         }
 
     # Load LCI data matrices and mappings

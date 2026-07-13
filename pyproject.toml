@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pulpo-dev"
-version = "1.6.0"
+version = "1.6.1"
 description = "Pulpo package for optimization in LCI databases"
 authors = [
   { name="Fabian Lechtenberg", email="fabian.lechtenberg@chem.ethz.ch" }
@@ -22,24 +22,29 @@ classifiers = [
 ]
 dependencies = [
     "fs==2.4.16",
-    "pyomo<=6.5.0",
+    # 6.7.3 still touches np.float_ under numpy 2; 6.8.0 is the first
+    # release verified against numpy 2 + highspy 1.15.
+    "pyomo>=6.8.0,<7.0.0",
     "highspy==1.15.1",
     "ipython==8.14.0",
     "jupyterlab",
-    "numpy<2.0.0",
+    "numpy<3.0.0",
     "pandas",
     "scipy<=1.14.1",
     "tqdm",
     "joblib",
     "xlsxwriter",
     "openpyxl",
-    "pypardiso>=0.4.7",
+    "pypardiso>=0.4.7; sys_platform != 'darwin'",
 ]
 
 [project.optional-dependencies]
 bw2 = [
     "bw2calc<=1.8.2",
-    "bw2data<=3.9.9"
+    "bw2data<4.0.0",
+    # Legacy Brightway2 (bw2data 3.x) uses np.NaN at runtime, which was
+    # removed in numpy 2.0; it also caps the usable Python at 3.12.
+    "numpy<2.0.0",
 ]
 bw25 = [
     "bw2calc>=2.0.0",
@@ -67,6 +72,9 @@ conflicts = [
         { extra = "bw25" },
     ],
 ]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
 
 [tool.flake8]
 max_line_length = 88

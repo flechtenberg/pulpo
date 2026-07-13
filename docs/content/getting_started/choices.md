@@ -101,16 +101,16 @@ locations = ["DE"]
 
 electricity_activities = pulpo_worker.retrieve_activities(activities=activities, reference_products=reference_products, locations=locations)
 
-choices = {'electricity': {electricity_activities[0]: 1e20,
-           electricity_activities[1]: 1e20,
-           electricity_activities[2]: 1e20,
-           electricity_activities[3]: 1e20}}
+choices = {'electricity': {electricity_activities[0]: float('inf'),
+           electricity_activities[1]: float('inf'),
+           electricity_activities[2]: float('inf'),
+           electricity_activities[3]: float('inf')}}
 
 ```
 
 Note that the choices are defined as a nested dictionary, where the outer dictionary indexes the choice sets with a label (e.g., "electricity"). The inner dictionaries specify the activities that can be selected and their respective upper bounds. 
 
-In an unconstrained scenario, the upper bound should be set to a very large value, such as `1e20`, as demonstrated above.
+In an unconstrained scenario, the upper bound should be set to `float('inf')`, as demonstrated above. Avoid huge finite stand-ins like `1e20`: HiGHS logs a "treated as +Infinity" warning for each of them, and under pyomo ≥ 6.6 that logging can deadlock the solve on Windows.
 
 Technically, this example represents a **"fore- and background" choice**, as there is no distinct foreground system. The assessment relies entirely on the background database, but the deviation in the market could also be interpreted as a foreground choice, depending on how the boundaries are defined.
 
