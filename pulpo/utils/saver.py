@@ -52,8 +52,8 @@ def extract_flows(instance: ConcreteModel, mapping: Dict[str, str], metadata: Di
 
     df = pd.DataFrame(data)
     if time_indexed:
-        return df.set_index(['ID', 'Time']).sort_values('Value', ascending=False)
-    return df.drop(columns='Time').set_index('ID').sort_values('Value', ascending=False)
+        return df.set_index(['ID', 'Time']).sort_values('Value', ascending=False, kind='stable')
+    return df.drop(columns='Time').set_index('ID').sort_values('Value', ascending=False, kind='stable')
 
 
 def extract_slack(instance: ConcreteModel) -> pd.DataFrame:
@@ -67,7 +67,7 @@ def extract_slack(instance: ConcreteModel) -> pd.DataFrame:
     return pd.DataFrame(
     {'Value': [v.value for v in instance.slack.values()]},  # Extract .value from each Pyomo variable
     index=instance.slack.keys()
-    ).sort_values('Value', ascending=False)
+    ).sort_values('Value', ascending=False, kind='stable')
 
 
 def extract_impacts(instance: ConcreteModel) -> pd.DataFrame:
@@ -123,7 +123,7 @@ def extract_choices(instance: ConcreteModel, choices: Dict[str, Dict[Any, float]
                     data["Value"].append(instance.scaling_vector[t, proc_id].value)
                     data["Capacity"].append(capacity)
                     data["Time"].append(t)
-            results[choice] = pd.DataFrame(data).set_index(["Metadata", "Time"]).sort_values("Value", ascending=False)
+            results[choice] = pd.DataFrame(data).set_index(["Metadata", "Time"]).sort_values("Value", ascending=False, kind='stable')
         return results
 
     results = {}
@@ -141,7 +141,7 @@ def extract_choices(instance: ConcreteModel, choices: Dict[str, Dict[Any, float]
             data["Value"].append(instance.scaling_vector[proc_id].value)
             data["Capacity"].append(capacity)
 
-        results[choice] = pd.DataFrame(data).set_index("Metadata").sort_values("Value", ascending=False)
+        results[choice] = pd.DataFrame(data).set_index("Metadata").sort_values("Value", ascending=False, kind='stable')
 
     return results
 
@@ -211,7 +211,7 @@ def extract_constraints(instance: ConcreteModel, constraints: Dict[Any, float], 
                 data['Value'].append(flows[t, flow].value)
                 data['Limit'].append(limit)
                 data['Time'].append(t)
-        return pd.DataFrame(data).set_index(['ID', 'Time']).sort_values('Value', ascending=False)
+        return pd.DataFrame(data).set_index(['ID', 'Time']).sort_values('Value', ascending=False, kind='stable')
 
     # Retrieve data from flows
     data:dict = {'ID': [], 'Key': [], 'Metadata': [], 'Value': [], 'Limit': []}
@@ -223,7 +223,7 @@ def extract_constraints(instance: ConcreteModel, constraints: Dict[Any, float], 
         data['Value'].append(flows[flow].value)
         data['Limit'].append(constraints.get(constraint, 'No Limit'))
 
-    return pd.DataFrame(data).set_index('ID').sort_values('Value', ascending=False)
+    return pd.DataFrame(data).set_index('ID').sort_values('Value', ascending=False, kind='stable')
 
 def extract_params(instance: ConcreteModel) -> Dict[str,pd.DataFrame]:
     """
@@ -235,7 +235,7 @@ def extract_params(instance: ConcreteModel) -> Dict[str,pd.DataFrame]:
         extracted_values = param.extract_values()
         data['ID'] = list(extracted_values.keys())
         data['Value'] = list(extracted_values.values())
-        data_all[param.name] = pd.DataFrame(data).set_index('ID').sort_values('Value', ascending=False)
+        data_all[param.name] = pd.DataFrame(data).set_index('ID').sort_values('Value', ascending=False, kind='stable')
     # The environmental cost coefficients are embedded in the impact
     # constraints rather than stored as a Param; report them from the dense
     # dictionary kept on the instance so the result schema stays unchanged
@@ -244,7 +244,7 @@ def extract_params(instance: ConcreteModel) -> Dict[str,pd.DataFrame]:
         data_all['ENV_COST_MATRIX'] = pd.DataFrame({
             'ID': list(instance._env_cost.keys()),
             'Value': list(instance._env_cost.values()),
-        }).set_index('ID').sort_values('Value', ascending=False)
+        }).set_index('ID').sort_values('Value', ascending=False, kind='stable')
     return data_all
 
 def extract_results(worker: Any, extractparams:bool=False) -> ResultDataDict:
