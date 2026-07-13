@@ -103,15 +103,19 @@ def combine_inputs_time(
         raise ValueError("`time_steps` must be a non-empty list.")
     time_steps = list(time_steps)
 
+    # Unspecified limits must be truly infinite: huge finite defaults
+    # (e.g. ±1e20) make HiGHS log "treated as ±Infinity" warnings for every
+    # variable batch, which deadlocks pyomo>=6.6's appsi output capture on
+    # Windows (GIL held during addVars while the capture pipe fills).
     if default_limits is None:
         default_limits = {
-            'lower_bound': -1e20,
-            'upper_bound': 1e20,
-            'upper_inv_bound': 1e24,
-            'lower_inv_bound': -1e24,
-            'lower_imp_bound': -1e24,
-            'upper_imp_bound': 1e24,
-            'upper_imp_agg_bound': 1e24,
+            'lower_bound': -float('inf'),
+            'upper_bound': float('inf'),
+            'upper_inv_bound': float('inf'),
+            'lower_inv_bound': -float('inf'),
+            'lower_imp_bound': -float('inf'),
+            'upper_imp_bound': float('inf'),
+            'upper_imp_agg_bound': float('inf'),
         }
 
     demand_t = _broadcast_over_time(demand, time_steps)
@@ -407,7 +411,7 @@ def instantiate_time(model_data):
     model.inv_vector = pyo.Var(model.TIME, model.INV,
                                bounds=lambda model, t, g: (model.LOWER_INV_LIMIT[t, g], model.UPPER_INV_LIMIT[t, g]),
                                doc='Intervention flow g at time t')
-    model.slack = pyo.Var(model.PRODUCT_SUPPLY, bounds=(-1e20, 1e20),
+    model.slack = pyo.Var(model.PRODUCT_SUPPLY, bounds=(None, None),
                           doc='Supply slack (only (t, product) pairs with a specified supply)')
 
     scaling = {(t, j): model.scaling_vector[t, j] for t in times for j in processes}

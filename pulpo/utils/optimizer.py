@@ -265,7 +265,7 @@ def instantiate(model_data):
                                    doc='Activity level of each process to meet the final demand')
     model.inv_vector = pyo.Var(model.INV, bounds=lambda model, g: (model.LOWER_INV_LIMIT[g], model.UPPER_INV_LIMIT[g]),
                                doc='Intervention flows')
-    model.slack = pyo.Var(model.PRODUCT_SUPPLY, bounds=(-1e20, 1e20),
+    model.slack = pyo.Var(model.PRODUCT_SUPPLY, bounds=(None, None),
                           doc='Supply slack variables (only products with a specified supply)')
 
     scaling = {j: model.scaling_vector[j] for j in data['PROCESS'][None]}
