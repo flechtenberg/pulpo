@@ -71,6 +71,9 @@ conflicts = [
     ],
 ]
 
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
 [tool.flake8]
 max_line_length = 88
 exclude = [
