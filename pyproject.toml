@@ -33,7 +33,7 @@ dependencies = [
     "joblib",
     "xlsxwriter",
     "openpyxl",
-    "pypardiso>=0.4.7",
+    "pypardiso>=0.4.7; sys_platform != 'darwin'",
 ]
 
 [project.optional-dependencies]
