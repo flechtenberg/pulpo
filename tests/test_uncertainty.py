@@ -237,12 +237,10 @@ class TestUncertaintyPipeline(unittest.TestCase):
         self.assertEqual(sorted(self.imported_counts.keys()),
                          ["Cf", "If", "Var_bounds"])
         # The sample databases carry NormalUncertainty on every exchange, so
-        # everything surviving the cutoff is 'defined'. The two stacks keep a
-        # different number of intervention flows because the constructed-
-        # demand scaling vectors differ between bw2 and bw25.
-        expected_if = ({"background_db": (5, 0), "foreground_db": (3, 0)}
-                       if is_bw25() else
-                       {"background_db": (4, 0), "foreground_db": (1, 0)})
+        # everything surviving the cutoff is 'defined'. Both stacks keep the
+        # same intervention flows: the constructed-demand scaling vector is now
+        # aligned identically on bw2 and bw25.
+        expected_if = {"background_db": (4, 0), "foreground_db": (1, 0)}
         self.assertEqual(self.imported_counts["If"], expected_if)
         self.assertEqual(self.imported_counts["Cf"], {CLIMATE_KEY: (2, 0)})
         # Variable bounds arrive without distributions: the six choice
@@ -323,14 +321,10 @@ class TestMonteCarloFromUncertainty(unittest.TestCase):
                          "no MC iteration should have errored")
 
     def test_seeded_samples_match_reference(self):
-        # The draws differ between the stacks because the matrix row/column
-        # order (and therefore the parameter <-> seed pairing) differs.
-        if is_bw25():
-            self.assertAlmostEqual(self.samples.mean(), 1.806788, places=5)
-            self.assertAlmostEqual(self.samples.std(), 0.258532, places=5)
-        else:
-            self.assertAlmostEqual(self.samples.mean(), 1.754014, places=5)
-            self.assertAlmostEqual(self.samples.std(), 0.199952, places=5)
+        # Both stacks now filter to the same parameter set and pair it with the
+        # same seeds, so the seeded draws agree across bw2 and bw25.
+        self.assertAlmostEqual(self.samples.mean(), 1.754014, places=5)
+        self.assertAlmostEqual(self.samples.std(), 0.199952, places=5)
 
     def test_samples_scatter_around_deterministic_optimum(self):
         self.assertTrue(np.isfinite(self.samples).all())
@@ -387,9 +381,7 @@ class TestChanceConstrained(unittest.TestCase):
             self.assertGreater(upper, lower)
 
     def test_seeded_pareto_trace_matches_reference(self):
-        expected = ({0.75: 1.928769, 0.90: 2.080282, 0.95: 2.170956}
-                    if is_bw25() else
-                    {0.75: 1.884391, 0.90: 1.995962, 0.95: 2.062733})
+        expected = {0.75: 1.884391, 0.90: 1.995962, 0.95: 2.062733}
         for lam, value in expected.items():
             self.assertAlmostEqual(self.impacts[lam], value, places=5)
 
@@ -419,9 +411,9 @@ class TestGlobalSensitivityAnalysis(unittest.TestCase):
 
     def test_output_structure(self):
         self.assertEqual(list(self.total_order.columns), ["ST", "ST_conf"])
-        # All filtered parameters take part: intervention flows + the two CFs.
-        expected_params = 10 if is_bw25() else 7
-        self.assertEqual(len(self.total_order), expected_params)
+        # All filtered parameters take part: five intervention flows + two CFs
+        # (identical on both stacks now that filtering is aligned).
+        self.assertEqual(len(self.total_order), 7)
         for key in ("S1", "ST"):
             self.assertIn(key, self.sensitivity_indices)
 
