@@ -86,7 +86,6 @@ def _setup_technosphere():
     if DB_NAME in bd.databases:
         del bd.databases[DB_NAME]
     db = bd.Database(DB_NAME)
-    db.write({})
 
     process_data = [
         ("solar",             "kWh", "GLO", "electricity, solar"),
@@ -96,14 +95,18 @@ def _setup_technosphere():
         ("battery_discharge", "kWh", "GLO", "electricity, battery"),
         ("battery_holdtm1",   "kWh", "GLO", "holdtm1_product"),
     ]
+    data = {}
     for name, unit, location, ref_product in process_data:
-        act = db.new_activity(name)
-        act["unit"] = unit
-        act["location"] = location
-        act["name"] = name
-        act["reference product"] = ref_product
-        act.new_exchange(amount=1.0, input=act.key, type="production").save()
-        act.save()
+        key = (DB_NAME, name)
+        data[key] = {
+            "name": name,
+            "unit": unit,
+            "location": location,
+            "reference product": ref_product,
+            "exchanges": [
+                {"input": key, "amount": 1.0, "type": "production"},
+            ],
+        }
 
     # Technosphere/biosphere exchanges.
     # Convention: (input, target, amount, type) means the *target* activity
@@ -126,9 +129,11 @@ def _setup_technosphere():
         [CO2_KEY,             COAL_KEY,              1.0, "biosphere"],
     ]
     for input_, target, amount, ex_type in exchange_data:
-        target_act = next(a for a in db if a.key == target)
-        target_act.new_exchange(amount=amount, input=input_, type=ex_type).save()
-        target_act.save()
+        data[target]["exchanges"].append(
+            {"input": input_, "amount": amount, "type": ex_type}
+        )
+
+    db.write(data)
 
 
 def _setup_lcia_method():
