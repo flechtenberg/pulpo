@@ -26,7 +26,6 @@ import bw2data as bd
 from pulpo.utils import bw_parser
 from pulpo.utils.utils import is_bw25
 from pulpo.datasets.sample_database import setup_sample_db
-from pulpo.datasets.rice_database import setup_rice_husk_db
 
 try:
     from pulpo import pulpo_unc
@@ -121,6 +120,43 @@ def prepare_uncertainty(worker):
 #### bw25 uncertainty-parameter extraction    ####
 ##################################################
 
+def setup_uncertainty_free_project():
+    """Build a throwaway project with a single-process database and one CF,
+    neither carrying any uncertainty. Used to exercise the ``None`` + warning
+    branch of ``bw_parser.import_data`` without rebuilding a full example
+    database (the realistic content is irrelevant to that code path)."""
+    project = "sample_project_no_uncertainty"
+    bd.projects.set_current(project)
+    for db_name in ("no_uncertainty_db", "biosphere3"):
+        if db_name in bd.databases:
+            del bd.databases[db_name]
+
+    co2 = ("biosphere3", "CO2")
+    bd.Database("biosphere3").write({
+        co2: {"name": "Carbon dioxide, fossil",
+              "categories": ("climate change",),
+              "type": "emission", "unit": "kg"},
+    })
+    bd.Database("no_uncertainty_db").write({
+        ("no_uncertainty_db", "process"): {
+            "name": "process", "unit": "kg", "location": "GLO",
+            "reference product": "widget",
+            "exchanges": [
+                {"input": ("no_uncertainty_db", "process"),
+                 "amount": 1.0, "type": "production"},
+                # biosphere exchange without an 'uncertainty type' field
+                {"input": co2, "amount": 2.0, "type": "biosphere"},
+            ],
+        },
+    })
+    for method in list(bd.methods):
+        bd.Method(method).deregister()
+    method = bd.Method(("my project", "climate change"))
+    method.register(unit="kg CO2eq")
+    method.write([(co2, 1.0)])  # bare CF value, no uncertainty
+    return project
+
+
 @unittest.skipUnless(is_bw25(), "bw25-only: structured uncertainty-parameter "
                                 "arrays require bw2data >= 4")
 class TestUncertaintyParamArrays(unittest.TestCase):
@@ -175,18 +211,15 @@ class TestUncertaintyParamArrays(unittest.TestCase):
         self.assertGreater(len(set(int_params["col"].tolist())), 1)
 
     def test_without_uncertainty_stores_none_and_warns(self):
-        # Force a clean rebuild of the rice example without any uncertainty.
-        bd.projects.set_current("rice_husk_example")
-        for db_name in ("rice_husk_example_db", "biosphere3"):
-            if db_name in bd.databases:
-                del bd.databases[db_name]
-        setup_rice_husk_db()
+        # A minimal uncertainty-free database exercises the None + warning
+        # branch far more cheaply than rebuilding a full example database.
+        project = setup_uncertainty_free_project()
 
         with warnings.catch_warnings(record=True) as caught:
             warnings.simplefilter("always")
             lci_data = bw_parser.import_data(
-                project="rice_husk_example",
-                databases=["rice_husk_example_db"],
+                project=project,
+                databases=["no_uncertainty_db"],
                 method=CLIMATE_KEY,
                 intervention_matrix_name="biosphere3",
                 seed=42,
