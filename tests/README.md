@@ -15,6 +15,11 @@ effects between optional and core packages — is always exercised. Each venv
 needs `pytest` and an **editable** install of pulpo (`-e`), so tests always
 run against the working tree instead of a stale site-packages copy.
 
+Note: `tests/test_uncertainty.py` needs **SALib ≥ 1.5.1** (pinned in the
+`uncertainty` extra since July 2026; 1.4.8 breaks under numpy 2 because
+`ndarray.ptp` was removed). If a venv predates that pin, upgrade it with
+`uv pip install -p .venv-bw25 "SALib==1.5.1"`.
+
 Create / recreate them with [uv](https://docs.astral.sh/uv/) from the repo root:
 
 ```powershell
@@ -42,12 +47,21 @@ this repo, not into `site-packages`.
 
 ## Running the tests
 
-No manual data preparation is needed: importing `test_functions.py` builds
-the sample Brightway project (biosphere, LCIA methods, background/foreground
+No manual data preparation is needed: importing the test modules builds the
+required Brightway projects (biosphere, LCIA methods, sample and toy
 databases) automatically — this is why **collection alone takes ~8 seconds**
 (mostly library imports; the batched DB builds are ~2 s).
-The project name adapts to the stack (`sample_project` vs
-`sample_project_bw25` via `pulpo.utils.utils.is_bw25()`).
+The project names adapt to the stack (`sample_project` vs
+`sample_project_bw25`, `elec_time_toy` vs `elec_time_toy_bw25`, via
+`pulpo.utils.utils.is_bw25()`).
+
+**Always run the tests through pytest** (not `python tests/test_x.py`):
+`conftest.py` redirects bw2data to a throwaway temporary directory *before*
+the test modules are imported, so the test projects — although they reuse
+the notebook project/database names — never touch the real Brightway
+directory that the notebooks write to. Executing a test file directly as a
+script would skip that redirection and build/delete the projects in your
+real Brightway directory.
 
 Against **bw25**:
 
@@ -55,7 +69,7 @@ Against **bw25**:
 .\.venv-bw25\Scripts\python.exe -m pytest tests -v -rA --durations=10
 ```
 
-Against **bw2** (the bw25-only module `test_bw25_uncertainty.py` skips
+Against **bw2** (the bw25-only `TestUncertaintyParamArrays` class skips
 itself automatically):
 
 ```powershell
@@ -87,10 +101,11 @@ Flag summary:
 `pytest-xdist` was evaluated (July 2026): no speedup, because every worker
 re-pays the import-time collection cost (library imports + DB builds). The
 suite was instead sped up serially — batched `Database.write()` calls in the
-sample-DB builders and `n_jobs=1` in `test_monte_carlo` (a joblib pool spawn
-costs far more than its 10 tiny LP solves) — to ~12 s (bw25) / ~6 s (bw2).
-The suite is xdist-safe if ever needed — each worker gets its own temp
-Brightway directory via `conftest.py`.
+sample-DB builders and `n_jobs=1` in the Monte Carlo tests (a joblib pool
+spawn costs far more than a handful of tiny LP solves). With the time and
+uncertainty workflow tests added (July 2026) the suite takes ~35 s (bw25) /
+~20 s (bw2). The suite is xdist-safe if ever needed — each worker gets its
+own temp Brightway directory via `conftest.py`.
 
 ## Environment-gated tests
 
@@ -102,7 +117,8 @@ missing:
 | `test_gurobi_solver` | `gurobipy` importable and licensed |
 | `test_gams_solver` | `GAMS_PULPO` env var pointing to the GAMS installation |
 | `test_neos_solver` | `NEOS_EMAIL` env var set (submits jobs to the remote NEOS server) |
-| `test_bw25_uncertainty.py` (whole module) | bw25 stack (bw2data ≥ 4) |
+| `test_uncertainty.py::TestUncertaintyParamArrays` | bw25 stack (bw2data ≥ 4) |
+| `test_uncertainty.py` workflow classes | `uncertainty` extra installed (SALib, stats_arrays, …) |
 
 All remaining tests use the bundled HiGHS solver and run offline.
 
@@ -110,6 +126,11 @@ All remaining tests use the bundled HiGHS solver and run offline.
 
 - `test_functions.py` — main suite: parser (`TestParser`), optimization and
   solvers (`TestPULPO`), result extraction/saving (`TestSaver`)
-- `test_time.py` — time-extension result extraction and saving
-- `test_bw25_uncertainty.py` — bw25 uncertainty-parameter extraction; can
-  also be run directly as a script (see its module docstring)
+- `test_time.py` — time-indexed formulation (`pulpo_time`): the intra-day
+  and multi-day battery-dispatch scenarios from
+  `notebooks/elec_time_toy.ipynb` with reference CO2 totals and physical
+  consistency checks, result extraction/saving, static fallback
+- `test_uncertainty.py` — uncertainty features: the curated `pulpo_unc`
+  pipeline from `notebooks/uncertainty_toy.ipynb` (filtering, gap-filling
+  strategies, Monte Carlo, chance constraints, Sobol GSA) plus the bw25
+  uncertainty-parameter extraction in `bw_parser.import_data`
