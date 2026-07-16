@@ -5,9 +5,13 @@ imported, so that no data is written to the user's Brightway project
 directory during the test session.  The temporary directory is removed
 automatically when the session ends.
 
-This approach works for both the legacy Brightway 2 stack
-(bw2data < 4.0) and the modern Brightway 2.5 stack (bw2data >= 4.0)
-because ``projects.change_base_directories`` is available in both.
+Both Brightway stacks are supported, via different APIs:
+
+- Brightway 2.5 (bw2data >= 4.0) provides
+  ``projects.change_base_directories``.
+- Legacy Brightway 2 (bw2data < 4.0) instead provides the test-only
+  ``projects._use_temp_directory``, which switches to a temporary
+  directory with an in-memory project registry.
 """
 
 import glob
@@ -62,17 +66,23 @@ def pytest_configure(config):
     # --- 2. Redirect bw2data to a temporary directory ---
     import bw2data as bd
 
-    tmpdir = Path(tempfile.mkdtemp())
-    config._bw_tmpdir = tmpdir
-    bd.projects.change_base_directories(
-        base_dir=tmpdir,
-        base_logs_dir=tmpdir,
-        project_name="test_default",
-        update=False,
-    )
-    # Signal to bw2data that this is a temporary directory (suppresses
-    # the "deleting project in temp dir" warning in bw2data 4.x).
-    bd.projects._is_temp_dir = True
+    if hasattr(bd.projects, "change_base_directories"):
+        # Brightway 2.5 (bw2data >= 4.0)
+        tmpdir = Path(tempfile.mkdtemp())
+        config._bw_tmpdir = tmpdir
+        bd.projects.change_base_directories(
+            base_dir=tmpdir,
+            base_logs_dir=tmpdir,
+            project_name="test_default",
+            update=False,
+        )
+        # Signal to bw2data that this is a temporary directory (suppresses
+        # the "deleting project in temp dir" warning in bw2data 4.x).
+        bd.projects._is_temp_dir = True
+    else:
+        # Legacy Brightway 2 (bw2data < 4.0): test-only helper that
+        # switches to a temp dir with an in-memory project registry.
+        config._bw_tmpdir = Path(bd.projects._use_temp_directory())
 
 
 def pytest_unconfigure(config):
