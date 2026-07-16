@@ -44,7 +44,8 @@ this repo, not into `site-packages`.
 
 No manual data preparation is needed: importing `test_functions.py` builds
 the sample Brightway project (biosphere, LCIA methods, background/foreground
-databases) automatically — this is why **collection alone takes ~30 seconds**.
+databases) automatically — this is why **collection alone takes ~8 seconds**
+(mostly library imports; the batched DB builds are ~2 s).
 The project name adapts to the stack (`sample_project` vs
 `sample_project_bw25` via `pulpo.utils.utils.is_bw25()`).
 
@@ -80,6 +81,16 @@ Flag summary:
 - `-rA` — final report listing every test's outcome, including skip reasons
   and full tracebacks for failures
 - `--durations=10` — the ten slowest tests
+
+## Parallel execution (evaluated, not worthwhile)
+
+`pytest-xdist` was evaluated (July 2026): no speedup, because every worker
+re-pays the import-time collection cost (library imports + DB builds). The
+suite was instead sped up serially — batched `Database.write()` calls in the
+sample-DB builders and `n_jobs=1` in `test_monte_carlo` (a joblib pool spawn
+costs far more than its 10 tiny LP solves) — to ~12 s (bw25) / ~6 s (bw2).
+The suite is xdist-safe if ever needed — each worker gets its own temp
+Brightway directory via `conftest.py`.
 
 ## Environment-gated tests
 
