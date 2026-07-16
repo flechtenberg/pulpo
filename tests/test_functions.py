@@ -287,8 +287,9 @@ class TestPULPO(unittest.TestCase):
         choices = {'electricity': {elec[0]: 100, elec[1]: 100}}
         worker.instantiate(choices=choices, demand=demand)
 
-        # Run Monte Carlo simulation
-        mc_results = worker.solve_MC(n_it=10)
+        # Run Monte Carlo simulation. n_jobs=1 solves sequentially in-process:
+        # spawning a joblib worker pool costs far more than these 10 tiny LPs.
+        mc_results = worker.solve_MC(n_it=10, n_jobs=1)
 
         # New format: dict {i: ResultDataDict}
         self.assertIsInstance(mc_results, dict)
