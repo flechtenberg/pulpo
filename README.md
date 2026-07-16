@@ -82,11 +82,7 @@ There is also a workshop repository ([here](https://github.com/flechtenberg/pulp
 
 ### 🧪 Tests
 
-Run from the package folder:
-
-```sh
-python -m unittest discover -s tests
-```
+The test suite runs with `pytest` against dedicated virtual environments for the modern (`bw25`) and legacy (`bw2`) Brightway stacks. See the [testing README](tests/README.md) for setup instructions and the exact commands.
 
 ---
 ## What's new in 1.6.1?

@@ -81,7 +81,6 @@ def setup_test_db():
         del bd.databases["technosphere"]
 
     technosphere_db = bd.Database("technosphere")
-    technosphere_db.write({})
 
     # Define activities
     process_data = [
@@ -92,14 +91,18 @@ def setup_test_db():
         ("e-Car", "tkm", "GLO", "transport"),
     ]
 
+    data = {}
     for name, unit, location, ref_product in process_data:
-        act = technosphere_db.new_activity(name)
-        act["unit"] = unit
-        act["location"] = location
-        act["name"] = name
-        act["reference product"] = ref_product
-        act.new_exchange(amount=1.0, input=act.key, type="production").save()
-        act.save()
+        key = ("technosphere", name)
+        data[key] = {
+            "name": name,
+            "unit": unit,
+            "location": location,
+            "reference product": ref_product,
+            "exchanges": [
+                {"input": key, "amount": 1.0, "type": "production"},
+            ],
+        }
 
     # Exchanges (identical numeric structure)
     exchange_data = [
@@ -124,21 +127,20 @@ def setup_test_db():
         [h2o_irrigation_key, e_car_key, 0.1, 'biosphere'],
     ]
 
+    # Non-production exchanges carry uncertainty (unchanged logic)
     for input_, target, amount, ex_type in exchange_data:
-        act = [a for a in technosphere_db if a.key == target][0]
-        act.new_exchange(amount=amount, input=input_, type=ex_type).save()
-        act.save()
+        data[target]["exchanges"].append({
+            "input": input_,
+            "amount": amount,
+            "type": ex_type,
+            "uncertainty type": NormalUncertainty.id,
+            "loc": amount,
+            "scale": 0.1 * amount,
+        })
 
-    # Add uncertainties (unchanged logic)
-    for act in technosphere_db:
-        for exc in act.exchanges():
-            if str(exc["input"]) != str(exc["output"]):
-                exc["uncertainty type"] = NormalUncertainty.id
-                exc["loc"] = exc["amount"]
-                exc["scale"] = 0.1 * exc["amount"]
-                exc.save()
+    technosphere_db.write(data)
 
-    print(f"technosphere database created with {len(technosphere_db)} activities.")
+    print(f"technosphere database created with {len(data)} activities.")
 
 
 # ---------------------------------------------------------------------------
@@ -247,16 +249,15 @@ def setup_background_db():
         },
     }
 
-    db.write(data)
-
     # --- Add uncertainties to all non-production exchanges ---
-    for act in db:
-        for exc in act.exchanges():
+    for act in data.values():
+        for exc in act["exchanges"]:
             if exc["type"] != "production":  # skip reference flows
                 exc["uncertainty type"] = NormalUncertainty.id
                 exc["loc"] = exc["amount"]
                 exc["scale"] = abs(0.1 * exc["amount"])  # 10% relative stddev
-                exc.save()
+
+    db.write(data)
 
     print(f"{db_name} created with {len(data)} activities and uncertainty added to exchanges.")
 
@@ -367,17 +368,15 @@ def setup_foreground_db():
         },
     }
 
-    db.write(data)
-
     # Add uncertainties (same pattern)
-    for act in db:
-        for exc in act.exchanges():
+    for act in data.values():
+        for exc in act["exchanges"]:
             if exc["type"] != "production":
                 exc["uncertainty type"] = NormalUncertainty.id
                 exc["loc"] = exc["amount"]
                 exc["scale"] = abs(0.1 * exc["amount"])
-                exc.save()
 
+    db.write(data)
 
     print(f"{db_name} created with {len(data)} activities and uncertainty added to exchanges.")
 
