@@ -461,35 +461,31 @@ def solve_gurobi(model_instance, options=None):
 
 def solve_model(model_instance, gams_path=False, solver_name=None, options=None, neos_email=None):
     """
-    Solves the instance of the optimization model using Highspy, NEOS, or GAMS.
+    Solves the instance of the optimization model using Highspy, Gurobi, NEOS, or GAMS.
+
+    Solver selection logic (in priority order):
+      1. GAMS  – when ``gams_path`` is provided (a path string or ``True``).
+      2. HiGHS – when no ``gams_path`` and ``solver_name`` is ``None`` or ``'highs'``.
+      3. Gurobi – when no ``gams_path`` and ``solver_name`` is ``'gurobi'``.
+      4. NEOS  – when no ``gams_path`` and any other ``solver_name`` is given.
 
     Args:
         model_instance (ConcreteModel): The Pyomo model instance.
-        gams_path (str or bool, optional): Path to the GAMS solver or True to use the environment variable.
-        solver_name (str, optional): The solver to use (e.g. 'cplex', 'baron', or 'xpress').
-        options (list, optional): Additional options for the solver.
+        gams_path (str or bool, optional): Path to the GAMS solver or ``True`` to
+            read the path from the ``GAMS_PULPO`` environment variable.
+        solver_name (str, optional): The solver to use (e.g. ``'highs'``, ``'gurobi'``,
+            ``'cplex'``, ``'baron'``, or ``'xpress'``).
+        options (list, optional): Additional options forwarded to the solver.
         neos_email (str, optional): Email for NEOS solver authentication.
 
     Returns:
         tuple: Results of the optimization and the updated model instance.
     """
-    # ATTN: Cases may be too convoluted. Tidy up the logic eventually.
-    # Case 1: Use Highspy if no GAMS path is provided and the solver is either not specified or is 'highs'
-    if gams_path is False and (solver_name is None or 'highs' in solver_name.lower()):
-        return solve_highspy(model_instance)
-    
-    # Case 2: Gurobi if no GAMS and solver_name == "gurobi"
-    if gams_path is False and solver_name and solver_name.lower() == "gurobi":
-        return solve_gurobi(model_instance, options=options)
-
-    # Case 3: Use NEOS if a solver_name is provided (and it is not Highspy) and no GAMS path is provided
-    if gams_path is False and solver_name and ('highs' not in solver_name.lower()):
-        return solve_neos(model_instance, solver_name, options, neos_email)
-
-    # Case 4: Use GAMS if gams_path is specified (either as a path or True)
     if gams_path:
         return solve_gams(model_instance, gams_path, options)
-
-    # Default case: Return None if no valid solver configuration is found
-    print("No valid solver configuration found.")
-    return None, model_instance
+    elif solver_name is None or solver_name.lower() == 'highs':
+        return solve_highspy(model_instance)
+    elif solver_name.lower() == 'gurobi':
+        return solve_gurobi(model_instance, options=options)
+    else:
+        return solve_neos(model_instance, solver_name, options, neos_email)
