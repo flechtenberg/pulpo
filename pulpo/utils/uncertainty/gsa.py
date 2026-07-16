@@ -8,6 +8,7 @@ It also only considers uncertainty in the Biosphere matrix (invervention flows, 
 and in the Characterization matrix (characterization factors, Q).
 """
 
+import numpy as np
 import pandas as pd
 import scipy.sparse
 import warnings
@@ -164,9 +165,15 @@ class GlobalSensitivityAnalysis:
             "if_start": 0,
             "cf_start":len(if_bounds),
         }
+        # SALib >= 1.5 passes 'names' through pd.unique, which rejects plain lists;
+        # the names must stay scalar objects (an np.array() of the (row, col) tuples
+        # would unpack them into a 2-D array), hence the explicit object array.
+        names = np.empty(len(all_bounds), dtype=object)
+        for i, name in enumerate(all_bounds):
+            names[i] = name
         problem = {
             'num_vars': len(all_bounds),
-            'names': list(all_bounds.keys()),
+            'names': names,
             'bounds': [[bound['lower'], bound['upper']]for bound in all_bounds.values()]
         }
         print('problem includes:\n{} uncertain intervention flows\n{} uncertain characterization factors'.format(len(if_bounds), len(cf_bounds)))

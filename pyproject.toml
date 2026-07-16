@@ -52,7 +52,9 @@ bw25 = [
 ]
 uncertainty = [
     "stats_arrays==0.7.0",
-    "SALib==1.4.8",
+    # 1.4.8 breaks under numpy 2 (ndarray.ptp removed); 1.5.1 is the first
+    # release verified against numpy 2 + pandas 2.
+    "SALib==1.5.1",
     "seaborn==0.13.2",
     "matplotlib==3.10.7",
     "typing_extensions==4.15.0"

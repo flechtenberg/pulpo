@@ -26,7 +26,6 @@ import bw2data as bd
 from pulpo.utils import bw_parser
 from pulpo.utils.utils import is_bw25
 from pulpo.datasets.sample_database import setup_sample_db
-from pulpo.datasets.rice_database import setup_rice_husk_db
 
 try:
     from pulpo import pulpo_unc
@@ -121,6 +120,43 @@ def prepare_uncertainty(worker):
 #### bw25 uncertainty-parameter extraction    ####
 ##################################################
 
+def setup_uncertainty_free_project():
+    """Build a throwaway project with a single-process database and one CF,
+    neither carrying any uncertainty. Used to exercise the ``None`` + warning
+    branch of ``bw_parser.import_data`` without rebuilding a full example
+    database (the realistic content is irrelevant to that code path)."""
+    project = "sample_project_no_uncertainty"
+    bd.projects.set_current(project)
+    for db_name in ("no_uncertainty_db", "biosphere3"):
+        if db_name in bd.databases:
+            del bd.databases[db_name]
+
+    co2 = ("biosphere3", "CO2")
+    bd.Database("biosphere3").write({
+        co2: {"name": "Carbon dioxide, fossil",
+              "categories": ("climate change",),
+              "type": "emission", "unit": "kg"},
+    })
+    bd.Database("no_uncertainty_db").write({
+        ("no_uncertainty_db", "process"): {
+            "name": "process", "unit": "kg", "location": "GLO",
+            "reference product": "widget",
+            "exchanges": [
+                {"input": ("no_uncertainty_db", "process"),
+                 "amount": 1.0, "type": "production"},
+                # biosphere exchange without an 'uncertainty type' field
+                {"input": co2, "amount": 2.0, "type": "biosphere"},
+            ],
+        },
+    })
+    for method in list(bd.methods):
+        bd.Method(method).deregister()
+    method = bd.Method(("my project", "climate change"))
+    method.register(unit="kg CO2eq")
+    method.write([(co2, 1.0)])  # bare CF value, no uncertainty
+    return project
+
+
 @unittest.skipUnless(is_bw25(), "bw25-only: structured uncertainty-parameter "
                                 "arrays require bw2data >= 4")
 class TestUncertaintyParamArrays(unittest.TestCase):
@@ -175,18 +211,15 @@ class TestUncertaintyParamArrays(unittest.TestCase):
         self.assertGreater(len(set(int_params["col"].tolist())), 1)
 
     def test_without_uncertainty_stores_none_and_warns(self):
-        # Force a clean rebuild of the rice example without any uncertainty.
-        bd.projects.set_current("rice_husk_example")
-        for db_name in ("rice_husk_example_db", "biosphere3"):
-            if db_name in bd.databases:
-                del bd.databases[db_name]
-        setup_rice_husk_db()
+        # A minimal uncertainty-free database exercises the None + warning
+        # branch far more cheaply than rebuilding a full example database.
+        project = setup_uncertainty_free_project()
 
         with warnings.catch_warnings(record=True) as caught:
             warnings.simplefilter("always")
             lci_data = bw_parser.import_data(
-                project="rice_husk_example",
-                databases=["rice_husk_example_db"],
+                project=project,
+                databases=["no_uncertainty_db"],
                 method=CLIMATE_KEY,
                 intervention_matrix_name="biosphere3",
                 seed=42,
@@ -237,12 +270,10 @@ class TestUncertaintyPipeline(unittest.TestCase):
         self.assertEqual(sorted(self.imported_counts.keys()),
                          ["Cf", "If", "Var_bounds"])
         # The sample databases carry NormalUncertainty on every exchange, so
-        # everything surviving the cutoff is 'defined'. The two stacks keep a
-        # different number of intervention flows because the constructed-
-        # demand scaling vectors differ between bw2 and bw25.
-        expected_if = ({"background_db": (5, 0), "foreground_db": (3, 0)}
-                       if is_bw25() else
-                       {"background_db": (4, 0), "foreground_db": (1, 0)})
+        # everything surviving the cutoff is 'defined'. Both stacks keep the
+        # same intervention flows: the constructed-demand scaling vector is now
+        # aligned identically on bw2 and bw25.
+        expected_if = {"background_db": (4, 0), "foreground_db": (1, 0)}
         self.assertEqual(self.imported_counts["If"], expected_if)
         self.assertEqual(self.imported_counts["Cf"], {CLIMATE_KEY: (2, 0)})
         # Variable bounds arrive without distributions: the six choice
@@ -323,14 +354,10 @@ class TestMonteCarloFromUncertainty(unittest.TestCase):
                          "no MC iteration should have errored")
 
     def test_seeded_samples_match_reference(self):
-        # The draws differ between the stacks because the matrix row/column
-        # order (and therefore the parameter <-> seed pairing) differs.
-        if is_bw25():
-            self.assertAlmostEqual(self.samples.mean(), 1.806788, places=5)
-            self.assertAlmostEqual(self.samples.std(), 0.258532, places=5)
-        else:
-            self.assertAlmostEqual(self.samples.mean(), 1.754014, places=5)
-            self.assertAlmostEqual(self.samples.std(), 0.199952, places=5)
+        # Both stacks now filter to the same parameter set and pair it with the
+        # same seeds, so the seeded draws agree across bw2 and bw25.
+        self.assertAlmostEqual(self.samples.mean(), 1.754014, places=5)
+        self.assertAlmostEqual(self.samples.std(), 0.199952, places=5)
 
     def test_samples_scatter_around_deterministic_optimum(self):
         self.assertTrue(np.isfinite(self.samples).all())
@@ -387,9 +414,7 @@ class TestChanceConstrained(unittest.TestCase):
             self.assertGreater(upper, lower)
 
     def test_seeded_pareto_trace_matches_reference(self):
-        expected = ({0.75: 1.928769, 0.90: 2.080282, 0.95: 2.170956}
-                    if is_bw25() else
-                    {0.75: 1.884391, 0.90: 1.995962, 0.95: 2.062733})
+        expected = {0.75: 1.884391, 0.90: 1.995962, 0.95: 2.062733}
         for lam, value in expected.items():
             self.assertAlmostEqual(self.impacts[lam], value, places=5)
 
@@ -419,9 +444,9 @@ class TestGlobalSensitivityAnalysis(unittest.TestCase):
 
     def test_output_structure(self):
         self.assertEqual(list(self.total_order.columns), ["ST", "ST_conf"])
-        # All filtered parameters take part: intervention flows + the two CFs.
-        expected_params = 10 if is_bw25() else 7
-        self.assertEqual(len(self.total_order), expected_params)
+        # All filtered parameters take part: five intervention flows + two CFs
+        # (identical on both stacks now that filtering is aligned).
+        self.assertEqual(len(self.total_order), 7)
         for key in ("S1", "ST"):
             self.assertIn(key, self.sensitivity_indices)
 

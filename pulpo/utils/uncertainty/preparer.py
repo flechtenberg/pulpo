@@ -495,6 +495,12 @@ class ParameterFilter:
         method_tuple = ast.literal_eval(self.method)
         lca = bw2calc.LCA(demand, method_tuple)
         lca.lci()
+        # bw25 (bw2calc >= 2) keys its dictionaries by integer node ids until
+        # they are remapped; align them with the (database, code) keys of the
+        # process_map, otherwise the merge below yields an all-NaN scaling
+        # vector (and a NaN LCA score that disables the cutoff filter).
+        if hasattr(lca, 'remap_inventory_dicts'):
+            lca.remap_inventory_dicts()
         # Map the scaling vector results of the LCI calculation back to the optimization results index structure
         index_mapper_df = pd.concat(
             [
@@ -504,7 +510,14 @@ class ParameterFilter:
             axis=1
         ).set_index('opt_problem')
         reindex_supply_array_df = index_mapper_df.merge(pd.DataFrame(lca.supply_array,  columns=['supply_array']), how='left', left_on='lca', right_index=True)
-        scaling_vector_series = reindex_supply_array_df['supply_array']
+        # Processes outside the constructed-demand supply chain do not
+        # contribute to the score; treat them as zero scaling instead of NaN.
+        # Sort by the opt-problem index so ``.values`` lines up positionally
+        # with the intervention matrix columns in ``compute_LCI_LCIA`` (the
+        # 'naive' branch sorts for the same reason). ``process_map`` dict order
+        # is not guaranteed stable across processes, so without this the
+        # diagonal is scrambled and the cutoff filter becomes non-deterministic.
+        scaling_vector_series = reindex_supply_array_df['supply_array'].fillna(0.0).sort_index()
         return scaling_vector_series
 
     def compute_LCI_LCIA(
