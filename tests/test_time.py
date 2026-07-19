@@ -319,6 +319,80 @@ class TestTimeResultExtraction(unittest.TestCase):
             self.assertIn("Time", df.columns)
 
 
+#################################################
+#### Goal programming on aggregated impacts  ####
+#################################################
+
+class TestTimeGoalObjective(unittest.TestCase):
+    """Goal objective on the time-aggregated impacts (yearly-budget style).
+
+    Uses the intraday no-battery scenario, whose minimum total CO2 is 622.8
+    (asserted in TestIntradayDispatch). With a single goal category the
+    minimum average transgression is max(0, 622.8 / budget - 1).
+    """
+
+    MIN_TOTAL_CO2 = 622.8
+    time_steps = TestIntradayDispatch.time_steps
+    solar_cap = TestIntradayDispatch.solar_cap
+    demand_kwh = TestIntradayDispatch.demand_kwh
+
+    def solve_goal_scenario(self, budget):
+        worker = build_worker()
+        acts = {name: worker.retrieve_activities(activities=[name])[0]
+                for name in ACTIVITY_NAMES}
+        choices = {ELECTRICITY_CHOICE: {acts["solar"]: 1e6, acts["coal"]: 1e6}}
+        upper_limit = {t: {acts["solar"]: self.solar_cap[t], acts["coal"]: 1e6}
+                       for t in self.time_steps}
+        demand = {t: {ELECTRICITY_CHOICE: self.demand_kwh[t]} for t in self.time_steps}
+        worker.instantiate(
+            choices=choices, demand=demand, upper_limit=upper_limit,
+            time_steps=self.time_steps,
+            imp_goals={GWP: budget}, objective='goal',
+        )
+        worker.solve()
+        return worker
+
+    def test_transgressed_budget(self):
+        budget = 300.0
+        worker = self.solve_goal_scenario(budget)
+        expected = self.MIN_TOTAL_CO2 / budget - 1
+        self.assertAlmostEqual(worker.instance.OBJ(), expected, places=4)
+        self.assertAlmostEqual(worker.instance.transgression[GWP].value, expected, places=4)
+        total_co2 = sum(worker.instance.impacts[t, GWP].value for t in self.time_steps)
+        self.assertAlmostEqual(total_co2, self.MIN_TOTAL_CO2, places=4)
+
+    def test_satisfied_budget(self):
+        worker = self.solve_goal_scenario(700.0)
+        self.assertAlmostEqual(worker.instance.OBJ(), 0.0, places=6)
+        self.assertAlmostEqual(worker.instance.transgression[GWP].value, 0.0, places=6)
+
+    def test_extract_transgressions_time_indexed(self):
+        budget = 300.0
+        worker = self.solve_goal_scenario(budget)
+        transgressions = worker.extract_results()["Transgressions"]
+        self.assertEqual(list(transgressions.index), [GWP])
+        row = transgressions.loc[GWP]
+        self.assertAlmostEqual(row["Impact"], self.MIN_TOTAL_CO2, places=4)
+        self.assertAlmostEqual(row["Goal"], budget, places=6)
+        self.assertAlmostEqual(row["TL"], self.MIN_TOTAL_CO2 / budget, places=4)
+        self.assertAlmostEqual(row["Transgression"], self.MIN_TOTAL_CO2 / budget - 1, places=4)
+
+    def test_goal_validation_in_time_path(self):
+        worker = build_worker()
+        solar = worker.retrieve_activities(activities=["solar"])[0]
+        coal = worker.retrieve_activities(activities=["coal"])[0]
+        time_steps = [0, 1]
+        choices = {ELECTRICITY_CHOICE: {solar: 1e6, coal: 1e6}}
+        demand = {t: {ELECTRICITY_CHOICE: 1.0} for t in time_steps}
+        with self.assertRaises(ValueError):
+            worker.instantiate(choices=choices, demand=demand,
+                               time_steps=time_steps, objective='goal')
+        with self.assertRaises(ValueError):
+            worker.instantiate(choices=choices, demand=demand,
+                               time_steps=time_steps,
+                               imp_goals={GWP: -5}, objective='goal')
+
+
 class TestStaticFallbackAndErrors(unittest.TestCase):
     def test_instantiate_without_time_steps_falls_back_to_static(self):
         worker = build_worker()
