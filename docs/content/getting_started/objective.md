@@ -88,6 +88,6 @@ Notes:
 - Unlike the hard `upper_imp_limit` (see [constraints](constraints.md)), goals **can** be exceeded — the solver stays feasible and reports the transgression instead.
 - The method weights are ignored with `objective='goal'`; categories with a goal are included in the model even if their weight is 0.
 - Per-category results (impact, goal, transgression level) are available via `pulpo_worker.extract_results()["Transgressions"]` and shown by `summarize_results()`.
-- The goal objective is not yet supported in the time-extended model.
+- In the time-extended model (`PulpoOptimizerTime` with `time_steps`), the goals apply to the impacts **aggregated over all timesteps** — i.e. each `imp_goals` entry is a total (e.g. yearly) budget for that category across the whole horizon.
 
 With the `pulpo_worker` created, the next step is to define the **functional unit**, which will be covered in the following section.
