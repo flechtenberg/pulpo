@@ -51,6 +51,8 @@ class PulpoOptimizerTime(PulpoOptimizer):
         time_steps: Optional[List] = None,
         storage: Optional[list] = None,
         upper_imp_agg_limit: Optional[dict] = None,
+        imp_goals: Optional[dict] = None,
+        objective: str = 'weighted_sum',
     ):
         """
         Build the time-indexed Pyomo instance.
@@ -70,6 +72,14 @@ class PulpoOptimizerTime(PulpoOptimizer):
                 of the stored product towards demand at *t*.
             upper_imp_agg_limit (dict, optional): Bound on the *sum* of an
                 indicator's impact across all timesteps.
+            imp_goals (dict, optional): Goal-programming soft limits
+                ``{method_string: limit}`` on the impacts aggregated over all
+                timesteps (e.g. a yearly budget). Unlike the hard limits these
+                CAN be transgressed; used with ``objective='goal'``.
+            objective (str, optional): 'weighted_sum' (default) or 'goal'.
+                With 'goal' the model minimizes the average transgression
+                level ``(1/K) * sum_h max(0, sum_t impact[t, h] / imp_goals_h - 1)``
+                over the K categories in ``imp_goals`` (weights are ignored).
         """
         if time_steps is None:
             return super().instantiate(
@@ -79,6 +89,7 @@ class PulpoOptimizerTime(PulpoOptimizer):
                 lower_elem_limit=lower_elem_limit, lower_imp_limit=lower_imp_limit,
                 dependent_constraints=dependent_constraints,
                 default_limits=default_limits,
+                imp_goals=imp_goals, objective=objective,
             )
 
         choices = choices or {}
@@ -90,6 +101,7 @@ class PulpoOptimizerTime(PulpoOptimizer):
         lower_elem_limit = lower_elem_limit or {}
         lower_imp_limit = lower_imp_limit or {}
         dependent_constraints = dependent_constraints or {}
+        imp_goals = self._validate_goals(imp_goals, objective)
 
         if dependent_constraints:
             raise NotImplementedError(
@@ -111,6 +123,7 @@ class PulpoOptimizerTime(PulpoOptimizer):
             or _h_in_per_step(upper_imp_limit, h)
             or _h_in_per_step(lower_imp_limit, h)
             or h in (upper_imp_agg_limit or {})
+            or h in imp_goals
         }
 
         data = time_extension.combine_inputs_time(
@@ -118,9 +131,9 @@ class PulpoOptimizerTime(PulpoOptimizer):
             upper_elem_limit, upper_imp_limit, lower_elem_limit, lower_imp_limit,
             methods, time_steps,
             storage=storage, upper_imp_agg_limit=upper_imp_agg_limit,
-            default_limits=default_limits,
+            default_limits=default_limits, imp_goals=imp_goals,
         )
-        self.instance = time_extension.instantiate_time(data)
+        self.instance = time_extension.instantiate_time(data, objective=objective)
 
         self.choices = choices
         self.demand = demand
@@ -134,6 +147,8 @@ class PulpoOptimizerTime(PulpoOptimizer):
         self.time_steps = list(time_steps)
         self.storage = list(storage) if storage else []
         self.upper_imp_agg_limit = dict(upper_imp_agg_limit) if upper_imp_agg_limit else {}
+        self.imp_goals = imp_goals
+        self.objective = objective
 
     def solve(self, GAMS_PATH=False, solver_name=None, options=None, neos_email=None):
         """

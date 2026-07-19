@@ -210,8 +210,8 @@ def instantiate(model_data, objective='weighted_sum'):
         objective (str): 'weighted_sum' (default) minimizes the weighted sum of
             impacts. 'goal' minimizes the average transgression level
             (1/K) * sum_h max(0, impacts_h / IMP_GOALS_h - 1) over the K
-            categories in GOAL_INDICATOR (goal programming; not supported in
-            the time-extended model).
+            categories in GOAL_INDICATOR (goal programming; the time-extended
+            twin applies the goals to the time-aggregated impacts instead).
 
     Returns:
         ConcreteModel: The instantiated Pyomo model.

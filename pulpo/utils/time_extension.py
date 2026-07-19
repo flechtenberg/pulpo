@@ -77,6 +77,7 @@ def combine_inputs_time(
     storage=None,
     upper_imp_agg_limit=None,
     default_limits=None,
+    imp_goals=None,
 ):
     """Build the time-indexed pyomo data dictionary.
 
@@ -93,6 +94,11 @@ def combine_inputs_time(
             via ``process_map``.
         upper_imp_agg_limit: Optional ``{indicator: bound}`` constraining the
             *sum* of an indicator's impact across all timesteps.
+        imp_goals: Optional ``{indicator: limit}`` goal-programming soft limits
+            on the impacts aggregated over all timesteps (e.g. a yearly
+            budget); used with the 'goal' objective of
+            :func:`instantiate_time`. Only categories listed here receive a
+            transgression slack.
 
     Each of ``demand``, ``choices``, ``upper_limit``, ``lower_limit``,
     ``upper_inv_limit``, ``upper_imp_limit``, ``lower_inv_limit``,
@@ -286,6 +292,12 @@ def combine_inputs_time(
 
     k_param_dict = {pair: factor for pair, factor in storage_pairs.items()}
 
+    # Goal-programming soft limits on the time-aggregated impacts: only
+    # categories with a goal get a transgression slack.
+    imp_goals = imp_goals or {}
+    goal_indicator = {None: [h for h in INDICATOR[None] if h in imp_goals]}
+    imp_goals_dict = {h: imp_goals[h] for h in goal_indicator[None]}
+
     weights = {method: 1 for method in matrices} if methods == {} else methods
 
     model_data = {
@@ -312,6 +324,8 @@ def combine_inputs_time(
             'UPPER_IMP_LIMIT': upper_imp_limit_dict,
             'LOWER_IMP_LIMIT': lower_imp_limit_dict,
             'UPPER_IMP_AGG_LIMIT': upper_imp_agg_limit_dict,
+            'GOAL_INDICATOR': goal_indicator,
+            'IMP_GOALS': imp_goals_dict,
             'WEIGHTS': weights,
         }
     }
@@ -322,8 +336,16 @@ def combine_inputs_time(
 # Pyomo model (time-indexed)
 # ---------------------------------------------------------------------------
 
-def instantiate_time(model_data):
+def instantiate_time(model_data, objective='weighted_sum'):
     """Build a concrete instance of the time-indexed model.
+
+    With ``objective='goal'`` the model minimizes the average transgression
+    level of the *time-aggregated* impacts,
+
+        (1/K) * sum_h max(0, sum_t impacts[t, h] / IMP_GOALS[h] - 1),
+
+    over the K categories in ``GOAL_INDICATOR`` -- i.e. each goal is a total
+    (e.g. yearly) budget across the whole horizon, not a per-timestep limit.
 
     Mirrors :func:`pulpo.utils.optimizer.instantiate`: the model is assembled as
     a ConcreteModel directly from the data dictionary. The time-invariant
@@ -384,6 +406,8 @@ def instantiate_time(model_data):
     model.INDICATOR = pyo.Set(initialize=data['INDICATOR'][None], doc='Set of impact assessment indicators, indexed by h')
     model.INV = pyo.Set(initialize=data['INV'][None], doc='Set of intervention flows, indexed by g')
     model.PRODUCT_STOR = pyo.Set(initialize=data['PRODUCT_STOR'][None], doc='Storable products (use >= balance)')
+    model.GOAL_INDICATOR = pyo.Set(initialize=data.get('GOAL_INDICATOR', {None: []})[None], within=model.INDICATOR,
+                                   doc='Impact categories with a goal-programming soft limit on the aggregated impact')
     supply_pairs = [ti for ti, flag in data['SUPPLY'].items() if flag]
     model.PRODUCT_SUPPLY = pyo.Set(initialize=supply_pairs, dimen=2, doc='(t, product) pairs with a specified supply (slack active)')
 
@@ -398,6 +422,8 @@ def instantiate_time(model_data):
     # Parameters: time-invariant
     model.WEIGHTS = pyo.Param(model.INDICATOR, initialize=data['WEIGHTS'], mutable=True, within=pyo.NonNegativeReals)
     model.UPPER_IMP_AGG_LIMIT = pyo.Param(model.INDICATOR, initialize=data['UPPER_IMP_AGG_LIMIT'], mutable=True, within=pyo.Reals)
+    model.IMP_GOALS = pyo.Param(model.GOAL_INDICATOR, initialize=data.get('IMP_GOALS', {}), mutable=True, within=pyo.PositiveReals,
+                                doc='Soft limit (goal) L_h on the time-aggregated impact of category h')
 
     # Variables. Capacity and slack-activation limits are variable bounds rather
     # than constraints; they reference the mutable Params, so updated limits take
@@ -413,6 +439,8 @@ def instantiate_time(model_data):
                                doc='Intervention flow g at time t')
     model.slack = pyo.Var(model.PRODUCT_SUPPLY, bounds=(None, None),
                           doc='Supply slack (only (t, product) pairs with a specified supply)')
+    model.transgression = pyo.Var(model.GOAL_INDICATOR, within=pyo.NonNegativeReals,
+                                  doc='Transgression level max(0, sum_t impacts[t, h] / IMP_GOALS_h - 1) of goal category h')
 
     scaling = {(t, j): model.scaling_vector[t, j] for t in times for j in processes}
     supply_set = set(supply_pairs)
@@ -471,9 +499,20 @@ def instantiate_time(model_data):
     model.INVENTORY_CNSTR = pyo.Constraint(model.TIME, model.INV, rule=inventory_constraint)
     model.IMP_AGG_CNSTR = pyo.Constraint(model.INDICATOR, rule=lambda model, h: pyo.quicksum(model.impacts[t, h] for t in model.TIME) <= model.UPPER_IMP_AGG_LIMIT[h])
 
-    model.OBJ = pyo.Objective(sense=pyo.minimize, expr=pyo.quicksum(
-        model.impacts[t, h] * model.WEIGHTS[h] for t in times for h in model.INDICATOR
-    ))
+    def transgression_constraint(model, h):
+        """Aggregated transgression slack: t_h >= (sum_t impacts[t, h]) / L_h - 1 (t_h >= 0 via domain)"""
+        return model.transgression[h] >= pyo.quicksum(model.impacts[t, h] for t in model.TIME) / model.IMP_GOALS[h] - 1
+    model.TRANSGRESSION_CNSTR = pyo.Constraint(model.GOAL_INDICATOR, rule=transgression_constraint)
+
+    if objective == 'goal':
+        # Objective: average transgression level of the time-aggregated impacts.
+        K = len(model.GOAL_INDICATOR)
+        model.OBJ = pyo.Objective(sense=pyo.minimize,
+                                  expr=pyo.quicksum(model.transgression[h] for h in model.GOAL_INDICATOR) / K)
+    else:
+        model.OBJ = pyo.Objective(sense=pyo.minimize, expr=pyo.quicksum(
+            model.impacts[t, h] * model.WEIGHTS[h] for t in times for h in model.INDICATOR
+        ))
 
     print('Time-indexed instance created')
     return model
