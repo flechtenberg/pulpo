@@ -1,7 +1,7 @@
 import scipy.sparse as sparse
 
 
-def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, upper_inv_limit, upper_imp_limit, lower_inv_limit, lower_imp_limit, methods, dependent_constraints=None, default_limits=None):
+def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, upper_inv_limit, upper_imp_limit, lower_inv_limit, lower_imp_limit, methods, dependent_constraints=None, default_limits=None, imp_goals=None):
     """
     Combines all the inputs into a dictionary as an input for the optimization model.
 
@@ -20,6 +20,8 @@ def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, upper_in
                                                Format: {constraint_name: {'left': {activity: weight}, 'right': {activity: weight}}}
         default_limits (dict, optional): Custom default limits. If None, uses standard values.
                                         Expected keys: 'lower_bound', 'upper_bound', 'upper_inv_bound'
+        imp_goals (dict, optional): Goal-programming soft limits {method_string: limit}. Only
+                                    categories listed here receive a transgression slack.
 
     Returns:
         dict: Combined data dictionary for the optimization model.
@@ -145,6 +147,11 @@ def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, upper_in
     for imp in lower_imp_limit:
         lower_imp_limit_dict[imp] = lower_imp_limit[imp]
 
+    # Goal-programming soft limits: only categories with a goal get a slack
+    imp_goals = imp_goals or {}
+    goal_indicator = {None: [h for h in INDICATOR[None] if h in imp_goals]}
+    imp_goals_dict = {h: imp_goals[h] for h in goal_indicator[None]}
+
     # Create weights
     weights = {method: 1 for method in matrices} if methods == {} else methods
 
@@ -187,6 +194,8 @@ def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, upper_in
             'LOWER_INV_LIMIT': lower_inv_limit_dict,
             'UPPER_IMP_LIMIT': upper_imp_limit_dict,
             'LOWER_IMP_LIMIT': lower_imp_limit_dict,
+            'GOAL_INDICATOR': goal_indicator,
+            'IMP_GOALS': imp_goals_dict,
             'WEIGHTS': weights,
             'DEPENDENT_CONSTRAINTS': {None: dependent_constraint_names},
             'LEFT_WEIGHTS': left_weights_dict,

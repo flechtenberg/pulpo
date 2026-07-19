@@ -96,6 +96,8 @@ def solve_model_MC_pre_sampled_uncertainty(
                 lower_limit=pulpo_optimizer.lower_limit,
                 upper_elem_limit=pulpo_optimizer.upper_elem_limit,
                 upper_imp_limit=pulpo_optimizer.upper_imp_limit,
+                imp_goals=pulpo_optimizer.imp_goals,
+                objective=pulpo_optimizer.objective,
             )
 
             # Apply sampled variable bounds directly to the mutable Pyomo Params

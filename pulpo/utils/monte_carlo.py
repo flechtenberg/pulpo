@@ -81,6 +81,8 @@ def solve_model_MC_pre_sampled(
                 lower_limit=pulpo_optimizer.lower_limit,
                 upper_elem_limit=pulpo_optimizer.upper_elem_limit,
                 upper_imp_limit=pulpo_optimizer.upper_imp_limit,
+                imp_goals=pulpo_optimizer.imp_goals,
+                objective=pulpo_optimizer.objective,
             )
             pulpo_optimizer.solve(
                 GAMS_PATH=GAMS_PATH,
