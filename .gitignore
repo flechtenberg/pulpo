@@ -110,6 +110,7 @@ notebooks/credentials.txt
 notebooks/data/results
 notebooks/data/results/*.png
 notebooks/data/results/*.svg
+notebooks/tests
 
 uv.lock
 .venv-bw2/
