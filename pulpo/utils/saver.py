@@ -100,6 +100,29 @@ def extract_impacts(instance: ConcreteModel) -> pd.DataFrame:
         return df.set_index(['Method', 'Time']).sort_values(by=['Weight', 'Method'], ascending=[False, True])
     return df.drop(columns='Time').set_index('Method').sort_values(by=['Weight', 'Method'], ascending=[False, True])
 
+def extract_transgressions(instance: ConcreteModel) -> pd.DataFrame:
+    """
+    Extracts the goal-programming results: per goal category the impact, the goal
+    (soft limit), the transgression level TL = Impact/Goal, and the transgression
+    slack max(0, TL - 1). Empty DataFrame when the instance has no goal categories
+    (e.g. weighted-sum objective or time-indexed instances).
+    """
+    columns = ['Impact', 'Goal', 'TL', 'Transgression']
+    if not hasattr(instance, 'GOAL_INDICATOR') or len(instance.GOAL_INDICATOR) == 0:
+        return pd.DataFrame(columns=columns)
+
+    data: dict = {'Method': [], 'Impact': [], 'Goal': [], 'TL': [], 'Transgression': []}
+    for h in instance.GOAL_INDICATOR:
+        impact = instance.impacts[h].value
+        goal = instance.IMP_GOALS[h].value
+        data['Method'].append(h)
+        data['Impact'].append(impact)
+        data['Goal'].append(goal)
+        data['TL'].append(impact / goal if impact is not None else None)
+        data['Transgression'].append(instance.transgression[h].value)
+    return pd.DataFrame(data).set_index('Method').sort_values('Transgression', ascending=False, kind='stable')
+
+
 def extract_choices(instance: ConcreteModel, choices: Dict[str, Dict[Any, float]], process_map: Dict[str, str], process_map_metadata: Dict[str, str], time_steps: Optional[List] = None) -> Dict[str, pd.DataFrame]:
     """
     Extracts choice results from a Pyomo model and structures them into DataFrames.
@@ -267,6 +290,7 @@ def extract_results(worker: Any, extractparams:bool=False) -> ResultDataDict:
         "Intervention Vector": extract_flows(instance, interv_map, interv_map_meta, 'intervention'),
         "Slack": extract_slack(instance),
         "Impacts": extract_impacts(instance),
+        "Transgressions": extract_transgressions(instance),
         "Demand": extract_demand(worker.demand, time_steps=time_steps),
         "Choices": choices_dict,
         "Constraints Upper": extract_constraints(instance, worker.upper_limit, proc_map, proc_map_meta, 'scaling', time_steps=time_steps),
@@ -340,6 +364,12 @@ def summarize_results(worker: Any, zeroes: bool = False) -> None:
         display(impacts)
     else:
         display(Markdown("## Total Impact(s): No data found"))
+
+    # 1b. Display Goal Transgressions (only when a goal-programming run)
+    transgressions = result_data.get("Transgressions")
+    if transgressions is not None and not transgressions.empty:
+        display(Markdown("## Goal Transgressions"))
+        display(transgressions)
 
     # 2. Display Choices Made
     choices_dict = result_data.get("Choices", {})
