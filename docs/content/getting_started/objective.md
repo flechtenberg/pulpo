@@ -66,4 +66,28 @@ methods = {
 }
 ```
 
+#### Goal Programming: Average Transgression Level
+
+Instead of minimizing a weighted sum of impacts, PULPO can minimize the **average transgression level** of user-defined soft limits — a goal programming formulation suited e.g. to Planetary-Boundary–based assessments with the EF v3.1 methods. For each impact category $h$ with a soft limit (goal) $L_h$, the transgression level is $TL_h = \text{Impact}_h / L_h$. Categories within their limit contribute nothing to the objective; transgressed categories contribute their relative exceedance:
+
+$$\min \frac{1}{K} \sum_{h=1}^{K} \max\left(0,\; TL_h - 1\right)$$
+
+where $K$ is the number of categories with a goal. The goals are passed to `instantiate` alongside the objective mode:
+
+```python
+imp_goals = {
+    "('EF v3.1', 'climate change', 'global warming potential (GWP100)')": 197.0,
+    "('EF v3.1', 'acidification', 'accumulated exceedance (AE)')": 29.0,
+}
+
+pulpo_worker.instantiate(choices=choices, demand=demand,
+                         imp_goals=imp_goals, objective='goal')
+```
+
+Notes:
+- Unlike the hard `upper_imp_limit` (see [constraints](constraints.md)), goals **can** be exceeded — the solver stays feasible and reports the transgression instead.
+- The method weights are ignored with `objective='goal'`; categories with a goal are included in the model even if their weight is 0.
+- Per-category results (impact, goal, transgression level) are available via `pulpo_worker.extract_results()["Transgressions"]` and shown by `summarize_results()`.
+- The goal objective is not yet supported in the time-extended model.
+
 With the `pulpo_worker` created, the next step is to define the **functional unit**, which will be covered in the following section.
