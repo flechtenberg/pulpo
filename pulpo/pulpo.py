@@ -45,6 +45,27 @@ class PulpoOptimizer:
         """
         self.lci_data = bw_parser.import_data(self.project, self.database, self.method, self.intervention_matrix, seed)
 
+    def _validate_goals(self, imp_goals, objective):
+        """
+        Validates the goal-programming inputs and returns the effective imp_goals dict
+        (empty when the goals are ignored under objective='weighted_sum').
+        """
+        imp_goals = imp_goals or {}
+        if objective not in ('weighted_sum', 'goal'):
+            raise ValueError(f"Invalid objective '{objective}'. Valid options are 'weighted_sum' and 'goal'.")
+        if objective == 'goal' and not imp_goals:
+            raise ValueError("objective='goal' requires a non-empty 'imp_goals' dict {method_string: limit}.")
+        for method, limit in imp_goals.items():
+            if method not in self.method:
+                raise ValueError(f"Goal set for method '{method}', which is not among the methods of this worker.")
+            if not isinstance(limit, (int, float)) or limit <= 0:
+                raise ValueError(f"Goal limit for method '{method}' must be a positive number, got {limit}.")
+        if imp_goals and objective == 'weighted_sum':
+            warnings.warn("'imp_goals' passed but objective='weighted_sum'; the goals are ignored. "
+                          "Use objective='goal' to activate the goal-programming objective.", UserWarning)
+            imp_goals = {}
+        return imp_goals
+
     def instantiate(self, choices=None, demand=None, upper_limit=None, lower_limit=None, upper_elem_limit=None,
                     upper_imp_limit=None, lower_elem_limit=None, lower_imp_limit=None, dependent_constraints=None, default_limits=None,
                     imp_goals=None, objective='weighted_sum'):
@@ -71,8 +92,7 @@ class PulpoOptimizer:
             objective (str, optional): 'weighted_sum' (default) or 'goal'. With 'goal' the model
                                        minimizes the average transgression level
                                        (1/K) * sum_h max(0, impact_h / imp_goals_h - 1) over the K
-                                       categories in imp_goals (weights are ignored). Not supported
-                                       in the time-extended model.
+                                       categories in imp_goals (weights are ignored).
         """
         choices = choices or {}
         demand = demand or {}
@@ -83,22 +103,7 @@ class PulpoOptimizer:
         lower_elem_limit = lower_elem_limit or {}
         lower_imp_limit = lower_imp_limit or {}
         dependent_constraints = dependent_constraints or {}
-        imp_goals = imp_goals or {}
-
-        # Validate the goal-programming inputs
-        if objective not in ('weighted_sum', 'goal'):
-            raise ValueError(f"Invalid objective '{objective}'. Valid options are 'weighted_sum' and 'goal'.")
-        if objective == 'goal' and not imp_goals:
-            raise ValueError("objective='goal' requires a non-empty 'imp_goals' dict {method_string: limit}.")
-        for method, limit in imp_goals.items():
-            if method not in self.method:
-                raise ValueError(f"Goal set for method '{method}', which is not among the methods of this worker.")
-            if not isinstance(limit, (int, float)) or limit <= 0:
-                raise ValueError(f"Goal limit for method '{method}' must be a positive number, got {limit}.")
-        if imp_goals and objective == 'weighted_sum':
-            warnings.warn("'imp_goals' passed but objective='weighted_sum'; the goals are ignored. "
-                          "Use objective='goal' to activate the goal-programming objective.", UserWarning)
-            imp_goals = {}
+        imp_goals = self._validate_goals(imp_goals, objective)
 
         # Instantiate only for those methods that are part of the objective, the limits, or the goals
         methods = {h: self.method[h] for h in self.method if self.method[h] != 0 or h in upper_imp_limit or h in lower_imp_limit or h in imp_goals}

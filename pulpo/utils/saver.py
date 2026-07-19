@@ -104,16 +104,22 @@ def extract_transgressions(instance: ConcreteModel) -> pd.DataFrame:
     """
     Extracts the goal-programming results: per goal category the impact, the goal
     (soft limit), the transgression level TL = Impact/Goal, and the transgression
-    slack max(0, TL - 1). Empty DataFrame when the instance has no goal categories
-    (e.g. weighted-sum objective or time-indexed instances).
+    slack max(0, TL - 1). On time-indexed instances the goals apply to the impact
+    aggregated over all timesteps, so 'Impact' is the sum over t. Empty DataFrame
+    when the instance has no goal categories (weighted-sum objective).
     """
     columns = ['Impact', 'Goal', 'TL', 'Transgression']
     if not hasattr(instance, 'GOAL_INDICATOR') or len(instance.GOAL_INDICATOR) == 0:
         return pd.DataFrame(columns=columns)
 
+    time_indexed = hasattr(instance, 'TIME')
     data: dict = {'Method': [], 'Impact': [], 'Goal': [], 'TL': [], 'Transgression': []}
     for h in instance.GOAL_INDICATOR:
-        impact = instance.impacts[h].value
+        if time_indexed:
+            values = [instance.impacts[t, h].value for t in instance.TIME]
+            impact = None if any(v is None for v in values) else sum(values)
+        else:
+            impact = instance.impacts[h].value
         goal = instance.IMP_GOALS[h].value
         data['Method'].append(h)
         data['Impact'].append(impact)
