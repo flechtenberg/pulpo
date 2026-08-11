@@ -156,6 +156,7 @@ class PulpoOptimizerTime(PulpoOptimizer):
         self.time_steps = list(time_steps)
         self.storage = list(storage) if storage else []
         self.upper_imp_agg_limit = dict(upper_imp_agg_limit) if upper_imp_agg_limit else {}
+        self.default_limits = default_limits
         self.imp_goals = imp_goals
         self.objective = objective
 

@@ -35,6 +35,7 @@ class PulpoOptimizer:
         self.lower_elem_limit: dict = {}
         self.lower_imp_limit: dict = {}
         self.dependent_constraints: dict = {}
+        self.default_limits = None
         self.imp_goals: dict = {}
         self.objective: str = 'weighted_sum'
 
@@ -126,6 +127,7 @@ class PulpoOptimizer:
         self.lower_elem_limit = lower_elem_limit
         self.lower_imp_limit = lower_imp_limit
         self.dependent_constraints = dependent_constraints
+        self.default_limits = default_limits
         self.imp_goals = imp_goals
         self.objective = objective
 
