@@ -1,3 +1,4 @@
+import numbers
 import warnings
 
 from pulpo.utils import optimizer, bw_parser, converter, saver, monte_carlo
@@ -58,7 +59,7 @@ class PulpoOptimizer:
         for method, limit in imp_goals.items():
             if method not in self.method:
                 raise ValueError(f"Goal set for method '{method}', which is not among the methods of this worker.")
-            if not isinstance(limit, (int, float)) or limit <= 0:
+            if isinstance(limit, bool) or not isinstance(limit, numbers.Real) or limit <= 0:
                 raise ValueError(f"Goal limit for method '{method}' must be a positive number, got {limit}.")
         if imp_goals and objective == 'weighted_sum':
             warnings.warn("'imp_goals' passed but objective='weighted_sum'; the goals are ignored. "
