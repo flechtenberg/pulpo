@@ -99,6 +99,15 @@ def combine_inputs_time(
             budget); used with the 'goal' objective of
             :func:`instantiate_time`. Only categories listed here receive a
             transgression slack.
+        default_limits: Optional custom default limits. If None, uses
+            standard values. Required keys: 'lower_bound', 'upper_bound',
+            'upper_inv_bound', 'lower_inv_bound', 'lower_imp_bound',
+            'upper_imp_bound', 'upper_imp_agg_bound' (the last one not
+            present in :func:`pulpo.utils.converter.combine_inputs`'s
+            6-key set). Categories listed in ``imp_goals`` ignore
+            'lower_imp_bound'/'upper_imp_bound'/'upper_imp_agg_bound' (the
+            goal is a soft limit, not a hard Var bound) unless also given an
+            explicit upper_imp_limit/lower_imp_limit/upper_imp_agg_limit.
 
     Each of ``demand``, ``choices``, ``upper_limit``, ``lower_limit``,
     ``upper_inv_limit``, ``upper_imp_limit``, ``lower_inv_limit``,
@@ -277,8 +286,28 @@ def combine_inputs_time(
             key = inv.key if hasattr(inv, 'key') else inv
             lower_inv_limit_dict[(t, intervention_map[key])] = value
 
-    upper_imp_limit_dict = {(t, h): default_limits['upper_imp_bound'] for t in time_steps for h in INDICATOR[None]}
-    lower_imp_limit_dict = {(t, h): default_limits['lower_imp_bound'] for t in time_steps for h in INDICATOR[None]}
+    # Goal-programming soft limits on the time-aggregated impacts: only
+    # categories with a goal get a transgression slack. Computed before the
+    # impact limit dicts below, since goal categories are excluded from the
+    # generic default impact bound there.
+    imp_goals = imp_goals or {}
+    goal_indicator = {None: [h for h in INDICATOR[None] if h in imp_goals]}
+    imp_goals_dict = {h: imp_goals[h] for h in goal_indicator[None]}
+
+    # A category with a goal defaults to unbounded per-step and aggregate
+    # impact: the goal is a SOFT limit enforced via the transgression penalty
+    # in the objective, not a hard Var bound, so a generic default_limits
+    # value must not silently cap it. Explicit upper_imp_limit/
+    # lower_imp_limit/upper_imp_agg_limit for the same category still apply
+    # (a deliberate "goal + hard ceiling" combination).
+    upper_imp_limit_dict = {
+        (t, h): (float('inf') if h in imp_goals else default_limits['upper_imp_bound'])
+        for t in time_steps for h in INDICATOR[None]
+    }
+    lower_imp_limit_dict = {
+        (t, h): (-float('inf') if h in imp_goals else default_limits['lower_imp_bound'])
+        for t in time_steps for h in INDICATOR[None]
+    }
     for t in time_steps:
         for imp, value in upper_imp_limit_t[t].items():
             upper_imp_limit_dict[(t, imp)] = value
@@ -286,17 +315,14 @@ def combine_inputs_time(
             lower_imp_limit_dict[(t, imp)] = value
 
     upper_imp_agg_limit = upper_imp_agg_limit or {}
-    upper_imp_agg_limit_dict = {h: default_limits['upper_imp_agg_bound'] for h in INDICATOR[None]}
+    upper_imp_agg_limit_dict = {
+        h: (float('inf') if h in imp_goals else default_limits['upper_imp_agg_bound'])
+        for h in INDICATOR[None]
+    }
     for h, value in upper_imp_agg_limit.items():
         upper_imp_agg_limit_dict[h] = value
 
     k_param_dict = {pair: factor for pair, factor in storage_pairs.items()}
-
-    # Goal-programming soft limits on the time-aggregated impacts: only
-    # categories with a goal get a transgression slack.
-    imp_goals = imp_goals or {}
-    goal_indicator = {None: [h for h in INDICATOR[None] if h in imp_goals]}
-    imp_goals_dict = {h: imp_goals[h] for h in goal_indicator[None]}
 
     weights = {method: 1 for method in matrices} if methods == {} else methods
 

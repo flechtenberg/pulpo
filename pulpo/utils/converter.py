@@ -19,7 +19,11 @@ def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, upper_in
         dependent_constraints (dict, optional): Dependent constraints between scaling vectors.
                                                Format: {constraint_name: {'left': {activity: weight}, 'right': {activity: weight}}}
         default_limits (dict, optional): Custom default limits. If None, uses standard values.
-                                        Expected keys: 'lower_bound', 'upper_bound', 'upper_inv_bound'
+                                        Required keys: 'lower_bound', 'upper_bound', 'upper_inv_bound',
+                                        'lower_inv_bound', 'lower_imp_bound', 'upper_imp_bound'. Categories
+                                        listed in imp_goals ignore 'lower_imp_bound'/'upper_imp_bound' (the
+                                        goal is a soft limit, not a hard Var bound) unless also given an
+                                        explicit lower_imp_limit/upper_imp_limit.
         imp_goals (dict, optional): Goal-programming soft limits {method_string: limit}. Only
                                     categories listed here receive a transgression slack.
 
@@ -137,20 +141,33 @@ def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, upper_in
     for inv in lower_inv_limit:
         lower_inv_limit_dict[intervention_map[inv.key]] = lower_inv_limit[inv]
 
-    # Specify the upper impact category limit
-    upper_imp_limit_dict = {imp: default_limits['upper_imp_bound'] for imp in INDICATOR[None]}
-    for imp in upper_imp_limit:
-        upper_imp_limit_dict[imp] = upper_imp_limit[imp]
-
-    # Specify the lower impact category limit
-    lower_imp_limit_dict = {imp: default_limits['lower_imp_bound'] for imp in INDICATOR[None]}
-    for imp in lower_imp_limit:
-        lower_imp_limit_dict[imp] = lower_imp_limit[imp]
-
-    # Goal-programming soft limits: only categories with a goal get a slack
+    # Goal-programming soft limits: only categories with a goal get a slack.
+    # Computed before the impact limit dicts below, since goal categories are
+    # excluded from the generic default impact bound there.
     imp_goals = imp_goals or {}
     goal_indicator = {None: [h for h in INDICATOR[None] if h in imp_goals]}
     imp_goals_dict = {h: imp_goals[h] for h in goal_indicator[None]}
+
+    # Specify the upper impact category limit. A category with a goal
+    # defaults to unbounded: the goal is a SOFT limit enforced via the
+    # transgression penalty in the objective, not a hard Var bound, so a
+    # generic default_limits value must not silently cap it. An explicit
+    # upper_imp_limit for the same category still applies (a deliberate
+    # "goal + hard ceiling" combination).
+    upper_imp_limit_dict = {
+        imp: (float('inf') if imp in imp_goals else default_limits['upper_imp_bound'])
+        for imp in INDICATOR[None]
+    }
+    for imp in upper_imp_limit:
+        upper_imp_limit_dict[imp] = upper_imp_limit[imp]
+
+    # Specify the lower impact category limit (same reasoning as above).
+    lower_imp_limit_dict = {
+        imp: (-float('inf') if imp in imp_goals else default_limits['lower_imp_bound'])
+        for imp in INDICATOR[None]
+    }
+    for imp in lower_imp_limit:
+        lower_imp_limit_dict[imp] = lower_imp_limit[imp]
 
     # Create weights
     weights = {method: 1 for method in matrices} if methods == {} else methods

@@ -66,6 +66,15 @@ class PulpoOptimizerTime(PulpoOptimizer):
         time-dependent path.
 
         Args:
+            default_limits (dict, optional): Custom default limits. If None, uses
+                standard values. Required keys: 'lower_bound', 'upper_bound',
+                'upper_inv_bound', 'lower_inv_bound', 'lower_imp_bound',
+                'upper_imp_bound', 'upper_imp_agg_bound' -- one more key than
+                the static :meth:`pulpo.pulpo.PulpoOptimizer.instantiate`
+                (which has no 'upper_imp_agg_bound'). Categories listed in
+                ``imp_goals`` ignore the impact-bound defaults (the goal is a
+                soft limit, not a hard Var bound) unless also given an
+                explicit upper_imp_limit/lower_imp_limit/upper_imp_agg_limit.
             storage (list, optional): Carry-over specification. List of triples
                 ``(stored_product, producing_activity, factor)`` so that
                 charging at *t-1* contributes ``factor * scaling[t-1]`` units
