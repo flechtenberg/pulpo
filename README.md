@@ -91,7 +91,7 @@ The test suite runs with `pytest` against dedicated virtual environments for the
 - **Hardening** — several `default_limits` interactions with goal categories, Monte Carlo re-instantiation (now forwards the full `instantiate()` signature, including `time_steps`/`storage`), and bw25 uncertainty (GSA under SALib 1.5/numpy 2, deterministic scaling-vector construction) were fixed.
 - **From 1.6.1: Windows solve-hang fix & Python 3.13 support** — unspecified limits are now truly infinite (no more HiGHS/pyomo deadlock), and numpy 2 / pyomo `>=6.8` are supported.
 
-See the [changelog](CHANGES.md) for the full details and earlier releases.
+See the [changelog](https://github.com/flechtenberg/pulpo/blob/master/CHANGES.md) for the full details and earlier releases.
 
 ---
 
@@ -102,7 +102,7 @@ Contributions are very welcome. To request a feature or report a bug, please [op
 
 ## 📄 License
 
-This project is licensed under the `ℹ️  BSD 3-Clause` License. See the [LICENSE](LICENSE) file for additional info.  
+This project is licensed under the `ℹ️  BSD 3-Clause` License. See the [LICENSE](https://github.com/flechtenberg/pulpo/blob/master/LICENSE) file for additional info.  
 Copyright (c) 2026, Fabian Lechtenberg. All rights reserved.
 
 
