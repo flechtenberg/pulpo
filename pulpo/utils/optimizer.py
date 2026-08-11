@@ -245,7 +245,7 @@ def instantiate(model_data, objective='weighted_sum'):
     model.PROCESS = pyo.Set(initialize=data['PROCESS'][None], doc='Set of processes (or activities), indexed by j')
     model.INDICATOR = pyo.Set(initialize=data['INDICATOR'][None], doc='Set of impact assessment indicators, indexed by h')
     model.INV = pyo.Set(initialize=data['INV'][None], doc='Set of intervention flows, indexed by g')
-    model.GOAL_INDICATOR = pyo.Set(initialize=data.get('GOAL_INDICATOR', {None: []})[None], within=model.INDICATOR,
+    model.GOAL_INDICATOR = pyo.Set(initialize=data['GOAL_INDICATOR'][None], within=model.INDICATOR,
                                    doc='Impact categories with a goal-programming soft limit')
     model.DEPENDENT_CONSTRAINTS = pyo.Set(initialize=data['DEPENDENT_CONSTRAINTS'][None], doc='Set of dependent constraint names')
     supply_products = [i for i in data['PRODUCT'][None] if data['SUPPLY'][i]]
@@ -260,7 +260,7 @@ def instantiate(model_data, objective='weighted_sum'):
     model.LOWER_IMP_LIMIT = pyo.Param(model.INDICATOR, initialize=data['LOWER_IMP_LIMIT'], mutable=True, within=pyo.Reals, doc='Minimum impact on category h')
     model.FINAL_DEMAND = pyo.Param(model.PRODUCT, initialize=data['FINAL_DEMAND'], mutable=True, within=pyo.Reals, doc='Final demand of intermediate product flows (i.e., functional unit)')
     model.WEIGHTS = pyo.Param(model.INDICATOR, initialize=data['WEIGHTS'], mutable=True, within=pyo.NonNegativeReals, doc='Weighting factors for the impact assessment indicators in the objective function')
-    model.IMP_GOALS = pyo.Param(model.GOAL_INDICATOR, initialize=data.get('IMP_GOALS', {}), mutable=True, within=pyo.PositiveReals, doc='Soft limit (goal) L_h of category h; transgression level TL_h = impacts_h / L_h')
+    model.IMP_GOALS = pyo.Param(model.GOAL_INDICATOR, initialize=data['IMP_GOALS'], mutable=True, within=pyo.PositiveReals, doc='Soft limit (goal) L_h of category h; transgression level TL_h = impacts_h / L_h')
     model.LEFT_WEIGHTS = pyo.Param(model.DEPENDENT_CONSTRAINTS, model.PROCESS, initialize=data['LEFT_WEIGHTS'], mutable=True, default=0, doc='Left side weights for dependent constraints')
     model.RIGHT_WEIGHTS = pyo.Param(model.DEPENDENT_CONSTRAINTS, model.PROCESS, initialize=data['RIGHT_WEIGHTS'], mutable=True, default=0, doc='Right side weights for dependent constraints')
 

@@ -157,7 +157,7 @@ class PulpoOptimizerTime(PulpoOptimizer):
         self.storage = list(storage) if storage else []
         self.upper_imp_agg_limit = dict(upper_imp_agg_limit) if upper_imp_agg_limit else {}
         self.default_limits = default_limits
-        self.imp_goals = imp_goals
+        self.imp_goals = dict(imp_goals)
         self.objective = objective
 
     def solve(self, GAMS_PATH=False, solver_name=None, options=None, neos_email=None):

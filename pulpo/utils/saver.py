@@ -11,6 +11,7 @@ class ResultDataDict(TypedDict, total=False):
     Intervention_Vector: pd.DataFrame
     Slack: pd.DataFrame
     Impacts: pd.DataFrame
+    Transgressions: pd.DataFrame
     Demand: pd.DataFrame
     Choices: Dict[str, pd.DataFrame]
     Constraints_Upper: pd.DataFrame
@@ -114,7 +115,10 @@ def extract_transgressions(instance: ConcreteModel) -> pd.DataFrame:
     if not hasattr(instance, 'GOAL_INDICATOR') or len(instance.GOAL_INDICATOR) == 0:
         return pd.DataFrame(columns=columns, index=pd.Index([], name='Method'))
 
-    time_indexed = hasattr(instance, 'TIME')
+    # instance.impacts is keyed by (t, indicator) tuples on a time-indexed
+    # instance and by a plain indicator otherwise -- same detection idiom as
+    # extract_impacts()/extract_flows() above.
+    time_indexed = isinstance(next(iter(instance.impacts.keys())), tuple)
     data: dict = {'Method': [], 'Impact': [], 'Goal': [], 'TL': [], 'Transgression': []}
     for h in instance.GOAL_INDICATOR:
         if time_indexed:

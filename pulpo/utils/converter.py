@@ -145,7 +145,10 @@ def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, upper_in
     # Computed before the impact limit dicts below, since goal categories are
     # excluded from the generic default impact bound there.
     imp_goals = imp_goals or {}
-    goal_indicator = {None: [h for h in INDICATOR[None] if h in imp_goals]}
+    # Sorted independently of INDICATOR[None]'s own (hash-randomized set) order,
+    # so the objective's summation order -- and hence its floating-point result
+    # -- is reproducible across runs/processes.
+    goal_indicator = {None: sorted(h for h in INDICATOR[None] if h in imp_goals)}
     imp_goals_dict = {h: imp_goals[h] for h in goal_indicator[None]}
 
     # Specify the upper impact category limit. A category with a goal

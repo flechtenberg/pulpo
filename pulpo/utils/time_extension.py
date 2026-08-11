@@ -291,7 +291,10 @@ def combine_inputs_time(
     # impact limit dicts below, since goal categories are excluded from the
     # generic default impact bound there.
     imp_goals = imp_goals or {}
-    goal_indicator = {None: [h for h in INDICATOR[None] if h in imp_goals]}
+    # Sorted independently of INDICATOR[None]'s own (hash-randomized set) order,
+    # so the objective's summation order -- and hence its floating-point result
+    # -- is reproducible across runs/processes.
+    goal_indicator = {None: sorted(h for h in INDICATOR[None] if h in imp_goals)}
     imp_goals_dict = {h: imp_goals[h] for h in goal_indicator[None]}
 
     # A category with a goal defaults to unbounded per-step and aggregate
@@ -432,7 +435,7 @@ def instantiate_time(model_data, objective='weighted_sum'):
     model.INDICATOR = pyo.Set(initialize=data['INDICATOR'][None], doc='Set of impact assessment indicators, indexed by h')
     model.INV = pyo.Set(initialize=data['INV'][None], doc='Set of intervention flows, indexed by g')
     model.PRODUCT_STOR = pyo.Set(initialize=data['PRODUCT_STOR'][None], doc='Storable products (use >= balance)')
-    model.GOAL_INDICATOR = pyo.Set(initialize=data.get('GOAL_INDICATOR', {None: []})[None], within=model.INDICATOR,
+    model.GOAL_INDICATOR = pyo.Set(initialize=data['GOAL_INDICATOR'][None], within=model.INDICATOR,
                                    doc='Impact categories with a goal-programming soft limit on the aggregated impact')
     supply_pairs = [ti for ti, flag in data['SUPPLY'].items() if flag]
     model.PRODUCT_SUPPLY = pyo.Set(initialize=supply_pairs, dimen=2, doc='(t, product) pairs with a specified supply (slack active)')
@@ -448,7 +451,7 @@ def instantiate_time(model_data, objective='weighted_sum'):
     # Parameters: time-invariant
     model.WEIGHTS = pyo.Param(model.INDICATOR, initialize=data['WEIGHTS'], mutable=True, within=pyo.NonNegativeReals)
     model.UPPER_IMP_AGG_LIMIT = pyo.Param(model.INDICATOR, initialize=data['UPPER_IMP_AGG_LIMIT'], mutable=True, within=pyo.Reals)
-    model.IMP_GOALS = pyo.Param(model.GOAL_INDICATOR, initialize=data.get('IMP_GOALS', {}), mutable=True, within=pyo.PositiveReals,
+    model.IMP_GOALS = pyo.Param(model.GOAL_INDICATOR, initialize=data['IMP_GOALS'], mutable=True, within=pyo.PositiveReals,
                                 doc='Soft limit (goal) L_h on the time-aggregated impact of category h')
 
     # Variables. Capacity and slack-activation limits are variable bounds rather
