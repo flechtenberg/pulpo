@@ -507,6 +507,11 @@ def instantiate_time(model_data, objective='weighted_sum'):
     if objective == 'goal':
         # Objective: average transgression level of the time-aggregated impacts.
         K = len(model.GOAL_INDICATOR)
+        if K == 0:
+            raise ValueError(
+                "objective='goal' requires at least one category in GOAL_INDICATOR "
+                "(model_data['GOAL_INDICATOR']/'IMP_GOALS'); got none."
+            )
         model.OBJ = pyo.Objective(sense=pyo.minimize,
                                   expr=pyo.quicksum(model.transgression[h] for h in model.GOAL_INDICATOR) / K)
     else:
