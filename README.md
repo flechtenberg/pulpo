@@ -47,10 +47,11 @@ Applying optimization is recommended when the system of study has (1) many degre
 > - [X] `ℹ️  Development of a GUI for simple optimization tasks` [Link](https://github.com/flechtenberg/pulpo-gui)
 > - [X] `ℹ️  Enable PULPO to work on both bw2 and bw25 projects`
 > - [X] `ℹ️  Thorough documentation hosted on flechtenberg.github.io/pulpo/`
+> - [X] `ℹ️  Goal-programming objective (average transgression of soft impact limits)`
 
 **Features currently under development:**
 
-> - [ ] `ℹ️  Multi-objective optimization [bi-objective epsilon constrained, goal programming ...]`
+> - [ ] `ℹ️  Multi-objective optimization [bi-objective epsilon constrained ...]`
 > - [ ] `ℹ️  Integration of economic and social indicators in the optimization problem formulation`
 
 Feature requests are more than welcome!
@@ -85,10 +86,10 @@ There is also a workshop repository ([here](https://github.com/flechtenberg/pulp
 The test suite runs with `pytest` against dedicated virtual environments for the modern (`bw25`) and legacy (`bw2`) Brightway stacks. See the [testing README](tests/README.md) for setup instructions and the exact commands.
 
 ---
-## What's new in 1.6.1?
-- **Windows solve-hang fix** — Unspecified limits are now truly infinite instead of ±1e20/±1e24, removing HiGHS bound warnings that deadlocked pyomo ≥ 6.6's output capture during model construction.
-- **Python 3.13 & numpy 2** — numpy 2 is unpinned (the `<2` cap remains only in the legacy `bw2` extra) and pyomo is relaxed to `>=6.8,<7`.
-- **From 1.6.0: time-dependent optimization** — The `pulpo.pulpo_time` module (`PulpoOptimizerTime`) adds a time-indexed formulation with inter-timestep storage / carry-over, alongside several-times-faster model instantiation.
+## What's new in 1.7.0?
+- **Goal-programming objective** — `objective='goal'` minimizes the average transgression of user-defined soft impact limits (`imp_goals`), suited e.g. to Planetary-Boundary-based budgets. Unlike a hard `upper_imp_limit`, a goal can be exceeded — the solver stays feasible and reports the transgression level per category via `extract_results()["Transgressions"]`. Works in both `PulpoOptimizer` and the time-extended `PulpoOptimizerTime` (goals apply to impacts aggregated over the whole horizon).
+- **Hardening** — several `default_limits` interactions with goal categories, Monte Carlo re-instantiation (now forwards the full `instantiate()` signature, including `time_steps`/`storage`), and bw25 uncertainty (GSA under SALib 1.5/numpy 2, deterministic scaling-vector construction) were fixed.
+- **From 1.6.1: Windows solve-hang fix & Python 3.13 support** — unspecified limits are now truly infinite (no more HiGHS/pyomo deadlock), and numpy 2 / pyomo `>=6.8` are supported.
 
 See the [changelog](CHANGES.md) for the full details and earlier releases.
 
