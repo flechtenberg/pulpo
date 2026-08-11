@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.7.0] - 2026-08-11
+* Add a goal-programming objective (`objective='goal'`): minimize the average transgression of user-defined soft impact limits (`imp_goals`), e.g. for Planetary-Boundary-style budgets. Unlike `upper_imp_limit`, goals can be exceeded — the solver stays feasible and reports the transgression level per category instead. Available on both `PulpoOptimizer` and the time-extended `PulpoOptimizerTime` (goals apply to impacts aggregated across the whole time horizon), and carried through Monte Carlo re-instantiation.
+* Report per-category goal results (impact, goal, transgression level) via `extract_results()["Transgressions"]`, `summarize_results()`, and the Excel export.
+* Fix several `default_limits` / goal-programming interactions found while hardening the new objective:
+  * `default_limits` no longer silently hard-caps categories that carry a goal (was causing infeasibility or artificially suppressed transgression, #33).
+  * `default_limits` now persists across Monte Carlo re-instantiation instead of reverting to the built-in infinite defaults on every sample.
+  * Goal limits accept numpy scalar types (e.g. from a DataFrame/array) and correctly reject `bool`.
+  * `extract_transgressions()`'s empty-goal-case result now shares the same `Method`-indexed schema as the populated case.
+  * `objective='goal'` with an empty goal set now raises a clear `ValueError` instead of a bare `ZeroDivisionError`.
+* Fix Monte Carlo re-instantiation to forward every `instantiate()` argument instead of a hardcoded, drifting kwarg list — time-indexed workers were silently losing `time_steps`/`storage` on every MC sample and falling back to the static formulation.
+* Fix bw25 uncertainty: stabilize `construct_scaling_vector_from_choices()` (NaN scaling vector from unmapped node ids, non-deterministic cutoff filtering from unstable dict ordering) so MC/CC/GSA results are deterministic and match the bw2 stack.
+* Fix GSA on the bw25 stack under SALib 1.5 / numpy 2 (bump the `uncertainty` extra to SALib 1.5.1).
+* Fix `import_data` to activate its `project` argument instead of silently using whatever bw2data project happened to be active.
+* Dev: migrate the test suite to `pytest` with in-memory bw2data databases (faster, order-independent); see `tests/README.md`.
+
 ## [1.6.1] - 2026-07-13
 * Fix a solver hang on Windows with pyomo >= 6.6: the huge finite default limits (±1e20 / ±1e24) made HiGHS log "treated as ±Infinity" warnings during model construction, which deadlocked pyomo's appsi output capture (solve stuck forever at zero CPU). Unspecified limits and supply-slack bounds are now truly infinite (`float('inf')`), which HiGHS, Gurobi, and GAMS all handle natively — the resulting LP is unchanged. The choices documentation now recommends `float('inf')` instead of `1e20` for unconstrained capacities.
 * Modernize dependencies to enable Python 3.13: unpin numpy 2 (the `<2` cap now lives only in the legacy `bw2` extra, where bw2data 3.x needs it), relax pyomo to `>=6.8.0,<7` (6.7.3 still touches the removed `np.float_` under numpy 2), and replace the phantom `bw2data<=3.9.9` pin with `bw2data<4.0.0`.

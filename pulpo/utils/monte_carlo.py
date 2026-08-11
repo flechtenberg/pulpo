@@ -11,6 +11,7 @@ from joblib import Parallel, delayed
 from tqdm import tqdm, trange
 
 from pulpo.utils import bw_parser
+from pulpo.utils.utils import reinstantiate_kwargs
 
 
 def pre_sample_lci_matrices(
@@ -74,14 +75,7 @@ def solve_model_MC_pre_sampled(
             lci_data.update(sample)
             pulpo_optimizer.lci_data = lci_data
 
-            pulpo_optimizer.instantiate(
-                choices=pulpo_optimizer.choices,
-                demand=pulpo_optimizer.demand,
-                upper_limit=pulpo_optimizer.upper_limit,
-                lower_limit=pulpo_optimizer.lower_limit,
-                upper_elem_limit=pulpo_optimizer.upper_elem_limit,
-                upper_imp_limit=pulpo_optimizer.upper_imp_limit,
-            )
+            pulpo_optimizer.instantiate(**reinstantiate_kwargs(pulpo_optimizer))
             pulpo_optimizer.solve(
                 GAMS_PATH=GAMS_PATH,
                 solver_name=solver_name,

@@ -11,6 +11,7 @@ class ResultDataDict(TypedDict, total=False):
     Intervention_Vector: pd.DataFrame
     Slack: pd.DataFrame
     Impacts: pd.DataFrame
+    Transgressions: pd.DataFrame
     Demand: pd.DataFrame
     Choices: Dict[str, pd.DataFrame]
     Constraints_Upper: pd.DataFrame
@@ -99,6 +100,40 @@ def extract_impacts(instance: ConcreteModel) -> pd.DataFrame:
         # Create the DataFrame, sorted by 'Weight' (descending) and then by 'Method' (alphabetically)
         return df.set_index(['Method', 'Time']).sort_values(by=['Weight', 'Method'], ascending=[False, True])
     return df.drop(columns='Time').set_index('Method').sort_values(by=['Weight', 'Method'], ascending=[False, True])
+
+def extract_transgressions(instance: ConcreteModel) -> pd.DataFrame:
+    """
+    Extracts the goal-programming results: per goal category the impact, the goal
+    (soft limit), the transgression level TL = Impact/Goal, and the transgression
+    slack max(0, TL - 1). On time-indexed instances the goals apply to the impact
+    aggregated over all timesteps, so 'Impact' is the sum over t. When the instance
+    has no goal categories (weighted-sum objective), returns a zero-row DataFrame
+    with the same 'Method'-indexed schema as the populated case, so callers can
+    treat both uniformly (e.g. concatenate results across goal and non-goal runs).
+    """
+    columns = ['Impact', 'Goal', 'TL', 'Transgression']
+    if not hasattr(instance, 'GOAL_INDICATOR') or len(instance.GOAL_INDICATOR) == 0:
+        return pd.DataFrame(columns=columns, index=pd.Index([], name='Method'))
+
+    # instance.impacts is keyed by (t, indicator) tuples on a time-indexed
+    # instance and by a plain indicator otherwise -- same detection idiom as
+    # extract_impacts()/extract_flows() above.
+    time_indexed = isinstance(next(iter(instance.impacts.keys())), tuple)
+    data: dict = {'Method': [], 'Impact': [], 'Goal': [], 'TL': [], 'Transgression': []}
+    for h in instance.GOAL_INDICATOR:
+        if time_indexed:
+            values = [instance.impacts[t, h].value for t in instance.TIME]
+            impact = None if any(v is None for v in values) else sum(values)
+        else:
+            impact = instance.impacts[h].value
+        goal = instance.IMP_GOALS[h].value
+        data['Method'].append(h)
+        data['Impact'].append(impact)
+        data['Goal'].append(goal)
+        data['TL'].append(impact / goal if impact is not None else None)
+        data['Transgression'].append(instance.transgression[h].value)
+    return pd.DataFrame(data).set_index('Method').sort_values('Transgression', ascending=False, kind='stable')
+
 
 def extract_choices(instance: ConcreteModel, choices: Dict[str, Dict[Any, float]], process_map: Dict[str, str], process_map_metadata: Dict[str, str], time_steps: Optional[List] = None) -> Dict[str, pd.DataFrame]:
     """
@@ -267,6 +302,7 @@ def extract_results(worker: Any, extractparams:bool=False) -> ResultDataDict:
         "Intervention Vector": extract_flows(instance, interv_map, interv_map_meta, 'intervention'),
         "Slack": extract_slack(instance),
         "Impacts": extract_impacts(instance),
+        "Transgressions": extract_transgressions(instance),
         "Demand": extract_demand(worker.demand, time_steps=time_steps),
         "Choices": choices_dict,
         "Constraints Upper": extract_constraints(instance, worker.upper_limit, proc_map, proc_map_meta, 'scaling', time_steps=time_steps),
@@ -340,6 +376,12 @@ def summarize_results(worker: Any, zeroes: bool = False) -> None:
         display(impacts)
     else:
         display(Markdown("## Total Impact(s): No data found"))
+
+    # 1b. Display Goal Transgressions (only when a goal-programming run)
+    transgressions = result_data.get("Transgressions")
+    if transgressions is not None and not transgressions.empty:
+        display(Markdown("## Goal Transgressions"))
+        display(transgressions)
 
     # 2. Display Choices Made
     choices_dict = result_data.get("Choices", {})

@@ -17,7 +17,6 @@
 <!-- Additional -->
 [![PyPI - Version](https://img.shields.io/pypi/v/pulpo-dev?color=%2300549f)](https://pypi.org/project/pulpo-dev/)
 [![GitHub Stars](https://img.shields.io/github/stars/flechtenberg/pulpo?style=flat&color=FFD700)](https://github.com/flechtenberg/pulpo/stargazers)
-[![launch - renku](https://renkulab.io/renku-badge.svg)](https://renkulab.io/v2/projects/fabian/pulpo-test/sessions/01JRM54S4NKMS84Y6BAYT832WH/start)
 
 </div>
 
@@ -44,13 +43,14 @@ Applying optimization is recommended when the system of study has (1) many degre
 **Features recently completed:**
 
 > - [X] `ℹ️  Optimization under uncertainty [chance-constraints, Monte Carlo, global sensitivity analysis]`
+> - [X] `ℹ️  Time-dependent optimization [time-indexed formulation with inter-timestep storage/carry-over]`
 > - [X] `ℹ️  Development of a GUI for simple optimization tasks` [Link](https://github.com/flechtenberg/pulpo-gui)
 > - [X] `ℹ️  Enable PULPO to work on both bw2 and bw25 projects`
 > - [X] `ℹ️  Thorough documentation hosted on flechtenberg.github.io/pulpo/`
+> - [X] `ℹ️  Goal-programming objective (average transgression of soft impact limits)`
 
 **Features currently under development:**
 
-> - [ ] `ℹ️  Multi-objective optimization [bi-objective epsilon constrained, goal programming ...]`
 > - [ ] `ℹ️  Integration of economic and social indicators in the optimization problem formulation`
 
 Feature requests are more than welcome!
@@ -68,13 +68,19 @@ or
 pip install "pulpo-dev[bw25]"
 ```
 
+Add the `uncertainty` extra (SALib, stats_arrays, seaborn) if you plan to use the `pulpo_unc` module for Monte Carlo, Chance-Constrained optimization, or Global Sensitivity Analysis:
+
+```sh
+pip install "pulpo-dev[bw25,uncertainty]"
+```
+
 ### 🤖 Running PULPO
 
-Use this link to start a cloud session and test PULPO right away:
+PULPO is organized into three optimizer classes, one per module, each covering a different use case with its own reference notebook:
 
-[![launch - renku](https://renkulab.io/renku-badge.svg)](https://renkulab.io/v2/projects/fabian/pulpo-test/sessions/01JRM54S4NKMS84Y6BAYT832WH/start)
-
-The main reference is the [PULPO showcase notebook](https://github.com/flechtenberg/pulpo/blob/master/notebooks/pulpo_showcase.ipynb), which revolves around methanol production and covers both the core optimization features (Sections 1–9) and the full workflow of the `pulpo_unc` module (Section 10): uncertainty data import and filtering, gap-filling strategies, Monte Carlo from prepared distributions, Chance-Constrained optimization, and Global Sensitivity Analysis.
+- **`pulpo.pulpo.PulpoOptimizer`** — the core LCO framework: technology/region choices, constraints, single- and multi-objective optimization (including goal programming), and supply-driven optimization. Start with the [PULPO showcase notebook](https://github.com/flechtenberg/pulpo/blob/master/notebooks/pulpo_showcase.ipynb), a complete walkthrough built around a methanol production case.
+- **`pulpo.pulpo_time.PulpoOptimizerTime`** — the time-indexed extension: per-timestep demands and limits, impact budgets aggregated across the horizon, and inter-timestep storage/carry-over. See the [time-dependent toy notebook](https://github.com/flechtenberg/pulpo/blob/master/notebooks/elec_time_toy.ipynb) for hourly and daily battery-dispatch examples.
+- **`pulpo.pulpo_unc.PulpoOptimizerUnc`** — the uncertainty extension: import and filter uncertain LCI parameters, apply gap-filling strategies, run Monte Carlo sampling, Chance-Constrained optimization, and Global Sensitivity Analysis. See the [uncertainty toy notebook](https://github.com/flechtenberg/pulpo/blob/master/notebooks/uncertainty_toy.ipynb).
 
 Additional example notebooks are available for a [hydrogen case](https://github.com/flechtenberg/pulpo/blob/master/notebooks/showcases/hydrogen_showcase.ipynb), an [electricity case](https://github.com/flechtenberg/pulpo/blob/master/notebooks/showcases/electricity_showcase.ipynb), and a [plastic case](https://github.com/flechtenberg/pulpo/blob/master/notebooks/showcases/plastic_showcase.ipynb).
 
@@ -82,19 +88,15 @@ There is also a workshop repository ([here](https://github.com/flechtenberg/pulp
 
 ### 🧪 Tests
 
-Run from the package folder:
-
-```sh
-python -m unittest discover -s tests
-```
+The test suite runs with `pytest` against dedicated virtual environments for the modern (`bw25`) and legacy (`bw2`) Brightway stacks. See the [testing README](https://github.com/flechtenberg/pulpo/blob/master/tests/README.md) for setup instructions and the exact commands.
 
 ---
-## What's new in 1.6.1?
-- **Windows solve-hang fix** — Unspecified limits are now truly infinite instead of ±1e20/±1e24, removing HiGHS bound warnings that deadlocked pyomo ≥ 6.6's output capture during model construction.
-- **Python 3.13 & numpy 2** — numpy 2 is unpinned (the `<2` cap remains only in the legacy `bw2` extra) and pyomo is relaxed to `>=6.8,<7`.
-- **From 1.6.0: time-dependent optimization** — The `pulpo.pulpo_time` module (`PulpoOptimizerTime`) adds a time-indexed formulation with inter-timestep storage / carry-over, alongside several-times-faster model instantiation.
+## What's new in 1.7.0?
+- **Goal-programming objective** — `objective='goal'` minimizes the average transgression of user-defined soft impact limits (`imp_goals`), suited e.g. to Planetary-Boundary-based budgets. Unlike a hard `upper_imp_limit`, a goal can be exceeded — the solver stays feasible and reports the transgression level per category via `extract_results()["Transgressions"]`. Works in both `PulpoOptimizer` and the time-extended `PulpoOptimizerTime` (goals apply to impacts aggregated over the whole horizon).
+- **Hardening** — several `default_limits` interactions with goal categories, Monte Carlo re-instantiation (now forwards the full `instantiate()` signature, including `time_steps`/`storage`), and bw25 uncertainty (GSA under SALib 1.5/numpy 2, deterministic scaling-vector construction) were fixed.
+- **From 1.6.1: Windows solve-hang fix & Python 3.13 support** — unspecified limits are now truly infinite (no more HiGHS/pyomo deadlock), and numpy 2 / pyomo `>=6.8` are supported.
 
-See the [changelog](CHANGES.md) for the full details and earlier releases.
+See the [changelog](https://github.com/flechtenberg/pulpo/blob/master/CHANGES.md) for the full details and earlier releases.
 
 ---
 
@@ -105,7 +107,7 @@ Contributions are very welcome. To request a feature or report a bug, please [op
 
 ## 📄 License
 
-This project is licensed under the `ℹ️  BSD 3-Clause` License. See the [LICENSE](LICENSE) file for additional info.  
+This project is licensed under the `ℹ️  BSD 3-Clause` License. See the [LICENSE](https://github.com/flechtenberg/pulpo/blob/master/LICENSE) file for additional info.  
 Copyright (c) 2026, Fabian Lechtenberg. All rights reserved.
 
 

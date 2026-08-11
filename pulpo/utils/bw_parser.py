@@ -58,6 +58,8 @@ def import_data(project: str, databases: Union[str, List[str]], method: Union[st
     Returns:
         Dict[str, Union[dict, Any]]: Dictionary containing imported LCI data.
     """
+    set_project(project)
+
     # Normalize databases input to a list
     if isinstance(databases, str):
         databases = [databases]

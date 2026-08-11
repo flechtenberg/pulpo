@@ -189,7 +189,88 @@ class TestPULPO(unittest.TestCase):
         self.assertEqual(result_aux, 5.2)
         self.assertEqual(round(worker.instance.inv_flows[3].value, 3), 5.200)
         self.assertEqual(round(worker.instance.inv_flows[2].value, 3), 1.659)
-    
+
+    def _goal_worker(self):
+        worker = pulpo.PulpoOptimizer(self.project, self.database, self.methods, '')
+        worker.intervention_matrix = 'biosphere3'
+        worker.get_lci_data()
+        eCar = worker.retrieve_activities(reference_products='transport')
+        demand = {eCar[0]: 1}
+        elec = worker.retrieve_activities(reference_products='electricity')
+        choices = {'electricity': {elec[0]: 100, elec[1]: 100}}
+        return worker, choices, demand
+
+    def test_goal_objective(self):
+        """Goal programming: one transgressed and one satisfied category."""
+        worker, choices, demand = self._goal_worker()
+        imp_goals = {
+            "('my project', 'climate change')": 0.01,  # far below achievable -> transgressed
+            "('my project', 'air quality')": 100,      # far above achievable -> satisfied
+        }
+        worker.instantiate(choices=choices, demand=demand, imp_goals=imp_goals, objective='goal')
+        worker.solve()
+        instance = worker.instance
+        climate = "('my project', 'climate change')"
+        air = "('my project', 'air quality')"
+        self.assertAlmostEqual(instance.transgression[air].value, 0, places=6)
+        self.assertAlmostEqual(instance.transgression[climate].value,
+                               instance.impacts[climate].value / 0.01 - 1, places=4)
+        self.assertAlmostEqual(instance.OBJ(),
+                               (instance.transgression[climate].value + instance.transgression[air].value) / 2,
+                               places=6)
+
+    def test_goal_objective_all_below(self):
+        """Goal programming: all goals satisfied -> objective is zero."""
+        worker, choices, demand = self._goal_worker()
+        imp_goals = {
+            "('my project', 'climate change')": 100,
+            "('my project', 'air quality')": 100,
+        }
+        worker.instantiate(choices=choices, demand=demand, imp_goals=imp_goals, objective='goal')
+        worker.solve()
+        self.assertAlmostEqual(worker.instance.OBJ(), 0, places=6)
+        for h in worker.instance.GOAL_INDICATOR:
+            self.assertAlmostEqual(worker.instance.transgression[h].value, 0, places=6)
+
+    def test_goal_includes_zero_weight_method(self):
+        """A method with weight 0 but a goal must enter the model and get a slack."""
+        worker, choices, demand = self._goal_worker()
+        resources = "('my project', 'resources')"
+        imp_goals = {resources: 1}  # weight 0 in cls.methods, transgressed (impact approx 5.26)
+        worker.instantiate(choices=choices, demand=demand, imp_goals=imp_goals, objective='goal')
+        worker.solve()
+        instance = worker.instance
+        self.assertIn(resources, list(instance.INDICATOR))
+        self.assertEqual(list(instance.GOAL_INDICATOR), [resources])
+        self.assertAlmostEqual(instance.transgression[resources].value,
+                               instance.impacts[resources].value - 1, places=4)
+        self.assertAlmostEqual(instance.OBJ(), instance.transgression[resources].value, places=6)
+
+    def test_goal_validation(self):
+        """Invalid goal-programming inputs raise ValueError."""
+        worker, choices, demand = self._goal_worker()
+        climate = "('my project', 'climate change')"
+        with self.assertRaises(ValueError):
+            worker.instantiate(choices=choices, demand=demand, objective='goal')
+        with self.assertRaises(ValueError):
+            worker.instantiate(choices=choices, demand=demand, imp_goals={climate: 0}, objective='goal')
+        with self.assertRaises(ValueError):
+            worker.instantiate(choices=choices, demand=demand, imp_goals={climate: -1}, objective='goal')
+        with self.assertRaises(ValueError):
+            worker.instantiate(choices=choices, demand=demand, imp_goals={climate: 1}, objective='banana')
+        with self.assertRaises(ValueError):
+            worker.instantiate(choices=choices, demand=demand,
+                               imp_goals={"('my project', 'nonexistent')": 1}, objective='goal')
+        # assertWarns scans all modules' __warningregistry__, which trips pyomo's
+        # deferred-import shims; record warnings manually instead.
+        import warnings as _warnings
+        with _warnings.catch_warnings(record=True) as caught:
+            _warnings.simplefilter("always")
+            worker.instantiate(choices=choices, demand=demand, imp_goals={climate: 1})
+        self.assertTrue(any(issubclass(w.category, UserWarning) and 'imp_goals' in str(w.message)
+                            for w in caught))
+
+
     def test_gurobi_solver(self):
         """Test solving the optimisation problem with the Gurobi solver."""
         try:
@@ -287,8 +368,9 @@ class TestPULPO(unittest.TestCase):
         choices = {'electricity': {elec[0]: 100, elec[1]: 100}}
         worker.instantiate(choices=choices, demand=demand)
 
-        # Run Monte Carlo simulation
-        mc_results = worker.solve_MC(n_it=10)
+        # Run Monte Carlo simulation. n_jobs=1 solves sequentially in-process:
+        # spawning a joblib worker pool costs far more than these 10 tiny LPs.
+        mc_results = worker.solve_MC(n_it=10, n_jobs=1)
 
         # New format: dict {i: ResultDataDict}
         self.assertIsInstance(mc_results, dict)

@@ -11,6 +11,7 @@ from joblib import Parallel, delayed
 from tqdm import tqdm
 
 from pulpo.utils.uncertainty import processor
+from pulpo.utils.utils import reinstantiate_kwargs
 
 
 def _apply_draw_to_lci(lci_data: dict, method: str, draw: dict) -> dict:
@@ -89,14 +90,7 @@ def solve_model_MC_pre_sampled_uncertainty(
             pulpo_optimizer.lci_data = lci_data
 
             # Fresh instantiate with the usual user-specified dicts
-            pulpo_optimizer.instantiate(
-                choices=pulpo_optimizer.choices,
-                demand=pulpo_optimizer.demand,
-                upper_limit=pulpo_optimizer.upper_limit,
-                lower_limit=pulpo_optimizer.lower_limit,
-                upper_elem_limit=pulpo_optimizer.upper_elem_limit,
-                upper_imp_limit=pulpo_optimizer.upper_imp_limit,
-            )
+            pulpo_optimizer.instantiate(**reinstantiate_kwargs(pulpo_optimizer))
 
             # Apply sampled variable bounds directly to the mutable Pyomo Params
             vb = overlay["var_bounds"]

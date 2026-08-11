@@ -1,3 +1,5 @@
+import inspect
+
 import bw2data as bd
 import bw2calc as bc
 from packaging import version
@@ -58,6 +60,28 @@ def broadcast_over_time(d, time_steps):
                 )
         return {t: dict(d[t]) for t in time_steps}
     return {t: dict(d) for t in time_steps}
+
+
+# ---------------------------------------------------------------------------
+# Monte Carlo re-instantiation helper
+# ---------------------------------------------------------------------------
+# Shared by pulpo.utils.monte_carlo and pulpo.utils.uncertainty.monte_carlo:
+# both re-instantiate the same worker once per sample with fresh LCI data, and
+# must forward every kwarg the original instantiate() call used -- including
+# subclass-only ones (PulpoOptimizerTime's time_steps/storage/
+# upper_imp_agg_limit) -- or a time-indexed worker silently gets rebuilt as a
+# static model (demand/limits are still in {t: {...}} form, which the static
+# path then rejects or misreads). Both PulpoOptimizer.instantiate() and
+# PulpoOptimizerTime.instantiate() already mirror every parameter onto
+# self.<name>, so reading them back via the worker's own (possibly overridden)
+# instantiate() signature keeps this in sync automatically as new parameters
+# are added, instead of a hand-maintained kwarg list that drifts out of sync
+# with the class it forwards to.
+
+def reinstantiate_kwargs(pulpo_optimizer):
+    """Return keyword arguments for re-instantiating the optimizer."""
+    sig = inspect.signature(pulpo_optimizer.instantiate)
+    return {name: getattr(pulpo_optimizer, name, None) for name in sig.parameters}
 
 
 # ---------------------------------------------------------------------------

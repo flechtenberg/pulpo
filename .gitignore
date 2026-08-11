@@ -110,6 +110,8 @@ notebooks/credentials.txt
 notebooks/data/results
 notebooks/data/results/*.png
 notebooks/data/results/*.svg
+notebooks/tests
 
 uv.lock
-tests/test_bw25_uncertainty.py
+.venv-bw2/
+.venv-bw25/

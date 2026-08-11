@@ -180,7 +180,7 @@ def update_env_cost(model, new_values):
         model.add_component('IMPACTS_CNSTR', pyo.Constraint(model.INDICATOR, rule=impact_constraint))
 
 
-def instantiate(model_data):
+def instantiate(model_data, objective='weighted_sum'):
     """
     Builds an instance of the optimization model with specific data and objective function.
 
@@ -207,6 +207,11 @@ def instantiate(model_data):
 
     Args:
         model_data (dict): Data dictionary for the optimization model.
+        objective (str): 'weighted_sum' (default) minimizes the weighted sum of
+            impacts. 'goal' minimizes the average transgression level
+            (1/K) * sum_h max(0, impacts_h / IMP_GOALS_h - 1) over the K
+            categories in GOAL_INDICATOR (goal programming; the time-extended
+            twin applies the goals to the time-aggregated impacts instead).
 
     Returns:
         ConcreteModel: The instantiated Pyomo model.
@@ -240,6 +245,8 @@ def instantiate(model_data):
     model.PROCESS = pyo.Set(initialize=data['PROCESS'][None], doc='Set of processes (or activities), indexed by j')
     model.INDICATOR = pyo.Set(initialize=data['INDICATOR'][None], doc='Set of impact assessment indicators, indexed by h')
     model.INV = pyo.Set(initialize=data['INV'][None], doc='Set of intervention flows, indexed by g')
+    model.GOAL_INDICATOR = pyo.Set(initialize=data['GOAL_INDICATOR'][None], within=model.INDICATOR,
+                                   doc='Impact categories with a goal-programming soft limit')
     model.DEPENDENT_CONSTRAINTS = pyo.Set(initialize=data['DEPENDENT_CONSTRAINTS'][None], doc='Set of dependent constraint names')
     supply_products = [i for i in data['PRODUCT'][None] if data['SUPPLY'][i]]
     model.PRODUCT_SUPPLY = pyo.Set(initialize=supply_products, within=model.PRODUCT, doc='Products for which a supply is specified instead of a demand (slack active)')
@@ -253,6 +260,7 @@ def instantiate(model_data):
     model.LOWER_IMP_LIMIT = pyo.Param(model.INDICATOR, initialize=data['LOWER_IMP_LIMIT'], mutable=True, within=pyo.Reals, doc='Minimum impact on category h')
     model.FINAL_DEMAND = pyo.Param(model.PRODUCT, initialize=data['FINAL_DEMAND'], mutable=True, within=pyo.Reals, doc='Final demand of intermediate product flows (i.e., functional unit)')
     model.WEIGHTS = pyo.Param(model.INDICATOR, initialize=data['WEIGHTS'], mutable=True, within=pyo.NonNegativeReals, doc='Weighting factors for the impact assessment indicators in the objective function')
+    model.IMP_GOALS = pyo.Param(model.GOAL_INDICATOR, initialize=data['IMP_GOALS'], mutable=True, within=pyo.PositiveReals, doc='Soft limit (goal) L_h of category h; transgression level TL_h = impacts_h / L_h')
     model.LEFT_WEIGHTS = pyo.Param(model.DEPENDENT_CONSTRAINTS, model.PROCESS, initialize=data['LEFT_WEIGHTS'], mutable=True, default=0, doc='Left side weights for dependent constraints')
     model.RIGHT_WEIGHTS = pyo.Param(model.DEPENDENT_CONSTRAINTS, model.PROCESS, initialize=data['RIGHT_WEIGHTS'], mutable=True, default=0, doc='Right side weights for dependent constraints')
 
@@ -267,6 +275,8 @@ def instantiate(model_data):
                                doc='Intervention flows')
     model.slack = pyo.Var(model.PRODUCT_SUPPLY, bounds=(None, None),
                           doc='Supply slack variables (only products with a specified supply)')
+    model.transgression = pyo.Var(model.GOAL_INDICATOR, within=pyo.NonNegativeReals,
+                                  doc='Transgression level max(0, impacts_h / IMP_GOALS_h - 1) of goal category h')
 
     scaling = {j: model.scaling_vector[j] for j in data['PROCESS'][None]}
     supply_set = set(supply_products)
@@ -297,14 +307,30 @@ def instantiate(model_data):
         right_sum = pyo.quicksum(model.RIGHT_WEIGHTS[constraint_name, j] * scaling[j] for j in model.PROCESS)
         return left_sum <= right_sum
 
+    def transgression_constraint(model, h):
+        """Transgression slack: t_h >= impacts_h / L_h - 1 (linear; t_h >= 0 via domain)"""
+        return model.transgression[h] >= model.impacts[h] / model.IMP_GOALS[h] - 1
+
     # Constraints
     model.FINAL_DEMAND_CNSTR = pyo.Constraint(model.PRODUCT, rule=demand_constraint)
     model.IMPACTS_CNSTR = pyo.Constraint(model.INDICATOR, rule=impact_constraint)
     model.INVENTORY_CNSTR = pyo.Constraint(model.INV, rule=inventory_constraint)
     model.DEPENDENT_CNSTR = pyo.Constraint(model.DEPENDENT_CONSTRAINTS, rule=dependent_constraint)
+    model.TRANSGRESSION_CNSTR = pyo.Constraint(model.GOAL_INDICATOR, rule=transgression_constraint)
 
-    # Objective: a weighted sum over all indicators. Typically, the indicator of study has weight 1, the rest 0.
-    model.OBJ = pyo.Objective(sense=pyo.minimize, expr=pyo.quicksum(model.impacts[h] * model.WEIGHTS[h] for h in model.INDICATOR))
+    if objective == 'goal':
+        # Objective: average transgression level over the categories with a goal.
+        K = len(model.GOAL_INDICATOR)
+        if K == 0:
+            raise ValueError(
+                "objective='goal' requires at least one category in GOAL_INDICATOR "
+                "(model_data['GOAL_INDICATOR']/'IMP_GOALS'); got none."
+            )
+        model.OBJ = pyo.Objective(sense=pyo.minimize,
+                                  expr=pyo.quicksum(model.transgression[h] for h in model.GOAL_INDICATOR) / K)
+    else:
+        # Objective: a weighted sum over all indicators. Typically, the indicator of study has weight 1, the rest 0.
+        model.OBJ = pyo.Objective(sense=pyo.minimize, expr=pyo.quicksum(model.impacts[h] * model.WEIGHTS[h] for h in model.INDICATOR))
 
     print('Instance created')
     return model
@@ -461,35 +487,31 @@ def solve_gurobi(model_instance, options=None):
 
 def solve_model(model_instance, gams_path=False, solver_name=None, options=None, neos_email=None):
     """
-    Solves the instance of the optimization model using Highspy, NEOS, or GAMS.
+    Solves the instance of the optimization model using Highspy, Gurobi, NEOS, or GAMS.
+
+    Solver selection logic (in priority order):
+      1. GAMS  – when ``gams_path`` is provided (a path string or ``True``).
+      2. HiGHS – when no ``gams_path`` and ``solver_name`` is ``None`` or ``'highs'``.
+      3. Gurobi – when no ``gams_path`` and ``solver_name`` is ``'gurobi'``.
+      4. NEOS  – when no ``gams_path`` and any other ``solver_name`` is given.
 
     Args:
         model_instance (ConcreteModel): The Pyomo model instance.
-        gams_path (str or bool, optional): Path to the GAMS solver or True to use the environment variable.
-        solver_name (str, optional): The solver to use (e.g. 'cplex', 'baron', or 'xpress').
-        options (list, optional): Additional options for the solver.
+        gams_path (str or bool, optional): Path to the GAMS solver or ``True`` to
+            read the path from the ``GAMS_PULPO`` environment variable.
+        solver_name (str, optional): The solver to use (e.g. ``'highs'``, ``'gurobi'``,
+            ``'cplex'``, ``'baron'``, or ``'xpress'``).
+        options (list, optional): Additional options forwarded to the solver.
         neos_email (str, optional): Email for NEOS solver authentication.
 
     Returns:
         tuple: Results of the optimization and the updated model instance.
     """
-    # ATTN: Cases may be too convoluted. Tidy up the logic eventually.
-    # Case 1: Use Highspy if no GAMS path is provided and the solver is either not specified or is 'highs'
-    if gams_path is False and (solver_name is None or 'highs' in solver_name.lower()):
-        return solve_highspy(model_instance)
-    
-    # Case 2: Gurobi if no GAMS and solver_name == "gurobi"
-    if gams_path is False and solver_name and solver_name.lower() == "gurobi":
-        return solve_gurobi(model_instance, options=options)
-
-    # Case 3: Use NEOS if a solver_name is provided (and it is not Highspy) and no GAMS path is provided
-    if gams_path is False and solver_name and ('highs' not in solver_name.lower()):
-        return solve_neos(model_instance, solver_name, options, neos_email)
-
-    # Case 4: Use GAMS if gams_path is specified (either as a path or True)
     if gams_path:
         return solve_gams(model_instance, gams_path, options)
-
-    # Default case: Return None if no valid solver configuration is found
-    print("No valid solver configuration found.")
-    return None, model_instance
+    elif solver_name is None or solver_name.lower() == 'highs':
+        return solve_highspy(model_instance)
+    elif solver_name.lower() == 'gurobi':
+        return solve_gurobi(model_instance, options=options)
+    else:
+        return solve_neos(model_instance, solver_name, options, neos_email)
