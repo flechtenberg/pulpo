@@ -2,6 +2,54 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Added
+* Exact second-order-cone (SOC) chance-constrained formulation
+  (`pulpo/utils/uncertainty/soc.py`): the impact's standard deviation is
+  represented exactly — including the covariance that processes share through a
+  common characterization factor — rather than via the `L1` upper bound. Solved
+  either directly as a QCP or by Kelley cutting planes over the LP PULPO already
+  builds, which is what makes it tractable at ecoinvent scale and yields a
+  certified lower/upper bound rather than an estimate. Exposed as
+  `PulpoOptimizerUnc.create_SOC_formulation()` / `solve_SOC_problem()`.
+* Closed-form moments (`processor.compute_closed_form_moments`, and
+  `create_SOC_formulation(moments='closed_form')`): analytical mean and variance
+  per distribution family, replacing the Monte-Carlo refit of every parameter to a
+  Normal.
+* `import_and_filter_uncertainty_data(scaling_vector_strategy='none')` — retain
+  every declared parameter. The contribution filter is a device for scale; on a
+  system small enough not to need it, selecting parameters at one scaling vector
+  strips the uncertainty from alternatives inactive at that vector and biases the
+  subsequent risk-averse choice towards them.
+* `run_gsa(seed=...)` — the SALib sampler's seed is now controllable from the
+  façade instead of being fixed at its constructor default of 161 (still the
+  default, so previously reported indices are unchanged).
+* `pulpo/datasets/soc_demo_database.py` — an open six-activity demonstration
+  system covering every supported uncertainty family, usable without an ecoinvent
+  licence.
+
+### Fixed
+* **`processor.draw_uncertainty_sample(..., seed=...)` seeded nothing except
+  Normal parameters.** `_sample_one_spec` passed the seeded generator to the
+  Normal branch but called `stats_arrays.random_variables(ua, 1)` without
+  `seeded_random` for every other family, so lognormal, triangular and uniform
+  parameters drew from NumPy's legacy global stream and ignored the seed
+  entirely. Any Monte Carlo containing a non-Normal parameter was therefore
+  irreproducible, `run_mc_from_uncertainty(seed=...)` included. The defect
+  survived because the only test covering seeded sampling ran on a fixture whose
+  parameters are all Normal; the new regression test
+  (`TestDrawUncertaintySampleSeeding`) asserts its fixture contains non-Normal
+  parameters before checking reproducibility.
+
+### Known issues
+* `pre_sample_from_uncertainty` draws its per-draw seeds from `[0, 10**6)`, which
+  collides about 164 times in 20 000 draws. Before the seeding fix a repeated seed
+  still produced a different draw; now it produces a genuine duplicate, so the
+  effective sample is ~0.8 % smaller than requested. Widening the range is a
+  one-line change that shifts published draw sequences, so it is deferred rather
+  than bundled into this release.
+
 ## [1.7.0] - 2026-08-11
 * Add a goal-programming objective (`objective='goal'`): minimize the average transgression of user-defined soft impact limits (`imp_goals`), e.g. for Planetary-Boundary-style budgets. Unlike `upper_imp_limit`, goals can be exceeded — the solver stays feasible and reports the transgression level per category instead. Available on both `PulpoOptimizer` and the time-extended `PulpoOptimizerTime` (goals apply to impacts aggregated across the whole time horizon), and carried through Monte Carlo re-instantiation.
 * Report per-category goal results (impact, goal, transgression level) via `extract_results()["Transgressions"]`, `summarize_results()`, and the Excel export.
