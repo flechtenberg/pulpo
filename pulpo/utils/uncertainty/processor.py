@@ -1048,6 +1048,15 @@ def _sample_one_spec(spec: dict, rng: np.random.Generator) -> float:
     """
     Sample a single uncertainty spec. If it's Normal (id==3), use numpy;
     otherwise fall back to stats_arrays (works for the prepared dicts).
+
+    ``rng`` must reach *both* branches. stats_arrays' ``random_variables``
+    falls back to the legacy global ``np.random`` when ``seeded_random`` is
+    omitted, so leaving it out made ``draw_uncertainty_sample(seed=...)``
+    reproducible for Normal parameters only -- every lognormal, triangular and
+    uniform parameter silently ignored the seed and consumed the global stream
+    instead. Each of the four families stats_arrays dispatches to calls only
+    ``normal``/``lognormal``/``triangular``/``uniform``, all of which exist on
+    a ``Generator``, so the same object serves both branches.
     """
     utype = spec.get("uncertainty_type", None)
     if utype == stats_arrays.NormalUncertainty.id or utype == 3:
@@ -1058,7 +1067,7 @@ def _sample_one_spec(spec: dict, rng: np.random.Generator) -> float:
     # generic fallback for triangular/lognormal/etc.
     ua = stats_arrays.UncertaintyBase.from_dicts(spec)
     choice = stats_arrays.uncertainty_choices[utype]
-    return float(choice.random_variables(ua, 1)[0])
+    return float(choice.random_variables(ua, 1, seeded_random=rng)[0])
 
 def draw_uncertainty_sample(
     uncertainty_data: dict,
