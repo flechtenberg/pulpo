@@ -405,11 +405,11 @@ class ParameterFilter:
         self.method = method # From the result_data
 
     def apply_filter(
-            self, 
-            scaling_vector_strategy:Literal['naive', 'constructed_demand'], 
-            cutoff:float, 
+            self,
+            scaling_vector_strategy:Literal['naive', 'constructed_demand', 'none'],
+            cutoff:float,
             result_data:dict={},
-            plot_results:bool=False, 
+            plot_results:bool=False,
             plot_n_top_processes:int=10
             ) -> Tuple[list,list]:
          """
@@ -417,30 +417,37 @@ class ParameterFilter:
          1. Prepare the scaling vector used to subselect the most contributing paramters to the impact results
          2. Compute the LCI and LCIA results with the chosen scaling vector
          3. Plot the main contributing processes to the impact result
-         4. Filters out the intervention flows whose characterized results 
+         4. Filters out the intervention flows whose characterized results
             are smaller than the cutoff multiplied with the LCA score
          5. Filter out the chcharacterization factors which are not connected to any intervention flows after step 4.
 
+         With `scaling_vector_strategy='none'` steps 1-4 are skipped and every
+         declared exchange is retained (see `retain_all_parameters`).
+
          Args:
-            scaling_vector_strategy (str): 
-                How to compute scaling vector: 'naive' or 'constructed_demand'.
-            cutoff (float): 
-                cutoff factor to compute minimum contribution value to retain an intervention flow. 
-                Multiplied with the LCA score, i.e., a percentage of the total LCA score
-            result_data (None|dict): 
-                Solver output dict, only neccessary for scaling_vector_strategy='naive', 
+            scaling_vector_strategy (str):
+                How to compute scaling vector: 'naive', 'constructed_demand', or
+                'none' to disable filtering altogether.
+            cutoff (float):
+                cutoff factor to compute minimum contribution value to retain an intervention flow.
+                Multiplied with the LCA score, i.e., a percentage of the total LCA score.
+                Ignored when scaling_vector_strategy='none'.
+            result_data (None|dict):
+                Solver output dict, only neccessary for scaling_vector_strategy='naive',
                 From pulpo_worker.result_data
             plot_results (bool) - optional:
                 defaulf False, Set to True if the plot main characterized processes should be created and shown.
-            plot_n_top_processes (int) - optional: 
+            plot_n_top_processes (int) - optional:
                 Number of top items to display in top contribution process plot (default: 10).
 
         Returns:
-            filtered_inventory_indcs (list): 
+            filtered_inventory_indcs (list):
                 Subset of inventory flows indices returned from filtering.
-            filtered_characterization_indcs (list): 
+            filtered_characterization_indcs (list):
                 Subset of characterization factors indices returned from filtering.
          """
+         if scaling_vector_strategy == 'none':
+             return self.retain_all_parameters()
          scaling_vector_series = self.prepare_scaling_vector(scaling_vector_strategy=scaling_vector_strategy, result_data=result_data)
          lca_score, characterized_inventory = self.compute_LCI_LCIA(scaling_vector_series)
          if plot_results:
@@ -448,6 +455,40 @@ class ParameterFilter:
          filtered_inventory_indcs = self.filter_inventoryflows(characterized_inventory, lca_score, cutoff)
          filtered_characterization_indcs = self.filter_characterization_factors(filtered_inventory_indcs)
          return filtered_inventory_indcs, filtered_characterization_indcs
+
+    def retain_all_parameters(self) -> Tuple[list, list]:
+        """
+        Retain every declared parameter: no contribution filtering at all.
+
+        The cutoff filter is a *scale* device. On an ecoinvent-sized system carrying
+        every uncertain exchange is impractical, so parameters are ranked by their
+        characterized contribution at one scaling vector and the tail is dropped.
+        That selection is an approximation with a direction: a scaling vector taken
+        at the deterministic optimum ('naive') assigns zero contribution to every
+        alternative that is inactive there, so those alternatives enter the
+        chance-constrained problem with *no uncertainty at all*. When risk aversion
+        later makes one of them optimal, it is chosen partly because its uncertainty
+        was filtered away. 'constructed_demand' widens the scaling vector to cover
+        all choice alternatives and mitigates this, but only for processes reachable
+        from the choices.
+
+        On a system small enough not to need the filter, none of that trade-off is
+        worth making. Every structurally nonzero entry of the intervention matrix
+        becomes an uncertain parameter, and every characterization factor attached
+        to one is retained.
+
+        Returns:
+            inventory_indcs (list):
+                Every (biosphere, process) index pair present in the intervention matrix.
+            characterization_indcs (list):
+                Every characterization factor attached to one of those flows.
+        """
+        intervention_matrix = self.lci_data['intervention_matrix']
+        inventory_indcs = list(zip(*intervention_matrix.nonzero()))
+        print('No filtering applied (scaling_vector_strategy="none"): '
+              'retaining all {} intervention flow parameters.'.format(len(inventory_indcs)))
+        characterization_indcs = self.filter_characterization_factors(inventory_indcs)
+        return inventory_indcs, characterization_indcs
 
     def prepare_scaling_vector(self,  scaling_vector_strategy:str='constructed_demand', result_data:Optional[dict]={}) -> pd.Series:
         """

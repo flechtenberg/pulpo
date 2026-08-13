@@ -5,6 +5,7 @@ from pulpo.utils import optimizer, bw_parser, converter, saver, monte_carlo
 from typing import List, Union
 from pulpo.datasets.rice_database import setup_rice_husk_db
 from pulpo.datasets.sample_database import setup_sample_db
+from pulpo.datasets.soc_demo_database import setup_soc_demo_db
 
 class PulpoOptimizer:
     def __init__(self, project: str, database: Union[str, List[str]], method: Union[str, List[str], dict], directory: str):
@@ -280,3 +281,11 @@ def install_sample_db():
     Sets up the sample LCI database in Brightway2.
     """
     setup_sample_db()
+
+
+def install_soc_demo_db():
+    """
+    Sets up the SOC-demo example database (ammonia synthesis, hydrogen
+    route choice) in Brightway2.
+    """
+    setup_soc_demo_db()
