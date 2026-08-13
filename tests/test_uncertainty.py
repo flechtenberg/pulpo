@@ -28,9 +28,11 @@ from pulpo.utils.utils import is_bw25
 from pulpo.datasets.sample_database import setup_sample_db
 
 try:
+    import stats_arrays
     from pulpo import pulpo_unc
     from pulpo.utils.uncertainty import processor
-    from pulpo.utils.uncertainty.processor import TriangluarBaseStrategy
+    from pulpo.utils.uncertainty.processor import TriangluarBaseStrategy, DeterministicGapFillStrategy
+    from pulpo.datasets.soc_demo_database import setup_soc_demo_db
     from SALib.sample import sobol as sobol_sample
     from SALib.analyze import sobol as sobol_analyze
     UNCERTAINTY_DEPS = True
@@ -43,6 +45,8 @@ except ImportError as _err:  # pragma: no cover - depends on installed extras
     )
 
 setup_sample_db()
+if UNCERTAINTY_DEPS:
+    setup_soc_demo_db()
 
 PROJECT = "sample_project_bw25" if is_bw25() else "sample_project"
 DATABASES = ["background_db", "foreground_db"]
@@ -326,6 +330,37 @@ class TestUncertaintyPipeline(unittest.TestCase):
         )
         self.assertGreater(total_defined, 0)
 
+    def test_none_strategy_retains_every_exchange(self):
+        """'none' disables the filter: one parameter per nonzero intervention entry.
+
+        The contribution filter selects parameters at a single scaling vector, so
+        exchanges belonging to processes that are inactive there are dropped and
+        enter a chance-constrained problem carrying no uncertainty. 'none' is the
+        opt-out for systems small enough not to need the filter.
+        """
+        worker = build_solved_worker()
+        worker.import_and_filter_uncertainty_data(scaling_vector_strategy="none")
+
+        n_exchanges = worker.lci_data["intervention_matrix"].nnz
+        n_imported = sum(
+            len(entries["defined"]) + len(entries["undefined"])
+            for entries in worker.uncertainty_data["If"].values()
+        )
+        self.assertEqual(n_imported, n_exchanges)
+
+        # And it is a strict superset of what the naive filter keeps.
+        filtered = build_solved_worker()
+        filtered.import_and_filter_uncertainty_data(
+            cutoff=0.0,
+            scaling_vector_strategy="naive",
+            result_data=filtered.extract_results(),
+        )
+        n_filtered = sum(
+            len(entries["defined"]) + len(entries["undefined"])
+            for entries in filtered.uncertainty_data["If"].values()
+        )
+        self.assertGreaterEqual(n_imported, n_filtered)
+
 
 @unittest.skipUnless(UNCERTAINTY_DEPS, UNCERTAINTY_SKIP_REASON)
 class TestMonteCarloFromUncertainty(unittest.TestCase):
@@ -425,6 +460,121 @@ class TestChanceConstrained(unittest.TestCase):
 
 
 @unittest.skipUnless(UNCERTAINTY_DEPS, UNCERTAINTY_SKIP_REASON)
+class TestExactSOC(unittest.TestCase):
+    """``create_SOC_formulation`` + ``solve_SOC_problem`` exact-variance Pareto trace."""
+
+    LAMBDAS = [0.50, 0.75, 0.90, 0.95]
+
+    @classmethod
+    def setUpClass(cls):
+        cls.worker = build_solved_worker()
+        prepare_uncertainty(cls.worker)
+        np.random.seed(42)
+        cls.coeffs = cls.worker.create_SOC_formulation(
+            normal_transformation_sample_size=1000,
+        )
+        cls.results = cls.worker.solve_SOC_problem(
+            lambda_level=cls.LAMBDAS,
+            coeffs=cls.coeffs,
+            plot_results=False,
+        )
+        cls.impacts = {lam: cls.results[lam]["Impacts"].loc[CLIMATE_KEY, "Value"]
+                       for lam in cls.LAMBDAS}
+
+    def test_coefficients_structure(self):
+        summary = self.coeffs.summary()
+        self.assertGreater(summary["processes"], 0)
+        self.assertEqual(self.coeffs.method, CLIMATE_KEY)
+
+    def test_lambda_50_reproduces_deterministic_optimum(self):
+        # At lambda = 0.5 the safety margin (norm ppf) is zero, so the SOC
+        # problem collapses onto the deterministic one, same as the L1 path.
+        self.assertAlmostEqual(self.impacts[0.50], DETERMINISTIC_IMPACT, places=5)
+
+    def test_impact_increases_with_confidence_level(self):
+        trace = [self.impacts[lam] for lam in self.LAMBDAS]
+        for lower, upper in zip(trace, trace[1:]):
+            self.assertGreater(upper, lower)
+
+    def test_seeded_pareto_trace_matches_reference(self):
+        expected = {0.75: 1.879708, 0.90: 1.987064, 0.95: 2.051313}
+        for lam, value in expected.items():
+            self.assertAlmostEqual(self.impacts[lam], value, places=5)
+
+    def test_never_exceeds_l1_shortcut(self):
+        # The L1 shortcut sums per-process sigmas with an L1 norm, which
+        # over-estimates the true (Euclidean) uncertainty and ignores the
+        # covariance shared processes pick up through a common
+        # characterization factor - a correct exact-SOC front can therefore
+        # only lie at or below the L1 front. Uses an independent worker so
+        # this comparison can't be perturbed by (or perturb) `cls.worker`'s
+        # instance state, which `apply_CC_formulation` mutates permanently.
+        worker = build_solved_worker()
+        prepare_uncertainty(worker)
+        np.random.seed(42)
+        env_meta, var_bounds_meta = worker.create_CC_formulation(
+            CC_env_cost=True, CC_var_bounds=[], normal_transformation_sample_size=1000,
+        )
+        l1_results = worker.solve_CC_problem(
+            lambda_level=self.LAMBDAS,
+            normal_metadata_env_cost=env_meta,
+            normal_metadata_var_bounds=var_bounds_meta,
+            plot_results=False,
+        )
+        for lam in self.LAMBDAS:
+            l1_impact = l1_results[lam]["Impacts"].loc[CLIMATE_KEY, "Value"]
+            self.assertGreaterEqual(l1_impact, self.impacts[lam] - 1e-9)
+
+    def test_direct_method_matches_cutting_plane(self):
+        # Same coefficients, single lambda: the direct QCP solve (Gurobi) and
+        # the cutting-plane LP solve (any solver) should agree on this small,
+        # well-scaled toy system. Independent worker/instance, so it can run
+        # in any order relative to the other tests.
+        worker = build_solved_worker()
+        prepare_uncertainty(worker)
+        np.random.seed(42)
+        coeffs = worker.create_SOC_formulation(normal_transformation_sample_size=1000)
+        try:
+            direct_results = worker.solve_SOC_problem(
+                lambda_level=0.90, coeffs=coeffs, method='direct',
+            )
+        except Exception as exc:
+            self.skipTest(f"'gurobi' Pyomo solver unavailable: {exc}")
+        direct_impact = direct_results[0.90]["Impacts"].loc[CLIMATE_KEY, "Value"]
+        self.assertAlmostEqual(direct_impact, self.impacts[0.90], places=4)
+
+    def test_restore_deterministic_objective(self):
+        self.worker.restore_deterministic_objective()
+        self.worker.solve()
+        result = self.worker.extract_results()
+        self.assertAlmostEqual(
+            result["Impacts"].loc[CLIMATE_KEY, "Value"], DETERMINISTIC_IMPACT, places=5)
+
+    def test_formulation_requires_uncertainty_data(self):
+        worker = pulpo_unc.PulpoOptimizerUnc(PROJECT, DATABASES, METHODS, "")
+        with self.assertRaises(Exception) as context:
+            worker.create_SOC_formulation()
+        self.assertIn("import_and_filter_uncertainty_data", str(context.exception))
+
+
+class _RecordingSampler:
+    """Stand-in for the SALib sampler module that keeps the design matrix.
+
+    ``run_gsa`` takes the sampler as an object with a ``.sample`` attribute, so
+    wrapping the real module is enough to observe what the seed did without
+    reaching into ``GlobalSensitivityAnalysis``.
+    """
+
+    def __init__(self, module):
+        self._module = module
+        self.samples = None
+
+    def sample(self, problem, N, **kwargs):
+        self.samples = self._module.sample(problem, N, **kwargs)
+        return self.samples
+
+
+@unittest.skipUnless(UNCERTAINTY_DEPS, UNCERTAINTY_SKIP_REASON)
 class TestGlobalSensitivityAnalysis(unittest.TestCase):
     """``run_gsa``: Sobol sensitivity indices on the curated parameters."""
 
@@ -475,3 +625,354 @@ class TestGlobalSensitivityAnalysis(unittest.TestCase):
         self.assertGreater(st.max(), 0.3)
         self.assertNotIsInstance(st.idxmax(), tuple,
                                  "top driver should be a characterization factor")
+
+    def test_seed_controls_sampling(self):
+        """``run_gsa(seed=...)`` reaches SALib's sampler.
+
+        Three claims in one pass, because each run costs a full sample sweep:
+        the default is still 161 (results published before the argument existed
+        stay reproducible), the same seed reproduces the design matrix exactly,
+        and a different seed produces a different one.
+        """
+        def draw(**seed_kwarg):
+            recorder = _RecordingSampler(sobol_sample)
+            total_order, _ = self.worker.run_gsa(
+                result_data=self.deterministic_results,
+                sample_method=recorder,
+                SA_method=sobol_analyze,
+                sample_size=16,
+                plot_gsa_results=False,
+                **seed_kwarg,
+            )
+            return recorder.samples, total_order
+
+        default_samples, default_order = draw()
+        explicit_161_samples, _ = draw(seed=161)
+        other_samples, other_order = draw(seed=2024)
+        other_samples_again, _ = draw(seed=2024)
+
+        np.testing.assert_array_equal(default_samples, explicit_161_samples)
+        np.testing.assert_array_equal(other_samples, other_samples_again)
+        self.assertEqual(default_samples.shape, other_samples.shape)
+        self.assertFalse(np.array_equal(default_samples, other_samples),
+                         "a different seed must give a different design matrix")
+        # The seed moves the numbers, not the story: the leading driver is a
+        # property of the model and must survive the reseeding.
+        self.assertEqual(default_order["ST"].idxmax(), other_order["ST"].idxmax())
+
+
+##################################################
+#### SOC-demo system (soc_demo_database)      ####
+##################################################
+# sample_database.py gives every non-production exchange a blanket
+# NormalUncertainty, so it has zero native non-Normal parameters and zero
+# undefined ones (see soc_demo_database's module docstring) - it cannot
+# exercise DeterministicGapFillStrategy or compute_closed_form_moments
+# meaningfully. soc_demo_database.py's ammonia/hydrogen-route toy system was
+# purpose-built with native Normal/Lognormal/Triangular/Uniform parameters
+# and several genuinely undefined ones.
+
+SOC_DEMO_PROJECT = "soc_demo_project_bw25" if is_bw25() else "soc_demo_project"
+SOC_DEMO_DATABASES = ["soc_demo_background_db", "soc_demo_foreground_db"]
+SOC_DEMO_METHOD_KEY = "('soc demo', 'climate change')"
+SOC_DEMO_METHODS = {SOC_DEMO_METHOD_KEY: 1}
+
+
+def build_solved_soc_demo_worker():
+    """Ammonia-synthesis toy system: hydrogen route choice (SMR vs.
+    electrolysis). Electrolysis capacity is capped below full demand so both
+    routes carry nonzero scaling at the deterministic optimum - the 'naive'
+    cutoff-filter strategy below only keeps parameters on processes with
+    nonzero scaling, and every native distribution family in this system
+    lives on one route or the other (see soc_demo_database's module
+    docstring).
+    """
+    worker = pulpo_unc.PulpoOptimizerUnc(SOC_DEMO_PROJECT, SOC_DEMO_DATABASES, SOC_DEMO_METHODS, "")
+    worker.get_lci_data()
+    ammonia = worker.retrieve_processes(reference_products="ammonia")
+    hydrogen = worker.retrieve_processes(processes=["hydrogen SMR", "hydrogen electrolysis"])
+    demand = {ammonia[0]: 1}
+    choices = {"Hydrogen route": {hydrogen[0]: 1e10, hydrogen[1]: 0.09}}
+    worker.instantiate(choices=choices, demand=demand)
+    worker.solve()
+    return worker
+
+
+def prepare_soc_demo_uncertainty(worker, gap_fill="triangular"):
+    """Import + filter + gap-fill for the SOC-demo system.
+
+    ``gap_fill='triangular'`` uses the existing +-10% strategy (all gaps
+    filled); ``gap_fill='deterministic'`` uses ``DeterministicGapFillStrategy``
+    (no gaps filled - degenerate N(amount, 0) instead).
+    """
+    det_result = worker.extract_results()
+    worker.import_and_filter_uncertainty_data(
+        cutoff=0.0, scaling_vector_strategy="naive", result_data=det_result)
+    method_name = next(iter(worker.method))
+    if gap_fill == "triangular":
+        strategies = [
+            TriangluarBaseStrategy("If", "soc_demo_background_db", 0.1, 0.1,
+                                    noise_interval={"min": 0.1, "max": 0.1}),
+            TriangluarBaseStrategy("If", "soc_demo_foreground_db", 0.1, 0.1,
+                                    noise_interval={"min": 0.1, "max": 0.1}),
+            TriangluarBaseStrategy("Cf", method_name, 0.1, 0.1,
+                                    noise_interval={"min": 0.1, "max": 0.1}),
+        ]
+    elif gap_fill == "deterministic":
+        strategies = [
+            DeterministicGapFillStrategy("If", "soc_demo_background_db"),
+            DeterministicGapFillStrategy("If", "soc_demo_foreground_db"),
+            DeterministicGapFillStrategy("Cf", method_name),
+        ]
+    else:
+        raise ValueError(gap_fill)
+    worker.apply_uncertainty_strategies(strategies=strategies, drop_undefined=True)
+
+
+@unittest.skipUnless(UNCERTAINTY_DEPS, UNCERTAINTY_SKIP_REASON)
+class TestDeterministicGapFillStrategy(unittest.TestCase):
+    """``DeterministicGapFillStrategy``: the 'no gap filling' alternative to
+    ``TriangluarBaseStrategy`` - fills undefined entries with a degenerate
+    N(amount, 0) instead of spreading them out."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.worker = build_solved_soc_demo_worker()
+        det_result = cls.worker.extract_results()
+        cls.worker.import_and_filter_uncertainty_data(
+            cutoff=0.0, scaling_vector_strategy="naive", result_data=det_result)
+        # Snapshot the pre-fill undefined entries so the post-fill values can
+        # be checked against them.
+        cls.pre_fill_undefined = {
+            (unc_type, subgroup): dict(entries["undefined"])
+            for unc_type in ("If", "Cf")
+            for subgroup, entries in cls.worker.uncertainty_data[unc_type].items()
+            if entries["undefined"]
+        }
+        method_name = next(iter(cls.worker.method))
+        cls.worker.apply_uncertainty_strategies(
+            strategies=[
+                DeterministicGapFillStrategy("If", "soc_demo_background_db"),
+                DeterministicGapFillStrategy("If", "soc_demo_foreground_db"),
+                DeterministicGapFillStrategy("Cf", method_name),
+            ],
+            drop_undefined=True,
+        )
+
+    def test_gaps_existed_before_filling(self):
+        # Sanity check the fixture actually has something to gap-fill (unlike
+        # sample_database.py, which has zero undefined 'If'/'Cf' parameters).
+        self.assertGreater(sum(len(d) for d in self.pre_fill_undefined.values()), 0)
+
+    def test_no_undefined_parameters_remain(self):
+        self.assertFalse(
+            processor.check_missing_uncertainty_data(self.worker.uncertainty_data))
+
+    def test_filled_entries_are_degenerate_normals_at_amount(self):
+        for (unc_type, subgroup), undefined in self.pre_fill_undefined.items():
+            defined = self.worker.uncertainty_data[unc_type][subgroup]["defined"]
+            for idx, spec in undefined.items():
+                filled = defined[idx]
+                self.assertEqual(filled["uncertainty_type"], stats_arrays.NormalUncertainty.id)
+                self.assertEqual(filled["scale"], 0.0)
+                self.assertEqual(filled["loc"], spec["amount"])
+
+
+@unittest.skipUnless(UNCERTAINTY_DEPS, UNCERTAINTY_SKIP_REASON)
+class TestClosedFormMoments(unittest.TestCase):
+    """``compute_closed_form_moments``: analytic (mean, std) per distribution
+    family, against hand-computed reference values."""
+
+    def test_matches_hand_computed_moments(self):
+        uncertainty_data = {
+            "If": {
+                "db": {
+                    "defined": {
+                        "normal": {"uncertainty_type": stats_arrays.NormalUncertainty.id,
+                                   "amount": 1.0, "loc": 2.0, "scale": 0.5},
+                        "uniform": {"uncertainty_type": stats_arrays.UniformUncertainty.id,
+                                    "amount": 1.0, "minimum": 2.0, "maximum": 6.0},
+                        "triangular": {"uncertainty_type": stats_arrays.TriangularUncertainty.id,
+                                       "amount": 1.0, "loc": 3.0, "minimum": 1.0, "maximum": 8.0},
+                        "lognormal": {"uncertainty_type": stats_arrays.LognormalUncertainty.id,
+                                      "amount": 1.0, "loc": 1.0, "scale": 0.3, "negative": False},
+                    },
+                    "undefined": {},
+                },
+            },
+        }
+        moments = processor.compute_closed_form_moments(uncertainty_data, unc_types=["If"])
+        result = moments["If"]["db"]["defined"]
+
+        # Normal: passthrough.
+        self.assertAlmostEqual(result["normal"]["loc"], 2.0)
+        self.assertAlmostEqual(result["normal"]["scale"], 0.5)
+
+        # Uniform: mean=(min+max)/2, std=sqrt((max-min)^2/12).
+        self.assertAlmostEqual(result["uniform"]["loc"], 4.0)
+        self.assertAlmostEqual(result["uniform"]["scale"], np.sqrt((6.0 - 2.0) ** 2 / 12))
+
+        # Triangular: mean=(min+max+mode)/3, variance = the standard
+        # triangular-distribution formula.
+        a, b, c = 1.0, 8.0, 3.0  # minimum, maximum, mode
+        expected_mean = (a + b + c) / 3
+        expected_var = (a ** 2 + b ** 2 + c ** 2 - a * b - a * c - b * c) / 18
+        self.assertAlmostEqual(result["triangular"]["loc"], expected_mean)
+        self.assertAlmostEqual(result["triangular"]["scale"], np.sqrt(expected_var))
+
+        # Lognormal: mean=exp(mu+sigma^2/2), std=sqrt((exp(sigma^2)-1)*exp(2mu+sigma^2)).
+        mu, sigma = 1.0, 0.3
+        expected_mean = np.exp(mu + sigma ** 2 / 2)
+        expected_std = np.sqrt((np.exp(sigma ** 2) - 1) * np.exp(2 * mu + sigma ** 2))
+        self.assertAlmostEqual(result["lognormal"]["loc"], expected_mean)
+        self.assertAlmostEqual(result["lognormal"]["scale"], expected_std)
+
+        # Every output is tagged Normal, matching transform_to_normal's shape.
+        for spec in result.values():
+            self.assertEqual(spec["uncertainty_type"], stats_arrays.NormalUncertainty.id)
+
+    def test_unsupported_uncertainty_type_raises(self):
+        uncertainty_data = {
+            "If": {"db": {"defined": {0: {"uncertainty_type": 1, "amount": 1.0}}, "undefined": {}}},
+        }
+        with self.assertRaises(NotImplementedError) as context:
+            processor.compute_closed_form_moments(uncertainty_data, unc_types=["If"])
+        self.assertIn("uncertainty_type=1", str(context.exception))
+
+    def test_missing_data_guard_matches_transform_to_normal(self):
+        uncertainty_data = {
+            "If": {"db": {"defined": {}, "undefined": {0: {"uncertainty_type": 0, "amount": 1.0}}}},
+        }
+        with self.assertRaises(Exception) as context:
+            processor.compute_closed_form_moments(uncertainty_data, unc_types=["If"])
+        self.assertIn("undefined uncertainty data", str(context.exception))
+
+
+@unittest.skipUnless(UNCERTAINTY_DEPS, UNCERTAINTY_SKIP_REASON)
+class TestSOCClosedFormMoments(unittest.TestCase):
+    """``create_SOC_formulation(moments='closed_form')`` end-to-end on
+    soc_demo_database - the only fixture with native non-Normal parameters
+    that can exercise this meaningfully (mirrors ``TestExactSOC``)."""
+
+    LAMBDAS = [0.50, 0.75, 0.90, 0.95]
+
+    @classmethod
+    def setUpClass(cls):
+        cls.worker = build_solved_soc_demo_worker()
+        prepare_soc_demo_uncertainty(cls.worker, gap_fill="deterministic")
+        cls.coeffs = cls.worker.create_SOC_formulation(
+            normal_transformation_sample_size=1000, moments="closed_form")
+        cls.results = cls.worker.solve_SOC_problem(
+            lambda_level=cls.LAMBDAS, coeffs=cls.coeffs, plot_results=False)
+        cls.impacts = {lam: cls.results[lam]["Impacts"].loc[SOC_DEMO_METHOD_KEY, "Value"]
+                       for lam in cls.LAMBDAS}
+
+    def test_coefficients_structure(self):
+        summary = self.coeffs.summary()
+        self.assertGreater(summary["processes"], 0)
+        self.assertEqual(self.coeffs.method, SOC_DEMO_METHOD_KEY)
+
+    def test_impact_increases_with_confidence_level(self):
+        trace = [self.impacts[lam] for lam in self.LAMBDAS]
+        for lower, upper in zip(trace, trace[1:]):
+            self.assertGreater(upper, lower)
+
+    def test_closed_form_close_to_fit(self):
+        # closed_form skips resampling entirely; fit resamples and refits a
+        # Normal. On the same (deterministic-filled) uncertainty data the two
+        # should agree closely - a large discrepancy would mean a bug in the
+        # closed-form formulas (or in reading minimum/maximum/loc off the
+        # wrong fields), not sampling noise.
+        worker = build_solved_soc_demo_worker()
+        prepare_soc_demo_uncertainty(worker, gap_fill="deterministic")
+        np.random.seed(42)
+        coeffs_fit = worker.create_SOC_formulation(
+            normal_transformation_sample_size=2000, moments="fit")
+        results_fit = worker.solve_SOC_problem(lambda_level=self.LAMBDAS, coeffs=coeffs_fit)
+        for lam in self.LAMBDAS:
+            fit_impact = results_fit[lam]["Impacts"].loc[SOC_DEMO_METHOD_KEY, "Value"]
+            self.assertAlmostEqual(fit_impact, self.impacts[lam],
+                                   delta=0.05 * abs(self.impacts[lam]))
+
+    def test_never_exceeds_l1_shortcut(self):
+        # create_CC_formulation (L1) has no 'closed_form' option - it always
+        # fits Normals via processor.transform_to_normal - so this compares
+        # against a SOC(moments='fit') worker, not cls.worker's closed_form
+        # coefficients: the "L1 never lies below SOC" guarantee is about the
+        # L1-vs-Euclidean norm on the *variance* term (SI derivation), for a
+        # shared set of per-parameter moments. Comparing fit-based L1 against
+        # closed-form SOC would instead mix in the (unrelated, and at
+        # lambda=0.5 undefined-sign) discrepancy between two different mean
+        # estimators. Independent workers throughout: apply_CC_formulation
+        # mutates its instance permanently.
+        l1_worker = build_solved_soc_demo_worker()
+        prepare_soc_demo_uncertainty(l1_worker, gap_fill="deterministic")
+        np.random.seed(42)
+        env_meta, var_bounds_meta = l1_worker.create_CC_formulation(
+            CC_env_cost=True, CC_var_bounds=[], normal_transformation_sample_size=1000)
+        l1_results = l1_worker.solve_CC_problem(
+            lambda_level=self.LAMBDAS, normal_metadata_env_cost=env_meta,
+            normal_metadata_var_bounds=var_bounds_meta, plot_results=False)
+
+        soc_fit_worker = build_solved_soc_demo_worker()
+        prepare_soc_demo_uncertainty(soc_fit_worker, gap_fill="deterministic")
+        np.random.seed(42)
+        coeffs_fit = soc_fit_worker.create_SOC_formulation(
+            normal_transformation_sample_size=1000, moments="fit")
+        soc_fit_results = soc_fit_worker.solve_SOC_problem(
+            lambda_level=self.LAMBDAS, coeffs=coeffs_fit, plot_results=False)
+
+        for lam in self.LAMBDAS:
+            l1_impact = l1_results[lam]["Impacts"].loc[SOC_DEMO_METHOD_KEY, "Value"]
+            soc_impact = soc_fit_results[lam]["Impacts"].loc[SOC_DEMO_METHOD_KEY, "Value"]
+            self.assertGreaterEqual(l1_impact, soc_impact - 1e-9)
+
+
+@unittest.skipUnless(UNCERTAINTY_DEPS, UNCERTAINTY_SKIP_REASON)
+class TestDrawUncertaintySampleSeeding(unittest.TestCase):
+    """``draw_uncertainty_sample(seed=...)`` must seed *every* family.
+
+    Regression test for a defect that survived because the only other seeded
+    sampling test runs on a fixture whose parameters are all Normal.  Normal
+    specs are drawn from the seeded ``Generator`` directly; every other family
+    is delegated to stats_arrays, which silently falls back to the legacy
+    global ``np.random`` unless ``seeded_random`` is passed.  The effect was
+    that lognormal, triangular and uniform parameters ignored the seed, so any
+    Monte Carlo built on them was irreproducible -- and the SOC demo system's
+    dominant driver is one of them.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        cls.worker = build_solved_soc_demo_worker()
+        prepare_soc_demo_uncertainty(cls.worker, gap_fill="deterministic")
+        cls.method = next(iter(cls.worker.method))
+
+    def _draw(self, seed):
+        return processor.draw_uncertainty_sample(
+            self.worker.uncertainty_data, self.method, seed=seed)
+
+    def test_fixture_actually_contains_non_normal_parameters(self):
+        """Guard: without this the rest of the class could pass vacuously."""
+        families = {
+            spec.get("uncertainty_type")
+            for group in ("If", "Cf")
+            for block in self.worker.uncertainty_data.get(group, {}).values()
+            for spec in block.get("defined", {}).values()
+        }
+        self.assertTrue(
+            families - {stats_arrays.NormalUncertainty.id},
+            "fixture has only Normal parameters; it cannot detect the defect")
+
+    def test_same_seed_reproduces_despite_global_rng_use(self):
+        first = self._draw(123)
+        np.random.seed(999)          # disturb the legacy global stream
+        np.random.random(17)
+        second = self._draw(123)
+        for group in ("If", "Cf"):
+            self.assertEqual(first[group], second[group],
+                             f"{group} draw depends on the global RNG, not the seed")
+
+    def test_different_seeds_give_different_draws(self):
+        first, other = self._draw(123), self._draw(124)
+        self.assertNotEqual(first["If"], other["If"])
