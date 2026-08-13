@@ -115,3 +115,6 @@ notebooks/tests
 uv.lock
 .venv-bw2/
 .venv-bw25/
+
+# Local experiment area, never part of a release
+scratchpad/
