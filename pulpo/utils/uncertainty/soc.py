@@ -598,9 +598,45 @@ def _set_exact_objective(model_instance, z: float) -> None:
     )
 
 
+def _cut_support(grad: np.ndarray, s: np.ndarray, sigma: float,
+                 tol: float) -> np.ndarray:
+    """Which gradient entries to write into a cut.
+
+    A supporting hyperplane of sigma at s^k carries one coefficient per process,
+    and on an ecoinvent technosphere those span an enormous range - the largest
+    is some thirty orders of magnitude above the smallest. A linear program
+    whose rows have that dynamic range is not solved reliably: the solver's
+    presolve drops coefficients below its own threshold, so each cut added
+    changes the problem being solved rather than only tightening it, and the
+    sequence of LP optima stops being monotone. Once that happens the lower and
+    upper bounds can cross and nothing is certified.
+
+    So a coefficient is written only if it can matter. "Can matter" is measured
+    against sigma itself, which is available because the hyperplane is exact at
+    the point it was taken from: ``grad @ s == sigma`` by homogeneity, so a term
+    contributing less than ``tol * sigma`` there is below the precision the
+    result is quoted to.
+
+    **Only positive coefficients are ever dropped.** Removing a positive term
+    lowers the right-hand side, which weakens the cut - and a weaker cut is
+    still a valid underestimator of sigma, so the bound it produces stays sound.
+    Removing a negative term would raise the right-hand side and could cut off
+    the true optimum, turning a conditioning fix into a wrong answer. In this
+    system the negative entries number a couple of dozen against several
+    thousand, so keeping all of them costs nothing.
+    """
+    nz = np.flatnonzero(grad)
+    if tol <= 0.0 or sigma <= 0.0 or nz.size == 0:
+        return nz
+    contribution = grad[nz] * s[nz]
+    keep = (grad[nz] < 0.0) | (np.abs(contribution) >= tol * sigma)
+    return nz[keep]
+
+
 def solve_exact(model_instance, coeffs: SOCCoefficients, lambda_level: float,
                 solve_fn, max_iter: int = 40, rel_gap: float = 1e-6,
-                stall_patience: int = 3, verbose: bool = True) -> dict:
+                stall_patience: int = 3, cut_coeff_tol: float = 0.0,
+                verbose: bool = True) -> dict:
     """Solve the exact chance-constrained problem by Kelley cutting planes.
 
     ``solve_fn(model)`` must solve the current LP in place (e.g. a closure over
@@ -611,12 +647,28 @@ def solve_exact(model_instance, coeffs: SOCCoefficients, lambda_level: float,
     iteration count. The gap is real, not nominal: every cut underestimates
     sigma, so ``mu^T s + z T`` is a lower bound while ``mu^T s + z sigma(s)``
     evaluated at the same s is an achievable upper bound.
+
+    Both bounds are tracked as running best values, and that is not tidiness.
+    Every LP optimum is a valid lower bound on the true optimum and every
+    evaluated iterate a valid upper bound, so
+
+        max_k lower_k  <=  v*  <=  min_k upper_k
+
+    must hold. Pairing the best upper with the *latest* lower instead mixes two
+    different relaxations, and on a degenerate problem the two can cross - which
+    reports a "gap" that is really the size of an inconsistency, and reports it
+    as though the optimum had been bracketed. A crossing is therefore measured
+    and returned in ``bound_crossing`` rather than folded into the gap by an
+    absolute value, and it never counts as convergence: a bracket that has
+    inverted has not converged, it has failed, and the caller has to be able to
+    tell those apart.
     """
     z = float(scipy.stats.norm.ppf(lambda_level))
     _set_exact_objective(model_instance, z)
 
     best_upper = np.inf
-    best_gap = np.inf
+    best_lower = -np.inf
+    best_residual = np.inf
     stalled = 0
     history = []
     for iteration in range(1, max_iter + 1):
@@ -638,37 +690,66 @@ def solve_exact(model_instance, coeffs: SOCCoefficients, lambda_level: float,
         lower = mean + z * t_value          # LP optimum: cuts underestimate sigma
         upper = mean + z * sigma            # achievable at this same s
         best_upper = min(best_upper, upper)
-        gap = abs(best_upper - lower) / max(abs(best_upper), 1e-12)
+        best_lower = max(best_lower, lower)
+
+        scale = max(abs(best_upper), 1e-12)
+        spread = best_upper - best_lower
+        # Positive spread is an optimality gap; negative is the two bounds
+        # having crossed, which no amount of cutting explains and which must not
+        # be reported as a gap of zero.
+        gap = max(0.0, spread) / scale
+        crossing = max(0.0, -spread)
+        residual = abs(spread) / scale
         history.append({"iteration": iteration, "lower": lower,
-                        "upper": upper, "sigma": sigma, "T": t_value, "gap": gap})
+                        "upper": upper, "best_lower": best_lower,
+                        "best_upper": best_upper, "sigma": sigma, "T": t_value,
+                        "gap": gap, "crossing": crossing})
         if verbose:
             print(f"    cut {iteration:2d}: LB={lower:.6g}  UB={upper:.6g}  "
-                  f"sigma={sigma:.6g}  T={t_value:.6g}  gap={gap:.2e}")
+                  f"sigma={sigma:.6g}  T={t_value:.6g}  gap={gap:.2e}"
+                  + (f"  CROSSED by {crossing:.3g}" if crossing else ""))
 
-        if z <= 0.0 or gap <= rel_gap:
+        # Convergence needs the bracket to be both tight and intact. Testing
+        # only the gap would declare success the moment the bounds crossed,
+        # because a crossed bracket has a gap of exactly zero.
+        if z <= 0.0 or residual <= rel_gap:
             break
 
         # Degenerate LPs can return the same vertex repeatedly once the cuts
-        # bite; the remaining gap is then solver tolerance, not a missing cut.
-        # Stop and report the achieved gap instead of spinning to max_iter.
-        if gap < best_gap * (1 - 1e-3):
-            best_gap, stalled = gap, 0
+        # bite; the remaining spread is then solver tolerance, not a missing cut.
+        # Stop and report what was achieved instead of spinning to max_iter.
+        # Progress is measured on the residual so that a widening crossing
+        # counts as failure to progress rather than as an improving gap.
+        if residual < best_residual * (1 - 1e-3):
+            best_residual, stalled = residual, 0
         else:
             stalled += 1
             if stalled >= stall_patience:
                 if verbose:
-                    print(f"    stalled at gap={gap:.2e} after {iteration} cuts "
-                          f"(LP degeneracy, not a missing cut) - stopping")
+                    print(f"    stalled at residual={residual:.2e} after "
+                          f"{iteration} cuts (LP degeneracy, not a missing "
+                          f"cut) - stopping")
                 break
 
-        nz = np.flatnonzero(grad)
+        nz = _cut_support(grad, s, sigma, cut_coeff_tol)
         model_instance.SOC_CUTS.add(
             model_instance.SOC_T >= pyo.quicksum(
                 float(grad[j]) * model_instance.scaling_vector[int(j)] for j in nz))
 
-    return {"objective": best_upper, "lower_bound": lower, "gap": gap,
-            "iterations": iteration, "sigma": sigma, "mean": mean,
-            "history": history, "z": z}
+    # The certificate that actually decides optimality, and it needs nothing
+    # from any other iterate. The LP is a relaxation of the true problem, so its
+    # optimum never exceeds the true one; if T has risen to sigma at the point
+    # the LP returned, the LP's value IS the true objective there, and a
+    # feasible point attaining a value no larger than the relaxation's optimum
+    # is optimal. Hence T == sigma(s*) at the final solve is sufficient on its
+    # own - which is worth saying plainly, because the bracket below compares
+    # bounds taken from different relaxations and on a degenerate problem those
+    # can cross, certifying nothing.
+    exactness = abs(t_value - sigma) / sigma if sigma > 0 else float("nan")
+    return {"objective": best_upper, "lower_bound": best_lower, "gap": gap,
+            "bound_crossing": crossing, "iterations": iteration,
+            "sigma": sigma, "T": t_value, "exactness": exactness,
+            "mean": mean, "history": history, "z": z}
 
 
 def restore_linear_objective(model_instance) -> None:

@@ -54,6 +54,35 @@ All notable changes to this project will be documented in this file.
   additions are opt-in; the default reproduces the individual formulation.
 
 ### Fixed
+* **`solve_exact` reported the width of an inconsistency as an optimality gap.**
+  It paired `best_upper`, the minimum over all iterates, with `lower` from the
+  *final* iterate - two different relaxations - and took an absolute value, so
+  the sign was lost. Both bounds are now tracked as running best values, the
+  spread is signed, and a crossing is returned in `bound_crossing` rather than
+  folded into the gap. A crossed bracket also no longer counts as convergence:
+  its gap is exactly zero, so the old test declared success the moment the
+  bounds inverted.
+
+  The bracket itself turns out to be the wrong certificate on an ecoinvent-scale
+  problem. The LP optimum is **not monotone** as cuts accumulate - it must be,
+  since adding a constraint cannot lower a minimum - because a cut row spans
+  tens of orders of magnitude (observed: 5.99e+05 down to 1.89e-29, a range of
+  3e34, with a hundred coefficients below the threshold the solver drops) and
+  each LP therefore solves a slightly different model. `solve_exact` now also
+  returns `exactness`, `|T - sigma(s*)| / sigma(s*)` at the returned point,
+  which settles optimality on its own: the LP is a relaxation, so where T has
+  risen to sigma the LP's value is the true objective at a feasible point and
+  that point is optimal. It needs one solve and no comparison between
+  relaxations.
+* `solve_exact(cut_coeff_tol=...)` drops gradient entries too small to matter
+  from a cut, measured against sigma - `grad @ s == sigma` at the point the
+  hyperplane was taken from, so a term contributing less than `tol * sigma`
+  there is below the precision anything is quoted to. **Only positive
+  coefficients are dropped**, which lowers the right-hand side and so weakens
+  the cut while keeping it a valid underestimator; dropping a negative one would
+  strengthen it and could cut off the optimum. Off by default: it improves the
+  row's dynamic range by twenty orders of magnitude but does not by itself make
+  the LP sequence monotone, so it must not silently move anyone's numbers.
 * **A non-finite variable bound was registered as an uncertain parameter.**
   `preparer.set_uncertainty_meta_for_var_bounds` recorded every choice
   alternative and every explicit limit without testing its value, so an
