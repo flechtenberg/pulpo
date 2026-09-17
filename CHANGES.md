@@ -28,8 +28,51 @@ All notable changes to this project will be documented in this file.
 * `pulpo/datasets/soc_demo_database.py` — an open six-activity demonstration
   system covering every supported uncertainty family, usable without an ecoinvent
   licence.
+* **Joint chance constraints by Bonferroni risk allocation**
+  (`cc.bonferroni_budget`, `cc.RiskBudget`, and `apply_CC_formulation(...,
+  risk_budget=...)`). Imposing each row at `lambda` individually controls no
+  joint probability: with `K` rows the chance that at least one fails reaches
+  `K(1 - lambda)`. A budget splits `eps = 1 - lambda` as `eps_k = w_k eps`, so
+  Boole's inequality bounds the union of the failures by `eps` and the rows hold
+  *together* at `lambda`. Equal weights by default; unequal ones are valid and
+  are the sensitivity. No new variables, no new constraints, no change of
+  problem class — only the constant on each right-hand side moves. The union
+  bound needs marginals alone, so no correlation between the events has to be
+  estimated. `apply_CC_formulation` refuses a budget whose `K` disagrees with
+  the rows the model actually imposes, since `K` is claimed before the solve.
+* **Exact marginal quantiles for right-hand-side-only bounds**
+  (`cc.declared_quantile`, and `apply_CC_formulation(bound_quantile='exact')`).
+  `P(s <= xi) >= 1 - eps` is exactly `s <= F^-1(eps)` for the *declared* family,
+  so such a bound needs no Gaussian representation at all — normality is
+  required where an uncertain coefficient multiplies a decision variable, not
+  for a bare bound. For triangular(a, b, c) the result is
+  `a + sqrt(eps (c-a)(b-a))`, cheaper than the `Phi^-1` it replaces and bounded
+  below by the support floor, which a moment-matched normal is not: at high
+  reliability the fitted normal eventually demands a negative bound.
+  `compute_closed_form_moments` now carries each parameter's declared
+  specification through under `source` so the family stays reachable. Both
+  additions are opt-in; the default reproduces the individual formulation.
 
 ### Fixed
+* **A non-finite variable bound was registered as an uncertain parameter.**
+  `preparer.set_uncertainty_meta_for_var_bounds` recorded every choice
+  alternative and every explicit limit without testing its value, so an
+  alternative declared `float('inf')` — which `converter.combine_inputs`
+  already uses as its default upper bound to mean "unlimited" — became a
+  `Var_bounds` row with an `inf` amount, a `nan` closed-form variance and a
+  `nan` bound handed to Pyomo. An infinite bound is not a constraint and cannot
+  be uncertain, so it is now skipped. Without this an unbounded alternative had
+  to be written as a large sentinel capacity, which a joint formulation then
+  counts as an event and allocates risk budget it can never use.
+* **A deterministic characterization factor turned every sampled impact into
+  `NaN`.** `gsa.GlobalSensitivityAnalysis._compute_env_cost` reindexes the
+  sampled factors onto the sampled flows; a flow whose factor declares no
+  distribution received an all-`NaN` column, and one such column makes every
+  row sum — that is, every sample impact — `NaN`. The factor is not missing, it
+  is constant, so it is now filled with its amount from the characterization
+  matrix. Previously the only way to keep such a flow was to gap-fill its factor
+  with an invented spread; without that, flows whose variance is real were
+  dropped from the decomposition purely because their multiplier was a constant.
 * **`processor.draw_uncertainty_sample(..., seed=...)` seeded nothing except
   Normal parameters.** `_sample_one_spec` passed the seeded generator to the
   Normal branch but called `stats_arrays.random_variables(ua, 1)` without

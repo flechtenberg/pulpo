@@ -223,8 +223,36 @@ class GlobalSensitivityAnalysis:
         """
         # Compute the environmental costs $Q \cdot B$ by reindexing the chracterization factors sample based on the intervention flow sample, so we can do dot product between for each characterization factors corresponding to the intervnetnion flow
         level_index_if= pd.DataFrame.from_records(sample_data_if.columns.values)
-        sample_data_cf_expanded = sample_data_cf.reindex(level_index_if[0].values, axis=1)
-        sample_data_if.columns = level_index_if[0].values
+        flow_indices = level_index_if[0].values
+        sample_data_cf_expanded = sample_data_cf.reindex(flow_indices, axis=1)
+
+        # A flow whose characterization factor declares no distribution is not
+        # in the sample, so the reindex above hands it an all-NaN column - and a
+        # single NaN column turns every sample's row sum, i.e. every impact,
+        # into NaN. Such a factor is not missing, it is deterministic: fill it
+        # with its amount from the characterization matrix. Dropping the flow
+        # instead would silently exclude parameters whose variance is real and
+        # whose only peculiarity is a constant multiplier, which is how the
+        # biogenic uptake flows used to vanish from a decomposition that exists
+        # to measure them. Positional, because several processes can share one
+        # flow index and the expanded columns are therefore not unique.
+        values = sample_data_cf_expanded.to_numpy(dtype=float, copy=True)
+        deterministic = np.isnan(values).all(axis=0)
+        if deterministic.any():
+            cf_amounts = np.asarray(
+                self.lci_data['matrices'][self.method].diagonal(), dtype=float
+            ).ravel()
+            values[:, deterministic] = cf_amounts[
+                flow_indices[deterministic].astype(int)]
+            sample_data_cf_expanded = pd.DataFrame(
+                values, index=sample_data_cf_expanded.index,
+                columns=sample_data_cf_expanded.columns)
+            print("Characterization factors held deterministic for {} of {} "
+                  "sampled intervention flows (no declared distribution; filled "
+                  "with their amount)".format(int(deterministic.sum()),
+                                              deterministic.size))
+
+        sample_data_if.columns = flow_indices
         sample_env_cost = sample_data_cf_expanded * sample_data_if
         sample_env_cost.columns = level_index_if[1].values
         return sample_env_cost, level_index_if

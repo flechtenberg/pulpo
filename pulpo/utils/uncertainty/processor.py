@@ -873,7 +873,12 @@ def _closed_form_moments(
     Returns:
         Dict[Union[Tuple[int,int],int], UncertaintySpec]:
             Indexed by parameter ID, with 'loc' (mean), 'scale' (std) and
-            'uncertainty_type' always set to 3 (normal).
+            'uncertainty_type' always set to 3 (normal). The parameter's own
+            declared specification is carried through unchanged under 'source',
+            so a consumer that needs the family itself rather than its first two
+            moments can still reach it: a right-hand-side-only chance constraint
+            is an exact quantile of the declared distribution and needs no
+            Gaussian representation at all.
     """
     moments:Dict[Union[Tuple[int,int],int], UncertaintySpec] = {}
     for param_index, metadata in uncertainty_metadata.items():
@@ -912,6 +917,10 @@ def _closed_form_moments(
             'loc': loc,
             'scale': scale,
             'uncertainty_type': stats_arrays.NormalUncertainty.id,
+            # A shallow copy, not a reference: the moments outlive the strategy
+            # pass that produced them, and a later edit to the source spec must
+            # not silently redefine a bound that has already been reported.
+            'source': dict(metadata),
         }
     return moments
 

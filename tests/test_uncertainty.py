@@ -28,9 +28,12 @@ from pulpo.utils.utils import is_bw25
 from pulpo.datasets.sample_database import setup_sample_db
 
 try:
+    import pandas as pd
+    import scipy.sparse
+    import scipy.stats
     import stats_arrays
     from pulpo import pulpo_unc
-    from pulpo.utils.uncertainty import processor
+    from pulpo.utils.uncertainty import cc, gsa, processor
     from pulpo.utils.uncertainty.processor import TriangluarBaseStrategy, DeterministicGapFillStrategy
     from pulpo.datasets.soc_demo_database import setup_soc_demo_db
     from SALib.sample import sobol as sobol_sample
@@ -976,3 +979,243 @@ class TestDrawUncertaintySampleSeeding(unittest.TestCase):
     def test_different_seeds_give_different_draws(self):
         first, other = self._draw(123), self._draw(124)
         self.assertNotEqual(first["If"], other["If"])
+
+
+##################################################
+#### Unbounded variable bounds                ####
+##################################################
+
+@unittest.skipUnless(UNCERTAINTY_DEPS, UNCERTAINTY_SKIP_REASON)
+class TestUnboundedVariableBounds(unittest.TestCase):
+    """An alternative declared infinite carries no chance-constrained row.
+
+    ``converter.combine_inputs`` already treats an infinite upper bound as "no
+    limit"; registering one as an uncertain parameter would give the closed-form
+    triangular an ``inf`` amount and a ``nan`` variance. It also matters for a
+    joint formulation: a sentinel row consumes risk budget it can never use.
+    """
+
+    def _upper_rows(self, capacity):
+        worker = pulpo_unc.PulpoOptimizerUnc(PROJECT, DATABASES, METHODS, "")
+        worker.get_lci_data()
+        methanol = worker.retrieve_processes(reference_products="methanol")
+        hydrogen = worker.retrieve_processes(
+            processes=["hydrogen SMR", "hydrogen electrolysis"])
+        worker.instantiate(
+            demand={methanol[0]: 1},
+            choices={"Hydrogen": {hydrogen[0]: capacity, hydrogen[1]: 1e10}})
+        worker.solve()
+        worker.import_and_filter_uncertainty_data(
+            cutoff=0.001, scaling_vector_strategy="constructed_demand")
+        return worker.uncertainty_data["Var_bounds"]["upper_limit"]["undefined"]
+
+    def test_finite_capacity_is_registered(self):
+        self.assertEqual(len(self._upper_rows(1e10)), 2)
+
+    def test_infinite_capacity_is_skipped(self):
+        # Only the finite sibling survives; the unbounded one is not a bound.
+        # NaN is not tested here because it cannot reach this code: Pyomo
+        # rejects it first when constructing UPPER_LIMIT, whose domain is Reals.
+        self.assertEqual(len(self._upper_rows(float("inf"))), 1)
+
+
+##################################################
+#### Joint chance constraints                 ####
+##################################################
+
+@unittest.skipUnless(UNCERTAINTY_DEPS, UNCERTAINTY_SKIP_REASON)
+class TestRiskBudget(unittest.TestCase):
+    """``bonferroni_budget`` - splitting a failure budget across K events."""
+
+    def test_equal_split_is_the_default(self):
+        budget = cc.bonferroni_budget(0.95, 4)
+        self.assertEqual(budget.weights, (0.25, 0.25, 0.25, 0.25))
+        self.assertAlmostEqual(budget.epsilon, 0.05)
+        self.assertAlmostEqual(budget.epsilon_at(1), 0.0125)
+
+    def test_impact_target_level_is_tightened(self):
+        budget = cc.bonferroni_budget(0.95, 4)
+        # 1 - w0 * eps, strictly above lambda: the target is one of the events.
+        self.assertAlmostEqual(budget.lambda_impact, 0.9875)
+        self.assertGreater(budget.lambda_impact, budget.lambda_level)
+
+    def test_single_event_reproduces_the_individual_level(self):
+        budget = cc.bonferroni_budget(0.95, 1)
+        self.assertAlmostEqual(budget.epsilon_at(0), 0.05)
+        self.assertAlmostEqual(budget.lambda_impact, 0.95)
+
+    def test_weights_must_sum_to_one(self):
+        with self.assertRaises(ValueError) as context:
+            cc.bonferroni_budget(0.95, 4, weights=(0.25, 0.25, 0.25, 0.30))
+        self.assertIn("sum to 1", str(context.exception))
+
+    def test_weights_must_match_K(self):
+        with self.assertRaises(ValueError):
+            cc.bonferroni_budget(0.95, 4, weights=(0.5, 0.5))
+
+    def test_weights_must_be_non_negative(self):
+        with self.assertRaises(ValueError):
+            cc.bonferroni_budget(0.95, 3, weights=(1.5, -0.25, -0.25))
+
+    def test_lambda_must_be_a_probability(self):
+        for bad in (-0.1, 1.0, 1.5):
+            with self.assertRaises(ValueError):
+                cc.bonferroni_budget(bad, 4)
+
+    def test_unequal_weights_are_allowed(self):
+        budget = cc.bonferroni_budget(0.95, 4, weights=(0.7, 0.1, 0.1, 0.1))
+        self.assertAlmostEqual(budget.epsilon_at(0), 0.035)
+        self.assertAlmostEqual(budget.lambda_impact, 0.965)
+
+
+@unittest.skipUnless(UNCERTAINTY_DEPS, UNCERTAINTY_SKIP_REASON)
+class TestDeclaredQuantile(unittest.TestCase):
+    """``declared_quantile`` - the exact inverse CDF of each declared family."""
+
+    TRIANGULAR = {"uncertainty_type": 5, "minimum": 0.1, "loc": 1.0,
+                  "maximum": 1.1}
+
+    def test_triangular_matches_the_closed_form(self):
+        for eps in (0.001, 0.0125, 0.05, 0.125):
+            expected = 0.1 + np.sqrt(eps * (1.1 - 0.1) * (1.0 - 0.1))
+            self.assertAlmostEqual(
+                cc.declared_quantile(self.TRIANGULAR, eps), expected, places=12)
+
+    def test_triangular_upper_branch(self):
+        # Above (b-a)/(c-a) = 0.9 the other branch applies.
+        eps = 0.95
+        expected = 1.1 - np.sqrt((1 - eps) * (1.1 - 0.1) * (1.1 - 1.0))
+        self.assertAlmostEqual(
+            cc.declared_quantile(self.TRIANGULAR, eps), expected, places=12)
+
+    def test_triangular_never_leaves_its_support(self):
+        # The property a moment-matched normal lacks: at extreme reliability the
+        # fitted normal demands a negative availability, the exact one cannot
+        # fall below the support floor.
+        self.assertAlmostEqual(cc.declared_quantile(self.TRIANGULAR, 0.0), 0.1)
+        for eps in (1e-12, 1e-9, 1e-6):
+            self.assertGreaterEqual(
+                cc.declared_quantile(self.TRIANGULAR, eps), 0.1)
+
+    def test_normal_agrees_with_the_individual_formulation(self):
+        spec = {"uncertainty_type": 3, "loc": 5.0, "scale": 2.0}
+        for lam in (0.5, 0.9, 0.99):
+            individual = spec["loc"] - spec["scale"] * scipy.stats.norm.ppf(lam)
+            self.assertAlmostEqual(cc.declared_quantile(spec, 1.0 - lam),
+                                   individual, places=12)
+
+    def test_uniform_is_linear(self):
+        spec = {"uncertainty_type": 4, "minimum": 2.0, "maximum": 6.0}
+        self.assertAlmostEqual(cc.declared_quantile(spec, 0.25), 3.0)
+
+    def test_lognormal_median(self):
+        spec = {"uncertainty_type": 2, "loc": 0.0, "scale": 1.0}
+        self.assertAlmostEqual(cc.declared_quantile(spec, 0.5), 1.0)
+
+    def test_unsupported_family_raises(self):
+        with self.assertRaises(NotImplementedError):
+            cc.declared_quantile({"uncertainty_type": 0, "amount": 1.0}, 0.5)
+
+    def test_probability_must_be_a_probability(self):
+        with self.assertRaises(ValueError):
+            cc.declared_quantile(self.TRIANGULAR, 1.5)
+
+
+@unittest.skipUnless(UNCERTAINTY_DEPS, UNCERTAINTY_SKIP_REASON)
+class TestClosedFormMomentsCarrySource(unittest.TestCase):
+    """The moments keep the declared spec, so an exact quantile stays reachable."""
+
+    def test_source_is_preserved(self):
+        declared = {1: {"uncertainty_type": 5, "minimum": 0.1, "loc": 1.0,
+                        "maximum": 1.1, "amount": 1.0}}
+        moments = processor._closed_form_moments(declared)
+        self.assertEqual(moments[1]["uncertainty_type"],
+                         stats_arrays.NormalUncertainty.id)
+        self.assertAlmostEqual(moments[1]["loc"], (0.1 + 1.0 + 1.1) / 3)
+        self.assertEqual(moments[1]["source"], declared[1])
+
+    def test_source_is_a_copy_not_a_reference(self):
+        declared = {1: {"uncertainty_type": 5, "minimum": 0.1, "loc": 1.0,
+                        "maximum": 1.1}}
+        moments = processor._closed_form_moments(declared)
+        declared[1]["minimum"] = 999.0
+        self.assertAlmostEqual(moments[1]["source"]["minimum"], 0.1)
+
+
+@unittest.skipUnless(UNCERTAINTY_DEPS, UNCERTAINTY_SKIP_REASON)
+class TestApplyCCFormulationGuards(unittest.TestCase):
+    """The argument checks that keep a budget and a model from disagreeing."""
+
+    def test_exact_requires_a_budget(self):
+        with self.assertRaises(ValueError) as context:
+            cc.apply_CC_formulation(None, 0.95, {}, {}, bound_quantile="exact")
+        self.assertIn("needs a risk_budget", str(context.exception))
+
+    def test_unknown_quantile_rejected(self):
+        with self.assertRaises(ValueError):
+            cc.apply_CC_formulation(None, 0.95, {}, {}, bound_quantile="student")
+
+    def test_budget_lambda_must_match(self):
+        budget = cc.bonferroni_budget(0.90, 4)
+        with self.assertRaises(ValueError) as context:
+            cc.apply_CC_formulation(None, 0.95, {}, {}, risk_budget=budget)
+        self.assertIn("was built for lambda", str(context.exception))
+
+    def test_K_must_match_the_rows_actually_imposed(self):
+        # Three bound rows plus the impact target is K = 4, not K = 9.
+        bounds = {"upper_limit": {i: {"loc": 1.0, "scale": 0.1} for i in range(3)}}
+        budget = cc.bonferroni_budget(0.95, 9)
+        with self.assertRaises(ValueError) as context:
+            cc.apply_CC_formulation(None, 0.95, {}, bounds, risk_budget=budget)
+        self.assertIn("covers K=9", str(context.exception))
+
+    def test_bound_positions_are_sorted_not_insertion_ordered(self):
+        shuffled = {"upper_limit": {7: {}, 2: {}, 5: {}}}
+        positions = cc._bound_positions(shuffled)
+        self.assertEqual(positions,
+                         {("upper_limit", 2): 1, ("upper_limit", 5): 2,
+                          ("upper_limit", 7): 3})
+
+
+##################################################
+#### GSA with deterministic characterization  ####
+##################################################
+
+@unittest.skipUnless(UNCERTAINTY_DEPS, UNCERTAINTY_SKIP_REASON)
+class TestGSADeterministicCharacterization(unittest.TestCase):
+    """A flow whose factor is deterministic still reaches the decomposition.
+
+    Reindexing the sampled factors onto the sampled flows hands an unsampled
+    factor an all-NaN column, and one NaN column makes every sample impact NaN.
+    The factor is not missing, it is constant, so it is filled with its amount.
+    """
+
+    def _analyser(self, cf_amounts):
+        analyser = object.__new__(gsa.GlobalSensitivityAnalysis)
+        analyser.method = "m"
+        analyser.lci_data = {
+            "matrices": {"m": scipy.sparse.diags(cf_amounts, format="csr")}}
+        return analyser
+
+    def test_deterministic_factor_is_filled_not_dropped(self):
+        analyser = self._analyser([7.5, 11.0, 0.0])
+        # Two sampled flows on one process; only flow 0 has a sampled factor.
+        sample_if = pd.DataFrame(
+            [[2.0, 3.0], [4.0, 5.0]],
+            columns=pd.MultiIndex.from_tuples([(0, 10), (1, 10)]))
+        sample_cf = pd.DataFrame([[7.0], [8.0]], columns=[0])
+        env_cost, _ = analyser._compute_env_cost(sample_if, sample_cf)
+        self.assertFalse(np.isnan(env_cost.to_numpy()).any(),
+                         "an unsampled factor still poisons every impact")
+        # Flow 0 uses its sampled factor, flow 1 its deterministic amount of 11.
+        np.testing.assert_allclose(env_cost.to_numpy(),
+                                   [[7.0 * 2.0, 11.0 * 3.0],
+                                    [8.0 * 4.0, 11.0 * 5.0]])
+
+    def test_all_factors_sampled_is_unchanged(self):
+        analyser = self._analyser([7.5, 11.0, 0.0])
+        sample_if = pd.DataFrame(
+            [[2.0, 3.0]], columns=pd.MultiIndex.from_tuples([(0, 10), (1, 10)]))
+        sample_cf = pd.DataFrame([[7.0, 9.0]], columns=[0, 1])
+        env_cost, _ = analyser._compute_env_cost(sample_if, sample_cf)
+        np.testing.assert_allclose(env_cost.to_numpy(), [[14.0, 27.0]])

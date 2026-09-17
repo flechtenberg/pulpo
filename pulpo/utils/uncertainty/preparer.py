@@ -309,29 +309,50 @@ class UncertaintyImporter:
                 the upper element limit specifiecation passed to the pulpo instance.
             upper_imp_limit (dict):
                 the upper impact limit specifiecation passed to the pulpo instance.
+
+        Non-finite bounds are skipped. An infinite bound is not a constraint -
+        ``converter.combine_inputs`` already uses ``float('inf')`` as the default
+        upper bound to mean "unlimited" - so it cannot be uncertain, and
+        registering one would hand the chance-constrained formulation an ``inf``
+        amount whose triangular variance is ``nan``. Skipping them is what lets
+        an alternative be declared genuinely uncapacitated rather than carrying a
+        large sentinel value, which matters once a risk budget is split across
+        the constrained rows: a sentinel would consume budget it can never use.
         """
+        skipped = 0
+
+        def _register(block: str, indx: int, value) -> None:
+            """Record one bound, unless it is non-finite and so no bound at all."""
+            nonlocal skipped
+            if not np.isfinite(value):
+                skipped += 1
+                return
+            self.uncertainty_data['Var_bounds'][block]['undefined'][indx] = {
+                'amount': value,
+                'uncertainty_type': 0,
+            }
+
         # Get the upper bound specified with all alternatives
         for _, alternatives in choices.items():
             for alternative, upperbound in alternatives.items():
-                alternative_indx = self.lci_data['process_map'][alternative.key]
-                self.uncertainty_data['Var_bounds']['upper_limit']['undefined'][alternative_indx] = {}
-                self.uncertainty_data['Var_bounds']['upper_limit']['undefined'][alternative_indx]['amount'] = upperbound
-                self.uncertainty_data['Var_bounds']['upper_limit']['undefined'][alternative_indx]['uncertainty_type'] = 0
+                _register('upper_limit',
+                          self.lci_data['process_map'][alternative.key], upperbound)
         print("Upper bound from choices without uncertainty information: {}".format(len(self.uncertainty_data['Var_bounds']['upper_limit']['undefined'])))
-        # set the uncertainty data for the specified upper_limit 
+        # set the uncertainty data for the specified upper_limit
         for upper_limit_act, upper_limit_value in upper_limit.items():
-            process_indx = self.lci_data['process_map'][upper_limit_act.key]
-            self.uncertainty_data['Var_bounds']['upper_limit']['undefined'][process_indx] = {}
-            self.uncertainty_data['Var_bounds']['upper_limit']['undefined'][process_indx]['amount'] = upper_limit_value
-            self.uncertainty_data['Var_bounds']['upper_limit']['undefined'][process_indx]['uncertainty_type'] = 0
+            _register('upper_limit',
+                      self.lci_data['process_map'][upper_limit_act.key],
+                      upper_limit_value)
         print("Upper bound from `upper_limit` without uncertainty information: {}".format(len(upper_limit)))
-        # set the uncertainty data for the specified upper_limit 
+        # set the uncertainty data for the specified upper_limit
         for lower_limit_act, lower_limit_value in lower_limit.items():
-            process_indx = self.lci_data['process_map'][lower_limit_act.key]
-            self.uncertainty_data['Var_bounds']['lower_limit']['undefined'][process_indx] = {}
-            self.uncertainty_data['Var_bounds']['lower_limit']['undefined'][process_indx]['amount'] = lower_limit_value
-            self.uncertainty_data['Var_bounds']['lower_limit']['undefined'][process_indx]['uncertainty_type'] = 0
+            _register('lower_limit',
+                      self.lci_data['process_map'][lower_limit_act.key],
+                      lower_limit_value)
         print("Lower bound from `lower_limit` without uncertainty information: {}".format(len(lower_limit)))
+        if skipped:
+            print("Unbounded (non-finite) variable bounds skipped: {} - not "
+                  "constraints, so they carry no uncertainty".format(skipped))
         if upper_elem_limit:
             raise Exception('upper_elem_limit has not been implemented yet in the uncertainty data import.')
         if upper_imp_limit:
