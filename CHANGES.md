@@ -10,8 +10,10 @@ All notable changes to this project will be documented in this file.
   represented exactly — including the covariance that processes share through a
   common characterization factor — rather than via the `L1` upper bound. Solved
   either directly as a QCP or by Kelley cutting planes over the LP PULPO already
-  builds, which is what makes it tractable at ecoinvent scale and yields a
-  certified lower/upper bound rather than an estimate. Exposed as
+  builds, which is what makes it tractable at ecoinvent scale. Optimality is
+  certified by `T == sigma(s*)` at the returned point rather than by a bracket
+  between the two bounds — see the entry under Fixed for why the bracket does
+  not survive this problem's conditioning. Exposed as
   `PulpoOptimizerUnc.create_SOC_formulation()` / `solve_SOC_problem()`.
 * Closed-form moments (`processor.compute_closed_form_moments`, and
   `create_SOC_formulation(moments='closed_form')`): analytical mean and variance
