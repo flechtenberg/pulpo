@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+* Add optional LP equilibration (`instantiate(scale=True)`, new `pulpo/utils/scaling.py`; off by default). Because infrastructure processes have a functional unit of one whole facility, an ecoinvent technosphere spans 1e-13 .. 2e+11, and solvers apply their feasibility tolerance per row relative to its largest coefficient — so a facility can be under-supplied by more than its own activity level and still count as feasible. This shifts the optimum and makes solvers disagree with each other; no solver option repairs it. Scaling rows and columns by powers of two (exact in floating point) fixes it, and the solution is unscaled after the solve, so all results read as before. Recommended for unaggregated ecoinvent backgrounds.
+* `solve_gurobi` applies `ScaleFlag=0`, `FeasibilityTol=OptimalityTol=1e-9`, `NumericFocus=1` on a scaled model unless overridden (`scaling.GUROBI_OPTIONS_SCALED`); add `Method=1` for bit-identical repeated solves. The former docstring advice of `ScaleFlag=2` / `NumericFocus=3` made the unscaled optimum worse and is withdrawn.
+* Under `scale=True`, process bounds inherited from `default_limits` become infinite (with a warning): a finite `upper_bound=1e9` never binds, but scaled to 1e20 it makes Gurobi's simplex return large row residuals. Explicit limits and choice capacities are kept.
+
 ## [1.7.0] - 2026-08-11
 * Add a goal-programming objective (`objective='goal'`): minimize the average transgression of user-defined soft impact limits (`imp_goals`), e.g. for Planetary-Boundary-style budgets. Unlike `upper_imp_limit`, goals can be exceeded — the solver stays feasible and reports the transgression level per category instead. Available on both `PulpoOptimizer` and the time-extended `PulpoOptimizerTime` (goals apply to impacts aggregated across the whole time horizon), and carried through Monte Carlo re-instantiation.
 * Report per-category goal results (impact, goal, transgression level) via `extract_results()["Transgressions"]`, `summarize_results()`, and the Excel export.
