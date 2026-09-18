@@ -66,7 +66,7 @@ import scipy.sparse as sp
 import scipy.stats
 import stats_arrays
 
-from pulpo.utils import optimizer
+from pulpo.utils import optimizer, scaling as _scaling
 from pulpo.utils.uncertainty.preparer import UncertaintyData, UncertaintySpec
 
 __all__ = [
@@ -410,6 +410,10 @@ def apply_SOC_formulation(model_instance, lambda_level: float,
 
     Calling this repeatedly for a lambda sweep only rebuilds the objective.
     """
+    # The cone's defining constraints multiply sigma coefficients, and the
+    # placeholder-bound relaxation compares limit Params, against quantities in
+    # original units; an equilibrated model holds neither. See scaling.py.
+    _scaling.require_unscaled(model_instance, "The SOC formulation")
     z = float(scipy.stats.norm.ppf(lambda_level))
     method = coeffs.method
     info: dict = {}

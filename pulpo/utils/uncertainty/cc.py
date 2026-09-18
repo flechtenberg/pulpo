@@ -18,7 +18,7 @@ import pandas as pd
 import scipy.stats
 import stats_arrays
 
-from pulpo.utils import optimizer
+from pulpo.utils import optimizer, scaling as _scaling
 from pulpo.utils.uncertainty.preparer import UncertaintyData, UncertaintySpec
 
 
@@ -328,6 +328,9 @@ def apply_CC_formulation(
     ``'gaussian'`` marginals and unit weights reproduces the individual
     formulation term for term, which is what makes the change testable.
     """
+    # The bound quantiles are written straight into the limit Params, which on
+    # an equilibrated model are in scaled units. See scaling.py.
+    _scaling.require_unscaled(model_instance, "The CC formulation")
     if risk_budget is not None and not np.isclose(risk_budget.lambda_level,
                                                   lambda_level):
         raise ValueError(

@@ -7,6 +7,7 @@ import pyomo.environ as pyo
 from pyomo.core.expr.numeric_expr import LinearExpression
 from pyomo.contrib import appsi
 from .saver import extract_flows
+from . import scaling as _scaling
 
 
 
@@ -155,6 +156,11 @@ def update_env_cost(model, new_values):
     if unknown:
         raise KeyError(f"Unknown environmental cost indices: {unknown[:5]}"
                        + (" ..." if len(unknown) > 5 else ""))
+    if _scaling.is_scaled(model):
+        # ``new_values`` are given in original units (per unit of activity);
+        # the model's rows are in scaled units (per unit of scaled activity).
+        col_scale = model._col_scale
+        new_values = {(j, h): v * col_scale[j] for (j, h), v in new_values.items()}
     model._env_cost.update(new_values)
     env_rows = _group_env_cost_rows(model._env_cost)
 
@@ -239,6 +245,9 @@ def instantiate(model_data, objective='weighted_sum'):
     # Dense environmental cost dictionary (Q*B), kept for update_env_cost and
     # for the saver (extract_params); the constraints embed only the nonzeros.
     model._env_cost = dict(env)
+    # Equilibration factors (empty dicts when the data was not scaled); see
+    # pulpo.utils.scaling. solve_model unscales the solution after each solve.
+    _scaling.attach_scale(model, data)
 
     # Sets
     model.PRODUCT = pyo.Set(initialize=data['PRODUCT'][None], doc='Set of intermediate products (or technosphere exchanges), indexed by i')
@@ -433,30 +442,23 @@ def solve_gurobi(model_instance, options=None):
     # Create the Gurobi solver plugin
     solver = pyo.SolverFactory('gurobi')
 
-    """
-    Recommended Gurobi tweaks for high-precision LP/QP runs
-
-        options = {
-            "FeasibilityTol": 1e-9,   # < tighter constraints (default 1e-6)
-            "OptimalityTol" : 1e-9,   # < tighter dual/primal gap
-            "BarConvTol"    : 1e-9,   # < stricter barrier convergence
-            "NumericFocus"  : 3,      # > robust numerics (quad pivots, careful cuts)
-            "ScaleFlag"     : 2       # > geometric scaling for better conditioning
-        }
-
-    These values keep residuals ~1Ã—10â»â¹ (enough for 6-8 significant-digit LCA
-    results) while guarding against ill-scaled data.  Add extras like
-    `"TimeLimit": 600` or `"MIPGap": 1e-8` to the same dict.
-    """
-    
+    # An equilibrated model (instantiate(scale=True), see pulpo.utils.scaling) is handed
+    # over with Gurobi's own scaling switched off and tightened tolerances
+    # (_scaling.GUROBI_OPTIONS_SCALED); anything the caller passes wins. Do NOT
+    # add "ScaleFlag": 2 / "NumericFocus": 3 for ecoinvent-scale models: on an
+    # unscaled model they made the optimum worse, not better, because the
+    # tolerance is still applied relative to the 1e11 facility coefficients.
+    # Add "Method": 1 for bit-identical repeated LP solves; extras like
+    # "TimeLimit": 600 or "MIPGap": 1e-8 go in the same dict.
     tee = False
+    merged = dict(_scaling.GUROBI_OPTIONS_SCALED) if _scaling.is_scaled(model_instance) else {}
+    merged.update(options or {})
 
-    if options:
-        for key, val in options.items():
-            if key != "tee":
-                solver.options[key] = val
-            else:
-                tee = val
+    for key, val in merged.items():
+        if key != "tee":
+            solver.options[key] = val
+        else:
+            tee = val
 
     # Solve. The results object is a standard Pyomo SolverResults.
     results = solver.solve(
@@ -506,12 +508,26 @@ def solve_model(model_instance, gams_path=False, solver_name=None, options=None,
 
     Returns:
         tuple: Results of the optimization and the updated model instance.
+
+    On an equilibrated instance (see :mod:`pulpo.utils.scaling`) the solver
+    works on the scaled variables; ``scaling_vector`` and ``slack`` are
+    multiplied back to original units before this function returns, so all
+    downstream code reads them as usual.
     """
-    if gams_path:
-        return solve_gams(model_instance, gams_path, options)
-    elif solver_name is None or solver_name.lower() == 'highs':
-        return solve_highspy(model_instance)
-    elif solver_name.lower() == 'gurobi':
-        return solve_gurobi(model_instance, options=options)
-    else:
-        return solve_neos(model_instance, solver_name, options, neos_email)
+    # A previous solve left the values in original units; the solver expects
+    # (and, if it warm-starts, reads) scaled ones.
+    _scaling.rescale_solution(model_instance)
+    try:
+        if gams_path:
+            results, model_instance = solve_gams(model_instance, gams_path, options)
+        elif solver_name is None or solver_name.lower() == 'highs':
+            results, model_instance = solve_highspy(model_instance)
+        elif solver_name.lower() == 'gurobi':
+            results, model_instance = solve_gurobi(model_instance, options=options)
+        else:
+            results, model_instance = solve_neos(model_instance, solver_name, options, neos_email)
+    finally:
+        # Also on failure: whatever values the instance holds (fresh or stale)
+        # must be in original units for the post-processing and the caller.
+        _scaling.unscale_solution(model_instance)
+    return results, model_instance

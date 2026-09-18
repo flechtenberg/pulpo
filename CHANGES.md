@@ -54,6 +54,12 @@ All notable changes to this project will be documented in this file.
   `compute_closed_form_moments` now carries each parameter's declared
   specification through under `source` so the family stays reachable. Both
   additions are opt-in; the default reproduces the individual formulation.
+* Add optional LP equilibration (`instantiate(scale=True)`, new `pulpo/utils/scaling.py`; off by default). Because infrastructure processes have a functional unit of one whole facility, an ecoinvent technosphere spans 1e-13 .. 2e+11, and solvers apply their feasibility tolerance per row relative to its largest coefficient — so a facility can be under-supplied by more than its own activity level and still count as feasible. This shifts the optimum and makes solvers disagree with each other; no solver option repairs it. Scaling rows and columns by powers of two (exact in floating point) fixes it, and the solution is unscaled after the solve, so all results read as before. Recommended for unaggregated ecoinvent backgrounds.
+
+### Changed
+* `solve_gurobi` applies `ScaleFlag=0`, `FeasibilityTol=OptimalityTol=1e-9`, `NumericFocus=1` on a scaled model unless overridden (`scaling.GUROBI_OPTIONS_SCALED`); add `Method=1` for bit-identical repeated solves. The former docstring advice of `ScaleFlag=2` / `NumericFocus=3` made the unscaled optimum worse and is withdrawn.
+* Under `scale=True`, process bounds inherited from `default_limits` become infinite (with a warning): a finite `upper_bound=1e9` never binds, but scaled to 1e20 it makes Gurobi's simplex return large row residuals. Explicit limits and choice capacities are kept.
+* The SOC and CC formulations raise on a scaled model instead of mis-solving it: both write coefficients and bounds in original units onto `scaling_vector` and the limit Params, which a scaled model does not hold, so the result would be plausible and wrong. Use `scale=False` for those formulations until they are made scale-aware.
 
 ### Fixed
 * **`solve_exact` reported the width of an inconsistency as an optimality gap.**
