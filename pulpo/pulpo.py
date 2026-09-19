@@ -5,6 +5,7 @@ from pulpo.utils import optimizer, bw_parser, converter, saver, monte_carlo
 from typing import List, Union
 from pulpo.datasets.rice_database import setup_rice_husk_db
 from pulpo.datasets.sample_database import setup_sample_db
+from pulpo.datasets.soc_demo_database import setup_soc_demo_db
 
 class PulpoOptimizer:
     def __init__(self, project: str, database: Union[str, List[str]], method: Union[str, List[str], dict], directory: str):
@@ -70,7 +71,7 @@ class PulpoOptimizer:
 
     def instantiate(self, choices=None, demand=None, upper_limit=None, lower_limit=None, upper_elem_limit=None,
                     upper_imp_limit=None, lower_elem_limit=None, lower_imp_limit=None, dependent_constraints=None, default_limits=None,
-                    imp_goals=None, objective='weighted_sum'):
+                    imp_goals=None, objective='weighted_sum', scale=False):
         """
         Combines inputs and instantiates the optimization model.
 
@@ -100,6 +101,14 @@ class PulpoOptimizer:
                                        minimizes the average transgression level
                                        (1/K) * sum_h max(0, impact_h / imp_goals_h - 1) over the K
                                        categories in imp_goals (weights are ignored).
+            scale (bool, optional): Equilibrate the LP before it is handed to the solver
+                                    (default False; see :mod:`pulpo.utils.scaling`). On an
+                                    ecoinvent-scale technosphere (coefficients 1e-13 .. 1e11)
+                                    the unscaled LP is solved to the solver's tolerance
+                                    *relative to the largest coefficient of each row*, which
+                                    lets facility-scale products be under-supplied for free
+                                    and moves the optimum by ~1%. The solution is reported in
+                                    original units either way.
         """
         choices = choices or {}
         demand = demand or {}
@@ -116,7 +125,7 @@ class PulpoOptimizer:
         methods = {h: self.method[h] for h in self.method if self.method[h] != 0 or h in upper_imp_limit or h in lower_imp_limit or h in imp_goals}
         data = converter.combine_inputs(self.lci_data, demand, choices, upper_limit, lower_limit, upper_elem_limit,
                                         upper_imp_limit, lower_elem_limit, lower_imp_limit, methods, dependent_constraints, default_limits,
-                                        imp_goals=imp_goals)
+                                        imp_goals=imp_goals, scale=scale)
         self.instance = optimizer.instantiate(data, objective=objective)
         self.choices = choices
         self.demand = demand
@@ -130,6 +139,7 @@ class PulpoOptimizer:
         self.default_limits = default_limits
         self.imp_goals = dict(imp_goals)
         self.objective = objective
+        self.scale = scale
 
     def solve(self, GAMS_PATH=False, solver_name=None, options=None, neos_email=None):
         """
@@ -280,3 +290,11 @@ def install_sample_db():
     Sets up the sample LCI database in Brightway2.
     """
     setup_sample_db()
+
+
+def install_soc_demo_db():
+    """
+    Sets up the SOC-demo example database (ammonia synthesis, hydrogen
+    route choice) in Brightway2.
+    """
+    setup_soc_demo_db()

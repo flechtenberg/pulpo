@@ -48,6 +48,8 @@ Applying optimization is recommended when the system of study has (1) many degre
 > - [X] `ℹ️  Enable PULPO to work on both bw2 and bw25 projects`
 > - [X] `ℹ️  Thorough documentation hosted on flechtenberg.github.io/pulpo/`
 > - [X] `ℹ️  Goal-programming objective (average transgression of soft impact limits)`
+> - [X] `ℹ️  Exact chance-constrained optimization (second-order cone, joint risk budgets, exact bound quantiles)`
+> - [X] `ℹ️  Numerical scaling of the LP for unaggregated ecoinvent backgrounds`
 
 **Features currently under development:**
 
@@ -91,10 +93,10 @@ There is also a workshop repository ([here](https://github.com/flechtenberg/pulp
 The test suite runs with `pytest` against dedicated virtual environments for the modern (`bw25`) and legacy (`bw2`) Brightway stacks. See the [testing README](https://github.com/flechtenberg/pulpo/blob/master/tests/README.md) for setup instructions and the exact commands.
 
 ---
-## What's new in 1.7.0?
-- **Goal-programming objective** — `objective='goal'` minimizes the average transgression of user-defined soft impact limits (`imp_goals`), suited e.g. to Planetary-Boundary-based budgets. Unlike a hard `upper_imp_limit`, a goal can be exceeded — the solver stays feasible and reports the transgression level per category via `extract_results()["Transgressions"]`. Works in both `PulpoOptimizer` and the time-extended `PulpoOptimizerTime` (goals apply to impacts aggregated over the whole horizon).
-- **Hardening** — several `default_limits` interactions with goal categories, Monte Carlo re-instantiation (now forwards the full `instantiate()` signature, including `time_steps`/`storage`), and bw25 uncertainty (GSA under SALib 1.5/numpy 2, deterministic scaling-vector construction) were fixed.
-- **From 1.6.1: Windows solve-hang fix & Python 3.13 support** — unspecified limits are now truly infinite (no more HiGHS/pyomo deadlock), and numpy 2 / pyomo `>=6.8` are supported.
+## What's new in 1.8.0?
+- **Exact chance-constrained optimization** — `create_SOC_formulation()` / `solve_SOC_problem()` represent the impact's standard deviation exactly as a second-order cone, including the covariance that processes share through a common characterization factor, rather than by the conservative `L1` bound that `solve_CC_problem` uses. The default cutting-plane strategy solves a sequence of the ordinary LPs PULPO already builds, which is what makes it tractable at ecoinvent scale. Joint chance constraints across several rows (`risk_budget=`) and exact quantiles for uncertain bounds (`bound_quantile='exact'`) are available alongside it.
+- **Optional LP equilibration** — `instantiate(scale=True)` rescales the LP by powers of two so a facility-scale row cannot be under-supplied within the solver's feasibility tolerance. On an unaggregated ecoinvent background that leak was worth roughly 1 % of the optimum and made different solvers disagree. The solution is unscaled after the solve, so every result still reads in original units.
+- **From 1.7.0: goal-programming objective** — `objective='goal'` minimizes the average transgression of user-defined soft impact limits (`imp_goals`), reported per category via `extract_results()["Transgressions"]`.
 
 See the [changelog](https://github.com/flechtenberg/pulpo/blob/master/CHANGES.md) for the full details and earlier releases.
 

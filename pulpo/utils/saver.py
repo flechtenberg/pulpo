@@ -276,9 +276,12 @@ def extract_params(instance: ConcreteModel) -> Dict[str,pd.DataFrame]:
     # dictionary kept on the instance so the result schema stays unchanged
     # (the CC Pareto plots read result_data['ENV_COST_MATRIX']).
     if hasattr(instance, '_env_cost'):
+        # On an equilibrated instance the embedded coefficients are per unit of
+        # *scaled* activity; report them per unit of activity like the rest.
+        col_scale = getattr(instance, '_col_scale', None) or {}
         data_all['ENV_COST_MATRIX'] = pd.DataFrame({
             'ID': list(instance._env_cost.keys()),
-            'Value': list(instance._env_cost.values()),
+            'Value': [v / col_scale.get(j, 1.0) for (j, h), v in instance._env_cost.items()],
         }).set_index('ID').sort_values('Value', ascending=False, kind='stable')
     return data_all
 

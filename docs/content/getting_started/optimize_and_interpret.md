@@ -39,6 +39,11 @@ pulpo_worker.solve()
 
 If no GAMS path is specified, the open-source solver `highspy` will be used. While `highspy` is slower than commercial solvers like CPLEX and may occasionally struggle with complex problems, it typically performs well for most scenarios.
 
+#### Numerical scaling
+An ecoinvent technosphere contains coefficients from 1e-13 to 2e+11, because infrastructure processes have a functional unit of one whole facility. Solvers apply their feasibility tolerance per row relative to its largest coefficient, so such facilities can be under-supplied "for free" — which moves the optimum by around 1% on unaggregated systems, with different solvers landing on different points.
+
+`instantiate(scale=True)` equilibrates the LP to prevent this. It is off by default and recommended for unaggregated ecoinvent backgrounds. The scaling is exact (powers of two) and invisible in the results: `scaling_vector`, `impacts` and everything `extract_results()` returns are in original units. Only the constraint rows of `pulpo_worker.instance` are scaled; the factors are on `instance._row_scale` and `instance._col_scale`. With Gurobi, a scaled model is solved with Gurobi's own scaling disabled and tightened tolerances; pass `options={"Method": 1}` for bit-identical repeated solves. The uncertainty formulations (`solve_CC_problem`, `solve_SOC_problem`) work on a scaled instance and report in original units as well.
+
 ---
 
 ### Summarize / Interpret Results

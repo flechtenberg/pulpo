@@ -53,6 +53,7 @@ class PulpoOptimizerTime(PulpoOptimizer):
         upper_imp_agg_limit: Optional[dict] = None,
         imp_goals: Optional[dict] = None,
         objective: str = 'weighted_sum',
+        scale: bool = False,
     ):
         """
         Build the time-indexed Pyomo instance.
@@ -89,6 +90,10 @@ class PulpoOptimizerTime(PulpoOptimizer):
                 With 'goal' the model minimizes the average transgression
                 level ``(1/K) * sum_h max(0, sum_t impact[t, h] / imp_goals_h - 1)``
                 over the K categories in ``imp_goals`` (weights are ignored).
+            scale (bool, optional): Equilibrate the LP before solving (default
+                False); see :meth:`pulpo.pulpo.PulpoOptimizer.instantiate` and
+                :mod:`pulpo.utils.scaling`. The per-process / per-product
+                factors are shared by all timesteps.
         """
         if time_steps is None:
             return super().instantiate(
@@ -98,7 +103,7 @@ class PulpoOptimizerTime(PulpoOptimizer):
                 lower_elem_limit=lower_elem_limit, lower_imp_limit=lower_imp_limit,
                 dependent_constraints=dependent_constraints,
                 default_limits=default_limits,
-                imp_goals=imp_goals, objective=objective,
+                imp_goals=imp_goals, objective=objective, scale=scale,
             )
 
         choices = choices or {}
@@ -140,7 +145,7 @@ class PulpoOptimizerTime(PulpoOptimizer):
             upper_elem_limit, upper_imp_limit, lower_elem_limit, lower_imp_limit,
             methods, time_steps,
             storage=storage, upper_imp_agg_limit=upper_imp_agg_limit,
-            default_limits=default_limits, imp_goals=imp_goals,
+            default_limits=default_limits, imp_goals=imp_goals, scale=scale,
         )
         self.instance = time_extension.instantiate_time(data, objective=objective)
 
@@ -159,6 +164,7 @@ class PulpoOptimizerTime(PulpoOptimizer):
         self.default_limits = default_limits
         self.imp_goals = dict(imp_goals)
         self.objective = objective
+        self.scale = scale
 
     def solve(self, GAMS_PATH=False, solver_name=None, options=None, neos_email=None):
         """

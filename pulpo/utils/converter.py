@@ -1,7 +1,9 @@
 import scipy.sparse as sparse
 
+from pulpo.utils import scaling
 
-def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, upper_inv_limit, upper_imp_limit, lower_inv_limit, lower_imp_limit, methods, dependent_constraints=None, default_limits=None, imp_goals=None):
+
+def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, upper_inv_limit, upper_imp_limit, lower_inv_limit, lower_imp_limit, methods, dependent_constraints=None, default_limits=None, imp_goals=None, scale=False):
     """
     Combines all the inputs into a dictionary as an input for the optimization model.
 
@@ -26,6 +28,11 @@ def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, upper_in
                                         explicit lower_imp_limit/upper_imp_limit.
         imp_goals (dict, optional): Goal-programming soft limits {method_string: limit}. Only
                                     categories listed here receive a transgression slack.
+        scale (bool, optional): Equilibrate the LP (row/column scaling of the technosphere,
+                                see :mod:`pulpo.utils.scaling`) so that solvers apply their
+                                tolerances to well-scaled rows. Default False. The factors are
+                                stored under 'ROW_SCALE' / 'COL_SCALE' and the solution is
+                                unscaled again by ``solve_model``.
 
     Returns:
         dict: Combined data dictionary for the optimization model.
@@ -126,6 +133,18 @@ def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, upper_in
             if isinstance(choices[choice], dict):
                 upper_limit_dict[process_map[proc]] = choices[choice][proc]
 
+    if scale:
+        # Only explicitly set bounds survive scaling as finite numbers; the
+        # defaults become +-inf (see scaling.relax_default_bounds for why).
+        choice_procs = {process_map[proc] for choice in choices for proc in choices[choice]}
+        scaling.relax_default_bounds(
+            lower_limit_dict, upper_limit_dict,
+            explicit_lower={process_map[proc] for proc in lower_limit} | choice_procs,
+            explicit_upper={process_map[proc] for proc in upper_limit}
+                           | {process_map[proc] for choice in choices if isinstance(choices[choice], dict)
+                              for proc in choices[choice]},
+        )
+
     # Check if a supply has been specified
     supply_dict = {prod: 0 for prod in PRODUCTS[None]}
     for proc in list(lower_limit.keys() & upper_limit.keys()):
@@ -222,6 +241,8 @@ def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, upper_in
             'RIGHT_WEIGHTS': right_weights_dict,
         }
     }
+    if scale:
+        scaling.equilibrate_model_data(model_data)
     return model_data
 
 

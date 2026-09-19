@@ -309,29 +309,50 @@ class UncertaintyImporter:
                 the upper element limit specifiecation passed to the pulpo instance.
             upper_imp_limit (dict):
                 the upper impact limit specifiecation passed to the pulpo instance.
+
+        Non-finite bounds are skipped. An infinite bound is not a constraint -
+        ``converter.combine_inputs`` already uses ``float('inf')`` as the default
+        upper bound to mean "unlimited" - so it cannot be uncertain, and
+        registering one would hand the chance-constrained formulation an ``inf``
+        amount whose triangular variance is ``nan``. Skipping them is what lets
+        an alternative be declared genuinely uncapacitated rather than carrying a
+        large sentinel value, which matters once a risk budget is split across
+        the constrained rows: a sentinel would consume budget it can never use.
         """
+        skipped = 0
+
+        def _register(block: str, indx: int, value) -> None:
+            """Record one bound, unless it is non-finite and so no bound at all."""
+            nonlocal skipped
+            if not np.isfinite(value):
+                skipped += 1
+                return
+            self.uncertainty_data['Var_bounds'][block]['undefined'][indx] = {
+                'amount': value,
+                'uncertainty_type': 0,
+            }
+
         # Get the upper bound specified with all alternatives
         for _, alternatives in choices.items():
             for alternative, upperbound in alternatives.items():
-                alternative_indx = self.lci_data['process_map'][alternative.key]
-                self.uncertainty_data['Var_bounds']['upper_limit']['undefined'][alternative_indx] = {}
-                self.uncertainty_data['Var_bounds']['upper_limit']['undefined'][alternative_indx]['amount'] = upperbound
-                self.uncertainty_data['Var_bounds']['upper_limit']['undefined'][alternative_indx]['uncertainty_type'] = 0
+                _register('upper_limit',
+                          self.lci_data['process_map'][alternative.key], upperbound)
         print("Upper bound from choices without uncertainty information: {}".format(len(self.uncertainty_data['Var_bounds']['upper_limit']['undefined'])))
-        # set the uncertainty data for the specified upper_limit 
+        # set the uncertainty data for the specified upper_limit
         for upper_limit_act, upper_limit_value in upper_limit.items():
-            process_indx = self.lci_data['process_map'][upper_limit_act.key]
-            self.uncertainty_data['Var_bounds']['upper_limit']['undefined'][process_indx] = {}
-            self.uncertainty_data['Var_bounds']['upper_limit']['undefined'][process_indx]['amount'] = upper_limit_value
-            self.uncertainty_data['Var_bounds']['upper_limit']['undefined'][process_indx]['uncertainty_type'] = 0
+            _register('upper_limit',
+                      self.lci_data['process_map'][upper_limit_act.key],
+                      upper_limit_value)
         print("Upper bound from `upper_limit` without uncertainty information: {}".format(len(upper_limit)))
-        # set the uncertainty data for the specified upper_limit 
+        # set the uncertainty data for the specified upper_limit
         for lower_limit_act, lower_limit_value in lower_limit.items():
-            process_indx = self.lci_data['process_map'][lower_limit_act.key]
-            self.uncertainty_data['Var_bounds']['lower_limit']['undefined'][process_indx] = {}
-            self.uncertainty_data['Var_bounds']['lower_limit']['undefined'][process_indx]['amount'] = lower_limit_value
-            self.uncertainty_data['Var_bounds']['lower_limit']['undefined'][process_indx]['uncertainty_type'] = 0
+            _register('lower_limit',
+                      self.lci_data['process_map'][lower_limit_act.key],
+                      lower_limit_value)
         print("Lower bound from `lower_limit` without uncertainty information: {}".format(len(lower_limit)))
+        if skipped:
+            print("Unbounded (non-finite) variable bounds skipped: {} - not "
+                  "constraints, so they carry no uncertainty".format(skipped))
         if upper_elem_limit:
             raise Exception('upper_elem_limit has not been implemented yet in the uncertainty data import.')
         if upper_imp_limit:
@@ -405,11 +426,11 @@ class ParameterFilter:
         self.method = method # From the result_data
 
     def apply_filter(
-            self, 
-            scaling_vector_strategy:Literal['naive', 'constructed_demand'], 
-            cutoff:float, 
+            self,
+            scaling_vector_strategy:Literal['naive', 'constructed_demand', 'none'],
+            cutoff:float,
             result_data:dict={},
-            plot_results:bool=False, 
+            plot_results:bool=False,
             plot_n_top_processes:int=10
             ) -> Tuple[list,list]:
          """
@@ -417,30 +438,37 @@ class ParameterFilter:
          1. Prepare the scaling vector used to subselect the most contributing paramters to the impact results
          2. Compute the LCI and LCIA results with the chosen scaling vector
          3. Plot the main contributing processes to the impact result
-         4. Filters out the intervention flows whose characterized results 
+         4. Filters out the intervention flows whose characterized results
             are smaller than the cutoff multiplied with the LCA score
          5. Filter out the chcharacterization factors which are not connected to any intervention flows after step 4.
 
+         With `scaling_vector_strategy='none'` steps 1-4 are skipped and every
+         declared exchange is retained (see `retain_all_parameters`).
+
          Args:
-            scaling_vector_strategy (str): 
-                How to compute scaling vector: 'naive' or 'constructed_demand'.
-            cutoff (float): 
-                cutoff factor to compute minimum contribution value to retain an intervention flow. 
-                Multiplied with the LCA score, i.e., a percentage of the total LCA score
-            result_data (None|dict): 
-                Solver output dict, only neccessary for scaling_vector_strategy='naive', 
+            scaling_vector_strategy (str):
+                How to compute scaling vector: 'naive', 'constructed_demand', or
+                'none' to disable filtering altogether.
+            cutoff (float):
+                cutoff factor to compute minimum contribution value to retain an intervention flow.
+                Multiplied with the LCA score, i.e., a percentage of the total LCA score.
+                Ignored when scaling_vector_strategy='none'.
+            result_data (None|dict):
+                Solver output dict, only neccessary for scaling_vector_strategy='naive',
                 From pulpo_worker.result_data
             plot_results (bool) - optional:
                 defaulf False, Set to True if the plot main characterized processes should be created and shown.
-            plot_n_top_processes (int) - optional: 
+            plot_n_top_processes (int) - optional:
                 Number of top items to display in top contribution process plot (default: 10).
 
         Returns:
-            filtered_inventory_indcs (list): 
+            filtered_inventory_indcs (list):
                 Subset of inventory flows indices returned from filtering.
-            filtered_characterization_indcs (list): 
+            filtered_characterization_indcs (list):
                 Subset of characterization factors indices returned from filtering.
          """
+         if scaling_vector_strategy == 'none':
+             return self.retain_all_parameters()
          scaling_vector_series = self.prepare_scaling_vector(scaling_vector_strategy=scaling_vector_strategy, result_data=result_data)
          lca_score, characterized_inventory = self.compute_LCI_LCIA(scaling_vector_series)
          if plot_results:
@@ -448,6 +476,40 @@ class ParameterFilter:
          filtered_inventory_indcs = self.filter_inventoryflows(characterized_inventory, lca_score, cutoff)
          filtered_characterization_indcs = self.filter_characterization_factors(filtered_inventory_indcs)
          return filtered_inventory_indcs, filtered_characterization_indcs
+
+    def retain_all_parameters(self) -> Tuple[list, list]:
+        """
+        Retain every declared parameter: no contribution filtering at all.
+
+        The cutoff filter is a *scale* device. On an ecoinvent-sized system carrying
+        every uncertain exchange is impractical, so parameters are ranked by their
+        characterized contribution at one scaling vector and the tail is dropped.
+        That selection is an approximation with a direction: a scaling vector taken
+        at the deterministic optimum ('naive') assigns zero contribution to every
+        alternative that is inactive there, so those alternatives enter the
+        chance-constrained problem with *no uncertainty at all*. When risk aversion
+        later makes one of them optimal, it is chosen partly because its uncertainty
+        was filtered away. 'constructed_demand' widens the scaling vector to cover
+        all choice alternatives and mitigates this, but only for processes reachable
+        from the choices.
+
+        On a system small enough not to need the filter, none of that trade-off is
+        worth making. Every structurally nonzero entry of the intervention matrix
+        becomes an uncertain parameter, and every characterization factor attached
+        to one is retained.
+
+        Returns:
+            inventory_indcs (list):
+                Every (biosphere, process) index pair present in the intervention matrix.
+            characterization_indcs (list):
+                Every characterization factor attached to one of those flows.
+        """
+        intervention_matrix = self.lci_data['intervention_matrix']
+        inventory_indcs = list(zip(*intervention_matrix.nonzero()))
+        print('No filtering applied (scaling_vector_strategy="none"): '
+              'retaining all {} intervention flow parameters.'.format(len(inventory_indcs)))
+        characterization_indcs = self.filter_characterization_factors(inventory_indcs)
+        return inventory_indcs, characterization_indcs
 
     def prepare_scaling_vector(self,  scaling_vector_strategy:str='constructed_demand', result_data:Optional[dict]={}) -> pd.Series:
         """

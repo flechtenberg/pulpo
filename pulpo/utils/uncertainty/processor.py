@@ -486,6 +486,44 @@ class TriangularBoundInterpolationStrategy(TriangluarBaseStrategy):
         self.upper_scaling_factor, self.lower_scaling_factor = self._compute_bounds_statistics(uncertainty_bounds, **strategy_options)
         self._compute_triag_dist_params(uncertainty_data)
 
+class DeterministicGapFillStrategy(UncertaintyStrategyBase):
+    """
+    Strategy that fills undefined uncertainty entries with a degenerate Normal
+    distribution centered on the deterministic amount (zero spread), instead
+    of spreading them out via a triangular/uniform distribution.
+
+    This is the "no gap filling" alternative: PULPO's downstream formulations
+    (CC, SOC) refuse to run while any parameter is still 'undefined', so
+    switching gap-filling off cannot mean leaving those entries alone. Giving
+    them ``N(amount, 0)`` is the only distribution that adds no information -
+    it contributes nothing to the variance and its mean is the deterministic
+    LCI value - while satisfying every completeness check downstream.
+    """
+    def _compute_deterministic_params(self, uncertainty_data:UncertaintyData):
+        """
+        Fill undefined uncertain parameters with a zero-scale normal centered on 'amount'.
+
+        Args:
+            uncertainty_data (dict):
+                The uncertainty data containing the defined and undefined
+                uncertainty information, stored outside the class, initially returned from:
+                `preparer.UncertaintyImporter.import_uncertainty_data()`
+        """
+        undefined_uncertainty_indices = list(uncertainty_data[self.uncertain_param_type][self.uncertain_param_subgroup]['undefined'].keys())
+        for undefined_indx in undefined_uncertainty_indices:
+            undefined_dict = uncertainty_data[self.uncertain_param_type][self.uncertain_param_subgroup]['undefined'].pop(undefined_indx)
+            amount = undefined_dict['amount']
+            undefined_dict['loc'] = amount
+            undefined_dict['scale'] = 0.0
+            undefined_dict['uncertainty_type'] = stats_arrays.NormalUncertainty.id
+            undefined_dict['minimum'] = np.nan
+            undefined_dict['maximum'] = np.nan
+            undefined_dict['shape'] = np.nan
+            uncertainty_data[self.uncertain_param_type][self.uncertain_param_subgroup]['defined'][undefined_indx] = undefined_dict
+
+    def assign(self, uncertainty_data:UncertaintyData, **strategy_options):
+        self._compute_deterministic_params(uncertainty_data)
+
 def apply_uncertainty_strategies(uncertainty_data: UncertaintyData, strategies: List[UncertaintyStrategyBase], **strategy_options):
     """
     Applies the strategies, by passing the strategies as instatialized classes and then performs the assign method.
@@ -785,6 +823,107 @@ def fit_normals(
         plt.show()
     return normal_uncertainty_metadata_dict
 
+def compute_closed_form_moments(uncertainty_data:UncertaintyData, unc_types:List[Literal['If', 'Cf', 'Var_bounds']] = ['If', 'Cf']) -> UncertaintyData:
+    """
+    Drop-in alternative to `transform_to_normal`: computes each parameter's mean/std
+    analytically from its own distribution family instead of Monte-Carlo resampling
+    and fitting a Normal to the samples.
+
+    The SOC formulation only needs each parameter's mean and variance, not that it
+    individually *be* Gaussian, so this avoids the sampling noise (and cost) of
+    `fit_normals` wherever the closed-form moments of the native distribution are
+    known.
+
+    Args:
+        uncertainty_data (UncertaintyData):
+            Dictionary containing metadata about uncertain intervention flows (IF) and characterization factors (CF).
+        unc_types (List[Literal['If', 'Cf', 'Var_bounds']]):
+            List of uncertainty types to transform. Defaults to ['If', 'Cf'].
+    Returns:
+        moments_metadata (UncertaintyData):
+            Same shape as `transform_to_normal`'s output: {type: {subgroup: {'defined': {idx: {'loc','scale','uncertainty_type':3}}}}}.
+    """
+    if check_missing_uncertainty_data(uncertainty_data, unc_types=unc_types):
+        raise Exception('There is undefined uncertainty data, you can only compute the env. cost statistics when all uncertainty data is defined')
+    moments_metadata:UncertaintyData = {}
+    for param_type, params_metadata in uncertainty_data.items():
+        if param_type not in unc_types:
+            continue
+        moments_metadata[param_type] = {}
+        for var_name, var_metadata in params_metadata.items():
+            print(f"Computing closed-form moments for {param_type}-{var_name}")
+            moments_metadata[param_type][var_name] = {}
+            moments_metadata[param_type][var_name]['defined'] = _closed_form_moments(var_metadata['defined'])
+    return moments_metadata
+
+def _closed_form_moments(
+        uncertainty_metadata:Dict[Union[Tuple[int,int],int], UncertaintySpec],
+        ) -> Dict[Union[Tuple[int,int],int], UncertaintySpec]:
+    """
+    Compute analytic (mean, std) for each parameter, dispatching on its uncertainty_type.
+
+    Supported families: Normal (3, passthrough), Uniform (4), Triangular (5), Lognormal (2).
+    Any other uncertainty_type (e.g. NoUncertainty) raises NotImplementedError - a
+    deliberate scope boundary, not a silent fallback.
+
+    Args:
+        uncertainty_metadata (Dict[Union[Tuple[int,int],int], UncertaintySpec]):
+            Dictionary containing metadata about uncertain parameters. Indexed by parameter ID.
+
+    Returns:
+        Dict[Union[Tuple[int,int],int], UncertaintySpec]:
+            Indexed by parameter ID, with 'loc' (mean), 'scale' (std) and
+            'uncertainty_type' always set to 3 (normal). The parameter's own
+            declared specification is carried through unchanged under 'source',
+            so a consumer that needs the family itself rather than its first two
+            moments can still reach it: a right-hand-side-only chance constraint
+            is an exact quantile of the declared distribution and needs no
+            Gaussian representation at all.
+    """
+    moments:Dict[Union[Tuple[int,int],int], UncertaintySpec] = {}
+    for param_index, metadata in uncertainty_metadata.items():
+        utype = metadata['uncertainty_type']
+        if utype == stats_arrays.NormalUncertainty.id:
+            loc = metadata['loc']
+            scale = metadata['scale']
+        elif utype == stats_arrays.UniformUncertainty.id:
+            minimum = metadata['minimum']
+            maximum = metadata['maximum']
+            loc = (minimum + maximum) / 2
+            scale = np.sqrt((maximum - minimum) ** 2 / 12)
+        elif utype == stats_arrays.TriangularUncertainty.id:
+            minimum = metadata['minimum']
+            maximum = metadata['maximum']
+            mode = metadata['loc']
+            loc = (minimum + maximum + mode) / 3
+            scale = np.sqrt(max(
+                (minimum ** 2 + maximum ** 2 + mode ** 2
+                 - minimum * maximum - minimum * mode - maximum * mode) / 18,
+                0.0,
+            ))
+        elif utype == stats_arrays.LognormalUncertainty.id:
+            mu = metadata['loc']
+            sigma = metadata['scale']
+            sign = -1.0 if metadata.get('negative', False) else 1.0
+            loc = sign * np.exp(mu + sigma ** 2 / 2)
+            scale = np.sqrt((np.exp(sigma ** 2) - 1) * np.exp(2 * mu + sigma ** 2))
+        else:
+            raise NotImplementedError(
+                f"compute_closed_form_moments has no closed-form moments for "
+                f"uncertainty_type={utype} (parameter {param_index}); supported "
+                f"types are Normal(3), Uniform(4), Triangular(5), Lognormal(2)."
+            )
+        moments[param_index] = {
+            'loc': loc,
+            'scale': scale,
+            'uncertainty_type': stats_arrays.NormalUncertainty.id,
+            # A shallow copy, not a reference: the moments outlive the strategy
+            # pass that produced them, and a later edit to the source spec must
+            # not silently redefine a bound that has already been reported.
+            'source': dict(metadata),
+        }
+    return moments
+
 def compute_bounds(uncertainty_metadata:dict, return_type:str='df') -> Union[pd.DataFrame, dict]:
     """
     Compute mean, median (or mode), and 95% CI bounds for each parameter using the stats_array package.
@@ -918,6 +1057,15 @@ def _sample_one_spec(spec: dict, rng: np.random.Generator) -> float:
     """
     Sample a single uncertainty spec. If it's Normal (id==3), use numpy;
     otherwise fall back to stats_arrays (works for the prepared dicts).
+
+    ``rng`` must reach *both* branches. stats_arrays' ``random_variables``
+    falls back to the legacy global ``np.random`` when ``seeded_random`` is
+    omitted, so leaving it out made ``draw_uncertainty_sample(seed=...)``
+    reproducible for Normal parameters only -- every lognormal, triangular and
+    uniform parameter silently ignored the seed and consumed the global stream
+    instead. Each of the four families stats_arrays dispatches to calls only
+    ``normal``/``lognormal``/``triangular``/``uniform``, all of which exist on
+    a ``Generator``, so the same object serves both branches.
     """
     utype = spec.get("uncertainty_type", None)
     if utype == stats_arrays.NormalUncertainty.id or utype == 3:
@@ -928,7 +1076,7 @@ def _sample_one_spec(spec: dict, rng: np.random.Generator) -> float:
     # generic fallback for triangular/lognormal/etc.
     ua = stats_arrays.UncertaintyBase.from_dicts(spec)
     choice = stats_arrays.uncertainty_choices[utype]
-    return float(choice.random_variables(ua, 1)[0])
+    return float(choice.random_variables(ua, 1, seeded_random=rng)[0])
 
 def draw_uncertainty_sample(
     uncertainty_data: dict,
