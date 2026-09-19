@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased]
+## [1.8.0] - 2026-09-19
 
 ### Added
 * **Exact chance-constrained optimization via a second-order cone** —
