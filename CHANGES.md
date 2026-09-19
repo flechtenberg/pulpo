@@ -5,130 +5,101 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
-* Exact second-order-cone (SOC) chance-constrained formulation
-  (`pulpo/utils/uncertainty/soc.py`): the impact's standard deviation is
-  represented exactly — including the covariance that processes share through a
-  common characterization factor — rather than via the `L1` upper bound. Solved
-  either directly as a QCP or by Kelley cutting planes over the LP PULPO already
-  builds, which is what makes it tractable at ecoinvent scale. Optimality is
-  certified by `T == sigma(s*)` at the returned point rather than by a bracket
-  between the two bounds — see the entry under Fixed for why the bracket does
-  not survive this problem's conditioning. Exposed as
-  `PulpoOptimizerUnc.create_SOC_formulation()` / `solve_SOC_problem()`.
-* Closed-form moments (`processor.compute_closed_form_moments`, and
-  `create_SOC_formulation(moments='closed_form')`): analytical mean and variance
-  per distribution family, replacing the Monte-Carlo refit of every parameter to a
-  Normal.
+* **Exact chance-constrained optimization via a second-order cone** —
+  `PulpoOptimizerUnc.create_SOC_formulation()` / `solve_SOC_problem()`. The
+  existing `solve_CC_problem` bounds the impact's standard deviation by an `L1`
+  sum over processes, which over-estimates it and treats the per-process
+  contributions as independent although one characterization factor multiplies
+  them all. The new formulation represents the standard deviation exactly,
+  shared characterization factors included, so at the same reliability level it
+  returns a front at or below the `L1` one. `method='cutting_plane'` (the
+  default) solves a sequence of the ordinary LPs PULPO already builds and is
+  what works at ecoinvent scale; `method='direct'` hands the cone to Gurobi in a
+  single solve and suits small or well-conditioned systems. The cutting-plane
+  solve reports a certified optimality gap per iteration.
+  `restore_deterministic_objective()` returns the instance to the plain impact
+  objective.
+* **Closed-form moments** — `create_SOC_formulation(moments='closed_form')`.
+  Mean and variance are computed analytically per distribution family instead of
+  by refitting every parameter to a Normal through Monte Carlo: faster, and free
+  of sampling noise in the coefficients.
+* **Joint chance constraints** — `cc.bonferroni_budget()` and
+  `apply_CC_formulation(risk_budget=...)`. Imposing each row at `lambda`
+  individually controls no joint probability: with `K` constrained rows, the
+  chance that at least one of them fails reaches `K(1 - lambda)`. A risk budget
+  divides the failure probability among the rows so they hold *together* at
+  `lambda`. It adds no variables and no constraints — only each right-hand side
+  moves — and it needs no correlation estimates. Opt-in; the default behaviour
+  is unchanged.
+* **Exact quantiles for uncertain bounds** —
+  `apply_CC_formulation(bound_quantile='exact')`. A chance constraint on a bare
+  bound is exactly the declared distribution's own quantile and needs no
+  Gaussian approximation. This matters at high reliability, where a
+  moment-matched normal can demand a bound below the distribution's support — a
+  negative capacity, in practice. Opt-in, and requires a risk budget.
+* **Optional LP equilibration** — `instantiate(scale=True)`, off by default. An
+  ecoinvent technosphere spans 1e-13 to 2e+11, because infrastructure processes
+  have a functional unit of one whole facility. Solvers apply their feasibility
+  tolerance per row relative to that row's largest coefficient, so such a
+  facility can be under-supplied by more than its own activity level and still
+  count as feasible — worth roughly 1 % of the optimum on an unaggregated
+  system, with different solvers landing on different answers. No solver option
+  repairs it. Equilibration rescales rows and columns by powers of two, which is
+  exact in floating point, and the solution is unscaled after the solve, so
+  `scaling_vector`, `impacts` and everything `extract_results()` returns stay in
+  original units. It covers the uncertainty formulations too, so
+  `solve_CC_problem` and `solve_SOC_problem` return the same fronts either way.
+  Recommended for unaggregated ecoinvent backgrounds.
 * `import_and_filter_uncertainty_data(scaling_vector_strategy='none')` — retain
-  every declared parameter. The contribution filter is a device for scale; on a
-  system small enough not to need it, selecting parameters at one scaling vector
-  strips the uncertainty from alternatives inactive at that vector and biases the
-  subsequent risk-averse choice towards them.
+  every declared uncertain parameter. The contribution filter is a device for
+  large systems; on a small one it strips the uncertainty from alternatives that
+  happen to be inactive at the vector it filters on, which biases the subsequent
+  risk-averse choice towards exactly those alternatives.
 * `run_gsa(seed=...)` — the SALib sampler's seed is now controllable from the
-  façade instead of being fixed at its constructor default of 161 (still the
-  default, so previously reported indices are unchanged).
+  façade instead of fixed (still 161 by default, so previously reported indices
+  are unchanged).
 * `pulpo/datasets/soc_demo_database.py` — an open six-activity demonstration
-  system covering every supported uncertainty family, usable without an ecoinvent
-  licence.
-* **Joint chance constraints by Bonferroni risk allocation**
-  (`cc.bonferroni_budget`, `cc.RiskBudget`, and `apply_CC_formulation(...,
-  risk_budget=...)`). Imposing each row at `lambda` individually controls no
-  joint probability: with `K` rows the chance that at least one fails reaches
-  `K(1 - lambda)`. A budget splits `eps = 1 - lambda` as `eps_k = w_k eps`, so
-  Boole's inequality bounds the union of the failures by `eps` and the rows hold
-  *together* at `lambda`. Equal weights by default; unequal ones are valid and
-  are the sensitivity. No new variables, no new constraints, no change of
-  problem class — only the constant on each right-hand side moves. The union
-  bound needs marginals alone, so no correlation between the events has to be
-  estimated. `apply_CC_formulation` refuses a budget whose `K` disagrees with
-  the rows the model actually imposes, since `K` is claimed before the solve.
-* **Exact marginal quantiles for right-hand-side-only bounds**
-  (`cc.declared_quantile`, and `apply_CC_formulation(bound_quantile='exact')`).
-  `P(s <= xi) >= 1 - eps` is exactly `s <= F^-1(eps)` for the *declared* family,
-  so such a bound needs no Gaussian representation at all — normality is
-  required where an uncertain coefficient multiplies a decision variable, not
-  for a bare bound. For triangular(a, b, c) the result is
-  `a + sqrt(eps (c-a)(b-a))`, cheaper than the `Phi^-1` it replaces and bounded
-  below by the support floor, which a moment-matched normal is not: at high
-  reliability the fitted normal eventually demands a negative bound.
-  `compute_closed_form_moments` now carries each parameter's declared
-  specification through under `source` so the family stays reachable. Both
-  additions are opt-in; the default reproduces the individual formulation.
-* Add optional LP equilibration (`instantiate(scale=True)`, new `pulpo/utils/scaling.py`; off by default). Because infrastructure processes have a functional unit of one whole facility, an ecoinvent technosphere spans 1e-13 .. 2e+11, and solvers apply their feasibility tolerance per row relative to its largest coefficient — so a facility can be under-supplied by more than its own activity level and still count as feasible. This shifts the optimum and makes solvers disagree with each other; no solver option repairs it. Scaling rows and columns by powers of two (exact in floating point) fixes it, and the solution is unscaled after the solve, so all results read as before. Recommended for unaggregated ecoinvent backgrounds.
+  system covering every supported uncertainty family, usable without an
+  ecoinvent licence.
 
 ### Changed
-* `solve_gurobi` applies `ScaleFlag=0`, `FeasibilityTol=OptimalityTol=1e-9`, `NumericFocus=1` on a scaled model unless overridden (`scaling.GUROBI_OPTIONS_SCALED`); add `Method=1` for bit-identical repeated solves. The former docstring advice of `ScaleFlag=2` / `NumericFocus=3` made the unscaled optimum worse and is withdrawn.
-* Under `scale=True`, process bounds inherited from `default_limits` become infinite (with a warning): a finite `upper_bound=1e9` never binds, but scaled to 1e20 it makes Gurobi's simplex return large row residuals. Explicit limits and choice capacities are kept.
-* The SOC and CC formulations raise on a scaled model instead of mis-solving it: both write coefficients and bounds in original units onto `scaling_vector` and the limit Params, which a scaled model does not hold, so the result would be plausible and wrong. Use `scale=False` for those formulations until they are made scale-aware.
+* `solve_gurobi` no longer recommends `ScaleFlag=2` / `NumericFocus=3`. On an
+  ecoinvent-scale model those made the optimum worse rather than better, because
+  the feasibility tolerance is still applied relative to the 1e11 facility
+  coefficients. On a scaled model it now applies `ScaleFlag=0`,
+  `FeasibilityTol=OptimalityTol=1e-9` and `NumericFocus=1` unless the caller
+  overrides them (`scaling.GUROBI_OPTIONS_SCALED`); add `Method=1` for
+  bit-identical repeated solves.
+* Under `scale=True`, process bounds inherited from `default_limits` become
+  infinite, with a warning saying how many. A finite `upper_bound=1e9` never
+  binds anyway, but on a facility column it scales to 1e20 and degrades the
+  solve. Explicit `lower_limit` / `upper_limit` values and choice capacities are
+  kept.
 
 ### Fixed
-* **`solve_exact` reported the width of an inconsistency as an optimality gap.**
-  It paired `best_upper`, the minimum over all iterates, with `lower` from the
-  *final* iterate - two different relaxations - and took an absolute value, so
-  the sign was lost. Both bounds are now tracked as running best values, the
-  spread is signed, and a crossing is returned in `bound_crossing` rather than
-  folded into the gap. A crossed bracket also no longer counts as convergence:
-  its gap is exactly zero, so the old test declared success the moment the
-  bounds inverted.
-
-  The bracket itself turns out to be the wrong certificate on an ecoinvent-scale
-  problem. The LP optimum is **not monotone** as cuts accumulate - it must be,
-  since adding a constraint cannot lower a minimum - because a cut row spans
-  tens of orders of magnitude (observed: 5.99e+05 down to 1.89e-29, a range of
-  3e34, with a hundred coefficients below the threshold the solver drops) and
-  each LP therefore solves a slightly different model. `solve_exact` now also
-  returns `exactness`, `|T - sigma(s*)| / sigma(s*)` at the returned point,
-  which settles optimality on its own: the LP is a relaxation, so where T has
-  risen to sigma the LP's value is the true objective at a feasible point and
-  that point is optimal. It needs one solve and no comparison between
-  relaxations.
-* `solve_exact(cut_coeff_tol=...)` drops gradient entries too small to matter
-  from a cut, measured against sigma - `grad @ s == sigma` at the point the
-  hyperplane was taken from, so a term contributing less than `tol * sigma`
-  there is below the precision anything is quoted to. **Only positive
-  coefficients are dropped**, which lowers the right-hand side and so weakens
-  the cut while keeping it a valid underestimator; dropping a negative one would
-  strengthen it and could cut off the optimum. Off by default: it improves the
-  row's dynamic range by twenty orders of magnitude but does not by itself make
-  the LP sequence monotone, so it must not silently move anyone's numbers.
-* **A non-finite variable bound was registered as an uncertain parameter.**
-  `preparer.set_uncertainty_meta_for_var_bounds` recorded every choice
-  alternative and every explicit limit without testing its value, so an
-  alternative declared `float('inf')` — which `converter.combine_inputs`
-  already uses as its default upper bound to mean "unlimited" — became a
-  `Var_bounds` row with an `inf` amount, a `nan` closed-form variance and a
-  `nan` bound handed to Pyomo. An infinite bound is not a constraint and cannot
-  be uncertain, so it is now skipped. Without this an unbounded alternative had
-  to be written as a large sentinel capacity, which a joint formulation then
-  counts as an event and allocates risk budget it can never use.
+* **An infinite variable bound was registered as an uncertain parameter.** Every
+  choice alternative and every explicit limit was recorded without testing its
+  value, so an alternative declared `float('inf')` — the default already used to
+  mean "unlimited" — became an uncertain bound with an `inf` amount, a `nan`
+  variance and a `nan` bound handed to the solver. Infinite bounds are now
+  skipped, so an unbounded alternative no longer has to be written as a large
+  sentinel capacity.
 * **A deterministic characterization factor turned every sampled impact into
-  `NaN`.** `gsa.GlobalSensitivityAnalysis._compute_env_cost` reindexes the
-  sampled factors onto the sampled flows; a flow whose factor declares no
+  `NaN`** in the global sensitivity analysis. A flow whose factor declares no
   distribution received an all-`NaN` column, and one such column makes every
-  row sum — that is, every sample impact — `NaN`. The factor is not missing, it
-  is constant, so it is now filled with its amount from the characterization
-  matrix. Previously the only way to keep such a flow was to gap-fill its factor
-  with an invented spread; without that, flows whose variance is real were
-  dropped from the decomposition purely because their multiplier was a constant.
-* **`processor.draw_uncertainty_sample(..., seed=...)` seeded nothing except
-  Normal parameters.** `_sample_one_spec` passed the seeded generator to the
-  Normal branch but called `stats_arrays.random_variables(ua, 1)` without
-  `seeded_random` for every other family, so lognormal, triangular and uniform
-  parameters drew from NumPy's legacy global stream and ignored the seed
-  entirely. Any Monte Carlo containing a non-Normal parameter was therefore
-  irreproducible, `run_mc_from_uncertainty(seed=...)` included. The defect
-  survived because the only test covering seeded sampling ran on a fixture whose
-  parameters are all Normal; the new regression test
-  (`TestDrawUncertaintySampleSeeding`) asserts its fixture contains non-Normal
-  parameters before checking reproducibility.
+  sample impact `NaN`. Such a factor is constant rather than missing, and is now
+  filled with its value from the characterization matrix. Previously the only
+  way to keep the flow was to gap-fill its factor with an invented spread.
+* **`seed=` did not make a Monte Carlo reproducible unless every parameter was
+  Normal.** Lognormal, triangular and uniform parameters drew from NumPy's
+  global stream and ignored the seed, so any run containing one was
+  irreproducible, `run_mc_from_uncertainty(seed=...)` included.
 
 ### Known issues
-* `pre_sample_from_uncertainty` draws its per-draw seeds from `[0, 10**6)`, which
-  collides about 164 times in 20 000 draws. Before the seeding fix a repeated seed
-  still produced a different draw; now it produces a genuine duplicate, so the
-  effective sample is ~0.8 % smaller than requested. Widening the range is a
-  one-line change that shifts published draw sequences, so it is deferred rather
-  than bundled into this release.
+* `run_mc_from_uncertainty` draws its per-draw seeds from `[0, 10**6)`, so about
+  164 of 20 000 draws are duplicates and the effective sample is ~0.8 % smaller
+  than requested. Widening the range would shift published draw sequences, so it
+  is deferred rather than bundled into this release.
 
 ## [1.7.0] - 2026-08-11
 * Add a goal-programming objective (`objective='goal'`): minimize the average transgression of user-defined soft impact limits (`imp_goals`), e.g. for Planetary-Boundary-style budgets. Unlike `upper_imp_limit`, goals can be exceeded — the solver stays feasible and reports the transgression level per category instead. Available on both `PulpoOptimizer` and the time-extended `PulpoOptimizerTime` (goals apply to impacts aggregated across the whole time horizon), and carried through Monte Carlo re-instantiation.
