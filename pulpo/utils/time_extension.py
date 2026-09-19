@@ -54,6 +54,7 @@ from collections import defaultdict
 import pyomo.environ as pyo
 from pyomo.core.expr.numeric_expr import LinearExpression
 
+from pulpo.utils import scaling as _scaling
 from pulpo.utils.optimizer import _group_env_cost_rows
 from pulpo.utils.utils import broadcast_over_time as _broadcast_over_time
 
@@ -78,6 +79,7 @@ def combine_inputs_time(
     upper_imp_agg_limit=None,
     default_limits=None,
     imp_goals=None,
+    scale=False,
 ):
     """Build the time-indexed pyomo data dictionary.
 
@@ -99,6 +101,10 @@ def combine_inputs_time(
             budget); used with the 'goal' objective of
             :func:`instantiate_time`. Only categories listed here receive a
             transgression slack.
+        scale: Equilibrate the LP (see :mod:`pulpo.utils.scaling`); the
+            per-process / per-product factors are shared by all timesteps
+            and the carry-over matrix ``K`` is scaled consistently. Default
+            False.
         default_limits: Optional custom default limits. If None, uses
             standard values. Required keys: 'lower_bound', 'upper_bound',
             'upper_inv_bound', 'lower_inv_bound', 'lower_imp_bound',
@@ -263,6 +269,19 @@ def combine_inputs_time(
         for proc, value in upper_limit_t[t].items():
             upper_limit_dict[(t, process_map[proc])] = value
 
+    if scale:
+        # Only explicitly set bounds survive scaling as finite numbers; the
+        # defaults become +-inf (see scaling.relax_default_bounds for why).
+        explicit_lower, explicit_upper = set(), set()
+        for t in time_steps:
+            for choice_label, processes in choices_t[t].items():
+                for proc in processes:
+                    explicit_lower.add((t, process_map[proc]))
+                    explicit_upper.add((t, process_map[proc]))
+            explicit_lower.update((t, process_map[proc]) for proc in lower_limit_t[t])
+            explicit_upper.update((t, process_map[proc]) for proc in upper_limit_t[t])
+        _scaling.relax_default_bounds(lower_limit_dict, upper_limit_dict, explicit_lower, explicit_upper)
+
     supply_dict = {(t, prod): 0 for t in time_steps for prod in PRODUCTS[None]}
     for t in time_steps:
         common = lower_limit_t[t].keys() & upper_limit_t[t].keys()
@@ -358,6 +377,8 @@ def combine_inputs_time(
             'WEIGHTS': weights,
         }
     }
+    if scale:
+        _scaling.equilibrate_model_data(model_data)
     return model_data
 
 
@@ -427,6 +448,7 @@ def instantiate_time(model_data, objective='weighted_sum'):
     # Dense environmental cost dictionary (Q*B), kept for update_env_cost and
     # for the saver (extract_params); the constraints embed only the nonzeros.
     model._env_cost = dict(env)
+    _scaling.attach_scale(model, data)
 
     # Sets
     model.TIME = pyo.Set(initialize=times, ordered=True, doc='Set of timesteps, indexed by t')
