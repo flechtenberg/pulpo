@@ -343,19 +343,32 @@ def _relax_placeholder_bounds(model_instance, threshold: float = PLACEHOLDER_BOU
     leaves the barrier with thousands of free directions and it stalls. The
     replacement must be large enough never to bind - verify that afterwards by
     checking no scaling factor sits at it. Returns the number of bounds moved.
+
+    ``threshold`` and ``replacement`` are in original units. The process
+    limit Params of an equilibrated model hold ``bound / s_j``, so those are
+    compared and written through the ``scaling`` converters; the intervention
+    limits are never scaled.
     """
     n = 0
-    for param_name, sign in (("UPPER_LIMIT", 1.0), ("UPPER_INV_LIMIT", 1.0),
-                             ("LOWER_LIMIT", -1.0), ("LOWER_INV_LIMIT", -1.0)):
+    for param_name, sign, is_process in (("UPPER_LIMIT", 1.0, True),
+                                         ("UPPER_INV_LIMIT", 1.0, False),
+                                         ("LOWER_LIMIT", -1.0, True),
+                                         ("LOWER_INV_LIMIT", -1.0, False)):
         param = getattr(model_instance, param_name, None)
         if param is None:
             continue
         updates = {}
         for index in param:
             value = pyo.value(param[index])
+            if is_process:
+                value = _scaling.from_scaled_process_bound(model_instance, index, value)
             if sign * value >= threshold:
-                updates[index] = (sign * float("inf") if replacement is None
-                                  else sign * replacement)
+                new_value = (sign * float("inf") if replacement is None
+                             else sign * replacement)
+                if is_process:
+                    new_value = _scaling.to_scaled_process_bound(model_instance, index,
+                                                                 new_value)
+                updates[index] = new_value
         if updates:
             param.store_values(updates, check=False)
             n += len(updates)
@@ -409,11 +422,11 @@ def apply_SOC_formulation(model_instance, lambda_level: float,
     approximation, but here with a measured and reported truncation error.
 
     Calling this repeatedly for a lambda sweep only rebuilds the objective.
+
+    On an equilibrated instance the defining constraints are written in the
+    model's units (``sqrt(d_j) * s_j * scaling_vector[j]``, see ``scaling``),
+    so the cone is the same in either case.
     """
-    # The cone's defining constraints multiply sigma coefficients, and the
-    # placeholder-bound relaxation compares limit Params, against quantities in
-    # original units; an equilibrated model holds neither. See scaling.py.
-    _scaling.require_unscaled(model_instance, "The SOC formulation")
     z = float(scipy.stats.norm.ppf(lambda_level))
     method = coeffs.method
     info: dict = {}
@@ -469,7 +482,8 @@ def apply_SOC_formulation(model_instance, lambda_level: float,
 
         def _c_rule(model, k):
             j, root = d_terms[k]
-            return model.SOC_C[k] == root * scaling[j]
+            return model.SOC_C[k] == (
+                _scaling.to_scaled_coefficient(model_instance, j, root) * scaling[j])
 
         model_instance.SOC_C_CNSTR = pyo.Constraint(model_instance.SOC_TERM,
                                                     rule=_c_rule)
@@ -490,7 +504,8 @@ def apply_SOC_formulation(model_instance, lambda_level: float,
             cols = B.indices[lo:hi]
             vals = B.data[lo:hi]
             return model.SOC_Y[e] == pyo.quicksum(
-                root * float(v) * scaling[int(j)] for j, v in zip(cols, vals))
+                _scaling.to_scaled_coefficient(model_instance, int(j), root * float(v))
+                * scaling[int(j)] for j, v in zip(cols, vals))
 
         model_instance.SOC_Y_CNSTR = pyo.Constraint(model_instance.SOC_FLOW,
                                                     rule=_y_rule)
@@ -543,6 +558,10 @@ def solve_soc(model_instance, options: dict | None = None, tee: bool = False):
     non-convex flag is needed. If a build ever produces a form Gurobi rejects,
     ``NonConvex=2`` would be the escape hatch - but needing it means the cone
     was assembled wrongly and should be fixed rather than forced.
+
+    This bypasses ``optimizer.solve_model``, so it brackets the solve the same
+    way: an equilibrated instance is handed to the solver in scaled units and
+    its ``scaling_vector`` / ``slack`` are unscaled afterwards, also on failure.
     """
     solver = pyo.SolverFactory("gurobi")
     merged = dict(SOC_SOLVER_OPTIONS)
@@ -550,7 +569,11 @@ def solve_soc(model_instance, options: dict | None = None, tee: bool = False):
     for key, value in merged.items():
         if key != "tee":
             solver.options[key] = value
-    results = solver.solve(model_instance, tee=tee, load_solutions=True)
+    _scaling.rescale_solution(model_instance)
+    try:
+        results = solver.solve(model_instance, tee=tee, load_solutions=True)
+    finally:
+        _scaling.unscale_solution(model_instance)
     model_instance.solver_status = results.solver.status
     model_instance.solver_termination = results.solver.termination_condition
     print(f"SOC solved: status={results.solver.status}, "
@@ -580,6 +603,10 @@ def prepare_exact_model(model_instance, coeffs: SOCCoefficients) -> None:
     Replacing it by a variable ``T`` bounded below by a growing set of those
     hyperplanes turns each iteration into the *same LP* PULPO already solves,
     and the iteration converges to the exact cone optimum with a certified gap.
+
+    Works on an equilibrated instance (``instantiate(scale=True)``):
+    ``update_env_cost`` converts the mean costs, and :func:`solve_exact`
+    writes each cut in the model's scaled units.
     """
     optimizer.update_env_cost(model_instance, {
         (int(j), coeffs.method): float(value)
@@ -666,6 +693,11 @@ def solve_exact(model_instance, coeffs: SOCCoefficients, lambda_level: float,
     absolute value, and it never counts as convergence: a bracket that has
     inverted has not converged, it has failed, and the caller has to be able to
     tell those apart.
+
+    Everything read back (``scaling_vector``, ``SOC_T``) is in original units
+    -- ``solve_model`` unscales an equilibrated instance after every solve --
+    so ``sigma``, ``grad`` and the bounds need no conversion; only the cut
+    written back onto the model does.
     """
     z = float(scipy.stats.norm.ppf(lambda_level))
     _set_exact_objective(model_instance, z)
@@ -736,9 +768,18 @@ def solve_exact(model_instance, coeffs: SOCCoefficients, lambda_level: float,
                 break
 
         nz = _cut_support(grad, s, sigma, cut_coeff_tol)
+        # ``grad`` multiplies the activity in original units; on an equilibrated
+        # model ``scaling_vector[j]`` holds ``x_j / s_j``, so the coefficient
+        # written is ``grad_j * s_j`` (identity when unscaled). That also
+        # equilibrates the cut's columns the way the technosphere's are, and a
+        # power-of-two row factor then centres the row; both are exact.
+        coef = {int(j): _scaling.to_scaled_coefficient(model_instance, int(j), grad[j])
+                for j in nz}
+        rho = (_scaling.cut_row_factor(list(coef.values()) + [1.0])
+               if _scaling.is_scaled(model_instance) else 1.0)
         model_instance.SOC_CUTS.add(
-            model_instance.SOC_T >= pyo.quicksum(
-                float(grad[j]) * model_instance.scaling_vector[int(j)] for j in nz))
+            rho * model_instance.SOC_T >= pyo.quicksum(
+                rho * c * model_instance.scaling_vector[j] for j, c in coef.items()))
 
     # The certificate that actually decides optimality, and it needs nothing
     # from any other iterate. The LP is a relaxation of the true problem, so its

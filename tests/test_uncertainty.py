@@ -61,8 +61,11 @@ METHODS = {CLIMATE_KEY: 1}
 DETERMINISTIC_IMPACT = 1.760427
 
 
-def build_solved_worker():
-    """Set up and solve the methanol + ozone system from the toy notebook."""
+def build_solved_worker(scale: bool = False):
+    """Set up and solve the methanol + ozone system from the toy notebook.
+
+    ``scale=True`` builds the equilibrated instance (``instantiate(scale=True)``).
+    """
     worker = pulpo_unc.PulpoOptimizerUnc(PROJECT, DATABASES, METHODS, "")
     worker.get_lci_data()
 
@@ -83,7 +86,8 @@ def build_solved_worker():
     }
     lower_limit = {oxygen_byproduct[0]: 0}
 
-    worker.instantiate(choices=choices, demand=demand, lower_limit=lower_limit)
+    worker.instantiate(choices=choices, demand=demand, lower_limit=lower_limit,
+                       scale=scale)
     worker.solve()
     return worker
 
@@ -409,10 +413,11 @@ class TestChanceConstrained(unittest.TestCase):
     """``create_CC_formulation`` + ``solve_CC_problem`` Pareto trace."""
 
     LAMBDAS = [0.50, 0.75, 0.90, 0.95]
+    SCALE = False
 
     @classmethod
     def setUpClass(cls):
-        cls.worker = build_solved_worker()
+        cls.worker = build_solved_worker(scale=cls.SCALE)
         prepare_uncertainty(cls.worker)
         # The normal transformation samples the triangular distributions;
         # stats_arrays draws from numpy's global RNG, so seed it for
@@ -463,14 +468,31 @@ class TestChanceConstrained(unittest.TestCase):
 
 
 @unittest.skipUnless(UNCERTAINTY_DEPS, UNCERTAINTY_SKIP_REASON)
+class TestChanceConstrainedScaled(TestChanceConstrained):
+    """The same CC trace on an equilibrated instance (``scale=True``).
+
+    The formulation writes its coefficients and bounds in the model's scaled
+    units and reads back in original units, so the seeded reference trace of
+    the parent class must be reproduced unchanged.
+    """
+
+    SCALE = True
+
+    def test_instance_is_scaled(self):
+        from pulpo.utils import scaling
+        self.assertTrue(scaling.is_scaled(self.worker.instance))
+
+
+@unittest.skipUnless(UNCERTAINTY_DEPS, UNCERTAINTY_SKIP_REASON)
 class TestExactSOC(unittest.TestCase):
     """``create_SOC_formulation`` + ``solve_SOC_problem`` exact-variance Pareto trace."""
 
     LAMBDAS = [0.50, 0.75, 0.90, 0.95]
+    SCALE = False
 
     @classmethod
     def setUpClass(cls):
-        cls.worker = build_solved_worker()
+        cls.worker = build_solved_worker(scale=cls.SCALE)
         prepare_uncertainty(cls.worker)
         np.random.seed(42)
         cls.coeffs = cls.worker.create_SOC_formulation(
@@ -558,6 +580,24 @@ class TestExactSOC(unittest.TestCase):
         with self.assertRaises(Exception) as context:
             worker.create_SOC_formulation()
         self.assertIn("import_and_filter_uncertainty_data", str(context.exception))
+
+
+@unittest.skipUnless(UNCERTAINTY_DEPS, UNCERTAINTY_SKIP_REASON)
+class TestExactSOCScaled(TestExactSOC):
+    """The same exact-SOC trace on an equilibrated instance (``scale=True``).
+
+    ``solve_exact`` writes each cut in the model's scaled units and reads the
+    iterate back in original units, so the seeded reference trace, the
+    lambda = 0.5 collapse and the L1 dominance must all hold unchanged. The
+    inherited direct-method comparison additionally checks the cone rows when
+    Gurobi is available.
+    """
+
+    SCALE = True
+
+    def test_instance_is_scaled(self):
+        from pulpo.utils import scaling
+        self.assertTrue(scaling.is_scaled(self.worker.instance))
 
 
 class _RecordingSampler:

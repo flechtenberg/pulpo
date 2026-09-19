@@ -327,10 +327,12 @@ def apply_CC_formulation(
     The two are separable on purpose: ``risk_budget`` with the default
     ``'gaussian'`` marginals and unit weights reproduces the individual
     formulation term for term, which is what makes the change testable.
+
+    Works on an equilibrated instance (``instantiate(scale=True)``): the
+    environmental costs go through ``update_env_cost`` and the process bound
+    quantiles are stored as ``bound / s_j`` (see ``scaling``); impact and
+    intervention limits are never scaled.
     """
-    # The bound quantiles are written straight into the limit Params, which on
-    # an equilibrated model are in scaled units. See scaling.py.
-    _scaling.require_unscaled(model_instance, "The CC formulation")
     if risk_budget is not None and not np.isclose(risk_budget.lambda_level,
                                                   lambda_level):
         raise ValueError(
@@ -404,6 +406,11 @@ def apply_CC_formulation(
                          + unc_data['scale'] * scipy.stats.norm.ppf(probability))
             bound_updated[indx] = value
 
+        if pyomo_var_name in ('UPPER_LIMIT', 'LOWER_LIMIT'):
+            # Process bounds cap x_j = s_j * y_j; the Param bounds y_j.
+            bound_updated = {
+                indx: _scaling.to_scaled_process_bound(model_instance, indx, value)
+                for indx, value in bound_updated.items()}
         pyomo_bound = getattr(model_instance, pyomo_var_name)
         pyomo_bound.store_values(bound_updated, check=True)
 

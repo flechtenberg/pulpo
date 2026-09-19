@@ -34,6 +34,15 @@ values as soon as ``solve_model`` returns. The constraint rows of the instance,
 ``model._env_cost`` and the limit Params stay in scaled units; the factors are
 available as ``model._row_scale`` (per product) and ``model._col_scale`` (per
 process).
+
+Writing onto a scaled instance: anything that adds a term ``c * x_j`` to a
+constraint or a bound ``x_j <= b`` after ``instantiate`` must express it in the
+model's units, i.e. ``(c * s_j) * scaling_vector[j]`` and ``b / s_j`` in
+``LOWER_LIMIT`` / ``UPPER_LIMIT``. :func:`to_scaled_coefficient`,
+:func:`to_scaled_process_bound` and :func:`from_scaled_process_bound` do
+that and are the identity on an unscaled model; the uncertainty formulations
+(``uncertainty.soc`` and ``uncertainty.cc``) go through them. Impact and
+inventory quantities are never scaled and need no conversion.
 """
 
 import warnings
@@ -235,22 +244,62 @@ def is_scaled(model):
     return bool(getattr(model, '_col_scale', None))
 
 
-def require_unscaled(model, feature):
-    """Refuse ``feature`` on an equilibrated model.
+def col_factor(model, j):
+    """Column factor ``s_j`` of process ``j`` (``x_j = s_j * y_j``); 1.0 if unscaled."""
+    if not is_scaled(model):
+        return 1.0
+    return float(model._col_scale[j])
 
-    The uncertainty formulations write coefficients and bounds expressed in
-    *original* units onto ``scaling_vector`` and onto the limit Params, which
-    on a scaled model hold scaled quantities (``x = s * y``). Combining them
-    would not fail -- it would return a plausible, wrong answer -- so the
-    combination is refused until those formulations are made scale-aware.
+
+def to_scaled_coefficient(model, j, coefficient):
+    """Coefficient of ``scaling_vector[j]`` for a term ``coefficient * x_j``.
+
+    ``c * x_j == (c * s_j) * y_j``, so a row written in original units goes
+    onto the model multiplied by the column factor. Identity when unscaled.
     """
-    if is_scaled(model):
-        raise NotImplementedError(
-            f"{feature} is not supported on an equilibrated model. Its coefficients "
-            "and bounds are in original units, while a scaled model's variables and "
-            "limit Params are not, so the result would be silently wrong. "
-            "Re-run instantiate(..., scale=False) for this formulation."
+    return float(coefficient) * col_factor(model, j)
+
+
+def to_scaled_process_bound(model, j, bound):
+    """Value to store in ``LOWER_LIMIT[j]`` / ``UPPER_LIMIT[j]`` for ``x_j <> bound``.
+
+    ``x_j <= b`` is ``y_j <= b / s_j``. A finite scaled bound beyond
+    :data:`SCALED_BOUND_CAP` becomes infinite, as ``equilibrate_model_data``
+    does at build time, with the same warning. Identity when unscaled.
+    """
+    bound = float(bound)
+    if not is_scaled(model) or not np.isfinite(bound):
+        return bound
+    n_capped = [0]
+    value = _cap_bound(bound / col_factor(model, j), n_capped)
+    if n_capped[0]:
+        warnings.warn(
+            f"a process bound written onto the scaled model exceeded {SCALED_BOUND_CAP:.0e} "
+            "in magnitude after scaling and was treated as infinite.",
+            UserWarning, stacklevel=3,
         )
+    return value
+
+
+def from_scaled_process_bound(model, j, value):
+    """Read a ``LOWER_LIMIT[j]`` / ``UPPER_LIMIT[j]`` value back in original units."""
+    return float(value) * col_factor(model, j)
+
+
+def cut_row_factor(coefficients, stat_cut=1e-11):
+    """Power-of-two row factor centring a constraint row at 1 (``max * min == 1``).
+
+    Same per-row rule as :func:`geometric_scaling`, for a single row written
+    after the build (a Kelley cut, for instance). Entries below ``stat_cut``
+    in magnitude are ignored for the statistics; an empty row gives 1.0.
+    Multiplying a whole constraint by a power of two is exact and leaves the
+    LP unchanged, so this only affects the solver's conditioning.
+    """
+    mags = np.abs(np.asarray(coefficients, dtype=float))
+    mags = mags[mags >= stat_cut]
+    if mags.size == 0:
+        return 1.0
+    return float(2.0 ** np.round(-0.5 * np.log2(mags.max() * mags.min())))
 
 
 def _apply(model, unscale):

@@ -294,42 +294,208 @@ class TestScaledSolveEqualsUnscaled(unittest.TestCase):
             self.assertAlmostEqual(worker.instance.scaling_vector[idx].value, v, places=7)
 
 
-class TestUncertaintyFormulationsRefuseScaledModels(unittest.TestCase):
-    """The SOC/CC formulations must refuse a scaled model rather than mis-solve it.
+def _facility_model_data(scale, alternative=False):
+    """A three-process model with an ecoinvent-style facility (see TestFacilityLeak).
 
-    They write coefficients and bounds in original units onto ``scaling_vector``
-    and the limit Params, which a scaled model does not hold -- so the failure
-    would otherwise be a plausible wrong number, not an error.
+    processes: 0 makes the demanded product D, 1 makes E, 2 makes the facility F.
+    With ``alternative=True`` a fourth process also makes D, without the
+    facility, at a higher but certain environmental cost -- which gives the
+    chance-constrained formulations a genuine trade-off to decide.
+    """
+    tech = {(0, 0): 1.0, (1, 1): 1.0, (2, 2): 1.0,
+            (2, 0): -1e-10,   # D consumes 1e-10 facilities per unit
+            (1, 2): -1e11}    # a facility consumes 1e11 E
+    env = {(0, 'h'): 0.0, (1, 'h'): 1.0, (2, 'h'): 0.0}   # only E carries impact
+    processes = [0, 1, 2]
+    if alternative:
+        processes.append(3)
+        tech[(0, 3)] = 1.0
+        env[(3, 'h')] = 11.0
+    data = {None: {
+        'PRODUCT': {None: [0, 1, 2]}, 'PROCESS': {None: processes}, 'INDICATOR': {None: ['h']},
+        'INV': {None: []}, 'PRODUCT_PROCESS': {None: list(tech)}, 'INV_PROCESS': {None: []},
+        'TECH_MATRIX': tech, 'ENV_COST_MATRIX': env, 'INV_MATRIX': {},
+        'FINAL_DEMAND': {0: 1.0, 1: 0.0, 2: 0.0}, 'SUPPLY': {0: 0, 1: 0, 2: 0},
+        'LOWER_LIMIT': {j: 0.0 for j in processes}, 'UPPER_LIMIT': {j: float('inf') for j in processes},
+        'UPPER_INV_LIMIT': {}, 'LOWER_INV_LIMIT': {},
+        'UPPER_IMP_LIMIT': {'h': float('inf')}, 'LOWER_IMP_LIMIT': {'h': -float('inf')},
+        'GOAL_INDICATOR': {None: []}, 'IMP_GOALS': {}, 'WEIGHTS': {'h': 1},
+        'DEPENDENT_CONSTRAINTS': {None: []}, 'LEFT_WEIGHTS': {}, 'RIGHT_WEIGHTS': {},
+    }}
+    if scale:
+        scaling.equilibrate_model_data(data)
+    return data
+
+
+class TestUncertaintyFormulationsOnScaledModels(unittest.TestCase):
+    """The SOC/CC formulations write in the model's units, so a scaled instance
+    gives the right answer.
+
+    They add terms ``c * x_j`` and bounds ``x_j <= b`` after the build; on an
+    equilibrated model the variable is ``y_j = x_j / s_j``, so what reaches the
+    model must be ``c * s_j`` and ``b / s_j``. Checked on the facility model
+    with a certain alternative route, whose column factors are far from unity
+    (the sample database's coefficients are O(1), so there the factors would
+    all be 1 and the test vacuous), against the analytic optimum -- the
+    unscaled LP is not a valid reference here, see TestFacilityLeak.
     """
 
-    def setUp(self):
+    LAMBDA = 0.9
+
+    @classmethod
+    def setUpClass(cls):
         try:
             from pulpo.utils.uncertainty import cc, soc  # noqa: F401
         except ImportError:
-            self.skipTest("the 'uncertainty' extra is not installed")
-        worker, demand, choices = _sample_worker()
-        worker.instantiate(choices=choices, demand=demand, scale=True)
-        self.instance = worker.instance
+            raise unittest.SkipTest("the 'uncertainty' extra is not installed")
 
-    def test_soc_refuses(self):
+    @staticmethod
+    def _coeffs():
         from pulpo.utils.uncertainty import soc
-        with self.assertRaises(NotImplementedError) as ctx:
-            soc.apply_SOC_formulation(self.instance, 0.95, coeffs=None)
-        self.assertIn("scale=False", str(ctx.exception))
+        # Variances chosen to span the range of an ecoinvent system: the
+        # facility's cost is uncertain by 1e10 per facility (1 per 1e-10 of it).
+        mu = np.array([0.0, 1.0, 0.0, 11.0])
+        d = np.array([0.01, 0.04, 1e20, 0.25])
+        return soc.SOCCoefficients(mu, d, np.zeros(0), np.zeros(0, dtype=int),
+                                   sps.csr_matrix((0, 4)), np.sqrt(d), 'h')
 
-    def test_cc_refuses(self):
-        from pulpo.utils.uncertainty import cc
-        with self.assertRaises(NotImplementedError) as ctx:
-            cc.apply_CC_formulation(self.instance, 0.95)
-        self.assertIn("scale=False", str(ctx.exception))
+    @classmethod
+    def _analytic_optimum(cls, coeffs):
+        # x = (a, 10a, 1e-10 a, 1 - a): minimise mean + z * sigma over a in [0, 1].
+        import scipy.optimize, scipy.stats
+        z = scipy.stats.norm.ppf(cls.LAMBDA)
 
-    def test_unscaled_model_is_not_refused(self):
+        def objective(a):
+            x = np.array([a, 10 * a, 1e-10 * a, 1 - a])
+            return float(coeffs.mu_env_cost @ x + z * np.sqrt(coeffs.d @ x ** 2))
+
+        res = scipy.optimize.minimize_scalar(objective, bounds=(0.0, 1.0), method='bounded',
+                                             options={'xatol': 1e-12})
+        return res.fun, res.x
+
+    def _scaled_instance(self):
+        model = optimizer.instantiate(_facility_model_data(scale=True, alternative=True))
+        self.assertTrue(scaling.is_scaled(model))
+        self.assertTrue(any(f != 1.0 for f in model._col_scale.values()))
+        return model
+
+    def test_cutting_plane_reaches_the_analytic_optimum(self):
+        from pulpo.utils.uncertainty import soc
+        coeffs = self._coeffs()
+        model = self._scaled_instance()
+        soc.prepare_exact_model(model, coeffs)
+        outcome = soc.solve_exact(model, coeffs, self.LAMBDA,
+                                  lambda m: optimizer.solve_model(m), verbose=False)
+        best, a_star = self._analytic_optimum(coeffs)
+        self.assertAlmostEqual(outcome['objective'] / best, 1.0, places=5)
+        self.assertLess(outcome['exactness'], 1e-4)     # T == sigma(s*) at the returned point
+        self.assertEqual(outcome['bound_crossing'], 0.0)
+        # The iterate is read back in original units.
+        x = soc.current_scaling_vector(model, 4)
+        self.assertAlmostEqual(x[0] + x[3], 1.0, places=9)
+        self.assertAlmostEqual(x[1], 10 * x[0], places=6)
+        # Kelley certifies the value, not the argmin: the objective is flat
+        # around a*, so the iterate is only close to it.
+        self.assertAlmostEqual(x[0], a_star, places=2)
+
+    def test_cut_is_exact_at_its_own_point_in_the_models_units(self):
+        # The identity behind the cutting planes is grad @ x == sigma. The cut
+        # is written against y = x / s, so its coefficients must be grad * s;
+        # writing grad itself (what the unguarded path did) breaks the identity.
+        from pulpo.utils.uncertainty import soc
+        coeffs = self._coeffs()
+        model = self._scaled_instance()
+        soc.prepare_exact_model(model, coeffs)
+        optimizer.solve_model(model)
+        x = soc.current_scaling_vector(model, 4)
+        sigma, grad = soc.impact_std_gradient(x, coeffs)
+        scaling.rescale_solution(model)
+        try:
+            y = {j: model.scaling_vector[j].value for j in model.PROCESS}
+            written = sum(scaling.to_scaled_coefficient(model, j, grad[j]) * y[j] for j in y)
+            naive = sum(grad[j] * y[j] for j in y)
+        finally:
+            scaling.unscale_solution(model)
+        self.assertAlmostEqual(written / sigma, 1.0, places=9)
+        self.assertNotAlmostEqual(naive / sigma, 1.0, places=2)
+
+    def test_cut_row_factor_is_a_power_of_two_centring_the_row(self):
+        rho = scaling.cut_row_factor([1e-8, 1.0, 1e8])
+        self.assertEqual(rho, 1.0)
+        rho = scaling.cut_row_factor([4.0, 1024.0])
+        self.assertEqual(rho, 1.0 / 64)                  # sqrt(4 * 1024) = 64
+        self.assertEqual(np.log2(scaling.cut_row_factor([3e-7, 5e9, 1.0])) % 1, 0.0)
+        self.assertEqual(scaling.cut_row_factor([]), 1.0)
+        self.assertEqual(scaling.cut_row_factor([1e-20]), 1.0)  # below stat_cut
+
+    def test_cc_process_bound_is_stored_in_scaled_units(self):
         from pulpo.utils.uncertainty import cc
-        worker, demand, choices = _sample_worker()
-        worker.instantiate(choices=choices, demand=demand, scale=False)
-        # No metadata to apply, so this returns without touching the model --
-        # but it must not trip the scaling guard.
-        cc.apply_CC_formulation(worker.instance, 0.95)
+        import scipy.stats
+        model = self._scaled_instance()
+        # Chance-constrained cap on E (process 1): P(x_1 <= xi) >= lambda with
+        # xi ~ N(8, 1) gives x_1 <= 8 - z, in original units.
+        cc.apply_CC_formulation(model, self.LAMBDA, {}, {'upper_limit': {1: {'loc': 8.0, 'scale': 1.0}}})
+        cap = 8.0 - scipy.stats.norm.ppf(self.LAMBDA)
+        self.assertAlmostEqual(pyo.value(model.UPPER_LIMIT[1]) * model._col_scale[1], cap, places=12)
+        optimizer.solve_model(model)
+        # E = 10 a is capped, so a = cap / 10 and the rest of D comes from the
+        # certain route at cost 11: impact = 10 a + 11 (1 - a) = 11 - a.
+        a = cap / 10.0
+        self.assertAlmostEqual(model.scaling_vector[0].value, a, places=9)
+        self.assertAlmostEqual(model.scaling_vector[1].value, cap, places=9)
+        self.assertAlmostEqual(model.impacts['h'].value, 11.0 - a, places=9)
+
+    def test_direct_cone_rows_are_written_in_scaled_units(self):
+        # No solver needed: the defining rows c_k == sqrt(d_j) x_j must carry
+        # sqrt(d_j) * s_j on y_j = scaling_vector[j].
+        from pyomo.repn import generate_standard_repn
+        from pulpo.utils.uncertainty import soc
+        coeffs = self._coeffs()
+        model = self._scaled_instance()
+        soc.apply_SOC_formulation(model, self.LAMBDA, coeffs)
+        seen = set()
+        for k in model.SOC_TERM:
+            repn = generate_standard_repn(model.SOC_C_CNSTR[k].body)
+            for var, coef in zip(repn.linear_vars, repn.linear_coefs):
+                if var.parent_component() is model.scaling_vector:
+                    j = var.index()
+                    self.assertAlmostEqual(abs(coef) / (np.sqrt(coeffs.d[j]) * model._col_scale[j]),
+                                           1.0, places=12)
+                    seen.add(j)
+        self.assertEqual(seen, {0, 1, 2, 3})
+
+    def test_placeholder_relaxation_compares_and_writes_in_original_units(self):
+        from pulpo.utils.uncertainty import soc
+        model = self._scaled_instance()
+        # A 1e20 "uncapacitated" placeholder on E, as a case study would set it.
+        model.UPPER_LIMIT[1] = scaling.to_scaled_process_bound(model, 1, 1e20)
+        model.UPPER_LIMIT[0] = scaling.to_scaled_process_bound(model, 0, 5.0)   # a real cap
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")   # the 1e20 / s_j > cap warning
+            n = soc._relax_placeholder_bounds(model, replacement=1e6)
+        # The placeholder and the two infinite defaults are moved to the finite
+        # replacement (a free variable is what the barrier copes with worst);
+        # the real cap on D is left alone. All compared in original units.
+        self.assertEqual(n, 3)
+        for j in (1, 2, 3):
+            self.assertAlmostEqual(
+                scaling.from_scaled_process_bound(model, j, pyo.value(model.UPPER_LIMIT[j])), 1e6)
+        self.assertAlmostEqual(
+            scaling.from_scaled_process_bound(model, 0, pyo.value(model.UPPER_LIMIT[0])), 5.0)
+
+    def test_direct_qcp_matches_the_analytic_optimum(self):
+        from pulpo.utils.uncertainty import soc
+        if not pyo.SolverFactory('gurobi').available(exception_flag=False):
+            self.skipTest("'gurobi' Pyomo solver unavailable")
+        coeffs = self._coeffs()
+        model = self._scaled_instance()
+        soc.apply_SOC_formulation(model, self.LAMBDA, coeffs)
+        soc.solve_soc(model)
+        best, a_star = self._analytic_optimum(coeffs)
+        x = soc.current_scaling_vector(model, 4)   # original units: solve_soc unscales
+        self.assertAlmostEqual(x[0] + x[3], 1.0, places=6)
+        self.assertAlmostEqual(x[0], a_star, places=4)
+        self.assertAlmostEqual(pyo.value(model.OBJ) / best, 1.0, places=5)
 
 
 class TestFacilityLeak(unittest.TestCase):
@@ -343,30 +509,8 @@ class TestFacilityLeak(unittest.TestCase):
     With scaling the balance holds to 1e-9 relative to the row's own terms.
     """
 
-    @staticmethod
-    def _model_data(scale):
-        # processes: 0 makes the demanded product D, 1 makes E, 2 makes the facility F
-        tech = {(0, 0): 1.0, (1, 1): 1.0, (2, 2): 1.0,
-                (2, 0): -1e-10,   # D consumes 1e-10 facilities per unit
-                (1, 2): -1e11}    # a facility consumes 1e11 E
-        env = {(0, 'h'): 0.0, (1, 'h'): 1.0, (2, 'h'): 0.0}   # only E carries impact
-        data = {None: {
-            'PRODUCT': {None: [0, 1, 2]}, 'PROCESS': {None: [0, 1, 2]}, 'INDICATOR': {None: ['h']},
-            'INV': {None: []}, 'PRODUCT_PROCESS': {None: list(tech)}, 'INV_PROCESS': {None: []},
-            'TECH_MATRIX': tech, 'ENV_COST_MATRIX': env, 'INV_MATRIX': {},
-            'FINAL_DEMAND': {0: 1.0, 1: 0.0, 2: 0.0}, 'SUPPLY': {0: 0, 1: 0, 2: 0},
-            'LOWER_LIMIT': {j: 0.0 for j in range(3)}, 'UPPER_LIMIT': {j: float('inf') for j in range(3)},
-            'UPPER_INV_LIMIT': {}, 'LOWER_INV_LIMIT': {},
-            'UPPER_IMP_LIMIT': {'h': float('inf')}, 'LOWER_IMP_LIMIT': {'h': -float('inf')},
-            'GOAL_INDICATOR': {None: []}, 'IMP_GOALS': {}, 'WEIGHTS': {'h': 1},
-            'DEPENDENT_CONSTRAINTS': {None: []}, 'LEFT_WEIGHTS': {}, 'RIGHT_WEIGHTS': {},
-        }}
-        if scale:
-            scaling.equilibrate_model_data(data)
-        return data
-
     def _solve(self, scale):
-        model = optimizer.instantiate(self._model_data(scale))
+        model = optimizer.instantiate(_facility_model_data(scale))
         optimizer.solve_model(model)
         x = {j: model.scaling_vector[j].value for j in range(3)}
         # exact facility balance in original units: x_F - 1e-10 x_D = 0

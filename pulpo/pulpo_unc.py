@@ -108,7 +108,12 @@ class PulpoOptimizerUnc(PulpoOptimizer):
         bbox_to_anchor: tuple = (0.65, -3.5),
         cmap_name: str = 'tab20',
     ) -> Dict[float, ResultDataDict]:
-        """Solve one or several Pareto points at the specified lambda level(s)."""
+        """Solve one or several Pareto points at the specified lambda level(s).
+
+        Works on an equilibrated instance (``instantiate(scale=True)``): the
+        formulation is written in the model's scaled units and every result is
+        reported in original units, so the front is the same either way.
+        """
         results: Dict[float, ResultDataDict] = {}
         if isinstance(lambda_level, float):
             cc.apply_CC_formulation(
@@ -184,6 +189,13 @@ class PulpoOptimizerUnc(PulpoOptimizer):
         ``create_CC_formulation``) keeps the linear per-bound chance
         constraints on variable bounds; only the objective's uncertainty
         aggregation changes.
+
+        Both methods work on an equilibrated instance
+        (``instantiate(scale=True)``): the cone rows and the cuts are written
+        in the model's scaled units and the results are read back in original
+        units, so ``scale`` does not change the front. On an ecoinvent-scale
+        system scaling also equilibrates the cut rows, which is where the
+        conditioning trouble described in ``soc.prepare_exact_model`` lives.
 
         Switching ``method`` on an instance that already carries the other
         method's components gives silently wrong results (a stale ``SOC_T``
