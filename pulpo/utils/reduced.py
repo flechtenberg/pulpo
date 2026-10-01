@@ -228,8 +228,14 @@ class Factorization:
 
 def backward_error(residual, size):
     """Largest ``|r_i| / size_i``: each residual relative to the size of its
-    row's terms (``|A| |x| + |b|``), zero where the row is empty."""
-    residual, size = np.abs(np.asarray(residual)), np.asarray(size)
+    row's terms (``|A| |x| + |b|``), zero where the row is empty.
+
+    The size is floored at machine epsilon times the largest one: a row whose
+    terms are smaller than that (activities of 1e-40 next to 1e10, say) holds
+    only the rounding of the larger terms, which no solve can remove.
+    """
+    residual, size = np.abs(np.asarray(residual, dtype=float)), np.asarray(size, dtype=float)
+    size = np.maximum(size, np.finfo(float).eps * float(size.max(initial=0.0)))
     ratio = np.divide(residual, size, out=np.zeros_like(residual), where=size > 0)
     return float(ratio.max(initial=0.0))
 
