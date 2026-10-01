@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pulpo-dev"
-version = "1.8.0"
+version = "2.0.0rc1"
 description = "Pulpo package for optimization in LCI databases"
 authors = [
   { name="Fabian Lechtenberg", email="fabian.lechtenberg@chem.ethz.ch" }
@@ -36,6 +36,10 @@ dependencies = [
     "xlsxwriter",
     "openpyxl",
     "pypardiso>=0.4.7; sys_platform != 'darwin'",
+    # Second-order cone solver of the chance-constrained problem.
+    "clarabel>=0.11",
+    # Distributions of uncertain parameters; already imported by bw_parser.
+    "stats_arrays>=0.7",
 ]
 
 [project.optional-dependencies]
@@ -50,15 +54,9 @@ bw25 = [
     "bw2calc>=2.0.0",
     "bw2data>=4.0.0"
 ]
-uncertainty = [
-    "stats_arrays==0.7.0",
-    # 1.4.8 breaks under numpy 2 (ndarray.ptp removed); 1.5.1 is the first
-    # release verified against numpy 2 + pandas 2.
-    "SALib==1.5.1",
-    "seaborn==0.13.2",
-    "matplotlib==3.10.7",
-    "typing_extensions==4.15.0"
-]
+# Kept so that "pulpo-dev[uncertainty]" still installs: the uncertainty
+# features need nothing beyond the core dependencies.
+uncertainty = []
 
 [project.urls]
 homepage = "https://github.com/flechtenberg/pulpo"

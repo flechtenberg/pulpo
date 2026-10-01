@@ -1,162 +1,65 @@
+"""Chance-constrained optimization in reduced space.
+
+Why
+---
+With a joint reliability level ``lambda`` over ``K`` events (the impact row
+and one per uncertain bound) and Boole's inequality, each event may fail with
+probability ``eps_k = w_k (1 - lambda)`` (equal weights by default). Then
+
+    impact row:  P(X <= z) >= lambda_z = 1 - eps_0
+                 =>  mu' s + kappa sigma(s) <= z,   kappa = Phi^-1(lambda_z)   (X normal, A2)
+    bound j:     P(s_j <= U_j) >= 1 - eps_k   =>  s_j <= F_Uj^-1(eps_k)        (exact quantile)
+
+and minimizing ``z`` gives ``min mu' s + kappa sigma(s)`` subject to PULPO's
+constraints with the uncertain bounds at their quantiles. In reduced space
+(``pulpo.utils.reduced``) ``s = s0 + S v`` and
+
+    sigma(s) = || R [1; v] ||,     R' R = G' G,     G = Q^(1/2) [s0, S]
+
+with ``Q = diag(d) + B_u' diag(w) B_u`` from :mod:`moments`. The problem is a
+second-order cone program with one column per alternative, solved directly by
+Clarabel (open source, the default) or Gurobi. ``kappa >= 0`` (``lambda_z >=
+1/2``) keeps it convex; lower levels are refused.
+
+``allocation='individual'`` imposes every event at ``lambda`` on its own (a
+comparison only: it controls no joint probability).
 """
-cc.py
 
-Chance-constrained formulation helpers. Moved out of pulpo.utils.optimizer so
-that the core optimizer module has no hard dependency on stats_arrays or on
-the uncertainty sub-package.
-
-These functions are only imported by the uncertainty-enabled optimizer facade
-(`pulpo.pulpo_unc`).
-"""
-
-import array
-from dataclasses import dataclass
+import time
+from dataclasses import dataclass, field
 from typing import Dict, Tuple
 
 import numpy as np
 import pandas as pd
+import scipy.sparse as sp
 import scipy.stats
 import stats_arrays
+from pyomo.opt import TerminationCondition
 
-from pulpo.utils import optimizer, scaling as _scaling
-from pulpo.utils.uncertainty.preparer import UncertaintyData, UncertaintySpec
+from pulpo.utils import optimizer
+from pulpo.utils import reduced as _reduced
+from pulpo.utils import scaling as _scaling
+from pulpo.utils.uncertainty.moments import Moments
+from pulpo.utils.uncertainty.preparer import UncertaintySpec, _validate
+
+#: Below this many entries of ``Q^(1/2) [s0, S]`` the factor ``R`` comes from a
+#: QR decomposition of that matrix; above, from the Gram matrix assembled with
+#: ``2 (K + 1)`` solves, which never stores the rows of ``S``.
+QR_ENTRIES = 2 ** 24
+
+#: Clarabel options for the cone. The error in the optimum scales with the
+#: tolerance (about 1e-6 relative at Clarabel's default of 1e-8 on an ecoinvent
+#: problem); 1e-10 is the tightest setting that still converges reliably.
+CLARABEL_OPTIONS = {'tol_gap_abs': 1e-10, 'tol_gap_rel': 1e-10, 'tol_feas': 1e-10}
+
+#: Gurobi options for the cone. Its default BarQCPConvTol (1e-6) moves the
+#: case study's front by up to 1e-5 Mt.
+GUROBI_CONE_OPTIONS = {'BarQCPConvTol': 1e-9, 'FeasibilityTol': 1e-9, 'OptimalityTol': 1e-9}
 
 
-def compute_L1_env_cost_mean_var(
-        normal_uncertainty_data: UncertaintyData,
-        lci_data: dict,
-        method: str,
-        plot_analysis_support_plots: bool = False,
-        ) -> Dict[Tuple[int, str], UncertaintySpec]:
-    """
-    Computes the environmental cost mean and variance associated with
-    the uncertain intervention and characterization flows specified in uncertainty_data.
-
-    This is a shortcut approach to implement an individual chance-constraint formulation
-    on the objective using the L1 norm on normally distributed uncertainties.
-    """
-    def _check_all_uncertainty_is_normal(uncertainty_data: UncertaintyData, method: str):
-        normal_id = stats_arrays.NormalUncertainty.id
-        for if_data in uncertainty_data['If'].values():
-            for spec in if_data['defined'].values():
-                if spec.get('uncertainty_type', None) != normal_id:
-                    raise ValueError("All 'If' uncertainty specs must be Normal distributions.")
-        for spec in uncertainty_data['Cf'][method]['defined'].values():
-            if spec.get('uncertainty_type', None) != normal_id:
-                raise ValueError("All 'Cf' uncertainty specs must be Normal distributions.")
-
-    def _extract_process_ids_and_intervention_flows_for_env_cost_variance(
-            uncertainty_data: UncertaintyData, lci_data: dict, method: str
-    ) -> tuple[array.array, pd.DataFrame]:
-        process_id_uncertain_if = []
-        for if_unc_data in uncertainty_data['If'].values():
-            process_id_uncertain_if += [if_indx for (_, if_indx) in if_unc_data['defined'].keys()]
-        Cf_indcs = list(uncertainty_data['Cf'][method]['defined'].keys())
-        process_id_associated_cf = lci_data['intervention_matrix'][Cf_indcs, :].nonzero()[1]
-        process_ids = np.unique(np.append(process_id_associated_cf, process_id_uncertain_if))
-        intervention_flows_extracted = pd.DataFrame.sparse.from_spmatrix(
-            lci_data['intervention_matrix'][Cf_indcs, :][:, process_ids],
-            index=Cf_indcs,
-            columns=process_ids,
-        )
-        intervention_flows_extracted_stacked = intervention_flows_extracted.stack().astype('float')
-        for If_db in uncertainty_data['If'].keys():
-            normal_means = pd.DataFrame.from_dict(uncertainty_data['If'][If_db]['defined']).T['loc']
-            intervention_flows_extracted_stacked.update(normal_means)
-        intervention_flows_extracted = intervention_flows_extracted_stacked.unstack()
-        return process_ids, intervention_flows_extracted
-
-    def _extract_characterization_factors_for_env_cost_variance(
-            uncertainty_data: UncertaintyData, lci_data: dict, method: str
-    ) -> pd.Series:
-        characterization_factor_mean = pd.Series(lci_data["matrices"][method].diagonal())
-        normal_means = pd.DataFrame.from_dict(uncertainty_data['Cf'][method]['defined']).T['loc']
-        characterization_factor_mean.update(normal_means)
-        return characterization_factor_mean
-
-    def _compute_envcost_variance(normal_uncertainty_data: UncertaintyData, lci_data, method) -> dict:
-        if_unc_dict = {}
-        for if_uncertainty_data in normal_uncertainty_data['If'].values():
-            if_unc_dict.update(if_uncertainty_data['defined'])
-        if_normal_metadata_df = pd.DataFrame(if_unc_dict).T
-        cf_normal_metadata_df = pd.DataFrame(normal_uncertainty_data['Cf'][method]['defined']).T
-        process_ids, intervention_flows_extracted = _extract_process_ids_and_intervention_flows_for_env_cost_variance(
-            normal_uncertainty_data, lci_data, method
-        )
-        characterization_factor_extracted = _extract_characterization_factors_for_env_cost_variance(
-            normal_uncertainty_data, lci_data, method
-        )
-        envcost_std = {}
-        for process_id in process_ids:
-            if process_id in if_normal_metadata_df.index.get_level_values(level=1):
-                intervention_flow_std = if_normal_metadata_df.xs(process_id, level=1, axis=0, drop_level=True)['scale']
-                characterization_factor_mean = characterization_factor_extracted[
-                    intervention_flow_std.index.get_level_values(level=0)
-                ]
-                characterization_factor_mean = characterization_factor_mean.reindex(
-                    intervention_flow_std.index, axis=0, level=0
-                )
-                mu_q2_sigma_b2 = characterization_factor_mean.pow(2).mul(intervention_flow_std.pow(2), axis=0)
-            else:
-                mu_q2_sigma_b2 = pd.Series([0])
-            if (intervention_flows_extracted[process_id] > 0).any():
-                characterization_factor_std = cf_normal_metadata_df['scale']
-                intervention_flow_mean = intervention_flows_extracted[process_id]
-                sigma_q2_mu_b2 = characterization_factor_std.pow(2).mul(intervention_flow_mean.pow(2), axis=0)
-            else:
-                sigma_q2_mu_b2 = pd.Series([0])
-            if (intervention_flows_extracted[process_id] > 0).any() and process_id in if_normal_metadata_df.index.get_level_values(level=1):
-                sigma_q2_sigma_b2 = characterization_factor_std.pow(2).mul(intervention_flow_std.pow(2))
-            else:
-                sigma_q2_sigma_b2 = pd.Series([0])
-            envcost_std[process_id] = np.sqrt(mu_q2_sigma_b2.sum() + sigma_q2_sigma_b2.sum() + sigma_q2_mu_b2.sum())
-        return envcost_std
-
-    def _compute_envcost_mean(lci_data: dict, normal_uncertainty_data: UncertaintyData, method: str) -> dict:
-        Cf_means = _extract_characterization_factors_for_env_cost_variance(normal_uncertainty_data, lci_data, method)
-        intervention_matrix_updated = lci_data['intervention_matrix'].tolil(copy=True)
-        for If_db in normal_uncertainty_data['If'].keys():
-            normal_means = pd.DataFrame.from_dict(normal_uncertainty_data['If'][If_db]['defined']).T['loc']
-            for (intervention_idx, process_id), mean_value in normal_means.items():
-                intervention_matrix_updated[intervention_idx, process_id] = mean_value
-        envcost_mean_array = np.asarray(Cf_means.values) @ intervention_matrix_updated.tocsr()
-        envcost_mean_values = np.asarray(envcost_mean_array).ravel()
-        envcost_mean = {process_id: float(value) for process_id, value in enumerate(envcost_mean_values)}
-        return envcost_mean
-
-    def _check_envcost_variance(envcost_std: dict, envcost_mean: dict, lci_data: dict, plot_details: bool = False):
-        envcost_std_mean = pd.DataFrame.from_dict(envcost_std, orient='index', columns=['std'])
-        envcost_std_mean['metadata'] = envcost_std_mean.index.map(lci_data['process_map_metadata'])
-        if envcost_std_mean['std'].isna().any():
-            raise Exception('There are NaNs in the standard deviation')
-        envcost_std_mean['mean'] = envcost_std_mean.index.map(envcost_mean)
-        envcost_std_mean['z'] = envcost_std_mean['std'] / envcost_std_mean['mean']
-        if (envcost_std_mean['z'] > 0.5).any():
-            if plot_details:
-                print('These environmental costs have a standard deviation larger than 50% of their mean:\n')
-                print(envcost_std_mean[envcost_std_mean['z'] > 0.5].sort_values('z', ascending=False))
-        if plot_details:
-            envcost_std_mean['z'].sort_values(ascending=False).iloc[5:].plot.box()
-            print('The following points were excluded from the boxplot:')
-            print(envcost_std_mean['z'].sort_values(ascending=False).iloc[:5])
-
-    _check_all_uncertainty_is_normal(normal_uncertainty_data, method)
-    envcost_std = _compute_envcost_variance(normal_uncertainty_data, lci_data, method)
-    envcost_mean = _compute_envcost_mean(lci_data, normal_uncertainty_data, method)
-    _check_envcost_variance(envcost_std, envcost_mean, lci_data, plot_details=plot_analysis_support_plots)
-    normal_metadata_env_cost: Dict[Tuple[int, str], UncertaintySpec] = {
-        (process_id, method): {
-            'loc': envcost_mean[process_id],
-            'scale': envcost_std[process_id],
-            'uncertainty_type': stats_arrays.NormalUncertainty.id,
-            'amount': np.nan,
-            'maximum': np.nan,
-            'minimum': np.nan,
-            'shape': np.nan,
-        } for process_id in envcost_std.keys()
-    }
-    return normal_metadata_env_cost
-
+# ---------------------------------------------------------------------------
+# Risk budget and exact quantiles
+# ---------------------------------------------------------------------------
 
 @dataclass(frozen=True)
 class RiskBudget:
@@ -167,16 +70,14 @@ class RiskBudget:
     the chance that at least one fails reaches ``K * eps``. Boole's inequality
     repairs this - allocate ``eps_k = w_k * eps`` with ``sum(w_k) = 1`` and the
     union of the failures is bounded by ``eps``, so every row holds *together*
-    with probability at least ``lambda``.
+    with probability at least ``lambda``. It needs only marginals, so no
+    correlation between the events has to be estimated.
 
-    The union bound needs only marginals, so no correlation between the events
-    has to be estimated, and nothing about the problem class changes: each row
-    is still a constant on the right-hand side, computed before the solve.
-
-    ``weights[0]`` is the impact target; ``weights[1:]`` are the variable-bound
-    rows in the deterministic order ``apply_CC_formulation`` assigns them. The
-    weights are parameters fixed before the solve - choosing them after seeing a
-    solution would make the budget a function of the decision it certifies.
+    ``weights[0]`` is the impact target; ``weights[1:]`` are the uncertain
+    bounds in the order of :attr:`ChanceConstrained.events` (lower bounds
+    first, then upper bounds, each by process index). The weights are
+    fixed before the solve - choosing them after seeing a solution would make
+    the budget a function of the decision it certifies.
     """
 
     lambda_level: float
@@ -198,228 +99,478 @@ class RiskBudget:
         return self.weights[position] * self.epsilon
 
 
-def bonferroni_budget(lambda_level: float, K: int,
-                      weights=None) -> RiskBudget:
+def bonferroni_budget(lambda_level: float, K: int, weights=None) -> RiskBudget:
     """Split ``1 - lambda_level`` across ``K`` events, equally unless told otherwise.
 
     An equal split is the default because it is neutral: it needs no
     justification and cannot be read as tuned to produce a result. Unequal
     weights are valid - Boole's inequality only requires them to sum to one -
-    and are worth running as a sensitivity, because budget spent on a constraint
-    that never binds returns nothing while the impact target is tight at every
-    solve by construction.
+    but each must be positive: a weight of zero demands its event with
+    certainty, which no distribution with unbounded support can meet.
     """
     if not 0.0 <= lambda_level < 1.0:
-        raise ValueError(
-            f"lambda_level must lie in [0, 1); got {lambda_level!r}.")
+        raise ValueError(f"lambda_level must lie in [0, 1); got {lambda_level!r}.")
     if K < 1:
         raise ValueError(f"K must be at least 1; got {K!r}.")
     if weights is None:
         weights = (1.0 / K,) * K
     weights = tuple(float(w) for w in weights)
     if len(weights) != K:
-        raise ValueError(
-            f"weights has length {len(weights)} but K is {K}; one weight per "
-            f"event, the first for the impact target.")
-    if any(w < 0.0 for w in weights):
-        raise ValueError(f"weights must be non-negative; got {weights!r}.")
+        raise ValueError(f"weights has length {len(weights)} but K is {K}; one weight per "
+                         "event, the first for the impact target.")
+    if any(not w > 0.0 for w in weights):
+        raise ValueError(f"weights must be positive; got {weights!r}.")
     if not np.isclose(sum(weights), 1.0):
-        raise ValueError(
-            f"weights must sum to 1 for Boole's inequality to bound the joint "
-            f"failure probability by {1.0 - lambda_level:.4g}; got "
-            f"{sum(weights):.6g}.")
-    return RiskBudget(lambda_level=float(lambda_level), K=int(K),
-                      weights=weights)
+        raise ValueError(f"weights must sum to 1 for Boole's inequality to bound the joint "
+                         f"failure probability by {1.0 - lambda_level:.4g}; got {sum(weights):.6g}.")
+    return RiskBudget(lambda_level=float(lambda_level), K=int(K), weights=weights)
 
 
 def declared_quantile(spec: UncertaintySpec, probability: float) -> float:
-    """The exact ``probability``-quantile of a parameter's *declared* family.
+    """The exact ``probability``-quantile of a parameter's declared family.
 
     A right-hand-side-only chance constraint ``P(s <= xi) >= 1 - eps`` is
-    equivalent to ``s <= F^-1(eps)`` with ``F`` the declared distribution, so it
-    needs no Gaussian representation at all. Normality is required where an
-    uncertain coefficient multiplies a decision variable and a sum has to be
-    reduced to a closed form; a bare bound carries no such requirement.
-
-    For triangular(a, b, c) the inverse CDF is elementary, which makes the bound
-    cheaper than the ``Phi^-1`` it replaces - and bounded below by the support
-    floor ``a``, which a moment-matched normal is not: at high reliability the
-    fitted normal eventually demands a negative availability.
+    ``s <= F^-1(eps)`` with ``F`` the declared distribution, so it needs no
+    Gaussian representation. For a triangular distribution the inverse CDF is
+    elementary and never leaves the support, which a moment-matched normal does
+    at high reliability.
     """
-    utype = int(spec['uncertainty_type'])
     p = float(probability)
     if not 0.0 <= p <= 1.0:
         raise ValueError(f"probability must lie in [0, 1]; got {p!r}.")
-
+    utype = int(spec['uncertainty_type'])
+    if utype in (stats_arrays.UndefinedUncertainty.id, stats_arrays.NoUncertainty.id):
+        return float(spec['amount'])
+    _validate(spec)
     if utype == stats_arrays.NormalUncertainty.id:
         return float(spec['loc'] + spec['scale'] * scipy.stats.norm.ppf(p))
     if utype == stats_arrays.UniformUncertainty.id:
-        minimum, maximum = float(spec['minimum']), float(spec['maximum'])
-        return minimum + p * (maximum - minimum)
+        a, b = float(spec['minimum']), float(spec['maximum'])
+        return a + p * (b - a)
     if utype == stats_arrays.TriangularUncertainty.id:
-        a, c = float(spec['minimum']), float(spec['maximum'])
-        b = float(spec['loc'])
-        if c <= a:
+        a, c, b = float(spec['minimum']), float(spec['loc']), float(spec['maximum'])
+        if b <= a:
             return a
-        # Which branch applies is decided by where the mode sits, not assumed:
-        # an unequal split with a large weight at low lambda can cross it.
-        threshold = (b - a) / (c - a)
-        if p <= threshold:
-            return a + np.sqrt(p * (c - a) * (b - a))
-        return c - np.sqrt((1.0 - p) * (c - a) * (c - b))
-    if utype == stats_arrays.LognormalUncertainty.id:
-        mu, sigma = float(spec['loc']), float(spec['scale'])
-        sign = -1.0 if spec.get('negative', False) else 1.0
-        # A negated lognormal is decreasing in p, so the quantile mirrors.
-        q = p if sign > 0 else 1.0 - p
-        return sign * float(np.exp(mu + sigma * scipy.stats.norm.ppf(q)))
-    raise NotImplementedError(
-        f"declared_quantile has no closed-form inverse CDF for "
-        f"uncertainty_type={utype}; supported types are Normal(3), Uniform(4), "
-        f"Triangular(5), Lognormal(2).")
+        # The branch follows from where the mode sits: a large share of the
+        # budget at a low level can cross it.
+        if p <= (c - a) / (b - a):
+            return a + np.sqrt(p * (b - a) * (c - a))
+        return b - np.sqrt((1.0 - p) * (b - a) * (b - c))
+    mu, sigma = float(spec['loc']), float(spec['scale'])
+    if spec.get('negative', False):
+        # A mirrored lognormal is decreasing in its own quantile.
+        return -float(np.exp(mu + sigma * scipy.stats.norm.ppf(1.0 - p)))
+    return float(np.exp(mu + sigma * scipy.stats.norm.ppf(p)))
 
 
-# Which Pyomo parameter each bound block writes to, and whether the bound is an
-# upper one. An upper bound needs F^-1(eps); a lower bound needs F^-1(1 - eps).
-_BOUND_BLOCKS = {
-    'upper_limit': ('UPPER_LIMIT', True),
-    'upper_imp_limit': ('UPPER_IMP_LIMIT', True),
-    'upper_inv_limit': ('UPPER_INV_LIMIT', True),
-    'lower_limit': ('LOWER_LIMIT', False),
-}
+# ---------------------------------------------------------------------------
+# The cone
+# ---------------------------------------------------------------------------
 
+def solve_socp(lp, R, kappa, solver_name=None, options=None):
+    """``min c'x + c0 + kappa ||R [1; x_v]||`` over the rows and bounds of ``lp``.
 
-def _bound_positions(normal_metadata_var_bounds) -> Dict[Tuple[str, int], int]:
-    """Assign each bound row its position in the weight vector, deterministically.
-
-    Position 0 is the impact target, so the rows start at 1. Sorted rather than
-    insertion-ordered: the weights are part of the reported configuration, and
-    which row received which weight must not depend on dictionary construction
-    order.
+    ``x_v`` are the first ``R.shape[1] - 1`` columns of ``lp``. Rows, columns
+    and the objective are equilibrated as in :func:`reduced.solve_lp`. Returns
+    a :class:`reduced.LPSolution`; ``objective`` includes the cone term.
     """
-    positions: Dict[Tuple[str, int], int] = {}
-    position = 1
-    for bound_name in sorted(normal_metadata_var_bounds):
-        for indx in sorted(normal_metadata_var_bounds[bound_name]):
-            positions[(bound_name, indx)] = position
-            position += 1
-    return positions
+    name = (solver_name or 'clarabel').lower()
+    if name not in ('clarabel', 'gurobi'):
+        raise ValueError(f"The chance-constrained problem solves with 'clarabel' or 'gurobi', not {solver_name!r}.")
+    if kappa < 0:
+        raise ValueError(f"kappa = {kappa:.4g} < 0 (impact level below 1/2) makes the problem non-convex.")
+    options = dict(options or {})
+    tee = bool(options.pop('tee', False))
+    n, kv = len(lp.c), R.shape[1] - 1
+    R0, R1 = R[:, 0], np.hstack([R[:, 1:], np.zeros((R.shape[0], n - kv))])
+    stats = sp.vstack([lp.matrix, sp.csr_matrix(lp.c.reshape(1, -1)), sp.csr_matrix(R1)], format='csr')
+    r, d = _scaling.ruiz_scaling(stats)
+    r = r[:lp.matrix.shape[0]]
+    M = (sp.diags(r) @ lp.matrix @ sp.diags(d)).tocsr()
+    c = lp.c * d
+    R1 = R1 * d
+    cmax = max(np.abs(c).max() if c.size else 0.0, kappa)
+    f = 2.0 ** -np.round(np.log2(cmax)) if cmax > 0 else 1.0
+    with np.errstate(invalid='ignore'):
+        lo, up = lp.row_lower * r, lp.row_upper * r
+        clo, cup = lp.col_lower / d, lp.col_upper / d
+
+    start = time.perf_counter()
+    if name == 'clarabel':
+        status, x = _solve_clarabel(c * f, kappa * f, M, lo, up, clo, cup, R0, R1, options, tee)
+    else:
+        status, x = _solve_gurobi_cone(c * f, kappa * f, M, lo, up, clo, cup, R0, R1, options, tee)
+    seconds = time.perf_counter() - start
+    if x is None:
+        return _reduced.LPSolution(status, seconds=seconds)
+    x = x * d
+    sigma = float(np.linalg.norm(R0 + R[:, 1:] @ x[:kv]))
+    return _reduced.LPSolution(status, x, float(lp.c @ x + lp.c0 + kappa * sigma), seconds)
 
 
-def apply_CC_formulation(
-        model_instance,
-        lambda_level: float,
-        normal_metadata_env_cost: Dict[Tuple[int, str], UncertaintySpec] = {},
-        normal_metadata_var_bounds: Dict[str, Dict[int, UncertaintySpec]] = {},
-        risk_budget: "RiskBudget" = None,
-        bound_quantile: str = 'gaussian',
-        ):
+def _linear_rows(M, lo, up, clo, cup):
+    """Split ``lo <= M x <= up`` and the column bounds into equalities and ``<=`` rows."""
+    n = M.shape[1]
+    eq = np.flatnonzero(lo == up)
+    rows_le, rhs_le = [M[np.flatnonzero((lo != up) & np.isfinite(up))]], [up[(lo != up) & np.isfinite(up)]]
+    rows_le.append(-M[np.flatnonzero((lo != up) & np.isfinite(lo))])
+    rhs_le.append(-lo[(lo != up) & np.isfinite(lo)])
+    ident = sp.identity(n, format='csr')
+    rows_le.append(ident[np.flatnonzero(np.isfinite(cup))])
+    rhs_le.append(cup[np.isfinite(cup)])
+    rows_le.append(-ident[np.flatnonzero(np.isfinite(clo))])
+    rhs_le.append(-clo[np.isfinite(clo)])
+    return M[eq], lo[eq], sp.vstack(rows_le, format='csr'), np.concatenate(rhs_le)
+
+
+def _solve_clarabel(c, kappa, M, lo, up, clo, cup, R0, R1, options, tee):
+    import clarabel
+    n = M.shape[1]
+    A_eq, b_eq, A_le, b_le = _linear_rows(M, lo, up, clo, cup)
+    # Variables (x, t). Cones: x rows = b_eq; b_le - A_le x >= 0; (t, R0 + R1 x) in SOC.
+    zero_col = lambda m: sp.csr_matrix((m.shape[0], 1))
+    soc = sp.vstack([sp.hstack([sp.csr_matrix((1, n)), sp.csr_matrix([[-1.0]])]),
+                     sp.hstack([sp.csr_matrix(-R1), zero_col(R1)])], format='csc')
+    A = sp.vstack([sp.hstack([A_eq, zero_col(A_eq)]), sp.hstack([A_le, zero_col(A_le)]), soc], format='csc')
+    b = np.concatenate([b_eq, b_le, [0.0], R0])
+    cones = [clarabel.ZeroConeT(A_eq.shape[0]), clarabel.NonnegativeConeT(A_le.shape[0]),
+             clarabel.SecondOrderConeT(1 + len(R0))]
+    settings = clarabel.DefaultSettings()
+    settings.verbose = tee
+    for key, value in {**CLARABEL_OPTIONS, **options}.items():
+        setattr(settings, key, value)
+    solution = clarabel.DefaultSolver(sp.csc_matrix((n + 1, n + 1)), np.append(c, kappa), A, b,
+                                      cones, settings).solve()
+    status = str(solution.status)
+    condition = {'Solved': TerminationCondition.optimal,
+                 'PrimalInfeasible': TerminationCondition.infeasible,
+                 'DualInfeasible': TerminationCondition.unbounded,
+                 'MaxIterations': TerminationCondition.maxIterations,
+                 'MaxTime': TerminationCondition.maxTimeLimit}.get(status, TerminationCondition.other)
+    if condition != TerminationCondition.optimal:
+        return condition, None
+    return condition, np.asarray(solution.x[:n], dtype=float)
+
+
+def _solve_gurobi_cone(c, kappa, M, lo, up, clo, cup, R0, R1, options, tee):
+    import gurobipy as gp
+    from gurobipy import GRB
+    env = gp.Env(empty=True)
+    env.setParam('OutputFlag', int(tee))
+    env.start()
+    try:
+        model = gp.Model(env=env)
+        n = M.shape[1]
+        x = model.addMVar(n, lb=np.where(np.isfinite(clo), clo, -GRB.INFINITY),
+                          ub=np.where(np.isfinite(cup), cup, GRB.INFINITY))
+        t = model.addVar(lb=0.0)
+        y = model.addMVar(len(R0), lb=-GRB.INFINITY)
+        eq = np.flatnonzero(lo == up)
+        le = np.flatnonzero((lo != up) & np.isfinite(up))
+        ge = np.flatnonzero((lo != up) & np.isfinite(lo))
+        if len(eq):
+            model.addMConstr(M[eq], x, GRB.EQUAL, lo[eq])
+        if len(le):
+            model.addMConstr(M[le], x, GRB.LESS_EQUAL, up[le])
+        if len(ge):
+            model.addMConstr(M[ge], x, GRB.GREATER_EQUAL, lo[ge])
+        model.addConstr(y == R0 + sp.csr_matrix(R1) @ x)
+        model.addConstr(y @ y <= t * t)
+        model.setObjective(c @ x + kappa * t, GRB.MINIMIZE)
+        for key, value in {**GUROBI_CONE_OPTIONS, **options}.items():
+            model.setParam(key, value)
+        model.optimize()
+        condition = {GRB.OPTIMAL: TerminationCondition.optimal,
+                     GRB.INFEASIBLE: TerminationCondition.infeasible,
+                     GRB.UNBOUNDED: TerminationCondition.unbounded,
+                     GRB.INF_OR_UNBD: TerminationCondition.infeasibleOrUnbounded,
+                     GRB.TIME_LIMIT: TerminationCondition.maxTimeLimit}.get(model.Status, TerminationCondition.other)
+        if condition != TerminationCondition.optimal:
+            return condition, None
+        return condition, np.asarray(x.X, dtype=float)
+    finally:
+        env.dispose()
+
+
+# ---------------------------------------------------------------------------
+# The chance-constrained problem
+# ---------------------------------------------------------------------------
+
+@dataclass
+class Point:
+    """One solved reliability level.
+
+    ``adjusted`` is the chance-constrained impact ``z = mean + kappa * sigma``;
+    ``mean`` and ``sigma`` are evaluated exactly at ``s`` (not read off the
+    cone). ``bounds`` holds the bound imposed on each uncertain process,
+    ``epsilon`` the failure probability allocated to each event.
     """
-    Inject or update the epsilon-constraint for a given risk level.
+    lambda_level: float
+    lambda_impact: float
+    kappa: float
+    mean: float
+    sigma: float
+    adjusted: float
+    s: np.ndarray
+    v: np.ndarray
+    bounds: Dict[Tuple[str, int], float]
+    epsilon: Dict[str, float]
+    seconds: dict = field(default_factory=dict)
+    rounds: int = 1
+    balance_residual: float = None
 
-    With ``risk_budget=None`` (the default) every row is imposed at
-    ``lambda_level`` individually, which is the historical behaviour and is
-    preserved exactly. Passing a :class:`RiskBudget` instead allocates a share
-    of the total failure budget to each row, so that they hold *jointly* at
-    ``lambda_level``; ``bound_quantile='exact'`` additionally reads each bound
-    off its declared distribution rather than off a moment-matched normal.
 
-    The two are separable on purpose: ``risk_budget`` with the default
-    ``'gaussian'`` marginals and unit weights reproduces the individual
-    formulation term for term, which is what makes the change testable.
+class Front(dict):
+    """``{lambda: Point}`` with a tabular view."""
 
-    Works on an equilibrated instance (``instantiate(scale=True)``): the
-    environmental costs go through ``update_env_cost`` and the process bound
-    quantiles are stored as ``bound / s_j`` (see ``scaling``); impact and
-    intervention limits are never scaled.
+    def table(self) -> pd.DataFrame:
+        return pd.DataFrame([{'lambda': p.lambda_level, 'lambda_impact': p.lambda_impact,
+                              'kappa': p.kappa, 'mean': p.mean, 'sigma': p.sigma,
+                              'adjusted': p.adjusted, 'seconds': p.seconds.get('total')}
+                             for p in self.values()]).set_index('lambda')
+
+
+class ChanceConstrainedError(RuntimeError):
+    """A reliability level did not solve to optimality; ``results`` holds its
+    :class:`reduced.ReducedResults`."""
+
+    def __init__(self, message, results):
+        super().__init__(message)
+        self.results = results
+
+
+class ChanceConstrained:
+    """``min mu' s + kappa sigma(s)`` at a reliability level, in reduced space.
+
+    Args:
+        model: a :class:`reduced.ReducedModel`, or an instantiated worker (whose
+            reduced model is built). Every deterministic constraint of the
+            instance applies; its objective is replaced by the chance-constrained
+            impact of ``moments.method``. A limit on that impact itself applies to
+            its mean ``mu' s`` (it is not chance-constrained).
+        moments (Moments): from :func:`moments.compute_moments`.
+        upper_bounds, lower_bounds (dict): uncertain process bounds,
+            ``{process: spec}`` with ``process`` an activity, a key or a process
+            index and ``spec`` a declared distribution (normal, lognormal,
+            uniform, triangular). They replace the instance's bounds on those
+            processes. Each one is an event of the risk budget.
+        allocation (str): ``'bonferroni'`` (joint, the default) or ``'individual'``.
+        weights (sequence, optional): Bonferroni weights, the first for the
+            impact row, then one per event in the order of :attr:`events`.
     """
-    if risk_budget is not None and not np.isclose(risk_budget.lambda_level,
-                                                  lambda_level):
-        raise ValueError(
-            f"risk_budget was built for lambda={risk_budget.lambda_level!r} but "
-            f"apply_CC_formulation was called with lambda={lambda_level!r}.")
-    if bound_quantile not in ('gaussian', 'exact'):
-        raise ValueError(
-            f"bound_quantile must be 'gaussian' or 'exact'; got {bound_quantile!r}.")
-    if bound_quantile == 'exact' and risk_budget is None:
-        raise ValueError(
-            "bound_quantile='exact' needs a risk_budget: the exact quantile is "
-            "evaluated at the share of the failure budget allocated to each row.")
 
-    ppf_lambda = scipy.stats.norm.ppf(lambda_level)
-    if normal_metadata_env_cost:
-        # Under a budget the impact target is imposed at 1 - w_0 * eps, not at
-        # lambda: it is one of the K events the budget is divided among.
-        ppf_impact = (ppf_lambda if risk_budget is None
-                      else scipy.stats.norm.ppf(risk_budget.lambda_impact))
-        print(f'Applying CC constraints to the environmental cost calculation with lambda: {lambda_level}')
-        environmental_cost_updated = {
-            env_cost_indx: env_cost_data['loc'] + ppf_impact * env_cost_data['scale']
-            for env_cost_indx, env_cost_data in normal_metadata_env_cost.items()
-        }
-        optimizer.update_env_cost(model_instance, environmental_cost_updated)
+    def __init__(self, model, moments: Moments, upper_bounds=None, lower_bounds=None,
+                 allocation='bonferroni', weights=None):
+        self.worker = None if isinstance(model, _reduced.ReducedModel) else model
+        self.model = None
+        self.moments = moments
+        if allocation not in ('bonferroni', 'individual'):
+            raise ValueError(f"allocation must be 'bonferroni' or 'individual'; got {allocation!r}.")
+        self.allocation = allocation
+        self._model(model if self.worker is None else None)
+        events = []
+        for kind, specs in (('lower', lower_bounds or {}), ('upper', upper_bounds or {})):
+            for process, spec in specs.items():
+                spec = dict(spec)
+                _validate(spec, process)
+                events.append(((kind, self._process_index(process)), spec))
+        # Lower bounds first, then upper bounds, each by process index: the
+        # order in which weights[1:] are read, the same as PULPO 1.8.0's.
+        events.sort(key=lambda e: (e[0][0] != 'lower', e[0][1]))
+        if len({e[0] for e in events}) != len(events):
+            raise ValueError("A process carries the same uncertain bound twice.")
+        #: The events after the impact row, in budget order: ``(kind, process)``.
+        self.events = [e[0] for e in events]
+        self._specs = dict(events)
+        if weights is not None and allocation != 'bonferroni':
+            raise ValueError("weights apply to the Bonferroni allocation only.")
+        self.weights = None if weights is None else tuple(weights)
+        bonferroni_budget(0.5, self.K, self.weights)        # validates the weights
 
-    positions = _bound_positions(normal_metadata_var_bounds)
-    if risk_budget is not None and len(positions) + 1 != risk_budget.K:
-        raise ValueError(
-            f"the risk budget covers K={risk_budget.K} events but the model "
-            f"imposes {len(positions)} chance-constrained bound(s) plus the "
-            f"impact target, i.e. {len(positions) + 1}. K is claimed before the "
-            f"solve and must match the rows actually imposed; an unbounded "
-            f"alternative should carry no bound at all rather than a sentinel.")
+    def _model(self, model=None):
+        """The reduced model of the worker's current instance (rebuilt after a
+        re-instantiation), checked for what the problem supports."""
+        model = model or _reduced.build(self.worker)
+        if model is not self.model:
+            if self.model is None or model.system is not self.model.system:
+                self._C_SS = None
+                self._qr = None
+            if self.moments.mu.shape[0] != model.n:
+                raise ValueError("The moments and the model have different numbers of processes.")
+            if len(model.instance.GOAL_INDICATOR):
+                raise NotImplementedError("The chance-constrained objective replaces the goal objective; "
+                                          "instantiate with objective='weighted_sum'.")
+            self.model = model
+        return model
 
-    upper_branch = 0
-    for bound_name, metadata_vb in normal_metadata_var_bounds.items():
-        if not metadata_vb:
-            continue
-        if bound_name not in _BOUND_BLOCKS:
-            raise Exception(f'{bound_name} has not been implemented yet.')
-        pyomo_var_name, is_upper = _BOUND_BLOCKS[bound_name]
-        print(f'Applying CC constraints to the {bound_name} constraint with lambda: {lambda_level}')
+    def _process_index(self, process):
+        if isinstance(process, (int, np.integer)):
+            return int(process)
+        key = getattr(process, 'key', process)
+        return int(self.model.lci_data['process_map'][key])
 
-        bound_updated = {}
-        for indx, unc_data in metadata_vb.items():
-            if risk_budget is None:
-                # Unchanged from the individual formulation, term for term.
-                bound_updated[indx] = (unc_data['loc'] + (ppf_lambda if not is_upper
-                                                          else -ppf_lambda)
-                                       * unc_data['scale'])
-                continue
-            epsilon_k = risk_budget.epsilon_at(positions[(bound_name, indx)])
-            probability = epsilon_k if is_upper else 1.0 - epsilon_k
-            if bound_quantile == 'exact':
-                source = unc_data.get('source')
-                if source is None:
-                    raise ValueError(
-                        f"bound_quantile='exact' needs the declared distribution "
-                        f"under 'source' for {bound_name}[{indx}]; recompute the "
-                        f"moments with processor.compute_closed_form_moments.")
-                value = declared_quantile(source, probability)
-                if (int(source['uncertainty_type'])
-                        == stats_arrays.TriangularUncertainty.id):
-                    a, c = float(source['minimum']), float(source['maximum'])
-                    b = float(source['loc'])
-                    if c > a and probability > (b - a) / (c - a):
-                        upper_branch += 1
-            else:
-                value = (unc_data['loc']
-                         + unc_data['scale'] * scipy.stats.norm.ppf(probability))
-            bound_updated[indx] = value
+    @property
+    def K(self):
+        """Number of events: the impact row and every uncertain bound."""
+        return 1 + len(self.events)
 
-        if pyomo_var_name in ('UPPER_LIMIT', 'LOWER_LIMIT'):
-            # Process bounds cap x_j = s_j * y_j; the Param bounds y_j.
-            bound_updated = {
-                indx: _scaling.to_scaled_process_bound(model_instance, indx, value)
-                for indx, value in bound_updated.items()}
-        pyomo_bound = getattr(model_instance, pyomo_var_name)
-        pyomo_bound.store_values(bound_updated, check=True)
+    # -- levels and bounds ---------------------------------------------------
 
-    if risk_budget is not None:
-        print(f'  risk budget: eps={risk_budget.epsilon:.6g} split over '
-              f'K={risk_budget.K} events, weights={risk_budget.weights}, '
-              f'impact target at lambda={risk_budget.lambda_impact:.6g}')
-        if upper_branch:
-            # Reported rather than asserted: the upper branch is correct, it
-            # merely signals a split lopsided enough to push a row past its mode.
-            print(f'  note: {upper_branch} triangular bound(s) evaluated on the '
-                  f'upper branch of the inverse CDF (eps_k above (b-a)/(c-a))')
+    def levels(self, lambda_level):
+        """``(lambda_impact, {event: epsilon})`` at a joint level."""
+        if not 0.0 < lambda_level < 1.0:
+            raise ValueError(f"lambda must lie in (0, 1); got {lambda_level!r}.")
+        if self.allocation == 'individual':
+            return lambda_level, {event: 1.0 - lambda_level for event in self.events}
+        budget = bonferroni_budget(lambda_level, self.K, self.weights)
+        return budget.lambda_impact, {event: budget.epsilon_at(k + 1) for k, event in enumerate(self.events)}
+
+    def bounds(self, lambda_level):
+        """``{event: bound}``: the exact quantile imposed on each uncertain bound."""
+        _, eps = self.levels(lambda_level)
+        out = {}
+        for (kind, j), e in eps.items():
+            value = declared_quantile(self._specs[(kind, j)], e if kind == 'upper' else 1.0 - e)
+            if not np.isfinite(value):
+                raise ValueError(f"The {kind} bound on process {j} cannot hold with probability "
+                                 f"{1 - e:.6g}: its quantile is {value}.")
+            out[(kind, j)] = value
+        return out
+
+    # -- variance factor -----------------------------------------------------
+
+    def _factor(self, f_tilde):
+        """``R`` with ``R' R = G' G`` for the current demand (``s0`` depends on it)."""
+        mom, system = self.moments, self.model.system
+        s0 = system.base(f_tilde)
+        J = np.flatnonzero(mom.d > 0)
+        K = system.n_free
+        if (len(J) + len(mom.cf_rows)) * (K + 1) <= QR_ENTRIES:
+            if self._qr is None:
+                B_unc = mom.B_unc
+                self._qr = (J, system.rows(J), B_unc,
+                            system.project_vectors([B_unc[k] for k in range(B_unc.shape[0])]))
+            J, S_J, B_unc, BS = self._qr
+            sd, sw = np.sqrt(mom.d[J]), np.sqrt(mom.w)
+            G = np.vstack([np.column_stack([sd * s0[J], sd[:, None] * S_J]),
+                           np.column_stack([sw * (B_unc @ s0), sw[:, None] * BS])])
+            if G.shape[0] == 0:
+                return np.zeros((1, K + 1))
+            return np.linalg.qr(G, mode='r')
+        # Gram matrix C = [s0, S]' Q [s0, S] without storing rows of S:
+        # C_SS from K forward and K adjoint solves (once), C_S0 from one adjoint solve.
+        def Q(x):
+            return mom.d[:, None] * x + mom.B_unc.T @ (mom.w[:, None] * (mom.B_unc @ x))
+        if self._C_SS is None:
+            C = np.zeros((K, K))
+            chunk = max(1, _reduced.CHUNK_ENTRIES // max(system.n, 1))
+            for start in range(0, K, chunk):
+                cols = system.columns[start:start + chunk]
+                rhs = np.zeros((system.n, len(cols)))
+                rhs[cols, np.arange(len(cols))] = 1.0
+                X = system.factorization.solve(rhs)
+                Z = system.factorization.solve(Q(X), transpose=True)
+                C[:, start:start + len(cols)] = Z[system.columns, :]
+                system.solves += 2 * len(cols)
+            self._C_SS = (C + C.T) / 2.0
+        q0 = Q(s0[:, None])[:, 0]
+        C = np.empty((K + 1, K + 1))
+        C[0, 0] = float(s0 @ q0)
+        C[1:, 0] = C[0, 1:] = system.project_vectors([q0])[0]
+        C[1:, 1:] = self._C_SS
+        vals, vecs = np.linalg.eigh(C)
+        return np.sqrt(np.clip(vals, 0.0, None))[:, None] * vecs.T
+
+    # -- solve -----------------------------------------------------------------
+
+    def solve_point(self, lambda_level, solver_name=None, options=None) -> Point:
+        """Solve one reliability level; raises :class:`ChanceConstrainedError` unless optimal."""
+        start = time.perf_counter()
+        lambda_impact, eps = self.levels(lambda_level)
+        kappa = float(scipy.stats.norm.ppf(lambda_impact))
+        if kappa < 0:
+            raise ValueError(f"The impact row is imposed at {lambda_impact:.4g} < 1/2, which makes the "
+                             "problem non-convex; raise lambda.")
+        model, mom = (self._model() if self.worker is not None else self.model), self.moments
+        lower, upper = model.process_bounds()
+        imposed = self.bounds(lambda_level)
+        for (kind, j), value in imposed.items():
+            (upper if kind == 'upper' else lower)[j] = value
+        K = model.system.n_free
+        m = model.system.project_vectors([mom.mu])[0]
+        cache = {}
+
+        def factor(f_tilde):
+            key = f_tilde.tobytes()
+            if key not in cache:
+                cache[key] = (self._factor(f_tilde), float(mom.mu @ model.system.base(f_tilde)))
+            return cache[key]
+
+        def transform(lp, f_tilde):
+            m0 = factor(f_tilde)[1]
+            lp.c = np.concatenate([m, np.zeros(len(lp.c) - K)])
+            lp.c0 = m0
+            if ('impact', mom.method) in lp.row_labels:
+                # A limit on the uncertain impact holds for its mean.
+                i = lp.row_labels.index(('impact', mom.method))
+                lb, ub = _reduced._var_bounds(model.instance.impacts[mom.method])
+                matrix = lp.matrix.tolil()
+                matrix[i, :] = np.concatenate([m, np.zeros(len(lp.c) - K)])
+                lp.matrix = matrix.tocsr()
+                lp.row_lower[i], lp.row_upper[i] = lb - m0, ub - m0
+
+        def solve(lp, f_tilde):
+            return solve_socp(lp, factor(f_tilde)[0], kappa, solver_name=solver_name, options=options)
+
+        results, s = model.optimize(solve, bounds=(lower, upper), transform=transform)
+        if results.termination_condition != TerminationCondition.optimal:
+            raise ChanceConstrainedError(
+                f"lambda = {lambda_level}: the chance-constrained problem did not solve to optimality "
+                f"({results.termination_condition}).", results)
+        mean, sigma = mom.mean(s), mom.std(s)
+        results.seconds['total'] = time.perf_counter() - start
+        return Point(lambda_level=float(lambda_level), lambda_impact=float(lambda_impact), kappa=kappa,
+                     mean=mean, sigma=sigma, adjusted=mean + kappa * sigma, s=s, v=results.v,
+                     bounds=imposed, epsilon={f'{k}:{j}': e for (k, j), e in eps.items()},
+                     seconds=results.seconds, rounds=results.rounds,
+                     balance_residual=results.balance_residual)
+
+    def solve(self, lambdas, solver_name=None, options=None) -> Front:
+        """Solve every level of ``lambdas`` (one factorization serves them all)."""
+        lambdas = [lambdas] if np.isscalar(lambdas) else list(lambdas)
+        return Front((float(lam), self.solve_point(lam, solver_name, options)) for lam in lambdas)
+
+    def write(self, point: Point):
+        """Write a solved point onto the instance, as a solve would leave it, so
+        ``extract_results()`` and the rest read it. The impacts there are the
+        instance's deterministic ones; the point carries the chance-constrained ones."""
+        model = self._model() if self.worker is not None else self.model
+        model.write_solution(point.s, point.v)
+        inst, lci = model.instance, model.lci_data
+        methods = getattr(self.worker, 'method', None)
+        if isinstance(methods, dict) and len(methods) > 1 and 0 in methods.values():
+            optimizer.calculate_methods(inst, lci, methods)
+        optimizer.calculate_inv_flows(inst, lci)
+
+
+def apply_CC_formulation(model_instance, risk_budget: RiskBudget, upper_bounds=None, lower_bounds=None):
+    """Write the exact-quantile bounds of a risk budget onto a Pyomo instance.
+
+    For a full-space solve of a problem whose only uncertain rows are process
+    bounds. ``upper_bounds`` / ``lower_bounds`` map process indices to declared
+    distributions and take the budget's positions ``1, 2, ...``: lower bounds
+    first, then upper bounds, each by process index, as in
+    :class:`ChanceConstrained`. Values are
+    stored in the instance's units (see :mod:`pulpo.utils.scaling`).
+    """
+    events = sorted([(j, 'upper', spec) for j, spec in (upper_bounds or {}).items()]
+                    + [(j, 'lower', spec) for j, spec in (lower_bounds or {}).items()],
+                    key=lambda e: (e[1] != 'lower', e[0]))
+    if len(events) + 1 != risk_budget.K:
+        raise ValueError(f"the risk budget covers K={risk_budget.K} events but {len(events)} bound(s) plus "
+                         f"the impact target are {len(events) + 1}.")
+    for position, (j, kind, spec) in enumerate(events, start=1):
+        eps = risk_budget.epsilon_at(position)
+        value = declared_quantile(spec, eps if kind == 'upper' else 1.0 - eps)
+        param = model_instance.UPPER_LIMIT if kind == 'upper' else model_instance.LOWER_LIMIT
+        param[j] = _scaling.to_scaled_process_bound(model_instance, j, value)

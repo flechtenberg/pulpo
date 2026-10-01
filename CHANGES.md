@@ -13,6 +13,27 @@ All notable changes to this project will be documented in this file.
   solution is written back onto the instance, so results are read as before.
   Solved with HiGHS (default) or Gurobi. `method='full'` remains the default;
   the time-dependent model supports `method='full'` only.
+* **One uncertainty method, solved in reduced space** — `pulpo.utils.uncertainty`.
+  The parameters of an impact are imported with their declared distributions
+  (`import_declared`); parameters without one are deterministic and listed, not
+  filled in. Expert knowledge replaces distributions (`override`). The mean and
+  variance of the impact follow in closed form, shared characterization factors
+  included (`compute_moments`). `ChanceConstrained` minimizes the impact at a
+  joint reliability level over the impact and any uncertain capacities (Boole's
+  inequality, exact quantiles for the capacities) and sweeps the levels; each
+  level is a small second-order cone program over the alternatives, solved with
+  Clarabel (open source) or Gurobi. It reproduces PULPO 1.8.0's exact front.
+  `PulpoOptimizerUnc` offers the same steps as worker methods.
+
+### Breaking changes
+The 1.x uncertainty API is replaced without a deprecation period.
+* `PulpoOptimizerUnc`: `import_and_filter_uncertainty_data` → `import_uncertainty_data`,
+  `apply_uncertainty_strategies` → `apply_expert_knowledge`, `create_SOC_formulation` → `moments`,
+  and `create_CC_formulation` / `solve_CC_problem` / `solve_SOC_problem` → `chance_constrained(...).solve(lambdas)`.
+* Removed: gap-filling strategies, the parameter filter, Monte Carlo re-optimization,
+  the sampled sensitivity analysis, the `L1` formulation, the cutting planes, and the modules
+  `uncertainty.soc`, `gsa`, `monte_carlo` and `plots` (`soc.SOCCoefficients` is now `uncertainty.Moments`).
+* The `uncertainty` extra is empty; `clarabel` and `stats_arrays` are core dependencies.
 
 ## [1.8.0] - 2026-09-19
 

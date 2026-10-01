@@ -38,11 +38,12 @@ Applying optimization is recommended when the system of study has (1) many degre
 - **Specify constraints** on any activity in the life cycle inventories, interpreted as tangible limitations such as raw material availability, production capacity, or environmental regulations.
 - **Optimize for or constrain any impact category** for which characterization factors are available.
 - **Specify supply values** instead of final demands, which is relevant when only production volumes are known (e.g. [here](https://www.pnas.org/doi/10.1073/pnas.1821029116)).
-- **Optimize under uncertainty** via a dedicated pipeline: import and filter uncertain LCI parameters, apply uncertainty strategies, run Global Sensitivity Analysis (Sobol), perform Monte Carlo sampling, or solve Chance-Constrained programs to obtain Pareto-optimal solutions at user-defined probability levels.
+- **Optimize under uncertainty**: import the declared distributions of the inventory and characterization factors, compute the impact's mean and variance in closed form, and solve chance-constrained programs (jointly over the impact and uncertain capacities) to obtain the Pareto front over reliability levels.
+- **Solve in reduced space** with `solve(method='reduced')`: the same LP over the choice alternatives only, exact and much smaller on large databases.
 
 **Features recently completed:**
 
-> - [X] `ℹ️  Optimization under uncertainty [chance-constraints, Monte Carlo, global sensitivity analysis]`
+> - [X] `ℹ️  Optimization under uncertainty [chance-constraints, Monte Carlo]`
 > - [X] `ℹ️  Time-dependent optimization [time-indexed formulation with inter-timestep storage/carry-over]`
 > - [X] `ℹ️  Development of a GUI for simple optimization tasks` [Link](https://github.com/flechtenberg/pulpo-gui)
 > - [X] `ℹ️  Enable PULPO to work on both bw2 and bw25 projects`
@@ -70,11 +71,7 @@ or
 pip install "pulpo-dev[bw25]"
 ```
 
-Add the `uncertainty` extra (SALib, stats_arrays, seaborn) if you plan to use the `pulpo_unc` module for Monte Carlo, Chance-Constrained optimization, or Global Sensitivity Analysis:
-
-```sh
-pip install "pulpo-dev[bw25,uncertainty]"
-```
+The uncertainty features need no extra packages; the `uncertainty` extra is kept as an empty alias, so `pip install "pulpo-dev[bw25,uncertainty]"` still works.
 
 ### 🤖 Running PULPO
 
@@ -82,7 +79,7 @@ PULPO is organized into three optimizer classes, one per module, each covering a
 
 - **`pulpo.pulpo.PulpoOptimizer`** — the core LCO framework: technology/region choices, constraints, single- and multi-objective optimization (including goal programming), and supply-driven optimization. Start with the [PULPO showcase notebook](https://github.com/flechtenberg/pulpo/blob/master/notebooks/pulpo_showcase.ipynb), a complete walkthrough built around a methanol production case.
 - **`pulpo.pulpo_time.PulpoOptimizerTime`** — the time-indexed extension: per-timestep demands and limits, impact budgets aggregated across the horizon, and inter-timestep storage/carry-over. See the [time-dependent toy notebook](https://github.com/flechtenberg/pulpo/blob/master/notebooks/elec_time_toy.ipynb) for hourly and daily battery-dispatch examples.
-- **`pulpo.pulpo_unc.PulpoOptimizerUnc`** — the uncertainty extension: import and filter uncertain LCI parameters, apply gap-filling strategies, run Monte Carlo sampling, Chance-Constrained optimization, and Global Sensitivity Analysis. See the [uncertainty toy notebook](https://github.com/flechtenberg/pulpo/blob/master/notebooks/uncertainty_toy.ipynb).
+- **`pulpo.pulpo_unc.PulpoOptimizerUnc`** — the uncertainty extension (a thin layer over `pulpo.utils.uncertainty`): import declared distributions, add expert knowledge, and solve chance-constrained programs in reduced space. See the [uncertainty toy notebook](https://github.com/flechtenberg/pulpo/blob/master/notebooks/uncertainty_toy.ipynb).
 
 Additional example notebooks are available for a [hydrogen case](https://github.com/flechtenberg/pulpo/blob/master/notebooks/showcases/hydrogen_showcase.ipynb), an [electricity case](https://github.com/flechtenberg/pulpo/blob/master/notebooks/showcases/electricity_showcase.ipynb), and a [plastic case](https://github.com/flechtenberg/pulpo/blob/master/notebooks/showcases/plastic_showcase.ipynb).
 

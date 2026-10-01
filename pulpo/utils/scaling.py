@@ -40,9 +40,8 @@ constraint or a bound ``x_j <= b`` after ``instantiate`` must express it in the
 model's units, i.e. ``(c * s_j) * scaling_vector[j]`` and ``b / s_j`` in
 ``LOWER_LIMIT`` / ``UPPER_LIMIT``. :func:`to_scaled_coefficient`,
 :func:`to_scaled_process_bound` and :func:`from_scaled_process_bound` do
-that and are the identity on an unscaled model; the uncertainty formulations
-(``uncertainty.soc`` and ``uncertainty.cc``) go through them. Impact and
-inventory quantities are never scaled and need no conversion.
+that and are the identity on an unscaled model. Impact and inventory
+quantities are never scaled and need no conversion.
 
 The reduced backend (``solve(method='reduced')``) solves a different, small
 and dense LP and equilibrates it with :func:`ruiz_scaling` on every solve,
@@ -317,22 +316,6 @@ def to_scaled_process_bound(model, j, bound):
 def from_scaled_process_bound(model, j, value):
     """Read a ``LOWER_LIMIT[j]`` / ``UPPER_LIMIT[j]`` value back in original units."""
     return float(value) * col_factor(model, j)
-
-
-def cut_row_factor(coefficients, stat_cut=1e-11):
-    """Power-of-two row factor centring a constraint row at 1 (``max * min == 1``).
-
-    Same per-row rule as :func:`geometric_scaling`, for a single row written
-    after the build (a Kelley cut, for instance). Entries below ``stat_cut``
-    in magnitude are ignored for the statistics; an empty row gives 1.0.
-    Multiplying a whole constraint by a power of two is exact and leaves the
-    LP unchanged, so this only affects the solver's conditioning.
-    """
-    mags = np.abs(np.asarray(coefficients, dtype=float))
-    mags = mags[mags >= stat_cut]
-    if mags.size == 0:
-        return 1.0
-    return float(2.0 ** np.round(-0.5 * np.log2(mags.max() * mags.min())))
 
 
 def _apply(model, unscale):

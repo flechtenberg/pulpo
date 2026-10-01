@@ -65,9 +65,8 @@ def broadcast_over_time(d, time_steps):
 # ---------------------------------------------------------------------------
 # Monte Carlo re-instantiation helper
 # ---------------------------------------------------------------------------
-# Shared by pulpo.utils.monte_carlo and pulpo.utils.uncertainty.monte_carlo:
-# both re-instantiate the same worker once per sample with fresh LCI data, and
-# must forward every kwarg the original instantiate() call used -- including
+# Used by pulpo.utils.monte_carlo, which re-instantiates the same worker once
+# per sample with fresh LCI data, and must forward every kwarg the original instantiate() call used -- including
 # subclass-only ones (PulpoOptimizerTime's time_steps/storage/
 # upper_imp_agg_limit) -- or a time-indexed worker silently gets rebuilt as a
 # static model (demand/limits are still in {t: {...}} form, which the static

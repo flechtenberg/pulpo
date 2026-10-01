@@ -9,16 +9,11 @@ so the main development venv (`.venv`) never needs re-tuning:
 - **`.venv-bw25`** — bw25 stack (bw2data ≥ 4, bw2calc ≥ 2)
 - **`.venv-bw2`** — bw2 stack (bw2data 3.6.6, bw2calc 1.8.2, numpy < 2)
 
-Both include the **`uncertainty`** extra (SALib, stats_arrays, seaborn,
-matplotlib) so the most complete dependency set — including potential cross
-effects between optional and core packages — is always exercised. Each venv
-needs `pytest` and an **editable** install of pulpo (`-e`), so tests always
-run against the working tree instead of a stale site-packages copy.
-
-Note: `tests/test_uncertainty.py` needs **SALib ≥ 1.5.1** (pinned in the
-`uncertainty` extra since July 2026; 1.4.8 breaks under numpy 2 because
-`ndarray.ptp` was removed). If a venv predates that pin, upgrade it with
-`uv pip install -p .venv-bw25 "SALib==1.5.1"`.
+Each venv needs `pytest` and an **editable** install of pulpo (`-e`), so
+tests always run against the working tree instead of a stale site-packages
+copy. The `uncertainty` extra is an empty alias since 2.0 (the uncertainty
+features use core dependencies only); it is kept in the commands below so
+they keep working.
 
 Create / recreate them with [uv](https://docs.astral.sh/uv/) from the repo root:
 
@@ -118,7 +113,7 @@ missing:
 | `test_gams_solver` | `GAMS_PULPO` env var pointing to the GAMS installation |
 | `test_neos_solver` | `NEOS_EMAIL` env var set (submits jobs to the remote NEOS server) |
 | `test_uncertainty.py::TestUncertaintyParamArrays` | bw25 stack (bw2data ≥ 4) |
-| `test_uncertainty.py` workflow classes | `uncertainty` extra installed (SALib, stats_arrays, …) |
+| `test_reduced.py` / `test_uncertainty.py` Gurobi cases | `gurobipy` importable and licensed |
 
 All remaining tests use the bundled HiGHS solver and run offline.
 
@@ -130,7 +125,11 @@ All remaining tests use the bundled HiGHS solver and run offline.
   and multi-day battery-dispatch scenarios from
   `notebooks/elec_time_toy.ipynb` with reference CO2 totals and physical
   consistency checks, result extraction/saving, static fallback
-- `test_uncertainty.py` — uncertainty features: the curated `pulpo_unc`
-  pipeline from `notebooks/uncertainty_toy.ipynb` (filtering, gap-filling
-  strategies, Monte Carlo, chance constraints, Sobol GSA) plus the bw25
-  uncertainty-parameter extraction in `bw_parser.import_data`
+- `test_reduced.py` — the reduced-space backend (`solve(method='reduced')`)
+  against the full LP on every bundled database and constraint type, plus
+  its building blocks against dense linear algebra
+- `test_uncertainty.py` — the import of declared distributions, closed-form
+  moments (against Monte Carlo and PULPO 1.8.0), risk budget and exact
+  quantiles, the chance-constrained problem in reduced space (against PULPO
+  1.8.0, an independent full-space cone and an analytic optimum), and the
+  bw25 uncertainty-parameter extraction in `bw_parser.import_data`

@@ -75,11 +75,14 @@ from . import scaling as _scaling
 #: hundred MB on any database size.
 CHUNK_ENTRIES = 2 ** 24
 
-#: Iterative-refinement steps after a SciPy (SuperLU) solve; see Factorization.solve.
+#: At most this many iterative-refinement steps follow a solve, until the
+#: componentwise backward error is below REFINEMENT_TOL; see Factorization.solve.
 REFINEMENT_STEPS = 2
+REFINEMENT_TOL = 1e-14
 
-#: Relative balance residual of a recovered scaling vector above which the
-#: solve is reported as failed instead of written onto the instance.
+#: Balance residual of a recovered scaling vector (relative to the size of
+#: each balance's terms) above which the solve is reported as failed instead
+#: of written onto the instance.
 RESIDUAL_LIMIT = 1e-8
 
 #: HiGHS options for the reduced LP. The LP is equilibrated before it is
@@ -149,6 +152,7 @@ class Factorization:
         self.refactorizations = 0
         self._A = sp.csr_matrix(A, dtype=np.float64, copy=True)
         self._A.sort_indices()
+        self._abs_A = abs(self._A)
         self._solver = None
         self._lu = None
         self.backend = _resolve_backend(backend)
@@ -180,21 +184,31 @@ class Factorization:
         return state
 
     def solve(self, b, transpose=False):
-        """Solve ``A x = b`` (or ``A' x = b``) for a vector or a dense block ``b``."""
+        """Solve ``A x = b`` (or ``A' x = b``) for a vector or a dense block ``b``.
+
+        A plain solve can leave a componentwise backward error far above
+        roundoff on an ecoinvent technosphere (entries 1e-13 .. 1e11): up to
+        1e-5 with SuperLU, 4e-8 with PARDISO on a 216,467-process system.
+        Iterative refinement with the same factors brings it to roundoff; it
+        runs only while :func:`backward_error` exceeds ``REFINEMENT_TOL``.
+        """
         b = np.asarray(b, dtype=np.float64)
+        A = self._A.T if transpose else self._A
+        abs_A = self._abs_A.T if transpose else self._abs_A
+        x = self._raw_solve(b, transpose)
+        for _ in range(REFINEMENT_STEPS):
+            r = b - A @ x
+            if backward_error(r, abs_A @ np.abs(x) + np.abs(b)) <= REFINEMENT_TOL:
+                break
+            x = x + self._raw_solve(r, transpose)
+        return x
+
+    def _raw_solve(self, b, transpose):
         if self.backend == 'scipy':
             if self._lu is None:
                 self.refactorizations += 1
                 self._factorize()
-            # SuperLU's static pivoting leaves errors of up to 1e-5 relative on an
-            # ecoinvent technosphere (entries 1e-13 .. 1e11); iterative refinement
-            # with the same factors brings them to roundoff, as PARDISO does itself.
-            trans = 'T' if transpose else 'N'
-            A = self._A.T if transpose else self._A
-            x = self._lu.solve(b, trans=trans)
-            for _ in range(REFINEMENT_STEPS):
-                x = x + self._lu.solve(b - A @ x, trans=trans)
-            return x
+            return self._lu.solve(b, trans='T' if transpose else 'N')
         if self._solver is None or not self._solver._is_already_factorized(self._A):
             self.refactorizations += 1
             self._factorize()
@@ -210,6 +224,14 @@ class Factorization:
             solver.set_iparm(12, 0)
             solver.set_phase(13)
         return x
+
+
+def backward_error(residual, size):
+    """Largest ``|r_i| / size_i``: each residual relative to the size of its
+    row's terms (``|A| |x| + |b|``), zero where the row is empty."""
+    residual, size = np.abs(np.asarray(residual)), np.asarray(size)
+    ratio = np.divide(residual, size, out=np.zeros_like(residual), where=size > 0)
+    return float(ratio.max(initial=0.0))
 
 
 def _resolve_backend(backend):
@@ -509,7 +531,8 @@ class ReducedResults:
     solve with Gurobi. ``v`` and ``s`` are in original units; ``seconds``
     splits the time into assembling the LP (projections included), solving
     it and recovering ``s``. ``balance_residual`` is the largest
-    ``|A s - f~ - E v|`` relative to the largest entry of ``f~ + E v``.
+    ``|A s - f~ - E v|`` of a balance relative to the size of its terms,
+    ``|A| |s| + |f~ + E v|``.
     ``rounds`` counts the LP solves (more than one when a process bound
     outside the LP was violated and added).
     """
@@ -562,9 +585,11 @@ class ReducedModel:
 
     Bounds on the alternatives and supply processes always enter the LP. A
     bound on any other process enters only once a solve violates it
-    (:meth:`solve` re-solves until none is violated, which is exact): finite
+    (:meth:`optimize` re-solves until none is violated, which is exact): finite
     default limits bound every process, and adding all of them eagerly would
-    form the dense ``S`` the reduction exists to avoid.
+    form the dense ``S`` the reduction exists to avoid. The same holds for a
+    bound side far beyond every activity of the problem, such as a capacity of
+    1e10 meaning "unlimited", whose right-hand side would only degrade a solve.
 
     Attributes:
         system (ReducedSystem): the map ``v -> s``.
@@ -576,6 +601,10 @@ class ReducedModel:
     #: A process bound outside the LP counts as violated beyond this tolerance,
     #: relative to the bound (absolute below 1).
     BOUND_TOL = 1e-9
+
+    #: A bound side beyond this multiple of the problem's scale (the largest
+    #: base activity or category demand) is withheld until violated.
+    REMOTE_BOUND = 1e6
 
     def __init__(self, instance, lci_data, choices, system):
         self.instance = instance
@@ -782,53 +811,114 @@ class ReducedModel:
 
     # -- solve -----------------------------------------------------------------
 
-    def solve(self, solver_name=None, options=None):
-        """Solve the reduced LP and write the solution onto the instance.
+    def optimize(self, solve, bounds=None, transform=None):
+        """Solve with the lazy process bounds of the class docstring.
 
-        Raises :class:`ReducedSolveError` when the LP does not end optimal (or
-        the recovered scaling vector does not satisfy the balances); the
-        instance then keeps its previous values.
+        Args:
+            solve: ``solve(lp, f_tilde) -> LPSolution`` for an LP from
+                :meth:`linear_program` (whose first ``system.n_free`` columns are
+                ``v``); the chance-constrained problem passes its cone solve here.
+            bounds: ``(lower, upper)`` process bounds in original units; defaults
+                to :meth:`process_bounds`.
+            transform: ``transform(lp, f_tilde)``, applied to every LP before it
+                is solved (the chance-constrained problem replaces the objective).
+
+        Impact and flow limits far beyond the problem's scale are withheld from
+        the solve like remote process bounds, and checked against its solution.
+
+        Returns:
+            ``(results, s)``: a :class:`ReducedResults` (``v``, ``objective``,
+            ``balance_residual`` set when optimal) and the full scaling vector.
+            Nothing is written onto the instance, and nothing is raised: the
+            caller checks ``results.termination_condition``.
         """
         start = time.perf_counter()
         K = self.system.n_free
-        bounds = self.process_bounds()
-        bounded = set(np.flatnonzero(np.isfinite(bounds[0]) | np.isfinite(bounds[1])).tolist())
+        true_lo, true_up = self.process_bounds() if bounds is None else bounds
+        # A bound far beyond every activity of the problem (a 1e10 capacity that
+        # stands for "unlimited") cannot bind, but its right-hand side would
+        # spoil the conditioning of a cone solve. Such sides are withheld and
+        # enter only if a solution violates them, like the lazy rows.
+        f_base, f_cat = self._demand()
+        scale = max([1.0, float(np.abs(self.system.base(f_base)).max(initial=0.0))]
+                    + [abs(value) for value in f_cat.values()])
+        far = self.REMOTE_BOUND * scale
+        remote_lo = np.isfinite(true_lo) & (true_lo < -far)
+        remote_up = np.isfinite(true_up) & (true_up > far)
+        lo = np.where(remote_lo, -np.inf, true_lo)
+        up = np.where(remote_up, np.inf, true_up)
+
+        def bounded_now():
+            return set(np.flatnonzero(np.isfinite(lo) | np.isfinite(up)).tolist())
+
+        def tolerance(value):
+            return self.BOUND_TOL * np.maximum(1.0, np.abs(np.where(np.isfinite(value), value, 0.0)))
+
+        bounded = bounded_now()
         rows = bounded & self._kept_bounds
+        kept_limits = set()                 # limit rows whose remote sides were violated
         seconds = {'assemble': 0.0, 'solve': 0.0, 'recover': 0.0}
         rounds = 0
         s = None
         while True:
             rounds += 1
             t = time.perf_counter()
-            lp, f_tilde = self.linear_program(processes=rows, bounds=bounds)
+            lp, f_tilde = self.linear_program(processes=rows, bounds=(lo, up))
+            if transform is not None:
+                transform(lp, f_tilde)
+            withheld = []
+            for i, label in enumerate(lp.row_labels):
+                if label[0] in ('impact', 'flow') and label not in kept_limits:
+                    for side, values, sign in (('lo', lp.row_lower, -1.0), ('up', lp.row_upper, 1.0)):
+                        if np.isfinite(values[i]) and sign * values[i] > far:
+                            withheld.append((i, label, float(values[i]), side))
+                            values[i] = sign * np.inf
             seconds['assemble'] += time.perf_counter() - t
-            sol = solve_lp(lp, solver_name=solver_name, options=options)
+            sol = solve(lp, f_tilde)
             seconds['solve'] += sol.seconds
             pending = bounded - rows
             if sol.termination_condition != TerminationCondition.optimal:
                 # Without some bound rows the relaxation can be unbounded where
                 # the full problem is not: add them all and solve once more.
-                if pending and sol.termination_condition in (
+                if (pending or withheld or remote_lo.any() or remote_up.any()) and sol.termination_condition in (
                         TerminationCondition.unbounded, TerminationCondition.infeasibleOrUnbounded):
-                    rows = rows | pending
+                    lo, up = true_lo.copy(), true_up.copy()
+                    remote_lo[:] = remote_up[:] = False
+                    bounded = bounded_now()
+                    rows = rows | bounded
+                    kept_limits |= {label for _, label, _, _ in withheld}
                     continue
                 break
+            violated_limits = set()
+            for i, label, value, side in withheld:
+                activity = float((lp.matrix[i] @ sol.x)[0])
+                slack = self.BOUND_TOL * max(1.0, abs(value))
+                if (activity < value - slack) if side == 'lo' else (activity > value + slack):
+                    violated_limits.add(label)
+            if violated_limits:
+                kept_limits |= violated_limits
+                continue
             t = time.perf_counter()
             s = self.system.recover(f_tilde, sol.x[:K])
             seconds['recover'] += time.perf_counter() - t
+            violated = set()
             if pending:
                 idx = np.fromiter(pending, dtype=np.int64)
-                lo, up = bounds[0][idx], bounds[1][idx]
-                tol_lo = self.BOUND_TOL * np.maximum(1.0, np.abs(np.where(np.isfinite(lo), lo, 0.0)))
-                tol_up = self.BOUND_TOL * np.maximum(1.0, np.abs(np.where(np.isfinite(up), up, 0.0)))
-                violated = idx[(s[idx] < lo - tol_lo) | (s[idx] > up + tol_up)]
-                if violated.size:
-                    rows = rows | set(violated.tolist())
-                    continue
+                bad = (s[idx] < lo[idx] - tolerance(lo[idx])) | (s[idx] > up[idx] + tolerance(up[idx]))
+                violated |= set(idx[bad].tolist())
+            far_lo = np.flatnonzero(remote_lo & (s < true_lo - tolerance(true_lo)))
+            far_up = np.flatnonzero(remote_up & (s > true_up + tolerance(true_up)))
+            if far_lo.size or far_up.size:
+                lo[far_lo], up[far_up] = true_lo[far_lo], true_up[far_up]
+                remote_lo[far_lo] = remote_up[far_up] = False
+                bounded = bounded_now()
+                violated |= set(far_lo.tolist()) | set(far_up.tolist())
+            if violated:
+                rows = rows | violated
+                continue
             break
         self._kept_bounds |= rows
         results = ReducedResults(termination_condition=sol.termination_condition,
-                                 solver=(solver_name or 'highs').lower(),
                                  n_variables=len(lp.c), n_rows=lp.matrix.shape[0],
                                  seconds=seconds, rounds=rounds)
         if sol.termination_condition == TerminationCondition.optimal:
@@ -836,21 +926,32 @@ class ReducedModel:
             rhs = f_tilde.copy()
             np.add.at(rhs, self.system.columns, v)
             A = self.lci_data['technology_matrix']
-            residual = float(np.abs(A @ s - rhs).max() / max(np.abs(rhs).max(), 1.0))
+            residual = backward_error(A @ s - rhs, abs(A) @ np.abs(s) + np.abs(rhs))
             results.balance_residual = residual
             if residual > RESIDUAL_LIMIT:
                 # Not expected with an invertible A, which Factorization checks;
-                # kept so that a wrong point is never written onto the instance.
+                # kept so that a wrong point is never reported as a solution.
                 results.termination_condition = TerminationCondition.error
             else:
-                self.write_solution(s, v)
                 results.objective = sol.objective
                 results.v, results.s = v, s
         results.seconds['total'] = time.perf_counter() - start
+        return results, s
+
+    def solve(self, solver_name=None, options=None):
+        """Solve the reduced LP and write the solution onto the instance.
+
+        Raises :class:`ReducedSolveError` when the LP does not end optimal (or
+        the recovered scaling vector does not satisfy the balances); the
+        instance then keeps its previous values.
+        """
+        results, s = self.optimize(lambda lp, f_tilde: solve_lp(lp, solver_name=solver_name, options=options))
+        results.solver = (solver_name or 'highs').lower()
         if results.termination_condition != TerminationCondition.optimal:
             raise ReducedSolveError(
                 f"The reduced LP did not solve to optimality ({results.termination_condition}); "
                 "the instance keeps its previous values.", results)
+        self.write_solution(s, results.v)
         return results
 
     def write_solution(self, s, v):
