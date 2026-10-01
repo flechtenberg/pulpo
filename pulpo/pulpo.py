@@ -1,7 +1,7 @@
 import numbers
 import warnings
 
-from pulpo.utils import optimizer, bw_parser, converter, saver, monte_carlo
+from pulpo.utils import optimizer, bw_parser, converter, saver, monte_carlo, reduced
 from typing import List, Union
 from pulpo.datasets.rice_database import setup_rice_husk_db
 from pulpo.datasets.sample_database import setup_sample_db
@@ -141,18 +141,32 @@ class PulpoOptimizer:
         self.objective = objective
         self.scale = scale
 
-    def solve(self, GAMS_PATH=False, solver_name=None, options=None, neos_email=None):
+    def solve(self, GAMS_PATH=False, solver_name=None, options=None, neos_email=None, method='full'):
         """
         Solves the optimization model and calculates additional methods and inventory flows if needed.
 
         Args:
             GAMS_PATH (bool): Path to GAMS if needed.
+            solver_name (str, optional): 'highs' (default) or 'gurobi'; with method='full'
+                also any GAMS or NEOS solver.
             options (dict): Additional options for the solver.
+            method (str, optional): 'full' (default) solves the Pyomo LP over every process;
+                'reduced' solves the same problem over the alternatives only
+                (see :mod:`pulpo.utils.reduced`).
 
         Returns:
-            results: Results of the optimization.
+            results: Results of the optimization (a :class:`pulpo.utils.reduced.ReducedResults`
+            with method='reduced').
         """
-        results, self.instance = optimizer.solve_model(self.instance, GAMS_PATH, solver_name=solver_name, options=options, neos_email=neos_email)
+        if method == 'reduced':
+            if GAMS_PATH or neos_email is not None:
+                raise ValueError("method='reduced' solves with HiGHS or Gurobi; GAMS and NEOS "
+                                 "need method='full'.")
+            results = reduced.build(self).solve(solver_name=solver_name, options=options)
+        elif method == 'full':
+            results, self.instance = optimizer.solve_model(self.instance, GAMS_PATH, solver_name=solver_name, options=options, neos_email=neos_email)
+        else:
+            raise ValueError(f"Unknown method {method!r}; use 'full' or 'reduced'.")
 
         # Post calculate additional methods, in case several methods have been specified and one of them is 0
         if not isinstance(self.method, str):

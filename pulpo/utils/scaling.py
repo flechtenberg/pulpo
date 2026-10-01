@@ -43,6 +43,11 @@ model's units, i.e. ``(c * s_j) * scaling_vector[j]`` and ``b / s_j`` in
 that and are the identity on an unscaled model; the uncertainty formulations
 (``uncertainty.soc`` and ``uncertainty.cc``) go through them. Impact and
 inventory quantities are never scaled and need no conversion.
+
+The reduced backend (``solve(method='reduced')``) solves a different, small
+and dense LP and equilibrates it with :func:`ruiz_scaling` on every solve,
+whatever ``scale`` is; it reads the instance back in original units, so
+``scale=True`` does not change the problem it solves.
 """
 
 import warnings
@@ -112,6 +117,34 @@ def geometric_scaling(A, iters=20, stat_cut=1e-11):
         cf[ok] = 1.0 / np.sqrt(cmax[ok] * cmin[ok])
         s *= 2.0 ** np.round(np.log2(cf))
     return r, s
+
+
+def ruiz_scaling(M, iters=10):
+    """Power-of-two row and column factors that bring every row and column of
+    ``diag(r) M diag(d)`` to a largest entry of about 1 (Ruiz equilibration).
+
+    This is the scaling of the reduced LP (``pulpo.utils.reduced``), whose rows
+    are dense and mix the unit LCA score of each alternative with cross terms
+    many orders smaller. Equilibrating by the largest entry keeps the leading
+    coefficients at O(1); :func:`geometric_scaling`'s ``max * min == 1``
+    would lift them by half the row's dynamic range, and its absolute
+    ``stat_cut`` is tuned to the units of the technosphere, not to those of a
+    projection. Empty rows and columns keep 1.
+    """
+    M = abs(sps.csr_matrix(M, dtype=float))
+    m, n = M.shape
+    r, d = np.ones(m), np.ones(n)
+    if M.nnz == 0:
+        return r, d
+    for _ in range(iters):
+        B = sps.diags(r) @ M @ sps.diags(d)
+        rmax = B.max(axis=1).toarray().ravel()
+        cmax = B.max(axis=0).toarray().ravel()
+        rf = np.where(rmax > 0, 1.0 / np.sqrt(np.where(rmax > 0, rmax, 1.0)), 1.0)
+        cf = np.where(cmax > 0, 1.0 / np.sqrt(np.where(cmax > 0, cmax, 1.0)), 1.0)
+        r *= 2.0 ** np.round(np.log2(rf))
+        d *= 2.0 ** np.round(np.log2(cf))
+    return r, d
 
 
 def _cap_bound(value, n_capped):

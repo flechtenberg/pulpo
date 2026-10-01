@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased] - 2.0.0
+
+### Added
+* **Reduced-space solver backend** — `solve(method='reduced')`. Every scaling
+  vector that satisfies the balances is one fixed vector plus a combination of
+  the alternatives' outputs, so the LP can be solved over the alternatives
+  instead of over every process. The reformulation is exact, supports every
+  static constraint type and is much smaller and faster on large databases; the
+  solution is written back onto the instance, so results are read as before.
+  Solved with HiGHS (default) or Gurobi. `method='full'` remains the default;
+  the time-dependent model supports `method='full'` only.
+
 ## [1.8.0] - 2026-09-19
 
 ### Added
