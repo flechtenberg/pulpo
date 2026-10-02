@@ -27,6 +27,7 @@ maxdepth: 1
 Installation <content/installation>
 Getting Started <content/getting_started/index>
 Theory <content/theory>
+Uncertainty <content/uncertainty>
 Examples <content/examples/index>
 API <content/api/index>
 Contributing <content/contributing>

@@ -9,22 +9,21 @@ so the main development venv (`.venv`) never needs re-tuning:
 - **`.venv-bw25`** — bw25 stack (bw2data ≥ 4, bw2calc ≥ 2)
 - **`.venv-bw2`** — bw2 stack (bw2data 3.6.6, bw2calc 1.8.2, numpy < 2)
 
-Each venv needs `pytest` and an **editable** install of pulpo (`-e`), so
-tests always run against the working tree instead of a stale site-packages
-copy. The `uncertainty` extra is an empty alias since 2.0 (the uncertainty
-features use core dependencies only); it is kept in the commands below so
-they keep working.
+Each venv needs an **editable** install of pulpo (`-e`) with the `test`
+extra (`pytest`, and SALib to cross-check the exact Sobol' indices), so tests
+always run against the working tree instead of a stale site-packages copy.
+Without SALib that one comparison skips itself.
 
 Create / recreate them with [uv](https://docs.astral.sh/uv/) from the repo root:
 
 ```powershell
 # bw25
 uv venv .venv-bw25 --python 3.12
-uv pip install -p .venv-bw25 -e ".[bw25,uncertainty]" pytest
+uv pip install -p .venv-bw25 -e ".[bw25,test]"
 
 # bw2 (bw2 requires Python <= 3.12)
 uv venv .venv-bw2 --python 3.12
-uv pip install -p .venv-bw2 -e ".[bw2,uncertainty]" pytest
+uv pip install -p .venv-bw2 -e ".[bw2,test]"
 ```
 
 The `bw2` and `bw25` extras are mutually exclusive (declared in

@@ -8,6 +8,7 @@ from pulpo.utils.bw_parser import import_data, retrieve_methods, retrieve_env_in
 from pulpo.utils.saver import extract_flows, extract_slack, extract_impacts, extract_choices, extract_demand, extract_constraints, save_results
 
 import unittest
+import warnings
 from pulpo.datasets.sample_database import sample_lcia, setup_test_db, setup_background_db, setup_biosphere_db, setup_lcia_methods, setup_foreground_db
 
 setup_biosphere_db()
@@ -409,7 +410,9 @@ class TestPULPO(unittest.TestCase):
         
         # This should cause an error during instantiation or solving
         with self.assertRaises((ValueError, RuntimeError, Exception)) as context:
-            worker.instantiate(choices=choices, demand=demand, default_limits=custom_limits)
+            with warnings.catch_warnings():
+                warnings.simplefilter('ignore', FutureWarning)     # finite defaults are the point here
+                worker.instantiate(choices=choices, demand=demand, default_limits=custom_limits)
             worker.solve()
         
         # Verify that the error is related to infeasible optimization problem

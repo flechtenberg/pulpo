@@ -198,7 +198,9 @@ class TestScaledSolveEqualsUnscaled(unittest.TestCase):
         elec = worker.retrieve_activities(reference_products='electricity')
         finite = {'lower_bound': -1e4, 'upper_bound': 1e9, 'upper_inv_bound': 1e9,
                   'lower_inv_bound': -1e9, 'lower_imp_bound': -1e6, 'upper_imp_bound': 1e6}
-        worker.instantiate(choices=choices, demand=demand, default_limits=finite, scale=False)
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', FutureWarning)         # finite defaults are the point here
+            worker.instantiate(choices=choices, demand=demand, default_limits=finite, scale=False)
         worker.solve()
         ref_obj = worker.instance.OBJ()
 
@@ -206,7 +208,11 @@ class TestScaledSolveEqualsUnscaled(unittest.TestCase):
             warnings.simplefilter('always')
             worker.instantiate(choices=choices, demand=demand, default_limits=finite,
                                upper_limit={elec[0]: 100}, scale=True)
-        self.assertTrue(any('replaced by +-inf' in str(w.message) for w in caught))
+        # One message about the defaults, not a scaling warning and a deprecation notice.
+        about_defaults = [w for w in caught if 'default_limits' in str(w.message)]
+        self.assertEqual(len(about_defaults), 1)
+        self.assertIs(about_defaults[0].category, FutureWarning)
+        self.assertIn('replaced by +-inf', str(about_defaults[0].message))
         inst = worker.instance
         pmap = worker.lci_data['process_map']
         j_explicit = pmap[elec[0].key]

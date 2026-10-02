@@ -1,6 +1,36 @@
+import warnings
+
+import numpy as np
 import scipy.sparse as sparse
 
 from pulpo.utils import scaling
+from pulpo.utils.utils import none_capacities, none_to_bound
+
+
+DEFAULT_LIMITS_NOTE = (
+    "Finite default_limits['lower_bound'] / ['upper_bound'] put a bound on every activity. "
+    "Such bounds have no physical meaning, and they make solve(method='reduced') build the "
+    "whole of S (one dense row per bounded process). Set lower_limit / upper_limit on the "
+    "processes that have a real limit instead. default_limits may be deprecated in a "
+    "near-future release.")
+
+
+def warn_finite_default_limits(default_limits, scale, stacklevel=4):
+    """One FutureWarning when ``default_limits`` bounds every activity.
+
+    With ``scale=True`` the same message says that those defaults are replaced
+    by +-inf (:func:`scaling.relax_default_bounds`), so the user gets one
+    warning, not two.
+    """
+    if default_limits is None:
+        return
+    if not (np.isfinite(default_limits['lower_bound']) or np.isfinite(default_limits['upper_bound'])):
+        return
+    message = DEFAULT_LIMITS_NOTE
+    if scale:
+        message += (" With scale=True these defaults are replaced by +-inf; only lower_limit / "
+                    "upper_limit and the choice capacities stay finite.")
+    warnings.warn(message, FutureWarning, stacklevel=stacklevel)
 
 
 def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, upper_inv_limit, upper_imp_limit, lower_inv_limit, lower_imp_limit, methods, dependent_constraints=None, default_limits=None, imp_goals=None, scale=False):
@@ -25,7 +55,10 @@ def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, upper_in
                                         'lower_inv_bound', 'lower_imp_bound', 'upper_imp_bound'. Categories
                                         listed in imp_goals ignore 'lower_imp_bound'/'upper_imp_bound' (the
                                         goal is a soft limit, not a hard Var bound) unless also given an
-                                        explicit lower_imp_limit/upper_imp_limit.
+                                        explicit lower_imp_limit/upper_imp_limit. Finite 'lower_bound' /
+                                        'upper_bound' bound every activity and raise a FutureWarning (see
+                                        :func:`warn_finite_default_limits`); default_limits may be
+                                        deprecated in a near-future release.
         imp_goals (dict, optional): Goal-programming soft limits {method_string: limit}. Only
                                     categories listed here receive a transgression slack.
         scale (bool, optional): Equilibrate the LP (row/column scaling of the technosphere,
@@ -52,6 +85,15 @@ def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, upper_in
             'lower_imp_bound': -float('inf'),
             'upper_imp_bound': float('inf'),
         }
+
+    warn_finite_default_limits(default_limits, scale)
+
+    # None means "no limit" in every capacity and limit dict.
+    inf = float('inf')
+    choices = none_capacities(choices)
+    upper_limit, lower_limit = none_to_bound(upper_limit, inf), none_to_bound(lower_limit, -inf)
+    upper_inv_limit, lower_inv_limit = none_to_bound(upper_inv_limit, inf), none_to_bound(lower_inv_limit, -inf)
+    upper_imp_limit, lower_imp_limit = none_to_bound(upper_imp_limit, inf), none_to_bound(lower_imp_limit, -inf)
 
     # Load LCI data matrices and mappings
     matrices = lci_data['matrices']

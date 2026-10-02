@@ -38,7 +38,7 @@ Applying optimization is recommended when the system of study has (1) many degre
 - **Specify constraints** on any activity in the life cycle inventories, interpreted as tangible limitations such as raw material availability, production capacity, or environmental regulations.
 - **Optimize for or constrain any impact category** for which characterization factors are available.
 - **Specify supply values** instead of final demands, which is relevant when only production volumes are known (e.g. [here](https://www.pnas.org/doi/10.1073/pnas.1821029116)).
-- **Optimize under uncertainty**: import the declared distributions of the inventory and characterization factors, compute the impact's mean and variance in closed form, and solve chance-constrained programs (jointly over the impact and uncertain capacities) to obtain the Pareto front over reliability levels.
+- **Optimize under uncertainty**: import the declared distributions of the inventory and characterization factors, compute the impact's mean and variance in closed form, and solve chance-constrained programs (jointly over the impact and uncertain capacities) to obtain the Pareto front over reliability levels. Decompose the variance exactly, screen the parameters that declare no uncertainty, and validate every solution out of sample. *As of now, uncertainty in the LCA data is considered only in the biosphere flows and the characterization factors; technosphere exchanges are treated as deterministic.*
 - **Solve in reduced space** with `solve(method='reduced')`: the same LP over the choice alternatives only, exact and much smaller on large databases.
 
 **Features recently completed:**
@@ -51,6 +51,7 @@ Applying optimization is recommended when the system of study has (1) many degre
 > - [X] `ℹ️  Goal-programming objective (average transgression of soft impact limits)`
 > - [X] `ℹ️  Exact chance-constrained optimization (second-order cone, joint risk budgets, exact bound quantiles)`
 > - [X] `ℹ️  Numerical scaling of the LP for unaggregated ecoinvent backgrounds`
+> - [X] `ℹ️  Reduced-space solves, and an exact, validated uncertainty method`
 
 **Features currently under development:**
 
@@ -85,15 +86,28 @@ Additional example notebooks are available for a [hydrogen case](https://github.
 
 There is also a workshop repository ([here](https://github.com/flechtenberg/pulpo_workshop)) created for the Brightcon 2024 conference, with guided notebooks and exercises.
 
+### ⚡ Reduced-space solves
+
+`solve(method='reduced')` solves the same LP over the choice alternatives only. With the technosphere matrix square and invertible, every scaling vector that meets the balances is `s = s0 + S v`, with one variable `v_k` per alternative, so the problem over `v` is the problem over `s`: exact, for every static constraint type, and small however large the database (one column per alternative, one row per constraint that is not a balance). The solution is written back onto the instance, so `extract_results()` and the rest read it as before. The time-dependent model supports `method='full'` only.
+
+The chance-constrained problems of `pulpo.utils.uncertainty` are always solved this way. Solvers:
+
+| Problem | Default | Alternative |
+|---|---|---|
+| deterministic LP (`full` or `reduced`) | HiGHS | Gurobi (and GAMS/NEOS for `full`) |
+| chance-constrained cone | Clarabel | Gurobi |
+
+HiGHS and Clarabel are installed with PULPO and need no licence. Gurobi is used when `gurobipy` is installed; the size-limited licence that ships with `pip install gurobipy` is for non-production use (see Gurobi's licence terms) and covers problems of up to 2,000 variables and 2,000 linear constraints, or 200 variables once quadratic terms are present. That fits most reduced problems, since they have one column per alternative.
+
 ### 🧪 Tests
 
 The test suite runs with `pytest` against dedicated virtual environments for the modern (`bw25`) and legacy (`bw2`) Brightway stacks. See the [testing README](https://github.com/flechtenberg/pulpo/blob/master/tests/README.md) for setup instructions and the exact commands.
 
 ---
-## What's new in 1.8.0?
-- **Exact chance-constrained optimization** — `create_SOC_formulation()` / `solve_SOC_problem()` represent the impact's standard deviation exactly as a second-order cone, including the covariance that processes share through a common characterization factor, rather than by the conservative `L1` bound that `solve_CC_problem` uses. The default cutting-plane strategy solves a sequence of the ordinary LPs PULPO already builds, which is what makes it tractable at ecoinvent scale. Joint chance constraints across several rows (`risk_budget=`) and exact quantiles for uncertain bounds (`bound_quantile='exact'`) are available alongside it.
-- **Optional LP equilibration** — `instantiate(scale=True)` rescales the LP by powers of two so a facility-scale row cannot be under-supplied within the solver's feasibility tolerance. On an unaggregated ecoinvent background that leak was worth roughly 1 % of the optimum and made different solvers disagree. The solution is unscaled after the solve, so every result still reads in original units.
-- **From 1.7.0: goal-programming objective** — `objective='goal'` minimizes the average transgression of user-defined soft impact limits (`imp_goals`), reported per category via `extract_results()["Transgressions"]`.
+## What's new in 2.0.0?
+- **Reduced-space solves** — `solve(method='reduced')`, see above.
+- **One uncertainty method** — `pulpo.utils.uncertainty` replaces the 1.x generations (uncertainty in the biosphere flows and characterization factors only, as before; technosphere exchanges are deterministic): declared distributions only (undeclared parameters stay deterministic and are screened, not gap-filled), closed-form moments, a joint chance-constrained front over the impact and uncertain capacities solved in reduced space with Clarabel, an exact variance decomposition, and out-of-sample validation. The [uncertainty notebook](https://github.com/flechtenberg/pulpo/blob/master/notebooks/uncertainty_toy.ipynb) runs it on the bundled demo database without ecoinvent or a commercial solver. The 1.x uncertainty API is removed (see the changelog).
+- **Defaults unchanged** — `method='full'` and `instantiate(scale=False)`. Current development considers `method='reduced'` and `scale=True` (from 1.8.0) superior; a future release may switch the defaults.
 
 See the [changelog](https://github.com/flechtenberg/pulpo/blob/master/CHANGES.md) for the full details and earlier releases.
 

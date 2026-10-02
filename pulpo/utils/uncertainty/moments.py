@@ -118,12 +118,17 @@ class Moments:
     def std(self, s):
         return float(np.sqrt(max(self.variance(s), 0.0)))
 
+    def process_std(self):
+        """``sigma_j``: the standard deviation of ``c_j = sum_e q_e b_ej``, the
+        impact of one unit of process j, ``sigma_j^2 = d_j + sum_e w_e E[b_ej]^2``."""
+        var_c = self.d + np.asarray(self.q_var @ self.B_mean.multiply(self.B_mean)).ravel()
+        return np.sqrt(np.clip(var_c, 0.0, None))
+
     def std_independent(self, s):
         """The standard deviation with the covariance through shared factors
         dropped: each process's impact ``c_j`` treated as independent."""
         s = np.asarray(s, dtype=float)
-        var_c = self.d + np.asarray((self.q_var[None, :] @ self.B_mean.multiply(self.B_mean))).ravel()
-        return float(np.sqrt(max(var_c @ (s * s), 0.0)))
+        return float(np.linalg.norm(self.process_std() * s))
 
 
 def current_scaling_vector(model_instance, n=None):

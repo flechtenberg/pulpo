@@ -45,6 +45,18 @@ def is_time_indexed(d, time_steps):
     return set(d.keys()) == set(time_steps)
 
 
+def none_to_bound(limits, bound):
+    """A copy of a limit dict in which ``None`` (no limit) reads as ``bound``,
+    i.e. +inf for an upper and -inf for a lower limit."""
+    return {key: (bound if value is None else value) for key, value in (limits or {}).items()}
+
+
+def none_capacities(choices):
+    """A copy of ``choices`` in which a ``None`` capacity reads as unlimited."""
+    return {label: (none_to_bound(alternatives, float('inf')) if isinstance(alternatives, dict) else alternatives)
+            for label, alternatives in (choices or {}).items()}
+
+
 def broadcast_over_time(d, time_steps):
     """Convert a (possibly static) input dict into ``{t: dict}`` form."""
     if d is None:

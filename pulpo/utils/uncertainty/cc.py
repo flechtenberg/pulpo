@@ -303,7 +303,8 @@ class Point:
     ``adjusted`` is the chance-constrained impact ``z = mean + kappa * sigma``;
     ``mean`` and ``sigma`` are evaluated exactly at ``s`` (not read off the
     cone). ``bounds`` holds the bound imposed on each uncertain process,
-    ``epsilon`` the failure probability allocated to each event.
+    ``epsilon`` the failure probability allocated to each event, ``size`` the
+    number of processes and the columns and rows of the reduced problem.
     """
     lambda_level: float
     lambda_impact: float
@@ -318,6 +319,31 @@ class Point:
     seconds: dict = field(default_factory=dict)
     rounds: int = 1
     balance_residual: float = None
+    size: dict = field(default_factory=dict)
+
+
+@dataclass
+class Projections:
+    """The impact's moments on the reduced space ``s = s0 + S v``.
+
+    With these and :meth:`reduced.ReducedModel.linear_program` a formulation
+    over ``v`` needs no further solves:
+
+        E[X]  = m0 + m' v
+        Var X = sum_{j in J} d_j (s0_J + S_J v)_j^2 + sum_e w_e (B_unc_s0 + B_unc_S v)_e^2
+
+    ``J`` are the processes that carry variance (``d_j > 0``), ``S_J`` their
+    rows of ``S``, and ``B_unc_S = E[B_u] S`` the mean flows of the uncertain
+    CFs per unit of ``v``. A sampled impact of the base and of one unit of each
+    alternative follows from the same arrays (see :mod:`validation`).
+    """
+    s0: np.ndarray
+    m0: float
+    m: np.ndarray
+    J: np.ndarray
+    S_J: np.ndarray
+    B_unc_s0: np.ndarray
+    B_unc_S: np.ndarray
 
 
 class Front(dict):
@@ -414,6 +440,11 @@ class ChanceConstrained:
         """Number of events: the impact row and every uncertain bound."""
         return 1 + len(self.events)
 
+    @property
+    def bound_specs(self):
+        """``{(kind, process): spec}``: the declared distribution of each uncertain bound."""
+        return {event: dict(spec) for event, spec in self._specs.items()}
+
     # -- levels and bounds ---------------------------------------------------
 
     def levels(self, lambda_level):
@@ -438,6 +469,17 @@ class ChanceConstrained:
         return out
 
     # -- variance factor -----------------------------------------------------
+
+    def projections(self) -> Projections:
+        """The moments of the impact on the current instance's reduced space."""
+        model = self._model() if self.worker is not None else self.model
+        mom, system = self.moments, model.system
+        s0 = system.base(model.demand()[0])
+        J = np.flatnonzero(mom.d > 0)
+        B_unc = mom.B_unc
+        return Projections(s0=s0, m0=float(mom.mu @ s0), m=system.project_vectors([mom.mu])[0],
+                           J=J, S_J=system.rows(J), B_unc_s0=np.asarray(B_unc @ s0).ravel(),
+                           B_unc_S=system.project_vectors([B_unc[k] for k in range(B_unc.shape[0])]))
 
     def _factor(self, f_tilde):
         """``R`` with ``R' R = G' G`` for the current demand (``s0`` depends on it)."""
@@ -533,7 +575,8 @@ class ChanceConstrained:
                      mean=mean, sigma=sigma, adjusted=mean + kappa * sigma, s=s, v=results.v,
                      bounds=imposed, epsilon={f'{k}:{j}': e for (k, j), e in eps.items()},
                      seconds=results.seconds, rounds=results.rounds,
-                     balance_residual=results.balance_residual)
+                     balance_residual=results.balance_residual,
+                     size={'processes': model.n, 'variables': results.n_variables, 'rows': results.n_rows})
 
     def solve(self, lambdas, solver_name=None, options=None) -> Front:
         """Solve every level of ``lambdas`` (one factorization serves them all)."""

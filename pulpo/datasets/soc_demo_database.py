@@ -1,29 +1,22 @@
 """
 soc_demo_database.py
 
-A purpose-built toy database for exercising the SOC (second-order-cone) chance-
-constrained formulation and its two "future work" axes documented in
-SOC-MECHANICS.md: whether uncertain parameters need to be resampled and refit
-to a Normal before ``soc.py`` sees them (they don't - only mean/variance are
-needed), and whether every surviving parameter needs to be gap-filled with a
-distribution that shifts its mean (it doesn't - a degenerate Normal works too).
+A purpose-built toy database for chance-constrained optimization under
+uncertainty (``pulpo.utils.uncertainty``), small enough to run without
+ecoinvent and with open-source solvers only; ``notebooks/uncertainty_toy.ipynb``
+runs the whole method on it.
 
 Unlike ``sample_database.py`` (which gives every non-production exchange a
-blanket ``NormalUncertainty``, leaving nothing to gap-fill or to tell apart
-from a closed-form moment computation), every uncertain exchange here is
-deliberately assigned one of Normal / Lognormal / Triangular / Uniform, or is
-left with no uncertainty declared at all. See the "Distribution gallery"
-section of ``notebooks/soc_configuration_sweep.ipynb`` for the full table and
-the reasoning behind each choice.
+blanket ``NormalUncertainty``), every uncertain exchange here is deliberately
+assigned one of Normal / Lognormal / Triangular / Uniform, or is left with no
+uncertainty declared at all, so that the closed-form moments, the validation
+against non-normal draws and the screening of undeclared parameters each have
+something to work on.
 
 All three biosphere flows (CO2, CH4, N2O) and all three characterization
-factors are genuinely climate-change-relevant - unlike a pre-2026-08 revision,
-which reused particulate matter, ammonia slip and process water (real but
-non-climate indicators) just to get a fifth flow into the distribution
-gallery. That made ``METHOD_KEY`` a "toy, mixed indicators" method with CFs
-that didn't belong together; folding N2O in as the third GHG instead keeps
-the system a single honest climate-change indicator while still exercising
-every distribution family. One exception: CO2's own CF carries no
+factors are climate-change flows, so ``METHOD_KEY`` is a single indicator
+whose CFs belong together, and the three flows still exercise every
+distribution family. One exception: CO2's own CF carries no
 uncertainty at all, because CO2 is the flow GWP100 is defined *against* -
 its CF of 1 is exact, not an estimate with error bars, so it is written as a
 degenerate Normal (scale=0) rather than assigned a family from the gallery.
@@ -34,7 +27,7 @@ one choice axis (hydrogen route: SMR vs. electrolysis), everything else
 reduced to simple utility inputs.
 
 Important scope note for anyone extending this module: PULPO's uncertainty
-machinery (``pulpo_unc``'s ``'If'``/``'Cf'`` pipeline) only tracks uncertainty
+machinery (the ``'If'``/``'Cf'`` groups of ``pulpo.utils.uncertainty``) only tracks uncertainty
 on *biosphere* (intervention) flows and characterization factors - not on
 technosphere-to-technosphere exchange amounts (``bw_parser.import_data`` reads
 uncertainty parameters off the biosphere matrix only). So every uncertain
@@ -69,15 +62,11 @@ def setup_biosphere_db():
     Three elementary flows, all genuinely climate-change-relevant (CO2, CH4,
     N2O - the three GHGs that actually carry a GWP100 characterization
     factor), chosen so all four native distribution families (Normal /
-    Lognormal / Triangular / Uniform) and the "undefined" gap-fill case each
+    Lognormal / Triangular / Uniform) and the undeclared case each
     appear at least once (see the module docstring's scope note for why they
-    are biosphere flows rather than technosphere exchange amounts). Earlier
-    revisions also carried particulate matter, ammonia slip and process water
-    to diversify the distribution gallery - but those are air-quality/water-use
-    indicators, not climate change, so folding their characterization factors
-    into ``METHOD_KEY`` was never more than a mechanical trick to get around
-    ``import_and_filter_uncertainty_data``'s single-active-method limit. N2O
-    replaces them as a third *bona fide* climate-change flow instead.
+    are biosphere flows rather than technosphere exchange amounts). Flows of
+    other indicators (particulate matter, water) would need CFs that do not
+    belong in a GWP100 method; the uncertainty import handles one method.
     """
     _project()
     db_name = "biosphere3"
@@ -177,9 +166,9 @@ def setup_background_db():
                 # carries most of the output variance, so it is what the
                 # aggregate's distribution looks like; declaring it Normal would
                 # make the Gaussian assumption behind Phi^-1(lambda) true almost
-                # by construction, and the calibration check in the sweep
-                # notebook's Appendix C would be close to a tautology. A
-                # lognormal dominant term makes that check a real test. It also
+                # by construction, and the coverage check of the validation
+                # (``uncertainty.validate``) would be close to a tautology. A
+                # lognormal term makes that check a real test. It also
                 # removes a negative tail that a symmetric Normal on a positive
                 # quantity necessarily has.
                 #
@@ -277,8 +266,7 @@ def setup_foreground_db():
     data = {
         # 5. Hydrogen electrolysis -> "hydrogen" (kg); the alternative route.
         # No biosphere flow of its own: water electrolysis has no combustion
-        # or reaction step that emits CO2/CH4/N2O, so unlike the pre-2026-08
-        # revision (which gave it a decorative process-water flow) it carries
+        # or reaction step that emits CO2/CH4/N2O, so it carries
         # *only* its large deterministic electricity draw (52 kWh/kg H2 vs
         # SMR's 0.4 kWh/kg H2) - this asymmetry is what carries electrolysis's
         # dominant uncertainty, by amplifying `electricity supply`'s own
@@ -306,7 +294,7 @@ def setup_foreground_db():
                 # The choice-enabling link: PULPO's `choices` mechanism
                 # reroutes this (and hydrogen SMR's own production) onto a
                 # shared virtual "hydrogen" product once both are listed as
-                # alternatives - see notebooks/uncertainty_toy.ipynb sec. 4.
+                # alternatives - see notebooks/uncertainty_toy.ipynb, section 1.
                 {"input": elyz_key, "amount": 0.178, "type": "technosphere"},
                 {"input": (bg, "electricity supply"), "amount": 0.06, "type": "technosphere"},
                 # Left undefined - vented process CO2.
@@ -333,10 +321,7 @@ def setup_lcia_methods():
     """Register a single, genuinely single-indicator LCIA method: GWP100 over
     the three climate-change flows declared in ``setup_biosphere_db``.
 
-    Unlike the pre-2026-08 revision - which folded air-quality (PM, NH3) and
-    water-use (H2O) characterization factors into this method purely because
-    ``import_and_filter_uncertainty_data`` only supports one active method at
-    a time - every CF registered here is an actual GWP100 value (AR6, rounded):
+    Every CF registered here is an actual GWP100 value (AR6, rounded):
     CO2 = 1, fossil CH4 = 29.7, N2O = 273. CO2's CF carries no uncertainty:
     it is the *reference* flow GWP100 is defined against, so 1 is exact by
     construction, not an empirically uncertain measurement like the other two.
@@ -358,16 +343,16 @@ def setup_lcia_methods():
                     filename="soc_demo_climate_change")
     method.write([
         # CO2 is the reference flow: CF = 1 by definition, not an uncertain
-        # quantity, so this is a degenerate Normal (scale=0) rather than a
-        # gap to be left undefined - it must never pick up noise from a
-        # gap-fill strategy the way a genuinely missing CF would.
+        # quantity, so this is a degenerate Normal (scale=0): declared exact
+        # rather than left undeclared, where a screening of undeclared
+        # parameters could give it a width.
         (co2, {"uncertainty type": NormalUncertainty.id, "loc": 1.0, "scale": 0.0,
                "shape": np.nan, "minimum": np.nan, "maximum": np.nan,
                "negative": False, "amount": 1.0}),
         (ch4, {"uncertainty type": LognormalUncertainty.id, "loc": float(np.log(29.7)),
                "scale": 0.1, "shape": np.nan, "minimum": np.nan, "maximum": np.nan,
                "negative": False, "amount": 29.7}),
-        # Left undefined - a CF-level gap, not just an 'If'-level one.
+        # Left undeclared - a CF without a distribution, for the screening.
         (n2o, 273.0),
     ])
     print(f"Registered LCIA method {METHOD_KEY} with 3 characterization factors.")

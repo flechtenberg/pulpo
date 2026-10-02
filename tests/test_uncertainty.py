@@ -744,8 +744,8 @@ def setup_uncertainty_free_project():
 
 @unittest.skipUnless(is_bw25(), "bw25-only: structured uncertainty-parameter arrays require bw2data >= 4")
 class TestUncertaintyParamArrays(unittest.TestCase):
-    """``bw_parser.import_data`` exposes structured uncertainty arrays (or ``None``
-    and a warning when the databases carry no uncertainty)."""
+    """``bw_parser.import_data`` exposes structured uncertainty arrays, or ``None``
+    without a warning when the databases carry no uncertainty."""
 
     REQUIRED_FIELDS = ("row", "col", "amount", "uncertainty_type",
                        "loc", "scale", "shape", "minimum", "maximum", "negative")
@@ -768,7 +768,7 @@ class TestUncertaintyParamArrays(unittest.TestCase):
         self.assertEqual(len(pairs), len(set(pairs)))
         self.assertGreater(len(set(int_params["col"].tolist())), 1)
 
-    def test_without_uncertainty_stores_none_and_warns(self):
+    def test_without_uncertainty_stores_none_quietly(self):
         project = setup_uncertainty_free_project()
         with warnings.catch_warnings(record=True) as caught:
             warnings.simplefilter("always")
@@ -777,9 +777,13 @@ class TestUncertaintyParamArrays(unittest.TestCase):
         method_key = next(iter(lci_data["matrices"]))
         self.assertIsNone(lci_data["intervention_params"])
         self.assertIsNone(lci_data["characterization_params"][method_key])
-        messages = [str(w.message) for w in caught if issubclass(w.category, UserWarning)]
-        self.assertTrue(any("intervention" in m for m in messages))
-        self.assertTrue(any("characterization" in m for m in messages))
+        self.assertFalse([w for w in caught if 'uncertainty' in str(w.message)])
+        # Asking for the uncertainty is where the user hears about it.
+        worker = types.SimpleNamespace(lci_data=lci_data, database=["no_uncertainty_db"], method={method_key: 1})
+        with self.assertRaises(ValueError) as error:
+            unc.import_declared(worker)
+        self.assertIn('biosphere entries', str(error.exception))
+        self.assertIn('characterization factors', str(error.exception))
 
 
 if __name__ == '__main__':

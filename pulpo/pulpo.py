@@ -76,7 +76,10 @@ class PulpoOptimizer:
         Combines inputs and instantiates the optimization model.
 
         Args:
-            choices (dict): Choices for the model.
+            choices (dict): Choices for the model: ``{label: {activity: capacity}}``, or a list of
+                            activities when none has a capacity. A capacity of ``float('inf')``
+                            or ``None`` means no limit; avoid huge finite stand-ins such as
+                            ``1e10``. ``None`` means "no limit" in every limit dict below too.
             demand (dict): Demand data.
             upper_limit (dict): Upper limit constraints.
             lower_limit (dict): Lower limit constraints.
@@ -92,7 +95,13 @@ class PulpoOptimizer:
                                             Categories listed in imp_goals ignore 'lower_imp_bound'/
                                             'upper_imp_bound' (the goal is a soft limit, not a hard Var
                                             bound) unless also given an explicit upper_imp_limit/
-                                            lower_imp_limit.
+                                            lower_imp_limit. Finite 'lower_bound' / 'upper_bound'
+                                            put a bound on every activity, which has no physical
+                                            meaning and makes solve(method='reduced') build the
+                                            whole of S; they raise a FutureWarning. Set
+                                            lower_limit / upper_limit on the processes that have
+                                            a real limit instead. default_limits may be
+                                            deprecated in a near-future release.
             imp_goals (dict, optional): Goal-programming soft limits {method_string: limit}. Unlike
                                         upper_imp_limit these CAN be transgressed; used with
                                         objective='goal'. Categories with a goal are kept in the

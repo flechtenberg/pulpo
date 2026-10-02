@@ -25,6 +25,7 @@ default limits, pickling, and the building blocks against dense linear algebra.
 import copy
 import pickle
 import unittest
+import warnings
 
 import numpy as np
 import pyomo.environ as pyo
@@ -317,7 +318,10 @@ class TestReducedSampleTechnosphere(ParityMixin, unittest.TestCase):
         before = alternative_values(worker)
         tight = {'lower_bound': -0.1, 'upper_bound': 0.1, 'upper_inv_bound': 0.1,
                  'lower_inv_bound': -0.1, 'lower_imp_bound': -0.1, 'upper_imp_bound': 0.1}
-        worker.instantiate(choices=self.choices(), demand={self.ecar: 1}, default_limits=tight)
+        with warnings.catch_warnings(record=True) as warned:
+            warnings.simplefilter('always')
+            worker.instantiate(choices=self.choices(), demand={self.ecar: 1}, default_limits=tight)
+        self.assertTrue(any(issubclass(w.category, FutureWarning) for w in warned))
         with self.assertRaises(reduced.ReducedSolveError) as caught:
             worker.solve(method='reduced')
         self.assertIn(str(caught.exception.results.termination_condition),
@@ -373,27 +377,90 @@ class TestReducedSampleTechnosphere(ParityMixin, unittest.TestCase):
                                   dict(base, lower_elem_limit={co2: sum(levels) / 2}, scale=scale))
                 self.assert_parity(worker)
 
-    def test_finite_default_limits_enter_lazily(self):
-        """Finite default limits bound every process; only violated bounds become
-        rows, the rest stay out of the LP and S is not formed."""
+    def test_finite_default_limits_are_rows_and_warn(self):
+        """Finite default limits bound every process: every bounded process is a
+        row of the LP (the whole of S), and instantiate warns about it."""
         worker = self.worker()
-        finite = {'lower_bound': 0.0, 'upper_bound': 1e9, 'upper_inv_bound': 1e9,
-                  'lower_inv_bound': -1e9, 'lower_imp_bound': -1e9, 'upper_imp_bound': 1e9}
-        worker.instantiate(choices=self.choices(), demand={self.ecar: 1}, default_limits=finite)
+        finite = {'lower_bound': 0.0, 'upper_bound': float('inf'), 'upper_inv_bound': float('inf'),
+                  'lower_inv_bound': -float('inf'), 'lower_imp_bound': -float('inf'),
+                  'upper_imp_bound': float('inf')}
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter('always')
+            worker.instantiate(choices=self.choices(), demand={self.ecar: 1}, default_limits=finite)
+        self.assertTrue(any(issubclass(w.category, FutureWarning) and 'may be deprecated' in str(w.message)
+                            for w in caught))
         results, _ = self.assert_parity(worker)
-        bound_rows = results.n_rows - 1 - len(worker.instance.INDICATOR)   # one category, impact limits
-        self.assertEqual(bound_rows, 2)                                      # the two alternatives only
-        self.assertEqual(len(reduced.build(worker).system._process_rows), 2)
+        n = len(worker.instance.PROCESS)
+        bound_rows = results.n_rows - 1                                      # one category row
+        self.assertEqual(bound_rows, n)
+        self.assertEqual(len(reduced.build(worker).system._process_rows), n)
+        self.assertEqual(results.rounds, 1)
 
-    def test_relaxation_without_lazy_bounds_is_unbounded(self):
-        """A bound outside the LP can be what keeps the problem bounded; the
-        unbounded relaxation then takes every bound row and solves again."""
+    def test_a_bound_off_the_alternatives_is_a_row_from_the_start(self):
+        """A bound on a process that is not an alternative can be what keeps the
+        problem bounded; it is in the LP from the first solve."""
         worker = self.worker()
         oil = worker.retrieve_activities(activities=['oil extraction'])[0]
         worker.instantiate(choices={'electricity': [self.wind, self.steam]}, demand={self.ecar: 1},
                            lower_limit={self.steam: -float('inf'), oil: 0.0})
         results, _ = self.assert_parity(worker)
+        self.assertEqual(results.rounds, 1)
+
+    def test_a_remote_bound_side_that_binds_is_imposed(self):
+        """A bound side far beyond the problem's scale is withheld; when the
+        problem is unbounded without it, it is imposed and the LP solved again."""
+        worker = self.worker()
+        oil = worker.retrieve_activities(activities=['oil extraction'])[0]
+        worker.instantiate(choices={'electricity': [self.wind, self.steam]}, demand={self.ecar: 1},
+                           lower_limit={self.steam: -float('inf'), oil: -1e10})
+        results, _ = self.assert_parity(worker)
         self.assertEqual(results.rounds, 2)
+        j = worker.lci_data['process_map'][oil.key]
+        self.assertAlmostEqual(worker.instance.scaling_vector[j].value, -1e10, delta=1e-9 * 1e10)
+
+    def test_none_means_no_limit(self):
+        """None in a choice capacity or a limit dict reads as +-inf."""
+        worker = self.worker()
+        worker.instantiate(choices={'electricity': {self.wind: float('inf'), self.steam: float('inf')}},
+                           demand={self.ecar: 1}, upper_limit={self.ecar: float('inf')})
+        worker.solve()
+        reference = worker.instance.OBJ()
+        worker.instantiate(choices={'electricity': {self.wind: None, self.steam: None}},
+                           demand={self.ecar: 1}, upper_limit={self.ecar: None}, lower_limit={self.wind: None})
+        pmap = worker.lci_data['process_map']
+        for j in (pmap[self.wind.key], pmap[self.steam.key], pmap[self.ecar.key]):
+            self.assertIsNone(worker.instance.scaling_vector[j].ub)
+        self.assertIsNone(worker.instance.scaling_vector[pmap[self.wind.key]].lb)
+        results, objective = self.assert_parity(worker)
+        self.assertAlmostEqual(objective, reference, places=9)
+
+    def test_huge_finite_bounds_warn(self):
+        worker = self.worker()
+        worker.instantiate(choices={'electricity': {self.wind: 1e10, self.steam: float('inf')}},
+                           demand={self.ecar: 1})
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter('always')
+            worker.solve(method='reduced')
+        remote = [w for w in caught if 'far beyond' in str(w.message)]
+        self.assertEqual(len(remote), 1)
+        self.assertIn('wind', str(remote[0].message))
+        self.assertEqual(remote[0].filename, __file__)              # points at the caller
+        worker.instantiate(choices={'electricity': {self.wind: None, self.steam: float('inf')}},
+                           demand={self.ecar: 1})
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter('always')
+            worker.solve(method='reduced')
+        self.assertFalse([w for w in caught if 'far beyond' in str(w.message)])
+
+    def test_infinite_default_limits_do_not_warn(self):
+        worker = self.worker()
+        infinite = {'lower_bound': -float('inf'), 'upper_bound': float('inf'), 'upper_inv_bound': 1e9,
+                    'lower_inv_bound': -1e9, 'lower_imp_bound': -1e9, 'upper_imp_bound': 1e9}
+        for limits in (None, infinite):
+            with warnings.catch_warnings(record=True) as caught:
+                warnings.simplefilter('always')
+                worker.instantiate(choices=self.choices(), demand={self.ecar: 1}, default_limits=limits)
+            self.assertFalse([w for w in caught if issubclass(w.category, FutureWarning)])
 
     def test_fixed_scaling_vector(self):
         """A fixed activity is honoured in the right units on every solve and keeps its value."""
@@ -501,7 +568,7 @@ class TestReducedSampleForeground(ParityMixin, unittest.TestCase):
         self.byproduct = get(processes=['O2-byproduct'])[0]
         return worker
 
-    def choices(self, caps=(1e10, 1e10, 1e10, 1e10, 1e10, 1e10)):
+    def choices(self, caps=(float('inf'),) * 6):
         return {
             'Electricity': {self.electricity[0]: caps[0], self.electricity[1]: caps[1]},
             'Hydrogen': {self.hydrogen[0]: caps[2], self.hydrogen[1]: caps[3]},
@@ -528,7 +595,7 @@ class TestReducedSampleForeground(ParityMixin, unittest.TestCase):
         worker = self.worker()
         wind, elyz, asu = self.by_name('wind electricity'), self.by_name('hydrogen electrolysis'), self.by_name('O2 ASU')
         for caps in ({wind: 5.0}, {elyz: 0.1, asu: 1.9}):
-            choices = {cat: {p: caps.get(p, 1e10) for p in procs} for cat, procs in self.choices().items()}
+            choices = {cat: {p: caps.get(p, float('inf')) for p in procs} for cat, procs in self.choices().items()}
             for scale in (False, True):
                 with self.subTest(caps=sorted(p['name'] for p in caps), scale=scale):
                     self.assert_binds(worker, self.base(scale=scale), self.base(choices=choices, scale=scale))
@@ -591,12 +658,12 @@ class TestReducedRice(ParityMixin, unittest.TestCase):
         it produces: a zero-cost cycle whose level the LP leaves arbitrary."""
         return (worker.lci_data['process_map'][self.auxiliar[0].key],)
 
-    def choices(self, husk_cap=1e10, aux_cap=10.0):
+    def choices(self, husk_cap=float('inf'), aux_cap=10.0):
         # With the notebook's auxiliary capacity of 1e10 an LP may park the free
         # husk-market cycle at 1e10, and every activity then carries ~1e10 * eps
         # of cancellation noise; test_notebook_capacity covers that setting.
         return {'Rice Husk (Mt)': {c: husk_cap for c in self.collections},
-                'Thermal Energy (TWh)': {b: 1e10 for b in self.boilers},
+                'Thermal Energy (TWh)': {b: float('inf') for b in self.boilers},
                 'Auxiliar': {a: aux_cap for a in self.auxiliar}}
 
     def test_notebook_sequence(self):
@@ -701,8 +768,8 @@ class TestReducedSocDemo(ParityMixin, unittest.TestCase):
         self.elyz = get(processes=['hydrogen electrolysis'])[0]
         return worker
 
-    def base(self, elyz_cap=1e10, **kwargs):
-        return dict(dict(choices={'hydrogen': {self.smr: 1e10, self.elyz: elyz_cap}},
+    def base(self, elyz_cap=float('inf'), **kwargs):
+        return dict(dict(choices={'hydrogen': {self.smr: float('inf'), self.elyz: elyz_cap}},
                          demand={self.ammonia: 1}), **kwargs)
 
     def test_route_choice(self):
@@ -769,7 +836,7 @@ class TestReducedElecStatic(ParityMixin, unittest.TestCase):
                 self.assert_parity(worker)
                 self.assertAlmostEqual(worker.instance.OBJ(), 6.0, places=7)
 
-    def test_time_explicit_is_refused(self):
+    def test_time_dependent_is_refused(self):
         worker = self.worker()
         a = self.acts
         steps = [0, 1]

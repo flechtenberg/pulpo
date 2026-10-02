@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pulpo-dev"
-version = "2.0.0rc1"
+version = "2.0.0rc2"
 description = "Pulpo package for optimization in LCI databases"
 authors = [
   { name="Fabian Lechtenberg", email="fabian.lechtenberg@chem.ethz.ch" }
@@ -57,6 +57,11 @@ bw25 = [
 # Kept so that "pulpo-dev[uncertainty]" still installs: the uncertainty
 # features need nothing beyond the core dependencies.
 uncertainty = []
+# The test suite; SALib cross-checks the exact Sobol' indices.
+test = [
+    "pytest",
+    "SALib==1.5.1",
+]
 
 [project.urls]
 homepage = "https://github.com/flechtenberg/pulpo"

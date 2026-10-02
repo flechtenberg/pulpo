@@ -55,8 +55,10 @@ import pyomo.environ as pyo
 from pyomo.core.expr.numeric_expr import LinearExpression
 
 from pulpo.utils import scaling as _scaling
+from pulpo.utils.converter import warn_finite_default_limits
 from pulpo.utils.optimizer import _group_env_cost_rows
 from pulpo.utils.utils import broadcast_over_time as _broadcast_over_time
+from pulpo.utils.utils import none_capacities, none_to_bound
 
 
 # ---------------------------------------------------------------------------
@@ -114,6 +116,9 @@ def combine_inputs_time(
             'lower_imp_bound'/'upper_imp_bound'/'upper_imp_agg_bound' (the
             goal is a soft limit, not a hard Var bound) unless also given an
             explicit upper_imp_limit/lower_imp_limit/upper_imp_agg_limit.
+            Finite 'lower_bound' / 'upper_bound' bound every activity and
+            raise a FutureWarning; default_limits may be deprecated in a
+            near-future release.
 
     Each of ``demand``, ``choices``, ``upper_limit``, ``lower_limit``,
     ``upper_inv_limit``, ``upper_imp_limit``, ``lower_inv_limit``,
@@ -123,6 +128,7 @@ def combine_inputs_time(
     if not time_steps:
         raise ValueError("`time_steps` must be a non-empty list.")
     time_steps = list(time_steps)
+    warn_finite_default_limits(default_limits, scale)
 
     # Unspecified limits must be truly infinite: huge finite defaults
     # (e.g. ±1e20) make HiGHS log "treated as ±Infinity" warnings for every
@@ -139,14 +145,20 @@ def combine_inputs_time(
             'upper_imp_agg_bound': float('inf'),
         }
 
+    # None means "no limit" in every capacity and limit dict.
+    inf = float('inf')
+
+    def per_step(limits, bound):
+        return {t: none_to_bound(d, bound) for t, d in _broadcast_over_time(limits, time_steps).items()}
+
     demand_t = _broadcast_over_time(demand, time_steps)
-    choices_t = _broadcast_over_time(choices, time_steps)
-    upper_limit_t = _broadcast_over_time(upper_limit, time_steps)
-    lower_limit_t = _broadcast_over_time(lower_limit, time_steps)
-    upper_inv_limit_t = _broadcast_over_time(upper_inv_limit, time_steps)
-    upper_imp_limit_t = _broadcast_over_time(upper_imp_limit, time_steps)
-    lower_inv_limit_t = _broadcast_over_time(lower_inv_limit, time_steps)
-    lower_imp_limit_t = _broadcast_over_time(lower_imp_limit, time_steps)
+    choices_t = {t: none_capacities(c) for t, c in _broadcast_over_time(choices, time_steps).items()}
+    upper_limit_t = per_step(upper_limit, inf)
+    lower_limit_t = per_step(lower_limit, -inf)
+    upper_inv_limit_t = per_step(upper_inv_limit, inf)
+    upper_imp_limit_t = per_step(upper_imp_limit, inf)
+    lower_inv_limit_t = per_step(lower_inv_limit, -inf)
+    lower_imp_limit_t = per_step(lower_imp_limit, -inf)
 
     matrices = lci_data['matrices']
     intervention_matrix = lci_data['intervention_matrix']
@@ -336,7 +348,7 @@ def combine_inputs_time(
         for imp, value in lower_imp_limit_t[t].items():
             lower_imp_limit_dict[(t, imp)] = value
 
-    upper_imp_agg_limit = upper_imp_agg_limit or {}
+    upper_imp_agg_limit = none_to_bound(upper_imp_agg_limit, inf)
     upper_imp_agg_limit_dict = {
         h: (float('inf') if h in imp_goals else default_limits['upper_imp_agg_bound'])
         for h in INDICATOR[None]

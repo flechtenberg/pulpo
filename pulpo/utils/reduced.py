@@ -40,9 +40,10 @@ bound rows ``S[J, :]`` can instead be read off K forward solves, keeping only
 the rows ``J``. :meth:`ReducedSystem.project` picks whichever needs fewer
 solves. One factorization of ``A`` serves both directions and every solve
 after it: across objective weights, limits, demand and repeated solves.
-Bounds on processes other than the alternatives enter only when a solve
-violates them, so finite default limits on every process do not bring ``S``
-back either.
+Every finite process bound is a row ``S[j, :]``, so the LP stays small only
+while few processes are bounded, which is PULPO's default (bounds are +-inf
+unless set). Finite ``default_limits`` on every process put the whole of
+``S`` into the LP (see ``PulpoOptimizer.instantiate``).
 
 Reading a solved instance: unchanged. :meth:`ReducedModel.solve` writes the
 recovered scaling vector, the impacts, the flows, the supply slacks and the
@@ -59,6 +60,7 @@ variable bounds, fixed variables, deactivated optional rows.
 
 import hashlib
 import time
+import warnings
 import weakref
 from dataclasses import dataclass, field
 
@@ -539,8 +541,9 @@ class ReducedResults:
     it and recovering ``s``. ``balance_residual`` is the largest
     ``|A s - f~ - E v|`` of a balance relative to the size of its terms,
     ``|A| |s| + |f~ + E v|``.
-    ``rounds`` counts the LP solves (more than one when a process bound
-    outside the LP was violated and added).
+    ``rounds`` counts the LP solves: more than one only when a remote bound
+    side or limit (see :attr:`ReducedModel.REMOTE_BOUND`) was withheld and the
+    solution violated it, or the problem was unbounded without it.
     """
     termination_condition: TerminationCondition
     objective: float = None
@@ -589,13 +592,12 @@ class ReducedModel:
     ``UPPER_IMP_LIMIT``, say) are honoured, while the projections, which depend
     only on ``A``, the choices and the coefficient vectors, are reused.
 
-    Bounds on the alternatives and supply processes always enter the LP. A
-    bound on any other process enters only once a solve violates it
-    (:meth:`optimize` re-solves until none is violated, which is exact): finite
-    default limits bound every process, and adding all of them eagerly would
-    form the dense ``S`` the reduction exists to avoid. The same holds for a
-    bound side far beyond every activity of the problem, such as a capacity of
-    1e10 meaning "unlimited", whose right-hand side would only degrade a solve.
+    Every finite process bound is a row of the LP. A bound side far beyond
+    every activity of the problem, such as a capacity of 1e10 meaning
+    "unlimited", is the exception: its right-hand side would only degrade the
+    conditioning of a solve (of the chance-constrained cone above all), so it
+    is withheld and imposed only if a solution violates it (:meth:`optimize`
+    re-solves then, which is exact). Impact and flow limits are treated alike.
 
     Attributes:
         system (ReducedSystem): the map ``v -> s``.
@@ -604,8 +606,8 @@ class ReducedModel:
         categories (dict): category -> indices of its alternatives in ``v``.
     """
 
-    #: A process bound outside the LP counts as violated beyond this tolerance,
-    #: relative to the bound (absolute below 1).
+    #: A withheld (remote) bound or limit counts as violated beyond this
+    #: tolerance, relative to the bound (absolute below 1).
     BOUND_TOL = 1e-9
 
     #: A bound side beyond this multiple of the problem's scale (the largest
@@ -620,9 +622,6 @@ class ReducedModel:
         self.alternatives, self.categories, self.supply_products = _free_rows(instance, lci_data, choices)
         self.column_labels = ([('alternative', cat, j) for j, cat in self.alternatives]
                               + [('slack', i) for i in self.supply_products])
-        # Processes whose bound rows always enter: the free rows' own processes,
-        # and every process whose bound an earlier solve needed.
-        self._kept_bounds = set(int(j) for j in system.columns)
 
     # -- reading the instance ------------------------------------------------
 
@@ -642,7 +641,7 @@ class ReducedModel:
             lower[j], upper[j] = _var_bounds(var, factor, unscaled)
         return lower, upper
 
-    def _demand(self):
+    def demand(self):
         """``f~`` (demand on every non-category row) and the category demands."""
         inst = self.instance
         row_scale = inst._row_scale if _scaling.is_scaled(inst) else None
@@ -693,9 +692,8 @@ class ReducedModel:
         """Assemble the reduced LP for the instance's current data.
 
         Args:
-            processes: process ids whose bounds become rows; ``None`` adds a row
-                for every bounded process (see the class docstring for why
-                :meth:`solve` does not).
+            processes: process ids whose bounds become rows; ``None`` (as
+                :meth:`optimize` uses it) adds a row for every bounded process.
             bounds: ``(lower, upper)`` from :meth:`process_bounds`, if already read.
 
         Returns ``(lp, f_tilde)``; the first ``system.n_free`` columns of
@@ -705,7 +703,7 @@ class ReducedModel:
         _check_instance(inst)
         system = self.system
         K = system.n_free
-        f_tilde, f_cat = self._demand()
+        f_tilde, f_cat = self.demand()
         s0 = system.base(f_tilde)
 
         blocks, lower, upper, labels = [], [], [], []
@@ -818,7 +816,7 @@ class ReducedModel:
     # -- solve -----------------------------------------------------------------
 
     def optimize(self, solve, bounds=None, transform=None):
-        """Solve with the lazy process bounds of the class docstring.
+        """Solve with every process bound as a row, remote sides withheld.
 
         Args:
             solve: ``solve(lp, f_tilde) -> LPSolution`` for an LP from
@@ -829,8 +827,10 @@ class ReducedModel:
             transform: ``transform(lp, f_tilde)``, applied to every LP before it
                 is solved (the chance-constrained problem replaces the objective).
 
-        Impact and flow limits far beyond the problem's scale are withheld from
-        the solve like remote process bounds, and checked against its solution.
+        Bound sides and impact or flow limits beyond :attr:`REMOTE_BOUND` times
+        the problem's scale are withheld from the solve and checked against its
+        solution; one that is violated, or one without which the problem is
+        unbounded, is imposed and the LP solved again.
 
         Returns:
             ``(results, s)``: a :class:`ReducedResults` (``v``, ``objective``,
@@ -844,8 +844,8 @@ class ReducedModel:
         # A bound far beyond every activity of the problem (a 1e10 capacity that
         # stands for "unlimited") cannot bind, but its right-hand side would
         # spoil the conditioning of a cone solve. Such sides are withheld and
-        # enter only if a solution violates them, like the lazy rows.
-        f_base, f_cat = self._demand()
+        # enter only if a solution violates them.
+        f_base, f_cat = self.demand()
         scale = max([1.0, float(np.abs(self.system.base(f_base)).max(initial=0.0))]
                     + [abs(value) for value in f_cat.values()])
         far = self.REMOTE_BOUND * scale
@@ -854,14 +854,9 @@ class ReducedModel:
         lo = np.where(remote_lo, -np.inf, true_lo)
         up = np.where(remote_up, np.inf, true_up)
 
-        def bounded_now():
-            return set(np.flatnonzero(np.isfinite(lo) | np.isfinite(up)).tolist())
-
         def tolerance(value):
             return self.BOUND_TOL * np.maximum(1.0, np.abs(np.where(np.isfinite(value), value, 0.0)))
 
-        bounded = bounded_now()
-        rows = bounded & self._kept_bounds
         kept_limits = set()                 # limit rows whose remote sides were violated
         seconds = {'assemble': 0.0, 'solve': 0.0, 'recover': 0.0}
         rounds = 0
@@ -869,7 +864,7 @@ class ReducedModel:
         while True:
             rounds += 1
             t = time.perf_counter()
-            lp, f_tilde = self.linear_program(processes=rows, bounds=(lo, up))
+            lp, f_tilde = self.linear_program(bounds=(lo, up))
             if transform is not None:
                 transform(lp, f_tilde)
             withheld = []
@@ -880,18 +875,18 @@ class ReducedModel:
                             withheld.append((i, label, float(values[i]), side))
                             values[i] = sign * np.inf
             seconds['assemble'] += time.perf_counter() - t
+            if rounds == 1:
+                self._warn_remote(np.flatnonzero(remote_lo), np.flatnonzero(remote_up), true_lo, true_up,
+                                  [label for _, label, _, _ in withheld], scale)
             sol = solve(lp, f_tilde)
             seconds['solve'] += sol.seconds
-            pending = bounded - rows
             if sol.termination_condition != TerminationCondition.optimal:
-                # Without some bound rows the relaxation can be unbounded where
-                # the full problem is not: add them all and solve once more.
-                if (pending or withheld or remote_lo.any() or remote_up.any()) and sol.termination_condition in (
+                # A withheld side can be what keeps the problem bounded: impose
+                # them all and solve once more.
+                if (withheld or remote_lo.any() or remote_up.any()) and sol.termination_condition in (
                         TerminationCondition.unbounded, TerminationCondition.infeasibleOrUnbounded):
                     lo, up = true_lo.copy(), true_up.copy()
                     remote_lo[:] = remote_up[:] = False
-                    bounded = bounded_now()
-                    rows = rows | bounded
                     kept_limits |= {label for _, label, _, _ in withheld}
                     continue
                 break
@@ -907,23 +902,13 @@ class ReducedModel:
             t = time.perf_counter()
             s = self.system.recover(f_tilde, sol.x[:K])
             seconds['recover'] += time.perf_counter() - t
-            violated = set()
-            if pending:
-                idx = np.fromiter(pending, dtype=np.int64)
-                bad = (s[idx] < lo[idx] - tolerance(lo[idx])) | (s[idx] > up[idx] + tolerance(up[idx]))
-                violated |= set(idx[bad].tolist())
             far_lo = np.flatnonzero(remote_lo & (s < true_lo - tolerance(true_lo)))
             far_up = np.flatnonzero(remote_up & (s > true_up + tolerance(true_up)))
             if far_lo.size or far_up.size:
                 lo[far_lo], up[far_up] = true_lo[far_lo], true_up[far_up]
                 remote_lo[far_lo] = remote_up[far_up] = False
-                bounded = bounded_now()
-                violated |= set(far_lo.tolist()) | set(far_up.tolist())
-            if violated:
-                rows = rows | violated
                 continue
             break
-        self._kept_bounds |= rows
         results = ReducedResults(termination_condition=sol.termination_condition,
                                  n_variables=len(lp.c), n_rows=lp.matrix.shape[0],
                                  seconds=seconds, rounds=rounds)
@@ -943,6 +928,21 @@ class ReducedModel:
                 results.v, results.s = v, s
         results.seconds['total'] = time.perf_counter() - start
         return results, s
+
+    def _warn_remote(self, far_lo, far_up, lower, upper, limits, scale):
+        """Tell the user about bounds that stand for "no limit" (see :meth:`optimize`)."""
+        count = len(far_lo) + len(far_up) + len(set(limits))
+        if not count:
+            return
+        names = self.lci_data.get('process_map_metadata', {})
+        examples = ([f"lower bound {lower[j]:.3g} on '{names.get(int(j), j)}'" for j in far_lo[:2]]
+                    + [f"upper bound {upper[j]:.3g} on '{names.get(int(j), j)}'" for j in far_up[:2]]
+                    + [f"the {kind} limit on {key!r}" for kind, key in list(dict.fromkeys(limits))[:2]])
+        warnings.warn(
+            f"{count} bound(s) or limit(s) lie far beyond every activity of this problem (the largest is "
+            f"about {scale:.3g}), e.g. {'; '.join(examples[:3])}. They cannot bind, so they are left out of the "
+            "solve and imposed only if a solution reaches them. For 'no limit', use float('inf') or None.",
+            UserWarning, stacklevel=5)
 
     def solve(self, solver_name=None, options=None):
         """Solve the reduced LP and write the solution onto the instance.

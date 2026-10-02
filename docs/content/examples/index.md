@@ -37,6 +37,22 @@ Extended rice example from [Kätelhön et al. (2016)](https://pubs.acs.org/doi/1
 by @flechtenberg
 :::
 
+:::{grid-item-card} 🎲 Optimization under uncertainty
+:link: ./uncertainty_toy.html
+:link-type: url
+:class-body: sphinx-design-class-body-examples
+:text-align: left
+Chance-constrained front, exact variance decomposition, screening of undeclared parameters and out-of-sample validation on the bundled demo database, with open-source solvers only.
+```{image} ./data/uncertainty_toy.png
+:class: only-dark
+```
+```{image} ./data/uncertainty_toy.png
+:class: only-light
+```
++++
+by @flechtenberg
+:::
+
 :::{grid-item-card} Do you have anything to add?
 :link: ./index.html
 :link-type: url
@@ -57,4 +73,5 @@ maxdepth: 1
 self
 electricity_showcase
 rice_example
+uncertainty_toy
 ```

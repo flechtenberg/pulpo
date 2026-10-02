@@ -63,7 +63,8 @@ class PulpoOptimizerTime(PulpoOptimizer):
 
         Each of ``demand``, ``choices`` and the limit dicts may be supplied
         either as a static dict (broadcast across all timesteps) or as
-        ``{t: dict}``. ``dependent_constraints`` is not yet supported in the
+        ``{t: dict}``. A capacity or limit of ``None`` means no limit, as
+        ``float('inf')`` does. ``dependent_constraints`` is not yet supported in the
         time-dependent path.
 
         Args:
@@ -76,6 +77,10 @@ class PulpoOptimizerTime(PulpoOptimizer):
                 ``imp_goals`` ignore the impact-bound defaults (the goal is a
                 soft limit, not a hard Var bound) unless also given an
                 explicit upper_imp_limit/lower_imp_limit/upper_imp_agg_limit.
+                Finite 'lower_bound' / 'upper_bound' bound every activity and
+                raise a FutureWarning (see
+                :meth:`pulpo.pulpo.PulpoOptimizer.instantiate`);
+                default_limits may be deprecated in a near-future release.
             storage (list, optional): Carry-over specification. List of triples
                 ``(stored_product, producing_activity, factor)`` so that
                 charging at *t-1* contributes ``factor * scaling[t-1]`` units

@@ -16,6 +16,7 @@ three-step instance.
 
 import os
 import unittest
+import warnings
 from tempfile import TemporaryDirectory
 
 import pandas as pd
@@ -412,6 +413,37 @@ class TestStaticFallbackAndErrors(unittest.TestCase):
         worker.solve()
         self.assertIsNone(worker.time_steps)
         self.assertAlmostEqual(worker.instance.OBJ(), 0.6, places=6)
+
+    def test_finite_default_limits_warn_in_the_time_path(self):
+        worker = build_worker()
+        solar = worker.retrieve_activities(activities=["solar"])[0]
+        coal = worker.retrieve_activities(activities=["coal"])[0]
+        time_steps = [0, 1]
+        limits = {'lower_bound': 0.0, 'upper_bound': float('inf'), 'upper_inv_bound': float('inf'),
+                  'lower_inv_bound': -float('inf'), 'lower_imp_bound': -float('inf'),
+                  'upper_imp_bound': float('inf'), 'upper_imp_agg_bound': float('inf')}
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter('always')
+            worker.instantiate(choices={ELECTRICITY_CHOICE: {solar: 1e6, coal: 1e6}},
+                               demand={t: {ELECTRICITY_CHOICE: 1.0} for t in time_steps},
+                               time_steps=time_steps, default_limits=limits)
+        self.assertTrue(any(issubclass(w.category, FutureWarning) and 'may be deprecated' in str(w.message)
+                            for w in caught))
+
+    def test_none_means_no_limit_in_the_time_path(self):
+        worker = build_worker()
+        acts = {name: worker.retrieve_activities(activities=[name])[0] for name in ACTIVITY_NAMES}
+        time_steps = [0, 1]
+        demand = {t: {ELECTRICITY_CHOICE: 1.0} for t in time_steps}
+        lower = {acts["battery_charge"]: 0.0, acts["battery_hold"]: 0.0, acts["battery_discharge"]: 0.0}
+        objectives = []
+        for unlimited in (float('inf'), None):
+            worker.instantiate(choices={ELECTRICITY_CHOICE: {acts["solar"]: 0.4, acts["coal"]: unlimited}},
+                               demand=demand, lower_limit=lower, upper_limit={acts["coal"]: unlimited},
+                               upper_imp_agg_limit={GWP: unlimited}, time_steps=time_steps)
+            worker.solve()
+            objectives.append(worker.instance.OBJ())
+        self.assertAlmostEqual(objectives[0], objectives[1], places=9)
 
     def test_dependent_constraints_rejected_in_time_path(self):
         worker = build_worker()

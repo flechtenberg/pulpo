@@ -10,6 +10,10 @@ an entry that is zero in ``B`` is no coefficient at all. No contribution
 filter is applied, so the parameter set does not depend on a reference
 solution.
 
+Technosphere exchanges are not parameters, as of now: ``A`` is deterministic
+and any distribution the database declares for its entries is not read. The
+closed-form moments and the reduced space both rely on that.
+
 Declared and undeclared
 -----------------------
 A parameter is *declared* when the database or the method gives it a
@@ -114,9 +118,15 @@ def import_declared(worker, method=None) -> UncertaintyData:
     method = method or _single_method(worker)
     lci = worker.lci_data
     databases = worker.database if isinstance(worker.database, list) else [worker.database]
-    if lci.get('intervention_params') is None or lci.get('characterization_params', {}).get(method) is None:
-        raise ValueError("The LCI data carries no uncertainty parameters (bw2data stores none for "
-                         "this database or method); see bw_parser.import_data.")
+    missing = []
+    if lci.get('intervention_params') is None:
+        missing.append(f"the biosphere entries of {databases}")
+    if (lci.get('characterization_params') or {}).get(method) is None:
+        missing.append(f"the characterization factors of {method}")
+    if missing:
+        raise ValueError(f"No uncertainty parameters for {' and '.join(missing)}: their data declare no "
+                         "distributions, or not for every entry (Brightway stores the parameter arrays "
+                         "only when complete). Legacy Brightway 2 provides none.")
 
     cf_params = pd.DataFrame(lci['characterization_params'][method])
     if cf_params['row'].duplicated().any():

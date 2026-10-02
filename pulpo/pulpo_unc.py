@@ -9,10 +9,15 @@ A PulpoOptimizer that holds its uncertainty data::
     worker.instantiate(choices=..., demand=...)
     worker.import_uncertainty_data()
     worker.apply_expert_knowledge('If', 'foreground', expert_specs)
-    front = worker.chance_constrained(upper_bounds={activity: spec}).solve([0.5, 0.9, 0.99])
+    problem = worker.chance_constrained(upper_bounds={activity: spec})
+    front = problem.solve([0.5, 0.9, 0.99])
+    worker.screen_undeclared(front[0.5], exact_cfs=uncertainty.co2_flows(worker))
+    worker.validate(front, problem, seed=1)
 
 Each method delegates to :mod:`pulpo.utils.uncertainty`, which works with a
-plain ``PulpoOptimizer`` as well.
+plain ``PulpoOptimizer`` as well. As of now, uncertainty is considered only in
+the biosphere flows and the characterization factors; technosphere exchanges
+are deterministic.
 """
 
 from pulpo.pulpo import PulpoOptimizer
@@ -44,6 +49,16 @@ class PulpoOptimizerUnc(PulpoOptimizer):
         return uncertainty.ChanceConstrained(self, self.moments(), upper_bounds=upper_bounds,
                                              lower_bounds=lower_bounds, allocation=allocation,
                                              weights=weights)
+
+    def screen_undeclared(self, s, exact_cfs, r=(0.1, 0.3), n=10):
+        """Rank the undeclared parameters at a decision (see ``uncertainty.screen_undeclared``)."""
+        self._require_data()
+        return uncertainty.screen_undeclared(s, self.uncertainty_data, self, exact_cfs=exact_cfs, r=r, n=n)
+
+    def validate(self, front, problem, n=200_000, seed=None, designs=None):
+        """Out-of-sample coverage of a front (see ``uncertainty.validate``)."""
+        self._require_data()
+        return uncertainty.validate(front, problem, self.uncertainty_data, n=n, seed=seed, designs=designs)
 
     def _require_data(self):
         if self.uncertainty_data is None:

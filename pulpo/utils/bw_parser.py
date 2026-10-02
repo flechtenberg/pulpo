@@ -1,6 +1,5 @@
 import ast
 from typing import List, Union, Dict, Any, TypedDict
-import warnings
 import bw2calc as bc
 import bw2data as bd
 from pulpo.utils.utils import get_bw_version, build_bw25_params
@@ -51,9 +50,12 @@ def import_data(project: str, databases: Union[str, List[str]], method: Union[st
         seed (Union[None, int], optional): Seed for RNG. If None, the default A, B, and Q matrices are used.
         compute_uncertainty_params (bool, optional): Whether to assemble the bw25
             'intervention_params' / 'characterization_params' structured arrays. These are
-            only needed by the uncertainty sub-package (chance-constraints, GSA), not by
-            A/B/Q resampling, so skipping them speeds up repeated Monte Carlo calls.
-            Default True to preserve the full LCIDataDict.
+            only needed by the uncertainty sub-package (``uncertainty.import_declared``),
+            not by A/B/Q resampling, so skipping them speeds up repeated Monte Carlo calls.
+            Default True to preserve the full LCIDataDict. An array is ``None``, without a
+            warning, when the databases or the method carry no (complete) uncertainty
+            data: a deterministic study does not need it, and ``import_declared`` says so
+            when uncertainty is actually requested.
 
     Returns:
         Dict[str, Union[dict, Any]]: Dictionary containing imported LCI data.
@@ -175,19 +177,10 @@ def _load_lci_bw25(eidbs, methods, seed, dist, resample, compute_uncertainty_par
         m = str(method)
 
         if compute_uncertainty_params:
-            cf_params, cf_incomplete = build_bw25_params(
+            cf_params, _ = build_bw25_params(
                 lca.packages, 'characterization_matrix', lca.dicts.biosphere
             )
-            if cf_params is None:
-                characterization_params[m] = None
-                warnings.warn(
-                    f"No{' complete' if cf_incomplete else ''} characterization factor "
-                    f"uncertainty information found for method '{m}'. "
-                    f"Storing 'characterization_params' as None.",
-                    UserWarning, stacklevel=2,
-                )
-            else:
-                characterization_params[m] = cf_params
+            characterization_params[m] = cf_params
 
         if dist and "Q" in resample:
             next(lca.characterization_mm)
@@ -200,12 +193,6 @@ def _load_lci_bw25(eidbs, methods, seed, dist, resample, compute_uncertainty_par
         intervention_params, _ = build_bw25_params(
             data_objs, 'biosphere_matrix', lca.dicts.biosphere, lca.dicts.product
         )
-        if intervention_params is None:
-            warnings.warn(
-                "No complete intervention flow uncertainty information found for the "
-                "provided databases. Storing 'intervention_params' as None.",
-                UserWarning, stacklevel=2,
-            )
     else:
         intervention_params = None
 

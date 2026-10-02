@@ -243,7 +243,9 @@ def relax_default_bounds(lower_limit_dict, upper_limit_dict, explicit_lower, exp
     bounds are therefore made truly infinite, as PULPO's own defaults are.
 
     ``explicit_lower`` / ``explicit_upper`` hold the dict keys whose bounds
-    were set explicitly. Warns once when a finite default was replaced.
+    were set explicitly. Returns how many finite defaults were replaced; the
+    user is told by the warning on finite ``default_limits``
+    (``converter.warn_finite_default_limits``).
     """
     replaced = 0
     for key in lower_limit_dict:
@@ -254,14 +256,6 @@ def relax_default_bounds(lower_limit_dict, upper_limit_dict, explicit_lower, exp
         if key not in explicit_upper:
             replaced += np.isfinite(upper_limit_dict[key])
             upper_limit_dict[key] = float('inf')
-    if replaced:
-        warnings.warn(
-            f"scale=True: {int(replaced)} finite default process bounds "
-            "(default_limits['lower_bound'] / ['upper_bound']) were replaced by +-inf. "
-            "Bounds that are not meant to bind must be infinite on a scaled model; "
-            "use lower_limit / upper_limit for limits that are.",
-            UserWarning, stacklevel=3,
-        )
     return replaced
 
 

@@ -11,10 +11,12 @@ All notable changes to this project will be documented in this file.
   instead of over every process. The reformulation is exact, supports every
   static constraint type and is much smaller and faster on large databases; the
   solution is written back onto the instance, so results are read as before.
-  Solved with HiGHS (default) or Gurobi. `method='full'` remains the default;
-  the time-dependent model supports `method='full'` only.
+  Solved with HiGHS (default) or Gurobi. The time-dependent model supports
+  `method='full'` only.
 * **One uncertainty method, solved in reduced space** — `pulpo.utils.uncertainty`.
-  The parameters of an impact are imported with their declared distributions
+  As of now, uncertainty in the LCA data is considered only in the biosphere
+  flows and the characterization factors; technosphere exchanges are
+  deterministic. The parameters of an impact are imported with their declared distributions
   (`import_declared`); parameters without one are deterministic and listed, not
   filled in. Expert knowledge replaces distributions (`override`). The mean and
   variance of the impact follow in closed form, shared characterization factors
@@ -24,6 +26,29 @@ All notable changes to this project will be documented in this file.
   level is a small second-order cone program over the alternatives, solved with
   Clarabel (open source) or Gurobi. It reproduces PULPO 1.8.0's exact front.
   `PulpoOptimizerUnc` offers the same steps as worker methods.
+* **Analyses of a solved front** — exact Sobol' indices of the impact at a
+  decision (`decompose`), a screening of the parameters that declare no
+  uncertainty and the sensitivity of the standard deviation to their widths
+  (`screen_undeclared`, `width_sensitivity`), diagnostics per point
+  (`diagnostics`), and out-of-sample validation of every point on shared draws
+  (`validate`). The reduced system, the impact's projections onto it and a
+  vectorized sampler are public, for formulations of one's own. The uncertainty
+  notebook now runs on the bundled demo database with open-source solvers only.
+
+### Defaults
+* `method='full'` and `instantiate(scale=False)` remain the defaults. Current
+  development considers `method='reduced'` and `scale=True` superior, and a
+  future release may switch the defaults.
+* Finite `default_limits['lower_bound']` / `['upper_bound']` raise a
+  `FutureWarning`: a bound on every activity has no physical meaning and makes
+  `method='reduced'` build a dense row per process. Set `lower_limit` /
+  `upper_limit` on the processes that have a real limit. `default_limits` may be
+  deprecated in a near-future release.
+* `None` means "no limit" in choice capacities and in every limit dict, like
+  `float('inf')`. `solve(method='reduced')` warns about huge finite stand-ins
+  (e.g. a capacity of `1e10`); the examples and notebooks use `float('inf')`.
+* Loading LCI data without (complete) uncertainty data no longer warns;
+  `uncertainty.import_declared` says what is missing when it is needed.
 
 ### Breaking changes
 The 1.x uncertainty API is replaced without a deprecation period.
