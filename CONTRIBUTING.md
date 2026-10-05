@@ -1,6 +1,6 @@
 # Contributing
 
-We welcome contributions! If you have any questions, [open a discussion](https://github.com/flechtenberg/pulpo/discussions) or [get in touch directly with the `pulpo` developers ](mailto:fabian.lechtenberg@chem.ethz.ch)
+We welcome contributions! If you have any questions, [open a discussion](https://github.com/flechtenberg/pulpo/discussions) or [get in touch directly with the `pulpo` developers ](mailto:fabian.lechtenberg@upc.edu)
 
 
 ## Contributing to the code, examples or documentation

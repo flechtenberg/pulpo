@@ -16,7 +16,7 @@ Applying optimization is recommended when the system of study has (1) many degre
 
 ## 💬 Support
 If you have any questions or need help, do not hesitate to contact us:
-- Fabian Lechtenberg ([fabian.lechtenberg@chem.ethz.ch](mailto:fabian.lechtenberg@chem.ethz.ch))
+- Fabian Lechtenberg ([fabian.lechtenberg@upc.edu](mailto:fabian.lechtenberg@upc.edu))
 
 
 ```{toctree}

@@ -8,10 +8,10 @@ name = "pulpo-dev"
 version = "2.0.0rc2"
 description = "Pulpo package for optimization in LCI databases"
 authors = [
-  { name="Fabian Lechtenberg", email="fabian.lechtenberg@chem.ethz.ch" }
+  { name="Fabian Lechtenberg", email="fabian.lechtenberg@upc.edu" }
 ]
 maintainers = [
-  { name="Fabian Lechtenberg", email="fabian.lechtenberg@chem.ethz.ch" }
+  { name="Fabian Lechtenberg", email="fabian.lechtenberg@upc.edu" }
 ]
 readme = "README.md"
 requires-python = ">=3.10"
