@@ -155,7 +155,8 @@ def import_declared(worker, method=None) -> UncertaintyData:
         db = process_db.get(index[1])
         if db not in records:
             raise ValueError(f"Process {index[1]} belongs to {db!r}, which is not among the "
-                             f"worker's databases {databases}.")
+                             f"worker's databases {databases}; list it there to import the "
+                             "uncertainty of its exchanges.")
         records[db].append((index, _record(row)))
     for db, recs in records.items():
         data['If'][db]['defined'], data['If'][db]['undefined'] = _split(recs)

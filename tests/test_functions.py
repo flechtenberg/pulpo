@@ -11,6 +11,8 @@ from pulpo.utils.saver import extract_flows, extract_slack, extract_impacts, ext
 
 import unittest
 import warnings
+
+import bw2data as bd
 from pulpo.datasets.sample_database import sample_lcia, setup_test_db, setup_background_db, setup_biosphere_db, setup_lcia_methods, setup_foreground_db
 
 setup_biosphere_db()
@@ -242,6 +244,30 @@ class TestPULPO(unittest.TestCase):
         self.assertEqual(result_aux, 5.2)
         self.assertEqual(round(worker.instance.inv_flows[3].value, 3), 5.200)
         self.assertEqual(round(worker.instance.inv_flows[2].value, 3), 1.659)
+
+    def test_a_linked_database_that_is_not_listed(self):
+        """The processes of a database the listed one links to are columns of the
+        matrices too: they can be chosen and limited, and carry their names."""
+        climate = {"('my project', 'climate change')": 1}
+        methanol = [a for a in bd.Database('foreground_db') if a['name'] == 'methanol synthesis'][0]
+        wind, gas = ([a for a in bd.Database('background_db') if a['name'] == name][0]
+                     for name in ('wind electricity', 'natural gas electricity'))
+        choices = {'electricity': [wind, gas]}
+        objectives = []
+        for databases in (['foreground_db'], ['background_db', 'foreground_db']):
+            worker = pulpo.PulpoOptimizer(self.project, databases, climate, '')
+            worker.get_lci_data()
+            lci = worker.lci_data
+            self.assertEqual(len(lci['process_map']), lci['technology_matrix'].shape[0])
+            self.assertEqual(set(lci['process_map_metadata']), set(lci['process_map'].values()))
+            j = lci['process_map'][wind.key]
+            self.assertEqual(lci['process_map_metadata'][j], 'wind electricity | electricity | GLO')
+            worker.instantiate(choices=choices, demand={methanol: 1}, upper_limit={wind: 6.0})
+            worker.solve(formulation='reduced')
+            self.assertAlmostEqual(worker.instance.scaling_vector[j].value, 6.0, places=9)
+            self.assertNotIn('Unknown', set(worker.extract_results()['Scaling Vector']['Metadata']))
+            objectives.append(worker.instance.OBJ())
+        self.assertAlmostEqual(objectives[0], objectives[1], places=12)
 
     def test_lower_elementary_flow_limit_alone(self):
         """A lower flow limit needs no upper limit on the same flow; it binds here,

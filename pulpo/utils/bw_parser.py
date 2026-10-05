@@ -92,6 +92,9 @@ def import_data(project: str, databases: Union[str, List[str]], method: Union[st
     eidbs = []
     for database in databases:
         eidbs.append(bd.Database(database))
+    # The LCA also loads the databases these link to (ecoinvent behind a foreground,
+    # say); their processes are columns of the matrices as well.
+    activity_rows = _activity_rows(_linked_databases(databases))
 
     bw_version = get_bw_version()
     dist = seed is not None
@@ -103,7 +106,8 @@ def import_data(project: str, databases: Union[str, List[str]], method: Union[st
     match bw_version:
         case 'bw25':
             lca, characterization_matrices, characterization_params, process_map, bio_params = \
-                _load_lci_bw25(eidbs, methods, seed, dist, resample, compute_uncertainty_params)
+                _load_lci_bw25(eidbs, methods, seed, dist, resample, compute_uncertainty_params,
+                               activity_rows)
         case 'bw2':
             lca, characterization_matrices, characterization_params, process_map, bio_params = \
                 _load_lci_bw2(eidbs, methods, seed, dist, resample)
@@ -113,13 +117,11 @@ def import_data(project: str, databases: Union[str, List[str]], method: Union[st
     intervention_matrix = lca.biosphere_matrix
 
 
-    # Add descriptive strings to the process map for both primary and secondary databases
-    process_map_metadata = {}
-    for eidb in eidbs:
-        for act in eidb:
-            process_map_metadata[process_map[act.key]] = (
-                f"{act['name']} | {act.get('reference product', '')} | {act.get('location', '')}"
-            )
+    # Descriptive labels for every process in the matrices, linked databases included
+    process_map_metadata = {
+        process_map[(db, code)]: f"{name} | {product or ''} | {location or ''}"
+        for _, db, code, name, product, location in activity_rows if (db, code) in process_map
+    }
 
     # ATTN: could probbly ask BW what the biosphere matrix is and then move this code into the cases further up
     if intervention_matrix_name in bd.databases:
@@ -152,7 +154,7 @@ def import_data(project: str, databases: Union[str, List[str]], method: Union[st
     return lci_data
 
 
-def _load_lci_bw25(eidbs, methods, seed, dist, resample, compute_uncertainty_params):
+def _load_lci_bw25(eidbs, methods, seed, dist, resample, compute_uncertainty_params, activity_rows):
     """Build the (optionally resampled) A/B/Q matrices and maps for a bw25 project.
 
     One LCA with a combined functional unit (one activity per listed database) loads
@@ -196,7 +198,9 @@ def _load_lci_bw25(eidbs, methods, seed, dist, resample, compute_uncertainty_par
     else:
         intervention_params = None
 
-    process_map = {act.key: lca.dicts.product[act.id] for eidb in eidbs for act in eidb}
+    # Every process the LCA loaded, also those of linked databases that were not listed.
+    process_map = {(db, code): lca.dicts.product[i]
+                   for i, db, code, *_ in activity_rows if i in lca.dicts.product}
     if dist and "A" in resample:
         next(lca.technosphere_mm)
         lca.technosphere_matrix = lca.technosphere_mm.matrix
@@ -257,6 +261,36 @@ def _load_lci_bw2(eidbs, methods, seed, dist, resample):
         lca.rebuild_biosphere_matrix(MCRandomNumberGenerator(bio_params, seed=bio_seed).next())
 
     return lca, characterization_matrices, characterization_params, process_map, bio_params
+
+
+def _linked_databases(names):
+    """``names`` and every database they link to, directly or not (``depends``)."""
+    seen, stack = [], list(names)
+    while stack:
+        name = stack.pop()
+        if name in seen or name not in bd.databases:
+            continue
+        seen.append(name)
+        stack.extend(bd.databases[name].get('depends', []))
+    return seen
+
+
+def _activity_rows(db_names):
+    """``(id, database, code, name, reference product, location)`` of every activity
+    of ``db_names``: one SQL query where the backend allows it, else by iteration."""
+    ActivityDataset, _ = _activity_orm()
+    in_sql = [db for db in db_names
+              if ActivityDataset is not None and bd.databases[db].get('backend', 'sqlite') in _SQL_BACKENDS]
+    rows = []
+    if in_sql:
+        A = ActivityDataset
+        rows += list(A.select(A.id, A.database, A.code, A.name, A.product, A.location)
+                     .where(A.database.in_(in_sql)).tuples())
+    for db in db_names:
+        if db not in in_sql:
+            rows += [(act.id, act['database'], act['code'], act.get('name'),
+                      act.get('reference product'), act.get('location')) for act in bd.Database(db)]
+    return rows
 
 
 def _activity_orm():
