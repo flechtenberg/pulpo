@@ -13,6 +13,9 @@ All notable changes to this project will be documented in this file.
   solution is written back onto the instance, so results are read as before.
   Solved with HiGHS (default) or Gurobi. The time-dependent model supports
   `method='full'` only.
+* **macOS and Linux on ARM** — PULPO installs there without PARDISO, which needs
+  Intel's MKL. The reduced solves then use UMFPACK when `scikit-umfpack` is
+  installed from conda-forge, and SciPy's slower solver otherwise.
 * **One uncertainty method, solved in reduced space** — `pulpo.utils.uncertainty`.
   As of now, uncertainty in the LCA data is considered only in the biosphere
   flows and the characterization factors; technosphere exchanges are

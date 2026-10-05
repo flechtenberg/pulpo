@@ -8,7 +8,7 @@
 
 ::::{tab-set}
 
-:::{tab-item} Linux, Windows, or macOS (x64)
+:::{tab-item} Windows or Linux (x86-64)
 
 1. **Create a new environment**:
    - Using `conda`:
@@ -40,11 +40,17 @@
 
 :::
 
-:::{tab-item} macOS (Apple Silicon/ARM)
+:::{tab-item} macOS, or Linux on ARM
 
-```{note}
-Currently we can't guarantee that `pulpo` will work on Apple Silicon/ARM. You may try to follow the steps outlined in [here](https://docs.brightway.dev/en/latest/content/installation/) to work with `brightway25_nosolver` instead of `brightway25`.
+The PARDISO solver that PULPO uses on Windows and Linux (x86-64) is not available here. PULPO then uses UMFPACK from `scikit-umfpack`, which has ready-made packages on conda-forge only, so create the environment with `conda`:
+
+```bash
+conda create -n pulpo_env -c conda-forge python=3.12 scikit-umfpack
+conda activate pulpo_env
+pip install "pulpo-dev[bw25]"
 ```
+
+For Brightway2, use `"pulpo-dev[bw2]"` instead (Python 3.12 at most). Without `scikit-umfpack`, PULPO falls back to SciPy's solver, which gives the same results but is much slower on large databases. Brightway's own LCA calculations use `scikit-umfpack` as well.
 
 :::
 

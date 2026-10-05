@@ -74,6 +74,8 @@ pip install "pulpo-dev[bw25]"
 
 The uncertainty features need no extra packages; the `uncertainty` extra is kept as an empty alias, so `pip install "pulpo-dev[bw25,uncertainty]"` still works.
 
+On macOS and on Linux for ARM, the PARDISO solver is not available. Install `scikit-umfpack` from conda-forge (`conda install -c conda-forge scikit-umfpack`) for fast reduced solves; see the [installation guide](https://flechtenberg.github.io/pulpo/content/installation.html).
+
 ### 🤖 Running PULPO
 
 PULPO is organized into three optimizer classes, one per module, each covering a different use case with its own reference notebook:

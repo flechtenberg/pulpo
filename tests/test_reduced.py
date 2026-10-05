@@ -25,8 +25,10 @@ default limits, pickling, and the building blocks against dense linear algebra.
 import copy
 import os
 import pickle
+import sys
 import unittest
 import warnings
+from unittest import mock
 
 import numpy as np
 import pyomo.environ as pyo
@@ -60,6 +62,17 @@ try:
     HAS_GUROBI = True
 except ImportError:
     HAS_GUROBI = False
+
+
+def _installed(backend):
+    try:
+        return reduced._resolve_backend(backend) == backend
+    except (ImportError, OSError):
+        return False
+
+
+#: The factorization backends installed here; SciPy's is always there.
+BACKENDS = [backend for backend in ('pardiso', 'umfpack', 'scipy') if _installed(backend)]
 
 
 # ---------------------------------------------------------------------------
@@ -556,7 +569,7 @@ class TestReducedSampleTechnosphere(ParityMixin, unittest.TestCase):
         self.assertIsNotNone(cloudpickle.dumps(worker))
         clone.solve(method='reduced')
         self.assertAlmostEqual(pyo.value(clone.instance.OBJ), objective, places=12)
-        for backend in ('pardiso', 'scipy'):
+        for backend in BACKENDS:
             with self.subTest(backend=backend):
                 factorization = reduced.Factorization(worker.lci_data['technology_matrix'], backend=backend)
                 restored = pickle.loads(pickle.dumps(factorization))
@@ -893,12 +906,8 @@ class TestReducedSystem(unittest.TestCase):
         cls.rng = rng
 
     def systems(self):
-        for backend in ('pardiso', 'scipy'):
-            try:
-                yield backend, reduced.ReducedSystem(reduced.Factorization(self.A, backend=backend),
-                                                     self.columns)
-            except (ImportError, OSError):
-                continue
+        for backend in BACKENDS:
+            yield backend, reduced.ReducedSystem(reduced.Factorization(self.A, backend=backend), self.columns)
 
     def test_project_adjoint_and_forward(self):
         few = sp.random(3, self.A.shape[0], density=0.1, random_state=5, format='csr')
@@ -935,7 +944,7 @@ class TestReducedSystem(unittest.TestCase):
     def test_badly_scaled_matrix_is_solved_to_roundoff(self):
         """Rows and columns scaled over 12 orders of magnitude, as in an ecoinvent
         technosphere. Unrefined SuperLU leaves a componentwise backward error of
-        about 4e-2 in the transposed solve here; both backends must reach roundoff."""
+        about 4e-2 in the transposed solve here; every backend must reach roundoff."""
         rng = np.random.default_rng(0)
         n = 2000
         T = sp.random(n, n, density=0.002, random_state=0, format='csr')
@@ -947,11 +956,25 @@ class TestReducedSystem(unittest.TestCase):
         def backward_error(M, x):
             return (np.abs(M @ x - b) / (abs(M) @ np.abs(x) + np.abs(b))).max()
 
-        for backend in ('pardiso', 'scipy'):
+        for backend in BACKENDS:
             with self.subTest(backend=backend):
                 f = reduced.Factorization(A, backend=backend)
                 self.assertLess(backward_error(A, f.solve(b)), 1e-14)
                 self.assertLess(backward_error(A.T.tocsr(), f.solve(b, transpose=True)), 1e-14)
+
+    def test_auto_backend_order(self):
+        """PARDISO first, then UMFPACK, then SciPy's SuperLU, by what is installed."""
+        self.assertEqual(reduced._resolve_backend('auto'), BACKENDS[0])
+        no_pardiso = {'pypardiso': None, 'pypardiso.scipy_aliases': None}
+        no_umfpack = {'scikits': None, 'scikits.umfpack': None}
+        with mock.patch.dict(sys.modules, no_pardiso):
+            self.assertEqual(reduced._resolve_backend('auto'), 'umfpack' if 'umfpack' in BACKENDS else 'scipy')
+            with self.assertRaises(ImportError):
+                reduced._resolve_backend('pardiso')
+        with mock.patch.dict(sys.modules, {**no_pardiso, **no_umfpack}):
+            self.assertEqual(reduced._resolve_backend('auto'), 'scipy')
+            with self.assertRaises(ImportError):
+                reduced._resolve_backend('umfpack')
 
     def test_non_square_is_refused(self):
         with self.assertRaises(ValueError):
@@ -959,7 +982,7 @@ class TestReducedSystem(unittest.TestCase):
 
     def test_singular_is_refused(self):
         A = sp.csr_matrix(np.array([[1.0, 2.0, 0.0], [2.0, 4.0, 0.0], [0.0, 1.0, 3.0]]))
-        for backend in ('pardiso', 'scipy'):
+        for backend in BACKENDS:
             with self.subTest(backend=backend):
                 with self.assertRaises(ValueError):
                     reduced.Factorization(A, backend=backend)

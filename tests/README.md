@@ -113,6 +113,7 @@ missing:
 | `test_neos_solver` | `NEOS_EMAIL` env var set (submits jobs to the remote NEOS server) |
 | `test_uncertainty.py::TestUncertaintyParamArrays` | bw25 stack (bw2data ≥ 4) |
 | `test_reduced.py` / `test_uncertainty.py` Gurobi cases | `gurobipy` importable and licensed |
+| `test_reduced.py` factorization subtests per backend | PARDISO: `pypardiso` (x86-64 Windows/Linux); UMFPACK: `scikit-umfpack` (conda-forge); SciPy always runs |
 
 All remaining tests use the bundled HiGHS solver and run offline.
 

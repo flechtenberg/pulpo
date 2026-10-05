@@ -113,8 +113,8 @@ with one free variable $v_k$ per alternative (the net output on its product row)
 and $\tilde f$ the demand on all other rows. Every static PULPO constraint is
 linear in $s$, so it becomes one row in $v$, and the problem over $v$ is the
 problem over $s$: the reduction is exact. $S$ is never formed; each row
-$m^\top S$ costs one adjoint solve with one factorization of $A$ (PARDISO, or
-SciPy's SuperLU). Every finite process bound is a row $S[j, :]$, so the problem
+$m^\top S$ costs one adjoint solve with one factorization of $A$ (PARDISO,
+UMFPACK or SciPy's SuperLU). Every finite process bound is a row $S[j, :]$, so the problem
 stays small as long as only the processes with a real limit are bounded: finite
 `default_limits` on every process would put the whole of $S$ into it.
 

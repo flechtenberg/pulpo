@@ -120,10 +120,13 @@ _KNOWN_CONSTRAINTS = {'FINAL_DEMAND_CNSTR', 'IMPACTS_CNSTR', 'INVENTORY_CNSTR',
 class Factorization:
     """One sparse LU of the technosphere matrix, for ``A x = b`` and ``A' x = b``.
 
-    PARDISO (``pypardiso``, already a PULPO dependency) factorizes an
-    ecoinvent-sized matrix in about a second; SciPy's SuperLU, the fallback
-    where MKL is unavailable, takes tens of seconds with the
-    ``MMD_AT_PLUS_A`` ordering and minutes with its default.
+    PARDISO (``pypardiso``, a PULPO dependency on x86-64 Windows and Linux)
+    factorizes an ecoinvent-sized matrix in about a second. Where MKL is
+    unavailable (macOS, ARM), UMFPACK (``scikit-umfpack``, optional; install it
+    from conda-forge) is the next choice, several times slower than PARDISO but
+    an order of magnitude faster than SciPy's SuperLU, the last resort, which
+    takes tens of seconds with the ``MMD_AT_PLUS_A`` ordering and minutes with
+    its default.
 
     ``pypardiso`` keeps a single solver instance per process, which bw2calc
     uses as well. A factorization that was replaced in between (by an LCA
@@ -132,24 +135,24 @@ class Factorization:
     factorization refactorizes on its first solve.
 
     A singular ``A`` is refused: the reduction parametrizes the balanced
-    scaling vectors only when ``A`` is invertible. SuperLU stops at an exact
-    zero pivot; PARDISO instead perturbs pivots below ``1e-13 * |A|`` and
-    returns the solution of a nearby matrix, so any perturbed pivot
+    scaling vectors only when ``A`` is invertible. SuperLU and UMFPACK stop at
+    an exact zero pivot; PARDISO instead perturbs pivots below ``1e-13 * |A|``
+    and returns the solution of a nearby matrix, so any perturbed pivot
     (``iparm(14)``) counts as singular.
 
     Args:
         A: square sparse matrix.
-        backend (str): ``'auto'`` (PARDISO if available, else SciPy),
-            ``'pardiso'`` or ``'scipy'``.
+        backend (str): ``'auto'`` (the first available of PARDISO, UMFPACK and
+            SciPy), ``'pardiso'``, ``'umfpack'`` or ``'scipy'``.
     """
 
     def __init__(self, A, backend='auto'):
         if A.shape[0] != A.shape[1]:
             raise ValueError(f"The technosphere matrix must be square for the reduced "
                              f"formulation; got shape {A.shape}.")
-        if backend not in ('auto', 'pardiso', 'scipy'):
+        if backend not in ('auto', 'pardiso', 'umfpack', 'scipy'):
             raise ValueError(f"Unknown factorization backend {backend!r}; "
-                             "use 'auto', 'pardiso' or 'scipy'.")
+                             "use 'auto', 'pardiso', 'umfpack' or 'scipy'.")
         self.n = A.shape[0]
         self.refactorizations = 0
         self._A = sp.csr_matrix(A, dtype=np.float64, copy=True)
@@ -172,6 +175,20 @@ class Factorization:
                 raise ValueError(f"The technosphere matrix is singular or numerically singular "
                                  f"(PARDISO perturbed {perturbed} pivots); the reduced formulation "
                                  "needs an invertible A. Solve with method='full'.")
+        elif self.backend == 'umfpack':
+            import scikits.umfpack as umfpack
+            # 64-bit indices, so that the factors of a large matrix fit. They are
+            # set after construction, which would downcast them to int32.
+            A = self._A.tocsc()
+            A.indices, A.indptr = A.indices.astype(np.int64), A.indptr.astype(np.int64)
+            context = umfpack.UmfpackContext('dl')
+            with warnings.catch_warnings(record=True) as caught:
+                warnings.simplefilter('always')
+                context.numeric(A)
+            if any('singular' in str(w.message).lower() for w in caught):
+                raise ValueError("The technosphere matrix is singular; the reduced formulation "
+                                 "needs an invertible A. Solve with method='full'.")
+            self._lu = (context, A)
         else:
             try:
                 self._lu = spla.splu(self._A.tocsc(), permc_spec='MMD_AT_PLUS_A')
@@ -206,11 +223,19 @@ class Factorization:
         return x
 
     def _raw_solve(self, b, transpose):
+        if self.backend in ('scipy', 'umfpack') and self._lu is None:
+            self.refactorizations += 1
+            self._factorize()
         if self.backend == 'scipy':
-            if self._lu is None:
-                self.refactorizations += 1
-                self._factorize()
             return self._lu.solve(b, trans='T' if transpose else 'N')
+        if self.backend == 'umfpack':
+            from scikits.umfpack import UMFPACK_A, UMFPACK_At
+            context, A = self._lu
+            system = UMFPACK_At if transpose else UMFPACK_A
+            if b.ndim == 1:
+                return context.solve(system, A, b, autoTranspose=False)
+            return np.column_stack([context.solve(system, A, np.ascontiguousarray(b[:, k]), autoTranspose=False)
+                                    for k in range(b.shape[1])])
         if self._solver is None or not self._solver._is_already_factorized(self._A):
             self.refactorizations += 1
             self._factorize()
@@ -243,15 +268,24 @@ def backward_error(residual, size):
 
 
 def _resolve_backend(backend):
-    if backend == 'scipy':
-        return 'scipy'
-    try:
-        from pypardiso.scipy_aliases import pypardiso_solver  # noqa: F401
-        return 'pardiso'
-    except (ImportError, OSError):
-        if backend == 'pardiso':
-            raise
-        return 'scipy'
+    """The backend to use: the requested one, or for ``'auto'`` the first
+    available of PARDISO, UMFPACK and SciPy. A requested backend that is not
+    installed raises its ImportError."""
+    if backend in ('auto', 'pardiso'):
+        try:
+            from pypardiso.scipy_aliases import pypardiso_solver  # noqa: F401
+            return 'pardiso'
+        except (ImportError, OSError):
+            if backend == 'pardiso':
+                raise
+    if backend in ('auto', 'umfpack'):
+        try:
+            import scikits.umfpack  # noqa: F401
+            return 'umfpack'
+        except (ImportError, OSError):
+            if backend == 'umfpack':
+                raise
+    return 'scipy'
 
 
 def matrix_digest(A):
