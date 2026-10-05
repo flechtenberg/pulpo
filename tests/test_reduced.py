@@ -523,7 +523,10 @@ class TestReducedSampleTechnosphere(ParityMixin, unittest.TestCase):
 
     def test_worker_can_be_copied_after_reduced_solve(self):
         """solve_MC pickles the worker for its process pool; a reduced solve must not prevent it."""
-        from joblib.externals import cloudpickle
+        try:
+            import cloudpickle  # a dependency of joblib >= 1.6, which no longer vendors it
+        except ImportError:
+            from joblib.externals import cloudpickle
         worker = self.worker()
         worker.instantiate(choices=self.choices(), demand={self.ecar: 1})
         worker.solve(method='reduced')
