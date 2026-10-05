@@ -598,8 +598,8 @@ class TestReducedSampleTechnosphere(ParityMixin, unittest.TestCase):
             self.assertAlmostEqual(worker.instance.OBJ(), 0.103093, places=6)
         # An iteration limit of 0 stops either solve before the optimum.
         stop = {'simplex_iteration_limit': 0, 'presolve': 'off'}
-        results, _ = optimizer.solve_highspy(worker.instance, stop)
-        self.assertEqual(str(results.termination_condition), 'TerminationCondition.maxIterations')
+        with self.assertRaisesRegex(optimizer.SolveError, 'maxIterations'):
+            worker.solve(formulation='full', options=stop)
         with self.assertRaises(reduced.ReducedSolveError):
             worker.solve(formulation='reduced', options=stop)
 

@@ -169,6 +169,12 @@ class PulpoOptimizer:
         Returns:
             results: Results of the optimization (a :class:`pulpo.utils.reduced.ReducedResults`
             with formulation='reduced').
+
+        Raises:
+            pulpo.utils.optimizer.SolveError: the solve did not end optimal (infeasible,
+                unbounded, or stopped by a time or iteration limit). Nothing is loaded:
+                the instance keeps its previous values. With formulation='reduced' it is
+                the subclass :class:`pulpo.utils.reduced.ReducedSolveError`.
         """
         if formulation == 'reduced':
             if GAMS_PATH or neos_email is not None:

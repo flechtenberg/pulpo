@@ -68,6 +68,9 @@ The 1.x uncertainty API is replaced without a deprecation period.
   with new arguments and results.
 * Unused 1.x helpers are gone: the data checks in `uncertainty.processor`,
   `saver.compare_subsequent_paretosolutions` and `bw_parser.update_lci_data`.
+* A solve that does not end optimal (infeasible, unbounded, or stopped by a limit) raises
+  `optimizer.SolveError` and loads nothing, in both formulations and with every solver;
+  `ReducedSolveError` and `ChanceConstrainedError` are subclasses.
 * The `uncertainty` extra is empty; `clarabel` and `stats_arrays` are core dependencies.
 * JupyterLab, IPython, `fs` and `openpyxl` are no longer installed with PULPO. The new
   `notebooks` extra brings JupyterLab, matplotlib and seaborn for the example notebooks.

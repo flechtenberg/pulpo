@@ -4,6 +4,8 @@ import pandas as pd
 from pandas.testing import assert_frame_equal
 
 from pulpo import pulpo
+from pulpo.utils import reduced
+from pulpo.utils.optimizer import SolveError
 from pulpo.utils.bw_parser import import_data, retrieve_methods, retrieve_env_interventions, retrieve_processes
 from pulpo.utils.saver import extract_flows, extract_slack, extract_impacts, extract_choices, extract_demand, extract_constraints, save_results
 
@@ -458,19 +460,39 @@ class TestPULPO(unittest.TestCase):
             'upper_imp_bound': 0.1   # Very restrictive impact bound
         }
         
-        # This should cause an error during instantiation or solving
-        with self.assertRaises((ValueError, RuntimeError, Exception)) as context:
-            with warnings.catch_warnings():
-                warnings.simplefilter('ignore', FutureWarning)     # finite defaults are the point here
-                worker.instantiate(choices=choices, demand=demand, default_limits=custom_limits)
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', FutureWarning)     # finite defaults are the point here
+            worker.instantiate(choices=choices, demand=demand, default_limits=custom_limits)
+        with self.assertRaisesRegex(SolveError, 'infeasible'):
             worker.solve()
-        
-        # Verify that the error is related to infeasible optimization problem
-        error_message = str(context.exception).lower()
-        self.assertTrue(
-            any(keyword in error_message for keyword in ['feasible solution was not found']),
-            f"Expected optimization error, but got: {context.exception}"
-        )
+
+    def test_a_solve_that_is_not_optimal_raises(self):
+        """A solve stopped early or proven infeasible raises SolveError in both
+        formulations and with every installed solver, and loads nothing."""
+        worker = pulpo.PulpoOptimizer(self.project, self.database, self.methods, '')
+        worker.get_lci_data()
+        demand = {worker.retrieve_activities(reference_products='transport')[0]: 1}
+        choices = {'electricity': worker.retrieve_activities(reference_products='electricity')}
+        climate = "('my project', 'climate change')"
+        cases = [('highs', 'full', {'simplex_iteration_limit': 0, 'presolve': 'off'}),
+                 ('highs', 'reduced', {'simplex_iteration_limit': 0, 'presolve': 'off'})]
+        try:
+            import gurobipy  # noqa: F401
+            cases.append(('gurobi', 'full', {'IterationLimit': 0, 'Presolve': 0}))
+        except ImportError:
+            pass
+        for solver, formulation, stop in cases:
+            for label, limits, options in (('stopped early', {}, stop),
+                                           ('infeasible', {'upper_imp_limit': {climate: 0.01}}, None)):
+                with self.subTest(solver=solver, formulation=formulation, case=label):
+                    worker.instantiate(choices=choices, demand=demand, **limits)
+                    worker.instance.scaling_vector.set_values({j: 7.0 for j in worker.instance.scaling_vector})
+                    with self.assertRaises(SolveError) as error:
+                        worker.solve(solver_name=solver, formulation=formulation, options=options)
+                    if formulation == 'reduced':
+                        self.assertIsInstance(error.exception, reduced.ReducedSolveError)
+                    self.assertIsNotNone(error.exception.results)
+                    self.assertTrue(all(v.value == 7.0 for v in worker.instance.scaling_vector.values()))
 
     def test_dependent_constraints(self):
         """Test that dependent constraints work properly between scaling vectors."""

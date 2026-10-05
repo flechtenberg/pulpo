@@ -359,6 +359,23 @@ def get_cplex_options(options):
     ]
     return options if options is not None else default_options
 
+class SolveError(RuntimeError):
+    """The solver ended without an optimal solution; the instance keeps its
+    previous values. ``results`` holds what the solver returned."""
+
+    def __init__(self, message, results):
+        super().__init__(message)
+        self.results = results
+
+
+def _not_optimal(solver, condition, results, incumbent=None):
+    found = f" A feasible point with objective {incumbent} was found but not loaded." if incumbent is not None else ""
+    condition = getattr(condition, 'name', condition)
+    return SolveError(f"{solver} did not solve the model to optimality ({condition}); the instance keeps "
+                      f"its previous values.{found} The solver's results are on the exception's .results.",
+                      results)
+
+
 def check_highs_options(options):
     """Raise a ValueError for HiGHS options with an unknown name or an invalid value.
 
@@ -382,16 +399,12 @@ def solve_highspy(model_instance, options=None):
     check_highs_options(options)
     opt = appsi.solvers.Highs()
     opt.highs_options = dict(options or {})
+    opt.config.load_solution = False
     results = opt.solve(model_instance)
-    if results.termination_condition == appsi.base.TerminationCondition.optimal: 
-        print('optimal solution found: ', results.best_feasible_objective) 
-        results.solution_loader.load_vars() 
-    elif results.best_feasible_objective is not None: 
-        print('sub-optimal but feasible solution found: ', results.best_feasible_objective) 
-    elif results.termination_condition in {appsi.base.TerminationCondition.maxIterations, appsi.base.TerminationCondition.maxTimeLimit}: 
-        print('No feasible solution was found. The best lower bound found was ', results.best_objective_bound) 
-    else: 
-        print('The following termination condition was encountered: ', results.termination_condition) 
+    if results.termination_condition != appsi.base.TerminationCondition.optimal:
+        raise _not_optimal('HiGHS', results.termination_condition, results, results.best_feasible_objective)
+    results.solution_loader.load_vars()
+    print('optimal solution found: ', results.best_feasible_objective)
     print('Optimization problem solved using Highspy')
     return results, model_instance
 
@@ -411,9 +424,10 @@ def solve_neos(model_instance, solver_name, options, neos_email):
     # ATTN: deleted the 'options' use as kwargs, since I do not think it makes sense, it holds options for the PULPO solver and for the pyomo solver_manager, 
     # it needs to be either different options or completely differently structured. Now I have hard programmed the seetings.
     #  Also solver_name is a solver_manager option, it kind of does not make sense
-    results = solver_manager.solve(model_instance, opt=solver_name, tee=True)
-    if not results.solver.termination_condition == pyo.TerminationCondition.optimal:
-        raise Exception('Could not find an optimal solutions to the problem.')
+    results = solver_manager.solve(model_instance, opt=solver_name, tee=True, load_solutions=False)
+    if results.solver.termination_condition != pyo.TerminationCondition.optimal:
+        raise _not_optimal(f'NEOS ({solver_name})', results.solver.termination_condition, results)
+    model_instance.solutions.load_from(results)
 
     print("Optimization problem solved using NEOS")
     return results, model_instance
@@ -444,7 +458,11 @@ def solve_gams(model_instance, gams_path, options, solver_name=None):
         report_timing=False,
         io_options=io_options,
         add_options=options,
+        load_solutions=False,
     )
+    if results.solver.termination_condition != pyo.TerminationCondition.optimal:
+        raise _not_optimal(f"GAMS ({io_options['solver']})", results.solver.termination_condition, results)
+    model_instance.solutions.load_from(results)
     print('Optimization problem solved using GAMS')
     return results, model_instance
 
@@ -481,11 +499,7 @@ def solve_gurobi(model_instance, options=None):
             tee = val
 
     # Solve. The results object is a standard Pyomo SolverResults.
-    results = solver.solve(
-        model_instance,
-        tee=tee,               
-        load_solutions=True      
-    )
+    results = solver.solve(model_instance, tee=tee, load_solutions=False)
 
     # Capture solver status and termination condition on the model instance:
     model_instance.solver_status      = results.solver.status
@@ -503,6 +517,9 @@ def solve_gurobi(model_instance, options=None):
     except Exception:
         model_instance.best_feasible_obj = None
 
+    if results.solver.termination_condition != pyo.TerminationCondition.optimal:
+        raise _not_optimal('Gurobi', results.solver.termination_condition, results)
+    model_instance.solutions.load_from(results)
     print("Optimization problem solved using gurobi")
     print(f"status={results.solver.status}, termination={results.solver.termination_condition}")
     return results, model_instance

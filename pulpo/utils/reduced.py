@@ -71,7 +71,7 @@ import pyomo.environ as pyo
 from pyomo.opt import TerminationCondition
 
 from . import scaling as _scaling
-from .optimizer import check_highs_options
+from .optimizer import SolveError, check_highs_options
 
 #: Dense right-hand-side blocks are solved in chunks of at most this many
 #: entries (n x chunk), which bounds the memory of a projection to a few
@@ -593,13 +593,9 @@ class ReducedResults:
     rounds: int = 1
 
 
-class ReducedSolveError(RuntimeError):
+class ReducedSolveError(SolveError):
     """The reduced LP did not end optimal. ``results`` (a :class:`ReducedResults`)
     holds the termination condition, the size of the LP and the times."""
-
-    def __init__(self, message, results):
-        super().__init__(message)
-        self.results = results
 
 
 def _finite(value, default):

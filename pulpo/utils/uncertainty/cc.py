@@ -356,13 +356,9 @@ class Front(dict):
                              for p in self.values()]).set_index('lambda')
 
 
-class ChanceConstrainedError(RuntimeError):
+class ChanceConstrainedError(optimizer.SolveError):
     """A reliability level did not solve to optimality; ``results`` holds its
     :class:`reduced.ReducedResults`."""
-
-    def __init__(self, message, results):
-        super().__init__(message)
-        self.results = results
 
 
 class ChanceConstrained:
