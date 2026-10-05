@@ -144,7 +144,8 @@ def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, upper_in
                               for j in range(technology_matrix.indptr[i - 1], technology_matrix.indptr[i])}
 
     # Convert sparse csr intervention flow matrix to dictionary
-    inv_to_consider = [intervention_map[g] for g in upper_inv_limit]
+    # Every flow with a limit, upper or lower (each once, in order).
+    inv_to_consider = list(dict.fromkeys(intervention_map[g] for g in [*upper_inv_limit, *lower_inv_limit]))
     inv_dict = {(g, intervention_matrix.indices[j]): intervention_matrix.data[j]
                 for g in inv_to_consider
                 for j in range(intervention_matrix.indptr[g], intervention_matrix.indptr[g + 1])}

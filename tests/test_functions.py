@@ -243,6 +243,25 @@ class TestPULPO(unittest.TestCase):
         self.assertEqual(round(worker.instance.inv_flows[3].value, 3), 5.200)
         self.assertEqual(round(worker.instance.inv_flows[2].value, 3), 1.659)
 
+    def test_lower_elementary_flow_limit_alone(self):
+        """A lower flow limit needs no upper limit on the same flow; it binds here,
+        forcing steam into the mix, in both formulations."""
+        worker = pulpo.PulpoOptimizer(self.project, self.database, self.methods, '')
+        worker.get_lci_data()
+        demand = {worker.retrieve_activities(reference_products='transport')[0]: 1}
+        elec = worker.retrieve_activities(reference_products='electricity')
+        co2 = worker.retrieve_envflows(activities="Carbon dioxide, fossil")[0]
+        g = worker.lci_data['intervention_map'][co2.key]
+        objectives = []
+        for formulation in ('full', 'reduced'):
+            worker.instantiate(choices={'electricity': {elec[0]: 100, elec[1]: 100}}, demand=demand,
+                               lower_elem_limit={co2: 1.0})
+            worker.solve(formulation=formulation)
+            self.assertAlmostEqual(worker.instance.inv_flows[g].value, 1.0, places=6, msg=formulation)
+            objectives.append(worker.instance.OBJ())
+        self.assertAlmostEqual(objectives[0], 1.694908, places=6)
+        self.assertAlmostEqual(objectives[1], objectives[0], places=9)
+
     def _goal_worker(self):
         worker = pulpo.PulpoOptimizer(self.project, self.database, self.methods, '')
         worker.intervention_matrix = 'biosphere3'
