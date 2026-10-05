@@ -23,6 +23,7 @@ default limits, pickling, and the building blocks against dense linear algebra.
 """
 
 import copy
+import os
 import pickle
 import unittest
 import warnings
@@ -464,7 +465,7 @@ class TestReducedSampleTechnosphere(ParityMixin, unittest.TestCase):
         remote = [w for w in caught if 'far beyond' in str(w.message)]
         self.assertEqual(len(remote), 1)
         self.assertIn('wind', str(remote[0].message))
-        self.assertEqual(remote[0].filename, __file__)              # points at the caller
+        self.assertTrue(os.path.samefile(remote[0].filename, __file__))  # points at the caller
         worker.instantiate(choices={'electricity': {self.wind: None, self.steam: float('inf')}},
                            demand={self.ecar: 1})
         with warnings.catch_warnings(record=True) as caught:
