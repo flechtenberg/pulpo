@@ -71,6 +71,7 @@ import pyomo.environ as pyo
 from pyomo.opt import TerminationCondition
 
 from . import scaling as _scaling
+from .optimizer import check_highs_options
 
 #: Dense right-hand-side blocks are solved in chunks of at most this many
 #: entries (n x chunk), which bounds the memory of a projection to a few
@@ -489,6 +490,7 @@ def solve_lp(lp, solver_name=None, options=None):
 
 def _solve_highs(c, matrix, row_lower, row_upper, col_lower, col_upper, options, tee):
     import highspy
+    check_highs_options(options)
     h = highspy.Highs()
     h.setOptionValue('output_flag', tee)
     for key, value in {**HIGHS_OPTIONS, **options}.items():

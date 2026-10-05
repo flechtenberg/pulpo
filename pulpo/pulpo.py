@@ -159,7 +159,9 @@ class PulpoOptimizer:
             GAMS_PATH (bool): Path to GAMS if needed.
             solver_name (str, optional): 'highs' (default) or 'gurobi'; with formulation='full'
                 also any GAMS or NEOS solver.
-            options (dict): Additional options for the solver.
+            options (dict, optional): Solver options: option names and values for HiGHS
+                and Gurobi (an unknown HiGHS option or an invalid value raises a
+                ValueError), a list of option lines for GAMS. NEOS does not use them.
             formulation (str, optional): 'full' (default) solves the Pyomo LP over every process;
                 'reduced' solves the same problem over the alternatives only
                 (see :mod:`pulpo.utils.reduced`).

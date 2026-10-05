@@ -36,7 +36,7 @@ import scipy.sparse as sp
 from pyomo.repn import generate_standard_repn
 
 from pulpo import pulpo, pulpo_time
-from pulpo.utils import reduced, scaling
+from pulpo.utils import optimizer, reduced, scaling
 from pulpo.utils.utils import is_bw25
 from pulpo.datasets.sample_database import setup_sample_db
 from pulpo.datasets.rice_database import setup_rice_husk_db
@@ -584,6 +584,32 @@ class TestReducedSampleTechnosphere(ParityMixin, unittest.TestCase):
             worker.solve(formulation='banana')
         with self.assertRaises(ValueError):
             worker.solve(formulation='reduced', solver_name='cplex')
+
+    def test_highs_options(self):
+        """HiGHS options reach the solver in both formulations; a bad name or value raises."""
+        worker = self.worker()
+        worker.instantiate(choices=self.choices(), demand={self.ecar: 1})
+        for formulation in ('full', 'reduced'):
+            for options in ({'TimeLimit': 10}, {'time_limit': 'abc'}, {'primal_feasibility_tolerance': -1.0}):
+                with self.subTest(formulation=formulation, options=options):
+                    with self.assertRaisesRegex(ValueError, 'HiGHS option'):
+                        worker.solve(formulation=formulation, options=options)
+            worker.solve(formulation=formulation, options={'time_limit': 600.0, 'presolve': 'off'})
+            self.assertAlmostEqual(worker.instance.OBJ(), 0.103093, places=6)
+        # An iteration limit of 0 stops either solve before the optimum.
+        stop = {'simplex_iteration_limit': 0, 'presolve': 'off'}
+        results, _ = optimizer.solve_highspy(worker.instance, stop)
+        self.assertEqual(str(results.termination_condition), 'TerminationCondition.maxIterations')
+        with self.assertRaises(reduced.ReducedSolveError):
+            worker.solve(formulation='reduced', options=stop)
+
+    def test_options_are_not_passed_to_neos(self):
+        worker = self.worker()
+        worker.instantiate(choices=self.choices(), demand={self.ecar: 1})
+        with mock.patch.object(optimizer, 'solve_neos', return_value=(None, worker.instance)),                 warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter('always')
+            optimizer.solve_model(worker.instance, solver_name='cplex', options={'threads': 1})
+        self.assertTrue(any('not passed to NEOS' in str(w.message) for w in caught))
 
 
 # ---------------------------------------------------------------------------

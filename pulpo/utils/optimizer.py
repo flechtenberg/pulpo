@@ -1,4 +1,5 @@
 import os
+import warnings
 from collections import defaultdict
 import pandas as pd
 import numpy as np
@@ -358,9 +359,29 @@ def get_cplex_options(options):
     ]
     return options if options is not None else default_options
 
-def solve_highspy(model_instance):
-    """Solve the model using Highspy."""
+def check_highs_options(options):
+    """Raise a ValueError for HiGHS options with an unknown name or an invalid value.
+
+    HiGHS reports both only through a status code and its log, which is often
+    switched off, so a mistyped option would otherwise be ignored silently.
+    """
+    if not options:
+        return
+    import highspy
+    probe = highspy.Highs()
+    probe.setOptionValue('output_flag', False)
+    invalid = [f"{key}={value!r}" for key, value in options.items()
+               if probe.setOptionValue(key, value) == highspy.HighsStatus.kError]
+    if invalid:
+        raise ValueError(f"Unknown HiGHS option(s) or invalid value(s): {', '.join(invalid)}. "
+                         "See https://ergo-code.github.io/HiGHS/stable/options/definitions/.")
+
+
+def solve_highspy(model_instance, options=None):
+    """Solve the model using Highspy, with ``options`` (a dict) passed to HiGHS."""
+    check_highs_options(options)
     opt = appsi.solvers.Highs()
+    opt.highs_options = dict(options or {})
     results = opt.solve(model_instance)
     if results.termination_condition == appsi.base.TerminationCondition.optimal: 
         print('optimal solution found: ', results.best_feasible_objective) 
@@ -371,7 +392,7 @@ def solve_highspy(model_instance):
         print('No feasible solution was found. The best lower bound found was ', results.best_objective_bound) 
     else: 
         print('The following termination condition was encountered: ', results.termination_condition) 
-        print('Optimization problem solved using Highspy')
+    print('Optimization problem solved using Highspy')
     return results, model_instance
 
 def solve_neos(model_instance, solver_name, options, neos_email):
@@ -502,7 +523,9 @@ def solve_model(model_instance, gams_path=False, solver_name=None, options=None,
             read the path from the ``GAMS_PULPO`` environment variable.
         solver_name (str, optional): The solver to use (e.g. ``'highs'``, ``'gurobi'``,
             ``'cplex'``, ``'baron'``, or ``'xpress'``).
-        options (list, optional): Additional options forwarded to the solver.
+        options (dict or list, optional): Solver options: a dict of option names and
+            values for HiGHS and Gurobi, a list of option lines for GAMS. NEOS does
+            not use them.
         neos_email (str, optional): Email for NEOS solver authentication.
 
     Returns:
@@ -520,10 +543,13 @@ def solve_model(model_instance, gams_path=False, solver_name=None, options=None,
         if gams_path:
             results, model_instance = solve_gams(model_instance, gams_path, options)
         elif solver_name is None or solver_name.lower() == 'highs':
-            results, model_instance = solve_highspy(model_instance)
+            results, model_instance = solve_highspy(model_instance, options)
         elif solver_name.lower() == 'gurobi':
             results, model_instance = solve_gurobi(model_instance, options=options)
         else:
+            if options:
+                warnings.warn("options are not passed to NEOS; the solve uses NEOS's settings.",
+                              UserWarning, stacklevel=3)
             results, model_instance = solve_neos(model_instance, solver_name, options, neos_email)
     finally:
         # Also on failure: whatever values the instance holds (fresh or stale)
