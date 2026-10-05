@@ -156,6 +156,30 @@ class TestPULPO(unittest.TestCase):
         self.assertEqual(result_obj, 0.103093)
         self.assertEqual(result_aux, 5.25773)
 
+    def test_list_choices_mean_unlimited_capacities(self):
+        """A list of alternatives is documented to mean "no capacity at all": it
+        must solve like infinite capacities and its results must be extractable."""
+        worker = pulpo.PulpoOptimizer(self.project, self.database, self.methods, '')
+        worker.intervention_matrix = 'biosphere3'
+        worker.get_lci_data()
+        demand = {worker.retrieve_activities(reference_products='transport')[0]: 1}
+        elec = worker.retrieve_activities(reference_products='electricity')
+        objectives = {}
+        for form, choices in (('dict', {'electricity': {elec[0]: float('inf'), elec[1]: float('inf')}}),
+                              ('list', {'electricity': [elec[0], elec[1]]})):
+            for method in ('full', 'reduced'):
+                worker.instantiate(choices=choices, demand=demand)
+                worker.solve(method=method)
+                objectives[form, method] = worker.instance.OBJ()
+        for key, value in objectives.items():
+            self.assertAlmostEqual(value, objectives['dict', 'full'], places=9, msg=str(key))
+
+        results = worker.extract_results()
+        self.assertEqual(list(results['Choices']['electricity']['Capacity']), [float('inf')] * 2)
+        with TemporaryDirectory() as temp_dir:
+            worker.save_results(os.path.join(temp_dir, 'list_choices.xlsx'))
+        worker.summarize_results()
+
     def test_supply_specification(self):
         worker = pulpo.PulpoOptimizer(self.project, self.database, self.methods, '')
         worker.intervention_matrix = 'biosphere3'

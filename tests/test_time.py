@@ -445,6 +445,24 @@ class TestStaticFallbackAndErrors(unittest.TestCase):
             objectives.append(worker.instance.OBJ())
         self.assertAlmostEqual(objectives[0], objectives[1], places=9)
 
+    def test_list_choices_in_the_time_path(self):
+        worker = build_worker()
+        acts = {name: worker.retrieve_activities(activities=[name])[0] for name in ACTIVITY_NAMES}
+        time_steps = [0, 1]
+        demand = {t: {ELECTRICITY_CHOICE: 1.0} for t in time_steps}
+        lower = {acts["battery_charge"]: 0.0, acts["battery_hold"]: 0.0, acts["battery_discharge"]: 0.0}
+        objectives = []
+        for choices in ({ELECTRICITY_CHOICE: {acts["solar"]: float('inf'), acts["coal"]: float('inf')}},
+                        {ELECTRICITY_CHOICE: [acts["solar"], acts["coal"]]}):
+            worker.instantiate(choices=choices, demand=demand, lower_limit=lower,
+                               upper_limit={acts["solar"]: 0.4}, time_steps=time_steps)
+            worker.solve()
+            objectives.append(worker.instance.OBJ())
+        self.assertAlmostEqual(objectives[0], objectives[1], places=9)
+        choice_results = worker.extract_results()['Choices'][ELECTRICITY_CHOICE]
+        self.assertEqual(len(choice_results), 2 * len(time_steps))
+        self.assertTrue((choice_results['Capacity'] == float('inf')).all())
+
     def test_dependent_constraints_rejected_in_time_path(self):
         worker = build_worker()
         solar = worker.retrieve_activities(activities=["solar"])[0]

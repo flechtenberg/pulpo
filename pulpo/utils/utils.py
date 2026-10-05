@@ -52,8 +52,11 @@ def none_to_bound(limits, bound):
 
 
 def none_capacities(choices):
-    """A copy of ``choices`` in which a ``None`` capacity reads as unlimited."""
-    return {label: (none_to_bound(alternatives, float('inf')) if isinstance(alternatives, dict) else alternatives)
+    """A copy of ``choices`` as ``{label: {activity: capacity}}``, in which a
+    ``None`` capacity and a list of activities (no capacities) read as unlimited."""
+    inf = float('inf')
+    return {label: (none_to_bound(alternatives, inf) if isinstance(alternatives, dict)
+                    else {activity: inf for activity in alternatives})
             for label, alternatives in (choices or {}).items()}
 
 

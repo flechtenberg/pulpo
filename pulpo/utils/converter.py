@@ -172,8 +172,7 @@ def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, upper_in
         upper_limit_dict[process_map[proc]] = upper_limit[proc]
     for choice in choices:
         for proc in choices[choice]:
-            if isinstance(choices[choice], dict):
-                upper_limit_dict[process_map[proc]] = choices[choice][proc]
+            upper_limit_dict[process_map[proc]] = choices[choice][proc]
 
     if scale:
         # Only explicitly set bounds survive scaling as finite numbers; the
@@ -182,9 +181,7 @@ def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, upper_in
         scaling.relax_default_bounds(
             lower_limit_dict, upper_limit_dict,
             explicit_lower={process_map[proc] for proc in lower_limit} | choice_procs,
-            explicit_upper={process_map[proc] for proc in upper_limit}
-                           | {process_map[proc] for choice in choices if isinstance(choices[choice], dict)
-                              for proc in choices[choice]},
+            explicit_upper={process_map[proc] for proc in upper_limit} | choice_procs,
         )
 
     # Check if a supply has been specified

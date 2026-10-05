@@ -4,7 +4,7 @@ from pyomo.environ import ConcreteModel, Param
 from typing import TypedDict, Dict, Any, Optional, List
 import pandas as pd
 from pulpo.utils.bw_parser import LCIDataDict
-from pulpo.utils.utils import broadcast_over_time
+from pulpo.utils.utils import broadcast_over_time, none_capacities
 
 class ResultDataDict(TypedDict, total=False):
     Scaling_Vector: pd.DataFrame
@@ -144,7 +144,7 @@ def extract_choices(instance: ConcreteModel, choices: Dict[str, Dict[Any, float]
     """
 
     if time_steps is not None:
-        choices_t = broadcast_over_time(choices, time_steps)
+        choices_t = {t: none_capacities(c) for t, c in broadcast_over_time(choices, time_steps).items()}
         choice_labels = {label for c in choices_t.values() for label in c}
         results = {}
         for choice in choice_labels:
@@ -162,7 +162,7 @@ def extract_choices(instance: ConcreteModel, choices: Dict[str, Dict[Any, float]
         return results
 
     results = {}
-    for choice, processes in choices.items():
+    for choice, processes in none_capacities(choices).items():
         data:dict = {
             "Value": [],
             "Capacity": [],
