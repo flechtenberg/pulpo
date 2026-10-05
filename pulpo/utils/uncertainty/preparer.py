@@ -83,7 +83,7 @@ def _single_method(worker):
     methods = list(worker.method)
     if len(methods) != 1:
         raise ValueError("The uncertainty of an impact is imported for one LCIA method; the worker "
-                         f"has {len(methods)}. Create a worker with that method alone.")
+                         f"has {len(methods)}. Pass method= with one of {methods}.")
     return methods[0]
 
 
@@ -124,9 +124,9 @@ def import_declared(worker, method=None) -> UncertaintyData:
     if (lci.get('characterization_params') or {}).get(method) is None:
         missing.append(f"the characterization factors of {method}")
     if missing:
-        raise ValueError(f"No uncertainty parameters for {' and '.join(missing)}: their data declare no "
-                         "distributions, or not for every entry (Brightway stores the parameter arrays "
-                         "only when complete). Legacy Brightway 2 provides none.")
+        raise ValueError(f"No uncertainty parameters for {' and '.join(missing)}: Brightway provided no "
+                         "entries for them, or inconsistent ones. Check that the databases and the "
+                         "method are written and processed.")
 
     cf_params = pd.DataFrame(lci['characterization_params'][method])
     if cf_params['row'].duplicated().any():

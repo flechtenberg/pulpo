@@ -604,6 +604,19 @@ class TestChanceConstrained(unittest.TestCase):
         front = worker.chance_constrained(upper_bounds={worker.elyz: TRI_CAP}).solve([0.9])
         self.assertLess(abs(front[0.9].adjusted - V18_CAP[0.9][0]), 1e-6)
 
+    def test_facade_with_two_methods(self):
+        """A worker with a second method (to limit, say) imports the impact it names."""
+        air = "('my project', 'air quality')"
+        worker = pulpo_unc.PulpoOptimizerUnc(PROJECT, DATABASES, {CLIMATE_KEY: 1, air: 0}, '')
+        quiet(worker.get_lci_data)
+        with self.assertRaises(ValueError) as error:
+            worker.import_uncertainty_data()
+        self.assertIn('method=', str(error.exception))
+        data = worker.import_uncertainty_data(method=CLIMATE_KEY)
+        single = pulpo.PulpoOptimizer(PROJECT, DATABASES, {CLIMATE_KEY: 1}, '')
+        quiet(single.get_lci_data)
+        np.testing.assert_equal(data, unc.import_declared(single))      # NaN fields compare equal
+
 
 class Activity:
     """Stands in for a Brightway activity: hashes and compares like its key."""
@@ -714,10 +727,12 @@ class TestApplyCCFormulation(unittest.TestCase):
 # ---------------------------------------------------------------------------
 
 def setup_uncertainty_free_project():
-    """A throwaway project with one process and one CF, neither uncertain."""
+    """A throwaway project with one CF and two databases of one process each: in
+    ``no_uncertainty_db`` nothing is uncertain, in ``declared_db`` the CO2
+    emission is lognormal. Only ``declared_db`` declares a distribution."""
     project = "sample_project_no_uncertainty"
     bd.projects.set_current(project)
-    for db_name in ("no_uncertainty_db", "biosphere3"):
+    for db_name in ("no_uncertainty_db", "declared_db", "biosphere3"):
         if db_name in bd.databases:
             del bd.databases[db_name]
     co2 = ("biosphere3", "CO2")
@@ -734,6 +749,16 @@ def setup_uncertainty_free_project():
             ],
         },
     })
+    bd.Database("declared_db").write({
+        ("declared_db", "process"): {
+            "name": "declared process", "unit": "kg", "location": "GLO", "reference product": "gadget",
+            "exchanges": [
+                {"input": ("declared_db", "process"), "amount": 1.0, "type": "production"},
+                {"input": co2, "amount": 3.0, "type": "biosphere", "uncertainty type": 2,
+                 "loc": float(np.log(3.0)), "scale": 0.1},
+            ],
+        },
+    })
     for method in list(bd.methods):
         bd.Method(method).deregister()
     method = bd.Method(("my project", "climate change"))
@@ -744,8 +769,9 @@ def setup_uncertainty_free_project():
 
 @unittest.skipUnless(is_bw25(), "bw25-only: structured uncertainty-parameter arrays require bw2data >= 4")
 class TestUncertaintyParamArrays(unittest.TestCase):
-    """``bw_parser.import_data`` exposes structured uncertainty arrays, or ``None``
-    without a warning when the databases carry no uncertainty."""
+    """``bw_parser.import_data`` exposes structured uncertainty arrays, also for
+    datapackages that declare no distribution (whose entries are then listed as
+    deterministic)."""
 
     REQUIRED_FIELDS = ("row", "col", "amount", "uncertainty_type",
                        "loc", "scale", "shape", "minimum", "maximum", "negative")
@@ -768,22 +794,52 @@ class TestUncertaintyParamArrays(unittest.TestCase):
         self.assertEqual(len(pairs), len(set(pairs)))
         self.assertGreater(len(set(int_params["col"].tolist())), 1)
 
-    def test_without_uncertainty_stores_none_quietly(self):
+    def test_without_uncertainty_lists_deterministic_entries(self):
         project = setup_uncertainty_free_project()
+        lci_data = bw_parser.import_data(project=project, databases=["no_uncertainty_db"],
+                                         method=CLIMATE_KEY, intervention_matrix_name="biosphere3", seed=42)
+        method_key = next(iter(lci_data["matrices"]))
+        for arr in (lci_data["intervention_params"], lci_data["characterization_params"][method_key]):
+            self.assertEqual(len(arr), 1)
+            self.assertEqual(int(arr["uncertainty_type"][0]), 0)
+            self.assertEqual(arr["loc"][0], arr["amount"][0])
+            self.assertTrue(np.isnan(arr["scale"][0]))
+
+
+class TestUndeclaredData(unittest.TestCase):
+    """Parameters without a distribution are imported as undeclared, on both
+    Brightway stacks. A database or LCIA method that declares none (on bw25 its
+    datapackage then carries no distributions at all) hides nothing else."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.project = setup_uncertainty_free_project()
+
+    def import_declared(self, databases):
         with warnings.catch_warnings(record=True) as caught:
             warnings.simplefilter("always")
-            lci_data = bw_parser.import_data(project=project, databases=["no_uncertainty_db"],
-                                             method=CLIMATE_KEY, intervention_matrix_name="biosphere3", seed=42)
-        method_key = next(iter(lci_data["matrices"]))
-        self.assertIsNone(lci_data["intervention_params"])
-        self.assertIsNone(lci_data["characterization_params"][method_key])
+            lci_data = bw_parser.import_data(project=self.project, databases=databases, method=CLIMATE_KEY,
+                                             intervention_matrix_name="biosphere3", seed=42)
         self.assertFalse([w for w in caught if 'uncertainty' in str(w.message)])
-        # Asking for the uncertainty is where the user hears about it.
-        worker = types.SimpleNamespace(lci_data=lci_data, database=["no_uncertainty_db"], method={method_key: 1})
-        with self.assertRaises(ValueError) as error:
-            unc.import_declared(worker)
-        self.assertIn('biosphere entries', str(error.exception))
-        self.assertIn('characterization factors', str(error.exception))
+        method_key = next(iter(lci_data["matrices"]))
+        worker = types.SimpleNamespace(lci_data=lci_data, database=databases, method={method_key: 1})
+        return unc.import_declared(worker), method_key
+
+    def test_nothing_declared(self):
+        data, method = self.import_declared(["no_uncertainty_db"])
+        block, cfs = data['If']['no_uncertainty_db'], data['Cf'][method]
+        self.assertEqual((block['defined'], cfs['defined']), ({}, {}))
+        self.assertEqual([spec['amount'] for spec in block['undefined'].values()], [2.0])
+        self.assertEqual([spec['amount'] for spec in cfs['undefined'].values()], [1.0])
+
+    def test_a_database_without_distributions_hides_no_other(self):
+        data, method = self.import_declared(["no_uncertainty_db", "declared_db"])
+        [spec] = data['If']['declared_db']['defined'].values()
+        self.assertEqual((spec['uncertainty_type'], spec['amount']), (2, 3.0))
+        self.assertAlmostEqual(spec['scale'], 0.1)
+        self.assertEqual(data['If']['no_uncertainty_db']['defined'], {})
+        self.assertEqual(len(data['If']['no_uncertainty_db']['undefined']), 1)
+        self.assertEqual(len(data['Cf'][method]['undefined']), 1)
 
 
 if __name__ == '__main__':

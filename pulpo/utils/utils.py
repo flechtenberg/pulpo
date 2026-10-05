@@ -144,13 +144,18 @@ def build_bw25_params(data_objs, matrix_name, row_mapping, col_mapping=None):
             kept (used for the characterization matrix where the column is a
             dummy value).
 
+    A datapackage that declares no distribution at all carries no
+    ``distributions`` resource; its entries are deterministic and are listed
+    with ``uncertainty_type`` 0, as in bw2's parameter arrays.
+
     Returns:
         Tuple[Optional[np.ndarray], bool]: The combined parameter array (or
-        ``None`` when uncertainty information is missing or incomplete) and a
-        flag indicating that data existed but distributions were absent.
+        ``None`` when the matrix has no entries or a datapackage is
+        inconsistent) and a flag set when some datapackage declared no
+        distributions.
     """
     parts = []
-    incomplete = False
+    incomplete = undeclared = False
     for obj in data_objs:
         idx = dat = dist = None
         for res, arr in zip(obj.resources, obj.data):
@@ -166,14 +171,16 @@ def build_bw25_params(data_objs, matrix_name, row_mapping, col_mapping=None):
         # Skip datapackages that do not contribute entries to this matrix.
         if dat is None or len(dat) == 0:
             continue
-        # Data present but no (matching) distributions => uncertainty missing.
-        if dist is None or len(dist) != len(dat) or idx is None:
+        if idx is None or (dist is not None and len(dist) != len(dat)):
             incomplete = True
             continue
+        if dist is None:
+            dist = _undeclared_distributions(dat)
+            undeclared = True
         parts.append((idx, dat, dist))
 
     if incomplete or not parts:
-        return None, incomplete
+        return None, undeclared
 
     total = sum(len(dat) for _, dat, _ in parts)
     combined = np.empty(total, dtype=BW25_PARAM_DTYPE)
@@ -191,4 +198,17 @@ def build_bw25_params(data_objs, matrix_name, row_mapping, col_mapping=None):
             combined[field][sl] = dist[field]
         pos += n
 
-    return combined, False
+    return combined, undeclared
+
+
+def _undeclared_distributions(amounts):
+    """Distribution records for deterministic entries: ``uncertainty_type`` 0,
+    ``loc`` the amount and the other parameters NaN, as bw2 stores them."""
+    amounts = np.asarray(amounts, dtype=np.float64)
+    dist = np.empty(len(amounts), dtype=[(f, BW25_PARAM_DTYPE[f]) for f in BW25_DISTRIBUTION_FIELDS])
+    dist['uncertainty_type'] = 0
+    dist['loc'] = amounts
+    for field in ('scale', 'shape', 'minimum', 'maximum'):
+        dist[field] = np.nan
+    dist['negative'] = amounts < 0
+    return dist

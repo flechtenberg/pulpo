@@ -27,9 +27,10 @@ from pulpo.utils import uncertainty
 class PulpoOptimizerUnc(PulpoOptimizer):
     """PulpoOptimizer plus the uncertainty steps, with ``uncertainty_data`` kept on the worker."""
 
-    def import_uncertainty_data(self):
-        """Import the parameters of the impact (see ``uncertainty.import_declared``)."""
-        self.uncertainty_data = uncertainty.import_declared(self)
+    def import_uncertainty_data(self, method=None):
+        """Import the parameters of the impact of ``method``, which may be omitted when
+        the worker has a single LCIA method (see ``uncertainty.import_declared``)."""
+        self.uncertainty_data = uncertainty.import_declared(self, method=method)
         return self.uncertainty_data
 
     def apply_expert_knowledge(self, group, subgroup, specs):
