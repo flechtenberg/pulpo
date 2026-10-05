@@ -62,6 +62,8 @@ The 1.x uncertainty API is replaced without a deprecation period.
   the sampled sensitivity analysis, the `L1` formulation, the cutting planes, and the modules
   `uncertainty.soc`, `gsa`, `monte_carlo` and `plots` (`soc.SOCCoefficients` is now `uncertainty.Moments`).
 * The `uncertainty` extra is empty; `clarabel` and `stats_arrays` are core dependencies.
+* JupyterLab, IPython, `fs` and `openpyxl` are no longer installed with PULPO. The new
+  `notebooks` extra brings JupyterLab, matplotlib and seaborn for the example notebooks.
 
 ## [1.8.0] - 2026-09-19
 

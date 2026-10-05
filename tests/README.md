@@ -10,7 +10,8 @@ so the main development venv (`.venv`) never needs re-tuning:
 - **`.venv-bw2`** — bw2 stack (bw2data 3.6.6, bw2calc 1.8.2, numpy < 2)
 
 Each venv needs an **editable** install of pulpo (`-e`) with the `test`
-extra (`pytest`, and SALib to cross-check the exact Sobol' indices), so tests
+extra (`pytest`, SALib to cross-check the exact Sobol' indices, and openpyxl to
+read saved result workbooks back), so tests
 always run against the working tree instead of a stale site-packages copy.
 Without SALib that one comparison skips itself.
 

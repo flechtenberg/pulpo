@@ -31,6 +31,7 @@
      ```bash
      pip install pulpo-dev[bw25]
      ```
+   - To run the example notebooks, add the `notebooks` extra (JupyterLab, matplotlib, seaborn), e.g. `pip install "pulpo-dev[bw25,notebooks]"`.
 
 3. **Verify installation**:
    Ensure that `pulpo` and its dependencies are correctly installed by running:
@@ -50,7 +51,7 @@ conda activate pulpo_env
 pip install "pulpo-dev[bw25]"
 ```
 
-For Brightway2, use `"pulpo-dev[bw2]"` instead (Python 3.12 at most). Without `scikit-umfpack`, PULPO falls back to SciPy's solver, which gives the same results but is much slower on large databases. Brightway's own LCA calculations use `scikit-umfpack` as well.
+For Brightway2, use `"pulpo-dev[bw2]"` instead (Python 3.12 at most). Add the `notebooks` extra to run the example notebooks, e.g. `"pulpo-dev[bw25,notebooks]"`. Without `scikit-umfpack`, PULPO falls back to SciPy's solver, which gives the same results but is much slower on large databases. Brightway's own LCA calculations use `scikit-umfpack` as well.
 
 :::
 

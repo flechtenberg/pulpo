@@ -1,5 +1,6 @@
 [build-system]
-requires = ["setuptools>=65.5", "wheel"]
+# 77 is the first setuptools that reads the SPDX `license` string below.
+requires = ["setuptools>=77.0.3"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -27,20 +28,21 @@ classifiers = [
     "Operating System :: OS Independent"
 ]
 dependencies = [
-    "fs==2.4.16",
     # 6.7.3 still touches np.float_ under numpy 2; 6.8.0 is the first
     # release verified against numpy 2 + highspy 1.15.
     "pyomo>=6.8.0,<7.0.0",
-    "highspy==1.15.1",
-    "ipython==8.14.0",
-    "jupyterlab",
+    # PULPO uses highspy directly (reduced backend) and through pyomo's appsi;
+    # new minor releases have broken those APIs before, so they are let in
+    # only after testing. Bug-fix releases are allowed.
+    "highspy>=1.15.1,<1.16",
     "numpy<3.0.0",
     "pandas",
     "scipy",
     "tqdm",
     "joblib",
     "xlsxwriter",
-    "openpyxl",
+    # Version checks of the Brightway packages (pulpo.utils.utils).
+    "packaging",
     # PARDISO needs MKL, which has wheels for x86-64 Windows and Linux only;
     # elsewhere the reduced backend uses UMFPACK (scikit-umfpack, optional) or SciPy.
     "pypardiso>=0.4.7; sys_platform != 'darwin' and (platform_machine == 'x86_64' or platform_machine == 'AMD64')",
@@ -65,10 +67,18 @@ bw25 = [
 # Kept so that "pulpo-dev[uncertainty]" still installs: the uncertainty
 # features need nothing beyond the core dependencies.
 uncertainty = []
-# The test suite; SALib cross-checks the exact Sobol' indices.
+# The example notebooks: JupyterLab and the plotting libraries they use.
+notebooks = [
+    "jupyterlab",
+    "matplotlib",
+    "seaborn",
+]
+# The test suite; SALib cross-checks the exact Sobol' indices, and openpyxl
+# reads the saved result workbooks back.
 test = [
     "pytest",
     "SALib==1.5.1",
+    "openpyxl",
 ]
 
 [project.urls]
