@@ -326,7 +326,7 @@ class TestImpactMoments(unittest.TestCase):
         self.assertEqual(self.mom.summary(), {'processes': 6, 'processes_with_variance': 4, 'uncertain_cfs': 1})
 
     def test_moments_at_a_solved_instance(self):
-        quiet(self.worker.solve, method='reduced')
+        quiet(self.worker.solve, formulation='reduced')
         s = unc.current_scaling_vector(self.worker.instance)
         j = index(self.worker, self.worker.ammonia)
         self.assertAlmostEqual(s[j], 1.0, places=12)

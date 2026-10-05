@@ -9,7 +9,7 @@ from pulpo.utils.utils import none_capacities, none_to_bound
 
 DEFAULT_LIMITS_NOTE = (
     "Finite default_limits['lower_bound'] / ['upper_bound'] put a bound on every activity. "
-    "Such bounds have no physical meaning, and they make solve(method='reduced') build the "
+    "Such bounds have no physical meaning, and they make solve(formulation='reduced') build the "
     "whole of S (one dense row per bounded process). Set lower_limit / upper_limit on the "
     "processes that have a real limit instead. default_limits may be deprecated in a "
     "near-future release.")

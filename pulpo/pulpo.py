@@ -98,7 +98,7 @@ class PulpoOptimizer:
                                             bound) unless also given an explicit upper_imp_limit/
                                             lower_imp_limit. Finite 'lower_bound' / 'upper_bound'
                                             put a bound on every activity, which has no physical
-                                            meaning and makes solve(method='reduced') build the
+                                            meaning and makes solve(formulation='reduced') build the
                                             whole of S; they raise a FutureWarning. Set
                                             lower_limit / upper_limit on the processes that have
                                             a real limit instead. default_limits may be
@@ -151,32 +151,32 @@ class PulpoOptimizer:
         self.objective = objective
         self.scale = scale
 
-    def solve(self, GAMS_PATH=False, solver_name=None, options=None, neos_email=None, method='full'):
+    def solve(self, GAMS_PATH=False, solver_name=None, options=None, neos_email=None, formulation='full'):
         """
         Solves the optimization model and calculates additional methods and inventory flows if needed.
 
         Args:
             GAMS_PATH (bool): Path to GAMS if needed.
-            solver_name (str, optional): 'highs' (default) or 'gurobi'; with method='full'
+            solver_name (str, optional): 'highs' (default) or 'gurobi'; with formulation='full'
                 also any GAMS or NEOS solver.
             options (dict): Additional options for the solver.
-            method (str, optional): 'full' (default) solves the Pyomo LP over every process;
+            formulation (str, optional): 'full' (default) solves the Pyomo LP over every process;
                 'reduced' solves the same problem over the alternatives only
                 (see :mod:`pulpo.utils.reduced`).
 
         Returns:
             results: Results of the optimization (a :class:`pulpo.utils.reduced.ReducedResults`
-            with method='reduced').
+            with formulation='reduced').
         """
-        if method == 'reduced':
+        if formulation == 'reduced':
             if GAMS_PATH or neos_email is not None:
-                raise ValueError("method='reduced' solves with HiGHS or Gurobi; GAMS and NEOS "
-                                 "need method='full'.")
+                raise ValueError("formulation='reduced' solves with HiGHS or Gurobi; GAMS and NEOS "
+                                 "need formulation='full'.")
             results = reduced.build(self).solve(solver_name=solver_name, options=options)
-        elif method == 'full':
+        elif formulation == 'full':
             results, self.instance = optimizer.solve_model(self.instance, GAMS_PATH, solver_name=solver_name, options=options, neos_email=neos_email)
         else:
-            raise ValueError(f"Unknown method {method!r}; use 'full' or 'reduced'.")
+            raise ValueError(f"Unknown formulation {formulation!r}; use 'full' or 'reduced'.")
 
         # Post calculate additional methods, in case several methods have been specified and one of them is 0
         if not isinstance(self.method, str):

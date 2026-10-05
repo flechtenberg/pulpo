@@ -172,27 +172,27 @@ class PulpoOptimizerTime(PulpoOptimizer):
         self.objective = objective
         self.scale = scale
 
-    def solve(self, GAMS_PATH=False, solver_name=None, options=None, neos_email=None, method='full'):
+    def solve(self, GAMS_PATH=False, solver_name=None, options=None, neos_email=None, formulation='full'):
         """
         Solve the model. Mirrors ``PulpoOptimizer.solve()``'s post-processing
         (auxiliary zero-weight methods, elementary flows), generalized to the
         per-timestep variable layout so that ``extract_results()``/
         ``save_results()``/``summarize_results()`` work unchanged on a
-        time-indexed instance. ``method='reduced'`` is available for the
+        time-indexed instance. ``formulation='reduced'`` is available for the
         static fallback only (``time_steps`` omitted).
         """
         if self.time_steps is None:
             return super().solve(
                 GAMS_PATH=GAMS_PATH, solver_name=solver_name,
-                options=options, neos_email=neos_email, method=method,
+                options=options, neos_email=neos_email, formulation=formulation,
             )
-        if method == 'reduced':
+        if formulation == 'reduced':
             raise NotImplementedError(
-                "method='reduced' supports static models only; the time-dependent "
-                "model couples timesteps through storage and is solved with method='full'."
+                "formulation='reduced' supports static models only; the time-dependent "
+                "model couples timesteps through storage and is solved with formulation='full'."
             )
-        if method != 'full':
-            raise ValueError(f"Unknown method {method!r}; use 'full' or 'reduced'.")
+        if formulation != 'full':
+            raise ValueError(f"Unknown formulation {formulation!r}; use 'full' or 'reduced'.")
 
         from pulpo.utils import optimizer
         results, self.instance = optimizer.solve_model(

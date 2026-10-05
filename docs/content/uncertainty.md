@@ -118,7 +118,7 @@ UMFPACK or SciPy's SuperLU). Every finite process bound is a row $S[j, :]$, so t
 stays small as long as only the processes with a real limit are bounded: finite
 `default_limits` on every process would put the whole of $S$ into it.
 
-The deterministic LP is solved this way by `solve(method='reduced')`. For the
+The deterministic LP is solved this way by `solve(formulation='reduced')`. For the
 chance-constrained problem $\sigma(s) = \lVert R\,[1; v]\rVert$ with
 $R^\top R = G^\top G$, $G = Q^{1/2}[s_0, S]$ and
 $Q = \mathrm{diag}(d) + B_u^\top \mathrm{diag}(w) B_u$: a second-order cone with one
@@ -219,8 +219,8 @@ problem over $v$, such as a scenario-based CVaR front:
 
 | Problem | Solvers | Licence |
 |---|---|---|
-| deterministic LP, `method='full'` | HiGHS (default), Gurobi, GAMS/NEOS | HiGHS: none |
-| deterministic LP, `method='reduced'` | HiGHS (default), Gurobi | HiGHS: none |
+| deterministic LP, `formulation='full'` | HiGHS (default), Gurobi, GAMS/NEOS | HiGHS: none |
+| deterministic LP, `formulation='reduced'` | HiGHS (default), Gurobi | HiGHS: none |
 | chance-constrained cone | Clarabel (default), Gurobi | Clarabel: none |
 
 HiGHS and Clarabel are installed with PULPO and need no licence. Gurobi is used
@@ -230,6 +230,6 @@ to 2,000 variables and 2,000 linear constraints, or 200 variables once quadratic
 terms (the cone) are present (see Gurobi's licence terms). A reduced problem has
 one column per alternative, so most case studies fit.
 
-The defaults stay `method='full'` and `instantiate(scale=False)`. Current
-development considers `method='reduced'` and `scale=True` superior, and a future
+The defaults stay `formulation='full'` and `instantiate(scale=False)`. Current
+development considers `formulation='reduced'` and `scale=True` superior, and a future
 release may switch the defaults.

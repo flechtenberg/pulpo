@@ -1,4 +1,4 @@
-"""Tests for the reduced-space backend, ``solve(method='reduced')``.
+"""Tests for the reduced-space backend, ``solve(formulation='reduced')``.
 
 The full Pyomo LP is the reference. Every case solves the same instance both
 ways and requires
@@ -139,7 +139,7 @@ class ParityMixin:
 
         if backend != 'auto':
             reduced.build(worker, backend=backend)
-        results = worker.solve(method='reduced', solver_name=solver_name, options=options)
+        results = worker.solve(formulation='reduced', solver_name=solver_name, options=options)
         self.assertEqual(str(results.termination_condition), 'optimal')
         obj_red = pyo.value(worker.instance.OBJ)
         alt_red = alternative_values(worker)
@@ -177,7 +177,7 @@ class ParityMixin:
         with self.assertRaises(RuntimeError):
             worker.solve()
         with self.assertRaises(reduced.ReducedSolveError) as caught:
-            worker.solve(method='reduced')
+            worker.solve(formulation='reduced')
         self.assertIn(str(caught.exception.results.termination_condition),
                       ('infeasible', 'infeasibleOrUnbounded'))
 
@@ -328,7 +328,7 @@ class TestReducedSampleTechnosphere(ParityMixin, unittest.TestCase):
     def test_infeasible_keeps_values(self):
         worker = self.worker()
         worker.instantiate(choices=self.choices(), demand={self.ecar: 1})
-        worker.solve(method='reduced')
+        worker.solve(formulation='reduced')
         before = alternative_values(worker)
         tight = {'lower_bound': -0.1, 'upper_bound': 0.1, 'upper_inv_bound': 0.1,
                  'lower_inv_bound': -0.1, 'lower_imp_bound': -0.1, 'upper_imp_bound': 0.1}
@@ -337,7 +337,7 @@ class TestReducedSampleTechnosphere(ParityMixin, unittest.TestCase):
             worker.instantiate(choices=self.choices(), demand={self.ecar: 1}, default_limits=tight)
         self.assertTrue(any(issubclass(w.category, FutureWarning) for w in warned))
         with self.assertRaises(reduced.ReducedSolveError) as caught:
-            worker.solve(method='reduced')
+            worker.solve(formulation='reduced')
         self.assertIn(str(caught.exception.results.termination_condition),
                       ('infeasible', 'infeasibleOrUnbounded'))
         self.assertTrue(all(v is None for v in alternative_values(worker).values()))
@@ -360,8 +360,8 @@ class TestReducedSampleTechnosphere(ParityMixin, unittest.TestCase):
         red2 = reduced.build(worker)
         self.assertIsNot(red, red2)
         self.assertIs(red.system, red2.system)
-        worker.solve(method='reduced')
-        worker.solve(method='reduced')
+        worker.solve(formulation='reduced')
+        worker.solve(formulation='reduced')
         self.assertIs(reduced.build(worker), red2)
 
     def test_custom_component_is_refused(self):
@@ -369,7 +369,7 @@ class TestReducedSampleTechnosphere(ParityMixin, unittest.TestCase):
         worker.instantiate(choices=self.choices(), demand={self.ecar: 1})
         worker.instance.extra = pyo.Constraint(expr=worker.instance.scaling_vector[3] <= 0.5)
         with self.assertRaises(NotImplementedError):
-            worker.solve(method='reduced')
+            worker.solve(formulation='reduced')
 
     def test_lower_elementary_flow_limit(self):
         """A lower limit on fossil CO2, halfway between the optimum (wind) and
@@ -474,7 +474,7 @@ class TestReducedSampleTechnosphere(ParityMixin, unittest.TestCase):
                            demand={self.ecar: 1})
         with warnings.catch_warnings(record=True) as caught:
             warnings.simplefilter('always')
-            worker.solve(method='reduced')
+            worker.solve(formulation='reduced')
         remote = [w for w in caught if 'far beyond' in str(w.message)]
         self.assertEqual(len(remote), 1)
         self.assertIn('wind', str(remote[0].message))
@@ -483,7 +483,7 @@ class TestReducedSampleTechnosphere(ParityMixin, unittest.TestCase):
                            demand={self.ecar: 1})
         with warnings.catch_warnings(record=True) as caught:
             warnings.simplefilter('always')
-            worker.solve(method='reduced')
+            worker.solve(formulation='reduced')
         self.assertFalse([w for w in caught if 'far beyond' in str(w.message)])
 
     def test_infinite_default_limits_do_not_warn(self):
@@ -506,8 +506,8 @@ class TestReducedSampleTechnosphere(ParityMixin, unittest.TestCase):
                 worker.instance.scaling_vector[3].fix(0.3)      # model units: 0.3 * col_scale original
                 level = 0.3 * scaling.col_factor(worker.instance, 3)
                 objectives = []
-                for method in ('reduced', 'reduced', 'full', 'reduced', 'full'):
-                    worker.solve(method=method)
+                for formulation in ('reduced', 'reduced', 'full', 'reduced', 'full'):
+                    worker.solve(formulation=formulation)
                     objectives.append(pyo.value(worker.instance.OBJ))
                     self.assertAlmostEqual(worker.instance.scaling_vector[3].value, level, places=12)
                 self.assertLessEqual(max(objectives) - min(objectives), 1e-9)
@@ -563,11 +563,11 @@ class TestReducedSampleTechnosphere(ParityMixin, unittest.TestCase):
             from joblib.externals import cloudpickle
         worker = self.worker()
         worker.instantiate(choices=self.choices(), demand={self.ecar: 1})
-        worker.solve(method='reduced')
+        worker.solve(formulation='reduced')
         objective = pyo.value(worker.instance.OBJ)
         clone = copy.deepcopy(worker)
         self.assertIsNotNone(cloudpickle.dumps(worker))
-        clone.solve(method='reduced')
+        clone.solve(formulation='reduced')
         self.assertAlmostEqual(pyo.value(clone.instance.OBJ), objective, places=12)
         for backend in BACKENDS:
             with self.subTest(backend=backend):
@@ -581,9 +581,9 @@ class TestReducedSampleTechnosphere(ParityMixin, unittest.TestCase):
         worker = self.worker()
         worker.instantiate(choices=self.choices(), demand={self.ecar: 1})
         with self.assertRaises(ValueError):
-            worker.solve(method='banana')
+            worker.solve(formulation='banana')
         with self.assertRaises(ValueError):
-            worker.solve(method='reduced', solver_name='cplex')
+            worker.solve(formulation='reduced', solver_name='cplex')
 
 
 # ---------------------------------------------------------------------------
@@ -882,7 +882,7 @@ class TestReducedElecStatic(ParityMixin, unittest.TestCase):
         worker.instantiate(choices=choices, demand={t: {ELECTRICITY_CHOICE: 1.0} for t in steps},
                            time_steps=steps)
         with self.assertRaises(NotImplementedError):
-            worker.solve(method='reduced')
+            worker.solve(formulation='reduced')
         with self.assertRaises(NotImplementedError):
             reduced.build(worker)
 

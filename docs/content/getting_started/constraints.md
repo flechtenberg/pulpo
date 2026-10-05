@@ -50,7 +50,7 @@ An `upper_limit` on an alternative of a choice replaces its capacity, with a war
 ```{note}
 Bound only the processes that have a real limit. Finite
 `default_limits['lower_bound']` / `['upper_bound']` put a bound on every activity,
-which has no physical meaning and makes `solve(method='reduced')` build a dense
+which has no physical meaning and makes `solve(formulation='reduced')` build a dense
 row for every process. They raise a `FutureWarning`, and `default_limits` may be
 deprecated in a near-future release.
 ```

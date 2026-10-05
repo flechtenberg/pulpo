@@ -126,7 +126,7 @@ All remaining tests use the bundled HiGHS solver and run offline.
   and multi-day battery-dispatch scenarios from
   `notebooks/elec_time_toy.ipynb` with reference CO2 totals and physical
   consistency checks, result extraction/saving, static fallback
-- `test_reduced.py` — the reduced-space backend (`solve(method='reduced')`)
+- `test_reduced.py` — the reduced-space backend (`solve(formulation='reduced')`)
   against the full LP on every bundled database and constraint type, plus
   its building blocks against dense linear algebra
 - `test_uncertainty.py` — the import of declared distributions, closed-form

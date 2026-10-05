@@ -1,4 +1,4 @@
-"""Reduced-space solution of PULPO's static LP: ``solve(method='reduced')``.
+"""Reduced-space solution of PULPO's static LP: ``solve(formulation='reduced')``.
 
 Why
 ---
@@ -174,7 +174,7 @@ class Factorization:
             if perturbed:
                 raise ValueError(f"The technosphere matrix is singular or numerically singular "
                                  f"(PARDISO perturbed {perturbed} pivots); the reduced formulation "
-                                 "needs an invertible A. Solve with method='full'.")
+                                 "needs an invertible A. Solve with formulation='full'.")
         elif self.backend == 'umfpack':
             import scikits.umfpack as umfpack
             # 64-bit indices, so that the factors of a large matrix fit. They are
@@ -187,14 +187,14 @@ class Factorization:
                 context.numeric(A)
             if any('singular' in str(w.message).lower() for w in caught):
                 raise ValueError("The technosphere matrix is singular; the reduced formulation "
-                                 "needs an invertible A. Solve with method='full'.")
+                                 "needs an invertible A. Solve with formulation='full'.")
             self._lu = (context, A)
         else:
             try:
                 self._lu = spla.splu(self._A.tocsc(), permc_spec='MMD_AT_PLUS_A')
             except RuntimeError as exc:
                 raise ValueError("The technosphere matrix is singular; the reduced formulation "
-                                 "needs an invertible A. Solve with method='full'.") from exc
+                                 "needs an invertible A. Solve with formulation='full'.") from exc
 
     def __getstate__(self):
         state = self.__dict__.copy()
@@ -1052,7 +1052,7 @@ class ReducedModel:
 def _check_instance(inst):
     if hasattr(inst, 'TIME'):
         raise NotImplementedError("The reduced backend supports static PULPO models only; "
-                                  "solve the time-dependent model with method='full'.")
+                                  "solve the time-dependent model with formulation='full'.")
     extra_vars = sorted(set(c.local_name for c in inst.component_objects(pyo.Var)) - _KNOWN_VARS)
     extra_cons = sorted(set(c.local_name for c in inst.component_objects(pyo.Constraint, active=True))
                         - _KNOWN_CONSTRAINTS)
@@ -1061,12 +1061,12 @@ def _check_instance(inst):
         raise NotImplementedError(
             "The reduced backend supports the components optimizer.instantiate creates; this "
             f"instance also has variables {extra_vars}, constraints {extra_cons} or "
-            f"objectives {objectives}. Solve it with method='full'.")
+            f"objectives {objectives}. Solve it with formulation='full'.")
     for name in ('FINAL_DEMAND_CNSTR', 'IMPACTS_CNSTR'):
         component = getattr(inst, name)
         if not component.active or any(not c.active for c in component.values()):
             raise NotImplementedError(f"Deactivated rows of {name} are not supported by the "
-                                      "reduced backend; solve with method='full'.")
+                                      "reduced backend; solve with formulation='full'.")
 
 
 def _free_rows(instance, lci_data, choices):

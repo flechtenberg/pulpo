@@ -5,14 +5,14 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased] - 2.0.0
 
 ### Added
-* **Reduced-space solver backend** — `solve(method='reduced')`. Every scaling
+* **Reduced-space solver backend** — `solve(formulation='reduced')`. Every scaling
   vector that satisfies the balances is one fixed vector plus a combination of
   the alternatives' outputs, so the LP can be solved over the alternatives
   instead of over every process. The reformulation is exact, supports every
   static constraint type and is much smaller and faster on large databases; the
   solution is written back onto the instance, so results are read as before.
   Solved with HiGHS (default) or Gurobi. The time-dependent model supports
-  `method='full'` only.
+  `formulation='full'` only.
 * **macOS and Linux on ARM** — PULPO installs there without PARDISO, which needs
   Intel's MKL. The reduced solves then use UMFPACK when `scikit-umfpack` is
   installed from conda-forge, and SciPy's slower solver otherwise.
@@ -39,16 +39,16 @@ All notable changes to this project will be documented in this file.
   notebook now runs on the bundled demo database with open-source solvers only.
 
 ### Defaults
-* `method='full'` and `instantiate(scale=False)` remain the defaults. Current
-  development considers `method='reduced'` and `scale=True` superior, and a
+* `formulation='full'` and `instantiate(scale=False)` remain the defaults. Current
+  development considers `formulation='reduced'` and `scale=True` superior, and a
   future release may switch the defaults.
 * Finite `default_limits['lower_bound']` / `['upper_bound']` raise a
   `FutureWarning`: a bound on every activity has no physical meaning and makes
-  `method='reduced'` build a dense row per process. Set `lower_limit` /
+  `formulation='reduced'` build a dense row per process. Set `lower_limit` /
   `upper_limit` on the processes that have a real limit. `default_limits` may be
   deprecated in a near-future release.
 * `None` means "no limit" in choice capacities and in every limit dict, like
-  `float('inf')`. `solve(method='reduced')` warns about huge finite stand-ins
+  `float('inf')`. `solve(formulation='reduced')` warns about huge finite stand-ins
   (e.g. a capacity of `1e10`); the examples and notebooks use `float('inf')`.
 * Loading LCI data without (complete) uncertainty data no longer warns;
   `uncertainty.import_declared` says what is missing when it is needed.

@@ -167,10 +167,10 @@ class TestPULPO(unittest.TestCase):
         objectives = {}
         for form, choices in (('dict', {'electricity': {elec[0]: float('inf'), elec[1]: float('inf')}}),
                               ('list', {'electricity': [elec[0], elec[1]]})):
-            for method in ('full', 'reduced'):
+            for formulation in ('full', 'reduced'):
                 worker.instantiate(choices=choices, demand=demand)
-                worker.solve(method=method)
-                objectives[form, method] = worker.instance.OBJ()
+                worker.solve(formulation=formulation)
+                objectives[form, formulation] = worker.instance.OBJ()
         for key, value in objectives.items():
             self.assertAlmostEqual(value, objectives['dict', 'full'], places=9, msg=str(key))
 
@@ -189,15 +189,15 @@ class TestPULPO(unittest.TestCase):
         wind = worker.retrieve_activities(activities=['wind turbine'])[0]
         steam = worker.retrieve_activities(activities=['steam cycle'])[0]
         wind_id = worker.lci_data['process_map'][wind.key]
-        for method in ('full', 'reduced'):
+        for formulation in ('full', 'reduced'):
             with warnings.catch_warnings(record=True) as caught:
                 warnings.simplefilter('always')
                 worker.instantiate(choices={'electricity': {wind: 100, steam: 100}}, demand=demand,
                                    upper_limit={wind: 0.3})
             [warning] = [w for w in caught if 'the upper_limit is used' in str(w.message)]
             self.assertEqual(os.path.basename(warning.filename), 'test_functions.py')
-            worker.solve(method=method)
-            self.assertAlmostEqual(worker.instance.scaling_vector[wind_id].value, 0.3, places=9, msg=method)
+            worker.solve(formulation=formulation)
+            self.assertAlmostEqual(worker.instance.scaling_vector[wind_id].value, 0.3, places=9, msg=formulation)
 
         # An unlimited capacity is no conflict.
         with warnings.catch_warnings(record=True) as caught:

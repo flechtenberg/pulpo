@@ -43,7 +43,7 @@ model's units, i.e. ``(c * s_j) * scaling_vector[j]`` and ``b / s_j`` in
 that and are the identity on an unscaled model. Impact and inventory
 quantities are never scaled and need no conversion.
 
-The reduced backend (``solve(method='reduced')``) solves a different, small
+The reduced backend (``solve(formulation='reduced')``) solves a different, small
 and dense LP and equilibrates it with :func:`ruiz_scaling` on every solve,
 whatever ``scale`` is; it reads the instance back in original units, so
 ``scale=True`` does not change the problem it solves.
