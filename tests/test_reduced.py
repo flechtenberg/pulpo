@@ -413,10 +413,30 @@ class TestReducedSampleTechnosphere(ParityMixin, unittest.TestCase):
         oil = worker.retrieve_activities(activities=['oil extraction'])[0]
         worker.instantiate(choices={'electricity': [self.wind, self.steam]}, demand={self.ecar: 1},
                            lower_limit={self.steam: -float('inf'), oil: -1e10})
-        results, _ = self.assert_parity(worker)
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter('always')
+            results, _ = self.assert_parity(worker)
         self.assertEqual(results.rounds, 2)
         j = worker.lci_data['process_map'][oil.key]
         self.assertAlmostEqual(worker.instance.scaling_vector[j].value, -1e10, delta=1e-9 * 1e10)
+        # It binds, so it is not reported as a bound that did not.
+        self.assertFalse([w for w in caught if 'far beyond' in str(w.message)])
+
+    def test_a_large_supply_sets_the_problem_scale(self):
+        """Without demand, a fixed supply drives the model: its size counts, so a
+        supply and a capacity of millions are not withheld or reported."""
+        worker = self.worker()
+        wind = worker.lci_data['process_map'][self.wind.key]
+        for scale in (False, True):
+            with self.subTest(scale=scale):
+                worker.instantiate(choices={'electricity': {self.wind: 2e6, self.steam: float('inf')}},
+                                   upper_limit={self.ecar: 4e6}, lower_limit={self.ecar: 4e6}, scale=scale)
+                with warnings.catch_warnings(record=True) as caught:
+                    warnings.simplefilter('always')
+                    results, _ = self.assert_parity(worker)
+                self.assertEqual(results.rounds, 1)
+                self.assertAlmostEqual(worker.instance.scaling_vector[wind].value, 2e6, delta=1e-9 * 2e6)
+                self.assertFalse([w for w in caught if 'far beyond' in str(w.message)])
 
     def test_none_means_no_limit(self):
         """None in a choice capacity or a limit dict reads as +-inf."""

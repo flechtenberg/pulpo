@@ -611,7 +611,7 @@ class ReducedModel:
     BOUND_TOL = 1e-9
 
     #: A bound side beyond this multiple of the problem's scale (the largest
-    #: base activity or category demand) is withheld until violated.
+    #: base activity, category demand or fixed activity) is withheld until violated.
     REMOTE_BOUND = 1e6
 
     def __init__(self, instance, lci_data, choices, system):
@@ -842,11 +842,15 @@ class ReducedModel:
         K = self.system.n_free
         true_lo, true_up = self.process_bounds() if bounds is None else bounds
         # A bound far beyond every activity of the problem (a 1e10 capacity that
-        # stands for "unlimited") cannot bind, but its right-hand side would
+        # stands for "unlimited") rarely binds, but its right-hand side would
         # spoil the conditioning of a cone solve. Such sides are withheld and
-        # enter only if a solution violates them.
+        # enter only if a solution violates them. The problem's size comes from
+        # the demand and from the fixed activities (supplies), which drive a
+        # model without demand.
         f_base, f_cat = self.demand()
-        scale = max([1.0, float(np.abs(self.system.base(f_base)).max(initial=0.0))]
+        fixed = np.isfinite(true_lo) & (true_lo == true_up)
+        scale = max([1.0, float(np.abs(self.system.base(f_base)).max(initial=0.0)),
+                     float(np.abs(true_lo[fixed]).max(initial=0.0))]
                     + [abs(value) for value in f_cat.values()])
         far = self.REMOTE_BOUND * scale
         remote_lo = np.isfinite(true_lo) & (true_lo < -far)
@@ -875,9 +879,6 @@ class ReducedModel:
                             withheld.append((i, label, float(values[i]), side))
                             values[i] = sign * np.inf
             seconds['assemble'] += time.perf_counter() - t
-            if rounds == 1:
-                self._warn_remote(np.flatnonzero(remote_lo), np.flatnonzero(remote_up), true_lo, true_up,
-                                  [label for _, label, _, _ in withheld], scale)
             sol = solve(lp, f_tilde)
             seconds['solve'] += sol.seconds
             if sol.termination_condition != TerminationCondition.optimal:
@@ -909,6 +910,10 @@ class ReducedModel:
                 remote_lo[far_lo] = remote_up[far_up] = False
                 continue
             break
+        if sol.termination_condition == TerminationCondition.optimal:
+            # The sides still withheld at the optimum are the ones that did not bind.
+            self._warn_remote(np.flatnonzero(remote_lo), np.flatnonzero(remote_up), true_lo, true_up,
+                              [label for _, label, _, _ in withheld], scale)
         results = ReducedResults(termination_condition=sol.termination_condition,
                                  n_variables=len(lp.c), n_rows=lp.matrix.shape[0],
                                  seconds=seconds, rounds=rounds)
@@ -940,8 +945,8 @@ class ReducedModel:
                     + [f"the {kind} limit on {key!r}" for kind, key in list(dict.fromkeys(limits))[:2]])
         warnings.warn(
             f"{count} bound(s) or limit(s) lie far beyond every activity of this problem (the largest is "
-            f"about {scale:.3g}), e.g. {'; '.join(examples[:3])}. They cannot bind, so they are left out of the "
-            "solve and imposed only if a solution reaches them. For 'no limit', use float('inf') or None.",
+            f"about {scale:.3g}), e.g. {'; '.join(examples[:3])}. They did not bind at the optimum, so they "
+            "were left out of the solve. If they stand for 'no limit', use float('inf') or None.",
             UserWarning, stacklevel=5)
 
     def solve(self, solver_name=None, options=None):
