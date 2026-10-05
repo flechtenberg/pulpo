@@ -259,21 +259,6 @@ def _load_lci_bw2(eidbs, methods, seed, dist, resample):
     return lca, characterization_matrices, characterization_params, process_map, bio_params
 
 
-def update_lci_data(lci_data: LCIDataDict, seed: int) -> LCIDataDict:
-    """
-    Update the LCI data dictionary with new data. For that, c
-
-    Args:
-        lci_data (LCIDataDict): Original LCI data dictionary.
-        new_data (Dict[str, Any]): New data to be added to the LCI data dictionary.
-
-    Returns:
-        LCIDataDict: Updated LCI data dictionary.
-    """
-
-    return lci_data
-
-
 def _activity_orm():
     """Return (ActivityDataset, Activity) ORM handles for the installed bw2data version.
 

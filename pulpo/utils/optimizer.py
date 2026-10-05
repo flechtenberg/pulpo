@@ -196,9 +196,8 @@ def instantiate(model_data, objective='weighted_sum'):
     as Pyomo Params: skipping their per-entry Param (and relation-set)
     components makes instantiation several times faster on ecoinvent-scale
     data. The dense environmental cost dictionary is kept on the model as
-    ``model._env_cost``; code that needs different coefficients (the
-    chance-constrained formulation) updates that dictionary and rebuilds the
-    impact constraints via :func:`update_env_cost`. Only parameters that are
+    ``model._env_cost``; code that needs different coefficients updates that
+    dictionary and rebuilds the impact constraints via :func:`update_env_cost`. Only parameters that are
     updated in place between solves (limits, demand, weights) are mutable
     Params.
     Production capacities as well as intervention-flow and impact limits enter
@@ -260,7 +259,7 @@ def instantiate(model_data, objective='weighted_sum'):
     supply_products = [i for i in data['PRODUCT'][None] if data['SUPPLY'][i]]
     model.PRODUCT_SUPPLY = pyo.Set(initialize=supply_products, within=model.PRODUCT, doc='Products for which a supply is specified instead of a demand (slack active)')
 
-    # Parameters (mutable: updated in place by the chance-constrained and Monte Carlo code)
+    # Parameters (mutable: limits may be changed in place between solves)
     model.UPPER_LIMIT = pyo.Param(model.PROCESS, initialize=data['UPPER_LIMIT'], mutable=True, within=pyo.Reals, doc='Maximum production capacity of process j')
     model.LOWER_LIMIT = pyo.Param(model.PROCESS, initialize=data['LOWER_LIMIT'], mutable=True, within=pyo.Reals, doc='Minimum production capacity of process j')
     model.UPPER_INV_LIMIT = pyo.Param(model.INV, initialize=data['UPPER_INV_LIMIT'], mutable=True, within=pyo.Reals, doc='Maximum intervention flow g')

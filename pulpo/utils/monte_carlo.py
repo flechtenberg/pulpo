@@ -1,9 +1,8 @@
 """
 monte_carlo.py (base)
 
-Monte Carlo functions that rely only on Brightway resampling. These are part of the
-core pulpo package and do NOT depend on the uncertainty sub-package (no SALib /
-seaborn / stats_arrays required).
+Monte Carlo re-optimization by Brightway resampling (``PulpoOptimizer.solve_MC``).
+Independent of the uncertainty sub-package.
 """
 
 import numpy as np

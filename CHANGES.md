@@ -58,9 +58,16 @@ The 1.x uncertainty API is replaced without a deprecation period.
 * `PulpoOptimizerUnc`: `import_and_filter_uncertainty_data` → `import_uncertainty_data`,
   `apply_uncertainty_strategies` → `apply_expert_knowledge`, `create_SOC_formulation` → `moments`,
   and `create_CC_formulation` / `solve_CC_problem` / `solve_SOC_problem` → `chance_constrained(...).solve(lambdas)`.
-* Removed: gap-filling strategies, the parameter filter, Monte Carlo re-optimization,
-  the sampled sensitivity analysis, the `L1` formulation, the cutting planes, and the modules
-  `uncertainty.soc`, `gsa`, `monte_carlo` and `plots` (`soc.SOCCoefficients` is now `uncertainty.Moments`).
+* Removed: gap-filling strategies, the parameter filter, Monte Carlo re-optimization over the
+  uncertainty data (`run_mc_from_uncertainty`), the sampled sensitivity analysis (`run_gsa`), the
+  `L1` formulation, the cutting planes, `restore_deterministic_objective`, and the modules
+  `uncertainty.soc`, `uncertainty.gsa`, `uncertainty.monte_carlo` and `uncertainty.plots`
+  (`soc.SOCCoefficients` is now `uncertainty.Moments`). `PulpoOptimizer.solve_MC`, which
+  re-optimizes over Brightway's own resampling, is unchanged.
+* `uncertainty.compute_closed_form_moments` and `cc.apply_CC_formulation` keep their names
+  with new arguments and results.
+* Unused 1.x helpers are gone: the data checks in `uncertainty.processor`,
+  `saver.compare_subsequent_paretosolutions` and `bw_parser.update_lci_data`.
 * The `uncertainty` extra is empty; `clarabel` and `stats_arrays` are core dependencies.
 * JupyterLab, IPython, `fs` and `openpyxl` are no longer installed with PULPO. The new
   `notebooks` extra brings JupyterLab, matplotlib and seaborn for the example notebooks.

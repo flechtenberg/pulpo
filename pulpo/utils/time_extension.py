@@ -421,8 +421,7 @@ def instantiate_time(model_data, objective='weighted_sum'):
     as Pyomo Params, which makes instantiation several times faster on
     ecoinvent-scale data. This includes the environmental cost matrix: its
     dense dictionary is kept on the model as ``model._env_cost``, and code
-    that needs different coefficients (the chance-constrained formulation)
-    rebuilds the impact constraints via
+    that needs different coefficients rebuilds the impact constraints via
     :func:`pulpo.utils.optimizer.update_env_cost`. Only the per-timestep
     parameters that may be updated in place between solves remain
     mutable Params. Production capacities as well as intervention-flow and

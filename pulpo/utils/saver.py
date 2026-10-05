@@ -2,8 +2,6 @@ import pandas as pd
 import os
 from pyomo.environ import ConcreteModel, Param
 from typing import TypedDict, Dict, Any, Optional, List
-import pandas as pd
-from pulpo.utils.bw_parser import LCIDataDict
 from pulpo.utils.utils import broadcast_over_time, none_capacities
 
 class ResultDataDict(TypedDict, total=False):
@@ -273,8 +271,7 @@ def extract_params(instance: ConcreteModel) -> Dict[str,pd.DataFrame]:
         data_all[param.name] = pd.DataFrame(data).set_index('ID').sort_values('Value', ascending=False, kind='stable')
     # The environmental cost coefficients are embedded in the impact
     # constraints rather than stored as a Param; report them from the dense
-    # dictionary kept on the instance so the result schema stays unchanged
-    # (the CC Pareto plots read result_data['ENV_COST_MATRIX']).
+    # dictionary kept on the instance so the result schema stays unchanged.
     if hasattr(instance, '_env_cost'):
         # On an equilibrated instance the embedded coefficients are per unit of
         # *scaled* activity; report them per unit of activity like the rest.
@@ -412,57 +409,3 @@ def summarize_results(worker: Any, zeroes: bool = False) -> None:
 
     if not constraints_found:
         display("No constraint data to display.")
-
-
-# ATTN: This function is to be deleted later or integrated into another function
-def compare_subsequent_paretosolutions(result_data_CC:Dict[float,LCIDataDict], choices:dict, method:str):
-    """
-    TO BE DELETED LATER OR INTEGRATED INTO ANOTHER FUNCTION 
-
-    Compare impacts and decision choices across multiple Pareto solutions.
-
-    Args:
-        result_data_CC (dict of float to dict): Mapping from each lambda level
-            to its corresponding solver result dictionary.
-    """
-    try:
-        from IPython.display import display
-    except ImportError:
-        display = globals()['print']
-    impacts = {}
-    print(method)
-    for lambda_QB, result_data in result_data_CC.items():
-        impacts[lambda_QB] = result_data['Impacts'].loc[method,'Value']
-        print('{}: {}'.format(lambda_QB, impacts[lambda_QB]))
-    # The changs in the choices of the optimizer
-    choices_results = {}
-    for i_CC, (lambda_QB, result_data) in enumerate(result_data_CC.items()):
-        for choice in choices.keys():
-            if i_CC == 0:
-                choices_results[choice] = result_data['Choices'][choice][['Capacity']]
-            choices_results[choice] = choices_results[choice].join(result_data['Choices'][choice]['Value'].rename(lambda_QB), how='left')
-    for choice, choice_result in choices_results.items():
-        display(choice)
-        display(choice_result)
-
-    # # Changes in the scaling vector and the characterized and scaled inventories
-    # lambda_array = list(result_data_CC.keys())
-    # for lambda_1, lambda_2 in zip(lambda_array[:len(lambda_array)-1], lambda_array[1:len(lambda_array)]):
-    #     print(f'lambda_1: {lambda_1}\nlambda_2: {lambda_2}\n')
-    #     scaling_vector_diff = ((result_data_CC[lambda_1]['Scaling Vector']['Value'] - result_data_CC[lambda_2]['Scaling Vector']['Value']))
-    #     scaling_vector_ratio = (scaling_vector_diff / result_data_CC[lambda_1]['Scaling Vector']['Value']).abs().sort_values(ascending=False)
-    #     environmental_cost_mean = {env_cost_index[0]: env_cost['Value'] for env_cost_index, env_cost in result_data_CC[lambda_1]['ENV_COST_MATRIX'].iterrows()}
-    #     characterized_scaling_vector_diff = (scaling_vector_diff * pd.Series(environmental_cost_mean).reindex(scaling_vector_diff.index)).abs()
-    #     characterized_scaling_vector_diff_relative = (characterized_scaling_vector_diff / result_data_CC[lambda_1]['Impacts'].loc[method, 'Value']).abs().sort_values(ascending=False)
-
-    #     print('Amount of process scaling variables that changed:\n{}: >1% \n{}: >10%\n{}: >100%\n{}: >1000%\n'.format((scaling_vector_ratio > 0.01).sum(), (scaling_vector_ratio > 0.1).sum(), (scaling_vector_ratio > 1).sum(), (scaling_vector_ratio > 10).sum()))
-    #     print('Amount of process characterized scaling variables (impacts per process) that changed:\n{}: >1% \n{}: >10%\n{}: >100%\n{}: >1000%\n'.format((characterized_scaling_vector_diff_relative > 0.01).sum(), (characterized_scaling_vector_diff_relative > 0.1).sum(), (characterized_scaling_vector_diff_relative > 1).sum(), (characterized_scaling_vector_diff_relative > 10).sum()))
-    #     print('{:.5e}: is the maximum impact change in one process\n{:.5e}: is the total impact change\n'.format(characterized_scaling_vector_diff_relative.max(), characterized_scaling_vector_diff_relative.sum()))
-
-    #     amount_of_rows_for_visiualization = 10
-    #     # print('The relative change of the scaling vector (s_lambda_1 - s_lambda_2)/s_lambda_1:\n')
-    #     # display(scaling_vector_ratio.iloc[:amount_of_rows_for_visiualization].rename(result_data_CC[lambda_2]['Scaling Vector']['Metadata']).sort_values(ascending=False))
-    #     # print('\n---\n')
-    #     print('The relative change of the characterized scaling vector (s_lambda_1 - s_lambda_2)*QB_s / QBs:\n')
-    #     display(characterized_scaling_vector_diff_relative.iloc[:amount_of_rows_for_visiualization].rename(result_data_CC[lambda_2]['Scaling Vector']['Metadata']))
-    #     print('\n---\n')
