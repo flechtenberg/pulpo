@@ -825,8 +825,8 @@ class TestReducedElecStatic(ParityMixin, unittest.TestCase):
     def test_static_dispatch(self):
         worker = self.worker()
         a = self.acts
-        choices = {ELECTRICITY_CHOICE: {a['solar']: 4.0, a['coal']: 1e6, a['battery_discharge']: 1e6},
-                   CHARGE_PRODUCT_CHOICE: {a['battery_charge']: 1e6, a['battery_hold']: 1e6}}
+        choices = {ELECTRICITY_CHOICE: {a['solar']: 4.0, a['coal']: float('inf'), a['battery_discharge']: float('inf')},
+                   CHARGE_PRODUCT_CHOICE: {a['battery_charge']: float('inf'), a['battery_hold']: float('inf')}}
         upper = {a['battery_holdtm1']: 0.0}
         lower = {a['battery_charge']: 0.0, a['battery_hold']: 0.0, a['battery_discharge']: 0.0}
         for scale in (False, True):
@@ -840,8 +840,8 @@ class TestReducedElecStatic(ParityMixin, unittest.TestCase):
         worker = self.worker()
         a = self.acts
         steps = [0, 1]
-        choices = {ELECTRICITY_CHOICE: {a['solar']: 1e6, a['coal']: 1e6, a['battery_discharge']: 1e6},
-                   CHARGE_PRODUCT_CHOICE: {a['battery_charge']: 1e6, a['battery_hold']: 1e6}}
+        choices = {ELECTRICITY_CHOICE: {a['solar']: float('inf'), a['coal']: float('inf'), a['battery_discharge']: float('inf')},
+                   CHARGE_PRODUCT_CHOICE: {a['battery_charge']: float('inf'), a['battery_hold']: float('inf')}}
         worker.instantiate(choices=choices, demand={t: {ELECTRICITY_CHOICE: 1.0} for t in steps},
                            time_steps=steps)
         with self.assertRaises(NotImplementedError):

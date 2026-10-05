@@ -64,7 +64,8 @@ class PulpoOptimizerTime(PulpoOptimizer):
         Each of ``demand``, ``choices`` and the limit dicts may be supplied
         either as a static dict (broadcast across all timesteps) or as
         ``{t: dict}``. A capacity or limit of ``None`` means no limit, as
-        ``float('inf')`` does. ``dependent_constraints`` is not yet supported in the
+        ``float('inf')`` does. An ``upper_limit`` on a choice alternative replaces
+        its capacity, with a warning. ``dependent_constraints`` is not yet supported in the
         time-dependent path.
 
         Args:

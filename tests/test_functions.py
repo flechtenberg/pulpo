@@ -180,6 +180,32 @@ class TestPULPO(unittest.TestCase):
             worker.save_results(os.path.join(temp_dir, 'list_choices.xlsx'))
         worker.summarize_results()
 
+    def test_upper_limit_replaces_choice_capacity(self):
+        """An upper_limit on an alternative wins over its capacity, with a warning."""
+        worker = pulpo.PulpoOptimizer(self.project, self.database, self.methods, '')
+        worker.intervention_matrix = 'biosphere3'
+        worker.get_lci_data()
+        demand = {worker.retrieve_activities(reference_products='transport')[0]: 1}
+        wind = worker.retrieve_activities(activities=['wind turbine'])[0]
+        steam = worker.retrieve_activities(activities=['steam cycle'])[0]
+        wind_id = worker.lci_data['process_map'][wind.key]
+        for method in ('full', 'reduced'):
+            with warnings.catch_warnings(record=True) as caught:
+                warnings.simplefilter('always')
+                worker.instantiate(choices={'electricity': {wind: 100, steam: 100}}, demand=demand,
+                                   upper_limit={wind: 0.3})
+            [warning] = [w for w in caught if 'the upper_limit is used' in str(w.message)]
+            self.assertEqual(os.path.basename(warning.filename), 'test_functions.py')
+            worker.solve(method=method)
+            self.assertAlmostEqual(worker.instance.scaling_vector[wind_id].value, 0.3, places=9, msg=method)
+
+        # An unlimited capacity is no conflict.
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter('always')
+            worker.instantiate(choices={'electricity': {wind: None, steam: None}}, demand=demand,
+                               upper_limit={wind: 0.3})
+        self.assertFalse(any('upper_limit is used' in str(w.message) for w in caught))
+
     def test_supply_specification(self):
         worker = pulpo.PulpoOptimizer(self.project, self.database, self.methods, '')
         worker.intervention_matrix = 'biosphere3'

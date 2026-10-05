@@ -45,6 +45,8 @@ nuclear_fuel = pulpo_worker.retrieve_activities(activities=activities, reference
 upper_limit = {nuclear_fuel[0]: 100000}
 ```
 
+An `upper_limit` on an alternative of a choice replaces its capacity, with a warning; setting it to `0` excludes that alternative.
+
 ```{note}
 Bound only the processes that have a real limit. Finite
 `default_limits['lower_bound']` / `['upper_bound']` put a bound on every activity,

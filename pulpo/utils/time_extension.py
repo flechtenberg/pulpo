@@ -55,7 +55,7 @@ import pyomo.environ as pyo
 from pyomo.core.expr.numeric_expr import LinearExpression
 
 from pulpo.utils import scaling as _scaling
-from pulpo.utils.converter import warn_finite_default_limits
+from pulpo.utils.converter import capacity_conflicts, warn_capacity_overridden, warn_finite_default_limits
 from pulpo.utils.optimizer import _group_env_cost_rows
 from pulpo.utils.utils import broadcast_over_time as _broadcast_over_time
 from pulpo.utils.utils import none_capacities, none_to_bound
@@ -271,6 +271,7 @@ def combine_inputs_time(
 
     lower_limit_dict = {(t, p): default_limits['lower_bound'] for t in time_steps for p in PROCESS[None]}
     upper_limit_dict = {(t, p): default_limits['upper_bound'] for t in time_steps for p in PROCESS[None]}
+    conflicts = {}
     for t in time_steps:
         for choice_label, processes in choices_t[t].items():
             for proc, capacity in processes.items():
@@ -278,8 +279,12 @@ def combine_inputs_time(
                 upper_limit_dict[(t, process_map[proc])] = capacity
         for proc, value in lower_limit_t[t].items():
             lower_limit_dict[(t, process_map[proc])] = value
+        # An explicit upper_limit wins over a choice capacity.
         for proc, value in upper_limit_t[t].items():
             upper_limit_dict[(t, process_map[proc])] = value
+        for proc, capacity, limit in capacity_conflicts(choices_t[t], upper_limit_t[t], process_map):
+            conflicts.setdefault(process_map[proc], (proc, capacity, limit))
+    warn_capacity_overridden(list(conflicts.values()))
 
     if scale:
         # Only explicitly set bounds survive scaling as finite numbers; the

@@ -33,6 +33,35 @@ def warn_finite_default_limits(default_limits, scale, stacklevel=4):
     warnings.warn(message, FutureWarning, stacklevel=stacklevel)
 
 
+def capacity_conflicts(choices, upper_limit, process_map):
+    """The alternatives with a finite choice capacity that an ``upper_limit``
+    replaces, as ``(activity, capacity, limit)``.
+
+    ``choices`` and ``upper_limit`` are already normalised (no ``None``, no lists).
+    """
+    capacities = {process_map[proc]: capacity
+                  for alternatives in choices.values() for proc, capacity in alternatives.items()}
+    conflicts = []
+    for proc, limit in upper_limit.items():
+        capacity = capacities.get(process_map[proc])
+        if capacity is not None and np.isfinite(capacity) and capacity != limit:
+            conflicts.append((proc, capacity, limit))
+    return conflicts
+
+
+def warn_capacity_overridden(conflicts, stacklevel=4):
+    """One UserWarning when an ``upper_limit`` replaces choice capacities."""
+    if not conflicts:
+        return
+    shown = '; '.join(f"{proc} (capacity {capacity:g}, upper_limit {limit:g})"
+                      for proc, capacity, limit in conflicts[:3])
+    more = f" and {len(conflicts) - 3} more" if len(conflicts) > 3 else ""
+    warnings.warn(
+        f"{len(conflicts)} choice alternative(s) have both a capacity and an upper_limit; the "
+        f"upper_limit is used: {shown}{more}. Give each limit in one place to silence this warning.",
+        UserWarning, stacklevel=stacklevel)
+
+
 def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, upper_inv_limit, upper_imp_limit, lower_inv_limit, lower_imp_limit, methods, dependent_constraints=None, default_limits=None, imp_goals=None, scale=False):
     """
     Combines all the inputs into a dictionary as an input for the optimization model.
@@ -168,11 +197,13 @@ def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, upper_in
 
     # Specify the upper limit
     upper_limit_dict = {proc: default_limits['upper_bound'] for proc in PROCESS[None]}
-    for proc in upper_limit:
-        upper_limit_dict[process_map[proc]] = upper_limit[proc]
     for choice in choices:
         for proc in choices[choice]:
             upper_limit_dict[process_map[proc]] = choices[choice][proc]
+    # An explicit upper_limit wins over a choice capacity (as in the time-dependent model).
+    for proc in upper_limit:
+        upper_limit_dict[process_map[proc]] = upper_limit[proc]
+    warn_capacity_overridden(capacity_conflicts(choices, upper_limit, process_map))
 
     if scale:
         # Only explicitly set bounds survive scaling as finite numbers; the

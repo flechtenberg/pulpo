@@ -240,6 +240,7 @@ class TestScaledSolveEqualsUnscaled(unittest.TestCase):
         worker, demand, choices = _sample_worker()
         elec = worker.retrieve_activities(reference_products='electricity')
         limits = {elec[0]: 0.4}
+        choices['electricity'][elec[0]] = None  # the supply fix is its only limit
         worker.instantiate(choices=choices, demand=demand, upper_limit=limits, lower_limit=limits, scale=False)
         worker.solve()
         ref = {i: worker.instance.slack[i].value for i in worker.instance.slack}
@@ -272,10 +273,11 @@ class TestScaledSolveEqualsUnscaled(unittest.TestCase):
             worker.intervention_matrix = "biosphere3"
             worker.get_lci_data()
             acts = {n: worker.retrieve_activities(activities=[n])[0] for n in names}
-            choices = {ELECTRICITY_CHOICE: {acts['solar']: 1e6, acts['coal']: 1e6, acts['battery_discharge']: 1e6},
-                       CHARGE_PRODUCT_CHOICE: {acts['battery_charge']: 1e6, acts['battery_hold']: 1e6}}
-            upper = {t: {acts['solar']: [5.0, 1.0, 0.0][k], acts['coal']: 1e6, acts['battery_charge']: 1e6,
-                         acts['battery_hold']: 1e6, acts['battery_discharge']: 0.0 if k == 0 else 1e6,
+            inf = float('inf')
+            choices = {ELECTRICITY_CHOICE: {acts['solar']: inf, acts['coal']: inf, acts['battery_discharge']: inf},
+                       CHARGE_PRODUCT_CHOICE: {acts['battery_charge']: inf, acts['battery_hold']: inf}}
+            upper = {t: {acts['solar']: [5.0, 1.0, 0.0][k], acts['coal']: inf, acts['battery_charge']: inf,
+                         acts['battery_hold']: inf, acts['battery_discharge']: 0.0 if k == 0 else inf,
                          acts['battery_holdtm1']: 0.0} for k, t in enumerate(time_steps)}
             lower = {t: {acts['battery_charge']: 0.0, acts['battery_hold']: 0.0, acts['battery_discharge']: 0.0}
                      for t in time_steps}

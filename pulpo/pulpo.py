@@ -81,7 +81,8 @@ class PulpoOptimizer:
                             or ``None`` means no limit; avoid huge finite stand-ins such as
                             ``1e10``. ``None`` means "no limit" in every limit dict below too.
             demand (dict): Demand data.
-            upper_limit (dict): Upper limit constraints.
+            upper_limit (dict): Upper limit constraints. On a choice alternative it replaces the
+                                capacity, with a warning.
             lower_limit (dict): Lower limit constraints.
             upper_elem_limit (dict): Upper elemental limit constraints.
             upper_imp_limit (dict): Upper impact limit constraints.
