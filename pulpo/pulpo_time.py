@@ -102,7 +102,10 @@ class PulpoOptimizerTime(PulpoOptimizer):
                 factors are shared by all timesteps.
         """
         if time_steps is None:
-            return super().instantiate(
+            if storage or upper_imp_agg_limit:
+                raise ValueError("storage and upper_imp_agg_limit need time_steps; without them "
+                                 "the static model is built.")
+            result = super().instantiate(
                 choices=choices, demand=demand,
                 upper_limit=upper_limit, lower_limit=lower_limit,
                 upper_elem_limit=upper_elem_limit, upper_imp_limit=upper_imp_limit,
@@ -111,6 +114,9 @@ class PulpoOptimizerTime(PulpoOptimizer):
                 default_limits=default_limits,
                 imp_goals=imp_goals, objective=objective, scale=scale,
             )
+            # The instance is static now: forget the settings of an earlier time-dependent one.
+            self.time_steps, self.storage, self.upper_imp_agg_limit = None, [], {}
+            return result
 
         choices = choices or {}
         demand = demand or {}

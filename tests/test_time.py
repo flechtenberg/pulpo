@@ -414,6 +414,31 @@ class TestStaticFallbackAndErrors(unittest.TestCase):
         self.assertIsNone(worker.time_steps)
         self.assertAlmostEqual(worker.instance.OBJ(), 0.6, places=6)
 
+    def test_static_instance_after_a_time_dependent_one(self):
+        """Re-instantiating without time_steps gives a static worker that solves and
+        extracts; the earlier time-dependent settings are dropped."""
+        worker = build_worker()
+        acts = {name: worker.retrieve_activities(activities=[name])[0] for name in ACTIVITY_NAMES}
+        choices = {ELECTRICITY_CHOICE: {acts["solar"]: 0.4, acts["coal"]: float('inf')}}
+        lower = {acts["battery_charge"]: 0.0, acts["battery_hold"]: 0.0, acts["battery_discharge"]: 0.0}
+        time_steps = [0, 1]
+        inf = float('inf')
+        battery = {ELECTRICITY_CHOICE: {acts["solar"]: 0.4, acts["coal"]: inf, acts["battery_discharge"]: inf},
+                   CHARGE_PRODUCT_CHOICE: {acts["battery_charge"]: inf, acts["battery_hold"]: inf}}
+        worker.instantiate(choices=battery, demand={t: {ELECTRICITY_CHOICE: 1.0} for t in time_steps},
+                           lower_limit=lower, upper_limit={acts["battery_holdtm1"]: 0.0}, time_steps=time_steps,
+                           storage=[(acts["battery_holdtm1"], CHARGE_PRODUCT_CHOICE, 0.9)],
+                           upper_imp_agg_limit={GWP: inf})
+        worker.solve()
+        worker.instantiate(choices=choices, demand={ELECTRICITY_CHOICE: 1.0}, lower_limit=lower)
+        self.assertEqual((worker.time_steps, worker.storage, worker.upper_imp_agg_limit), (None, [], {}))
+        worker.solve()
+        self.assertAlmostEqual(worker.instance.OBJ(), 0.6, places=6)
+        self.assertNotIn('Time', worker.extract_results()['Scaling Vector'].index.names)
+        with self.assertRaises(ValueError):
+            worker.instantiate(choices=choices, demand={ELECTRICITY_CHOICE: 1.0},
+                               upper_imp_agg_limit={GWP: 1.0})
+
     def test_finite_default_limits_warn_in_the_time_path(self):
         worker = build_worker()
         solar = worker.retrieve_activities(activities=["solar"])[0]
