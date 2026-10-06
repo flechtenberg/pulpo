@@ -1,0 +1,46 @@
+:py:mod:`pulpo.utils.warning`
+=============================
+
+.. py:module:: pulpo.utils.warning
+
+.. autoapi-nested-parse::
+
+   PULPO's warnings, reported at the user's code rather than at PULPO's internals.
+
+
+
+Module Contents
+---------------
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   pulpo.utils.warning.warn
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   pulpo.utils.warning._PACKAGE
+
+
+.. py:data:: _PACKAGE
+
+   
+
+.. py:function:: warn(message, category=UserWarning)
+
+   ``warnings.warn``, reported at the first frame outside the ``pulpo`` package.
+
+   A fixed ``stacklevel`` is right for one call path only, and PULPO reaches
+   most of its warnings through several (the worker, the time-dependent model,
+   the uncertainty module), so the level is found by walking the stack.
+   Python 3.12's ``skip_file_prefixes`` would do the same, but PULPO supports 3.10.
+
+

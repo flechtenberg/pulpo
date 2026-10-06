@@ -1,0 +1,1077 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="../../../../../../_static/favicon.svg" type="image/svg+xml">
+    <link rel="icon" sizes="144x144" href="../../../../../../_static/favicon-144.png" type="image/png">
+    <link rel="mask-icon" href="../../../../../../_static/favicon_mask-icon.svg" color="#222832" type="image/svg+xml">
+    <link rel="apple-touch-icon" sizes="500x500" href="../../../../../../_static/favicon-500.png" type="image/png">
+    <title>pulpo.utils.uncertainty.validation &#8212; pulpo 2.0.0 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../../../../_static/styles/theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+<link href="../../../../../../_static/styles/bootstrap.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+<link href="../../../../../../_static/styles/pydata-sphinx-theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+
+  
+  <link href="../../../../../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../../../../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../../../../../_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="../../../../../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../../../../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+    <link rel="stylesheet" type="text/css" href="../../../../../../_static/custom.css?v=913d6465" />
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../../../../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341" />
+<link rel="preload" as="script" href="../../../../../../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341" />
+  <script src="../../../../../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=3ee479438cf8b5e0d341"></script>
+
+    <script src="../../../../../../_static/documentation_options.js?v=79f5c508"></script>
+    <script src="../../../../../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../../../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../../../../../_static/design-tabs.js?v=36754332"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'content/api/pulpo/utils/uncertainty/validation/index';</script>
+    <link rel="index" title="Index" href="../../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../../search.html" />
+    <link rel="next" title="pulpo.utils.bw_parser" href="../../bw_parser/index.html" />
+    <link rel="prev" title="pulpo.utils.uncertainty.processor" href="../processor/index.html" />
+<meta name="google-site-verification" content="Fb3YVU81AToFlPNhlaQf6LLq1SMrHPbY-RtFsgZkw9Q" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../../../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+
+<a class="navbar-brand logo" href="../../../../../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../../../../../_static/pulpo_logo_big.svg" class="logo__image only-light" alt="pulpo 2.0.0 documentation - Home"/>
+    <script>document.write(`<img src="../../../../../../_static/pulpo_logo_big.svg" class="logo__image only-dark" alt="pulpo 2.0.0 documentation - Home"/>`);</script>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav class="navbar-nav">
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../../installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../../getting_started/index.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../../theory.html">
+    Theory
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../../uncertainty.html">
+    Uncertainty
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../../examples/index.html">
+    Examples
+  </a>
+</li>
+
+            <li class="nav-item dropdown pst-header-nav-item">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class="nav-item  current active">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../index.html">
+    API
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../../contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../../codeofconduct.html">
+    Code of Conduct
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../../license.html">
+    License
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../../changelog.html">
+    Changelog
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  </button>
+`);
+</script></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links navbar-nav"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/flechtenberg/pulpo" title="Open this Repo on GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fab fa-brands fa-github fa-lg" aria-hidden="true"></i></span>
+            <span class="sr-only">Open this Repo on GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+    </div>
+  
+
+  
+    <button class="sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav class="navbar-nav">
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../../installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../../getting_started/index.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../../theory.html">
+    Theory
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../../uncertainty.html">
+    Uncertainty
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../../examples/index.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item current active">
+  <a class="nav-link nav-internal" href="../../../../index.html">
+    API
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../../contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../../codeofconduct.html">
+    Code of Conduct
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../../license.html">
+    License
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../../changelog.html">
+    Changelog
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  </button>
+`);
+</script></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links navbar-nav"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/flechtenberg/pulpo" title="Open this Repo on GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fab fa-brands fa-github fa-lg" aria-hidden="true"></i></span>
+            <span class="sr-only">Open this Repo on GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="../../../index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo</span></code></a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../../../datasets/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.datasets</span></code></a></li>
+<li class="toctree-l2 current active has-children"><a class="reference internal" href="../../index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils</span></code></a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l3 current active has-children"><a class="reference internal" href="../index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.uncertainty</span></code></a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="../cc/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.uncertainty.cc</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../decomposition/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.uncertainty.decomposition</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../moments/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.uncertainty.moments</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../preparer/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.uncertainty.preparer</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../processor/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.uncertainty.processor</span></code></a></li>
+<li class="toctree-l4 current active"><a class="current reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.uncertainty.validation</span></code></a></li>
+</ul>
+</details></li>
+<li class="toctree-l3"><a class="reference internal" href="../../bw_parser/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.bw_parser</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../converter/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.converter</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../monte_carlo/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.monte_carlo</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../optimizer/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.optimizer</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../reduced/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.reduced</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../saver/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.saver</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../scaling/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.scaling</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../time_extension/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.time_extension</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../utils/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.utils</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../warning/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.warning</span></code></a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../pulpo/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.pulpo</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../pulpo_time/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.pulpo_time</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../pulpo_unc/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.pulpo_unc</span></code></a></li>
+</ul>
+</details></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../../../index.html" class="nav-link">API Reference</a></li>
+    
+    
+    <li class="breadcrumb-item"><i class="fa-solid fa-ellipsis"></i></li>
+    
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.uncertainty</span></code></a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><code...</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="module-pulpo.utils.uncertainty.validation">
+<span id="pulpo-utils-uncertainty-validation"></span><h1><a class="reference internal" href="#module-pulpo.utils.uncertainty.validation" title="pulpo.utils.uncertainty.validation"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.uncertainty.validation</span></code></a><a class="headerlink" href="#module-pulpo.utils.uncertainty.validation" title="Link to this heading">#</a></h1>
+<p>Out-of-sample validation of chance-constrained decisions.</p>
+<section id="why">
+<h2>Why<a class="headerlink" href="#why" title="Link to this heading">#</a></h2>
+<p>A solved point claims reliabilities that rest on the normality of <code class="docutils literal notranslate"><span class="pre">X</span></code> (A2)
+and on Boole’s inequality (A5). Both are checked here without either: at the
+fixed decision <code class="docutils literal notranslate"><span class="pre">s*</span></code> and the recorded target <code class="docutils literal notranslate"><span class="pre">z*</span></code>, every declared input is
+drawn from its own family (not a fitted normal) and each event is counted,</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">impact</span> <span class="n">row</span>    <span class="n">X</span><span class="p">(</span><span class="n">s</span><span class="o">*</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">z</span><span class="o">*</span>                 <span class="n">against</span> <span class="n">lambda_z</span>
+<span class="n">bound</span> <span class="n">j</span>       <span class="n">s</span><span class="o">*</span><span class="n">_j</span> <span class="o">&lt;=</span> <span class="n">U_j</span>  <span class="p">(</span><span class="n">s</span><span class="o">*</span><span class="n">_j</span> <span class="o">&gt;=</span> <span class="n">L_j</span><span class="p">)</span>  <span class="n">against</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">eps_j</span>
+<span class="n">joint</span>         <span class="nb">all</span> <span class="n">of</span> <span class="n">them</span> <span class="n">at</span> <span class="n">once</span>         <span class="n">against</span> <span class="k">lambda</span>
+</pre></div>
+</div>
+<p>with Wilson intervals. Every decision is priced on the same draws (common
+random numbers), so the difference between two decisions is paired: the
+regret of one against another is measured in the same world, not as the
+difference of two independent Monte Carlo means.</p>
+</section>
+<section id="sampling">
+<h2>Sampling<a class="headerlink" href="#sampling" title="Link to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">X(s)</span> <span class="pre">=</span> <span class="pre">sum_e</span> <span class="pre">q_e</span> <span class="pre">sum_j</span> <span class="pre">b_ej</span> <span class="pre">s_j</span></code>. At fixed decisions only the B entries
+that carry variance there matter. Each entry’s contribution to <code class="docutils literal notranslate"><span class="pre">Var</span> <span class="pre">X</span></code> is
+known exactly, <code class="docutils literal notranslate"><span class="pre">(E[q_e]^2</span> <span class="pre">+</span> <span class="pre">w_e)</span> <span class="pre">Var(b_ej)</span> <span class="pre">s_j^2</span></code> (its total-order index
+times <code class="docutils literal notranslate"><span class="pre">V</span></code>, see <code class="xref py py-mod docutils literal notranslate"><span class="pre">decomposition</span></code>), so <a class="reference internal" href="#pulpo.utils.uncertainty.validation.ImpactSampler" title="pulpo.utils.uncertainty.validation.ImpactSampler"><code class="xref py py-class docutils literal notranslate"><span class="pre">ImpactSampler</span></code></a> holds the
+smallest of them at their means, as long as together they stay below <code class="docutils literal notranslate"><span class="pre">tol</span></code>
+of every decision’s variance, and reports the share drawn (<code class="docutils literal notranslate"><span class="pre">covered</span></code>).
+Entries on processes the decisions do not use cost nothing. Declared CFs are
+always drawn. Undeclared parameters are deterministic, as in the model; to
+validate under widened ones, pass <code class="xref py py-func docutils literal notranslate"><span class="pre">decomposition.widen()</span></code> data.</p>
+<p>Each parameter and each uncertain bound is drawn from its own stream, keyed
+by the seed and by its position (its entry of <code class="docutils literal notranslate"><span class="pre">B</span></code>, its flow, its process).
+Its draws therefore depend on the seed alone, not on which other parameters or
+decisions are drawn, nor on how the draws are blocked. <a class="reference internal" href="#pulpo.utils.uncertainty.validation.Validation" title="pulpo.utils.uncertainty.validation.Validation"><code class="xref py py-class docutils literal notranslate"><span class="pre">Validation</span></code></a>
+records the seed, and decisions validated in separate calls with the same seed
+are paired too, up to the entries held at their means (<code class="docutils literal notranslate"><span class="pre">tol</span></code>).</p>
+</section>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading">#</a></h2>
+<section id="classes">
+<h3>Classes<a class="headerlink" href="#classes" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pulpo.utils.uncertainty.validation._SpecArrays" title="pulpo.utils.uncertainty.validation._SpecArrays"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_SpecArrays</span></code></a></p></td>
+<td><p>Specs as arrays per field, for drawing many parameters at once.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pulpo.utils.uncertainty.validation.Draws" title="pulpo.utils.uncertainty.validation.Draws"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Draws</span></code></a></p></td>
+<td><p>Draws of the declared parameters as arrays by parameter: row <code class="docutils literal notranslate"><span class="pre">i</span></code> of</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pulpo.utils.uncertainty.validation.ImpactSampler" title="pulpo.utils.uncertainty.validation.ImpactSampler"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ImpactSampler</span></code></a></p></td>
+<td><p>Realized impacts <code class="docutils literal notranslate"><span class="pre">X(s_k)</span></code> of fixed decisions, all on the same draws.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pulpo.utils.uncertainty.validation.Validation" title="pulpo.utils.uncertainty.validation.Validation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Validation</span></code></a></p></td>
+<td><p>Outcome of <a class="reference internal" href="#pulpo.utils.uncertainty.validation.validate" title="pulpo.utils.uncertainty.validation.validate"><code class="xref py py-func docutils literal notranslate"><span class="pre">validate()</span></code></a>.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="functions">
+<h3>Functions<a class="headerlink" href="#functions" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pulpo.utils.uncertainty.validation._number" title="pulpo.utils.uncertainty.validation._number"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_number</span></code></a>(value)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pulpo.utils.uncertainty.validation._streams" title="pulpo.utils.uncertainty.validation._streams"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_streams</span></code></a>(seed, keys)</p></td>
+<td><p>One generator per key, from the seed and the key alone.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pulpo.utils.uncertainty.validation.sample_specs" title="pulpo.utils.uncertainty.validation.sample_specs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sample_specs</span></code></a>(specs, n[, seed])</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">n</span></code> draws of each spec, as an array <code class="docutils literal notranslate"><span class="pre">(len(specs),</span> <span class="pre">n)</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pulpo.utils.uncertainty.validation.declared_parameters" title="pulpo.utils.uncertainty.validation.declared_parameters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">declared_parameters</span></code></a>(uncertainty_data[, method])</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(b_rows,</span> <span class="pre">b_cols,</span> <span class="pre">b_specs),</span> <span class="pre">(q_rows,</span> <span class="pre">q_specs)</span></code>: every declared B entry</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pulpo.utils.uncertainty.validation.draw_parameters" title="pulpo.utils.uncertainty.validation.draw_parameters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">draw_parameters</span></code></a>(→ Draws)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">n</span></code> draws of every declared B entry (only those on <code class="docutils literal notranslate"><span class="pre">processes</span></code>, if</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pulpo.utils.uncertainty.validation.wilson" title="pulpo.utils.uncertainty.validation.wilson"><code class="xref py py-obj docutils literal notranslate"><span class="pre">wilson</span></code></a>(successes, n[, level])</p></td>
+<td><p>The Wilson score interval <code class="docutils literal notranslate"><span class="pre">(low,</span> <span class="pre">high)</span></code> of a binomial proportion.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pulpo.utils.uncertainty.validation._cvar" title="pulpo.utils.uncertainty.validation._cvar"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_cvar</span></code></a>(x, level)</p></td>
+<td><p>Empirical CVaR at <code class="docutils literal notranslate"><span class="pre">level</span></code> (Rockafellar-Uryasev estimator).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pulpo.utils.uncertainty.validation.validate" title="pulpo.utils.uncertainty.validation.validate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">validate</span></code></a>(→ Validation)</p></td>
+<td><p>Validate the points of a front out of sample.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="attributes">
+<h3>Attributes<a class="headerlink" href="#attributes" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pulpo.utils.uncertainty.validation.CHUNK_ENTRIES" title="pulpo.utils.uncertainty.validation.CHUNK_ENTRIES"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CHUNK_ENTRIES</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pulpo.utils.uncertainty.validation._NORMAL_BASED" title="pulpo.utils.uncertainty.validation._NORMAL_BASED"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_NORMAL_BASED</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pulpo.utils.uncertainty.validation._UNIFORM_BASED" title="pulpo.utils.uncertainty.validation._UNIFORM_BASED"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_UNIFORM_BASED</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<dl class="py data">
+<dt class="sig sig-object py" id="pulpo.utils.uncertainty.validation.CHUNK_ENTRIES">
+<span class="sig-prename descclassname"><span class="pre">pulpo.utils.uncertainty.validation.</span></span><span class="sig-name descname"><span class="pre">CHUNK_ENTRIES</span></span><a class="reference internal" href="../../../../../../_modules/pulpo/utils/uncertainty/validation.html#CHUNK_ENTRIES"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.uncertainty.validation.CHUNK_ENTRIES" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pulpo.utils.uncertainty.validation._number">
+<span class="sig-prename descclassname"><span class="pre">pulpo.utils.uncertainty.validation.</span></span><span class="sig-name descname"><span class="pre">_number</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/pulpo/utils/uncertainty/validation.html#_number"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.uncertainty.validation._number" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="pulpo.utils.uncertainty.validation._NORMAL_BASED">
+<span class="sig-prename descclassname"><span class="pre">pulpo.utils.uncertainty.validation.</span></span><span class="sig-name descname"><span class="pre">_NORMAL_BASED</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">()</span></em><a class="reference internal" href="../../../../../../_modules/pulpo/utils/uncertainty/validation.html#_NORMAL_BASED"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.uncertainty.validation._NORMAL_BASED" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="pulpo.utils.uncertainty.validation._UNIFORM_BASED">
+<span class="sig-prename descclassname"><span class="pre">pulpo.utils.uncertainty.validation.</span></span><span class="sig-name descname"><span class="pre">_UNIFORM_BASED</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">()</span></em><a class="reference internal" href="../../../../../../_modules/pulpo/utils/uncertainty/validation.html#_UNIFORM_BASED"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.uncertainty.validation._UNIFORM_BASED" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pulpo.utils.uncertainty.validation._streams">
+<span class="sig-prename descclassname"><span class="pre">pulpo.utils.uncertainty.validation.</span></span><span class="sig-name descname"><span class="pre">_streams</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seed</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keys</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/pulpo/utils/uncertainty/validation.html#_streams"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.uncertainty.validation._streams" title="Link to this definition">#</a></dt>
+<dd><p>One generator per key, from the seed and the key alone.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pulpo.utils.uncertainty.validation._SpecArrays">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pulpo.utils.uncertainty.validation.</span></span><span class="sig-name descname"><span class="pre">_SpecArrays</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">specs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/pulpo/utils/uncertainty/validation.html#_SpecArrays"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.uncertainty.validation._SpecArrays" title="Link to this definition">#</a></dt>
+<dd><p>Specs as arrays per field, for drawing many parameters at once.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="pulpo.utils.uncertainty.validation._SpecArrays.draw">
+<span class="sig-name descname"><span class="pre">draw</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/pulpo/utils/uncertainty/validation.html#_SpecArrays.draw"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.uncertainty.validation._SpecArrays.draw" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">n</span></code> draws of every spec from one generator, family by family.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pulpo.utils.uncertainty.validation._SpecArrays.draw_streams">
+<span class="sig-name descname"><span class="pre">draw_streams</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">streams</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/pulpo/utils/uncertainty/validation.html#_SpecArrays.draw_streams"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.uncertainty.validation._SpecArrays.draw_streams" title="Link to this definition">#</a></dt>
+<dd><p>The next <code class="docutils literal notranslate"><span class="pre">n</span></code> draws of spec <code class="docutils literal notranslate"><span class="pre">i</span></code> from <code class="docutils literal notranslate"><span class="pre">streams[i]</span></code>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pulpo.utils.uncertainty.validation._SpecArrays._transform">
+<span class="sig-name descname"><span class="pre">_transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">standard</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/pulpo/utils/uncertainty/validation.html#_SpecArrays._transform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.uncertainty.validation._SpecArrays._transform" title="Link to this definition">#</a></dt>
+<dd><p>Standard normal (normal, lognormal) or uniform (uniform, triangular)
+variates to each spec’s family.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pulpo.utils.uncertainty.validation.sample_specs">
+<span class="sig-prename descclassname"><span class="pre">pulpo.utils.uncertainty.validation.</span></span><span class="sig-name descname"><span class="pre">sample_specs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">specs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/pulpo/utils/uncertainty/validation.html#sample_specs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.uncertainty.validation.sample_specs" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">n</span></code> draws of each spec, as an array <code class="docutils literal notranslate"><span class="pre">(len(specs),</span> <span class="pre">n)</span></code>.</p>
+<p>Families: exact and undeclared (the amount), normal, lognormal (mirrored
+for <code class="docutils literal notranslate"><span class="pre">negative</span></code>), uniform and triangular, the same as the moments.
+<code class="docutils literal notranslate"><span class="pre">seed</span></code> is a seed or a <code class="docutils literal notranslate"><span class="pre">numpy.random.Generator</span></code>.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pulpo.utils.uncertainty.validation.Draws">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pulpo.utils.uncertainty.validation.</span></span><span class="sig-name descname"><span class="pre">Draws</span></span><a class="reference internal" href="../../../../../../_modules/pulpo/utils/uncertainty/validation.html#Draws"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.uncertainty.validation.Draws" title="Link to this definition">#</a></dt>
+<dd><p>Draws of the declared parameters as arrays by parameter: row <code class="docutils literal notranslate"><span class="pre">i</span></code> of
+<code class="docutils literal notranslate"><span class="pre">B</span></code> is the B entry <code class="docutils literal notranslate"><span class="pre">(b_rows[i],</span> <span class="pre">b_cols[i])</span></code>, row <code class="docutils literal notranslate"><span class="pre">i</span></code> of <code class="docutils literal notranslate"><span class="pre">Q</span></code> the CF
+of flow <code class="docutils literal notranslate"><span class="pre">q_rows[i]</span></code>, and column <code class="docutils literal notranslate"><span class="pre">t</span></code> is draw <code class="docutils literal notranslate"><span class="pre">t</span></code> in both.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pulpo.utils.uncertainty.validation.Draws.b_rows">
+<span class="sig-name descname"><span class="pre">b_rows</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></em><a class="reference internal" href="../../../../../../_modules/pulpo/utils/uncertainty/validation.html#Draws.b_rows"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.uncertainty.validation.Draws.b_rows" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pulpo.utils.uncertainty.validation.Draws.b_cols">
+<span class="sig-name descname"><span class="pre">b_cols</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></em><a class="reference internal" href="../../../../../../_modules/pulpo/utils/uncertainty/validation.html#Draws.b_cols"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.uncertainty.validation.Draws.b_cols" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pulpo.utils.uncertainty.validation.Draws.B">
+<span class="sig-name descname"><span class="pre">B</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></em><a class="reference internal" href="../../../../../../_modules/pulpo/utils/uncertainty/validation.html#Draws.B"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.uncertainty.validation.Draws.B" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pulpo.utils.uncertainty.validation.Draws.q_rows">
+<span class="sig-name descname"><span class="pre">q_rows</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></em><a class="reference internal" href="../../../../../../_modules/pulpo/utils/uncertainty/validation.html#Draws.q_rows"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.uncertainty.validation.Draws.q_rows" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pulpo.utils.uncertainty.validation.Draws.Q">
+<span class="sig-name descname"><span class="pre">Q</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></em><a class="reference internal" href="../../../../../../_modules/pulpo/utils/uncertainty/validation.html#Draws.Q"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.uncertainty.validation.Draws.Q" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pulpo.utils.uncertainty.validation.declared_parameters">
+<span class="sig-prename descclassname"><span class="pre">pulpo.utils.uncertainty.validation.</span></span><span class="sig-name descname"><span class="pre">declared_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">uncertainty_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../preparer/index.html#pulpo.utils.uncertainty.preparer.UncertaintyData" title="pulpo.utils.uncertainty.preparer.UncertaintyData"><span class="pre">pulpo.utils.uncertainty.preparer.UncertaintyData</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/pulpo/utils/uncertainty/validation.html#declared_parameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.uncertainty.validation.declared_parameters" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">(b_rows,</span> <span class="pre">b_cols,</span> <span class="pre">b_specs),</span> <span class="pre">(q_rows,</span> <span class="pre">q_specs)</span></code>: every declared B entry
+and every declared CF of <code class="docutils literal notranslate"><span class="pre">method</span></code> (the data’s only one by default).</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pulpo.utils.uncertainty.validation.draw_parameters">
+<span class="sig-prename descclassname"><span class="pre">pulpo.utils.uncertainty.validation.</span></span><span class="sig-name descname"><span class="pre">draw_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">uncertainty_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../preparer/index.html#pulpo.utils.uncertainty.preparer.UncertaintyData" title="pulpo.utils.uncertainty.preparer.UncertaintyData"><span class="pre">pulpo.utils.uncertainty.preparer.UncertaintyData</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">processes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#pulpo.utils.uncertainty.validation.Draws" title="pulpo.utils.uncertainty.validation.Draws"><span class="pre">Draws</span></a></span></span><a class="reference internal" href="../../../../../../_modules/pulpo/utils/uncertainty/validation.html#draw_parameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.uncertainty.validation.draw_parameters" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">n</span></code> draws of every declared B entry (only those on <code class="docutils literal notranslate"><span class="pre">processes</span></code>, if
+given) and every declared CF, by parameter.</p>
+<p>The building block for formulations that need the sampled inputs
+themselves, such as a scenario-based risk measure over the reduced space
+(see <code class="xref py py-class docutils literal notranslate"><span class="pre">cc.Projections</span></code>). <code class="docutils literal notranslate"><span class="pre">seed</span></code> is a seed or a
+<code class="docutils literal notranslate"><span class="pre">numpy.random.Generator</span></code>; draw in several calls with one <code class="docutils literal notranslate"><span class="pre">Generator</span></code>
+to bound the memory.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pulpo.utils.uncertainty.validation.ImpactSampler">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pulpo.utils.uncertainty.validation.</span></span><span class="sig-name descname"><span class="pre">ImpactSampler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">uncertainty_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../preparer/index.html#pulpo.utils.uncertainty.preparer.UncertaintyData" title="pulpo.utils.uncertainty.preparer.UncertaintyData"><span class="pre">pulpo.utils.uncertainty.preparer.UncertaintyData</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">lci_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scaling_vectors</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-09</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/pulpo/utils/uncertainty/validation.html#ImpactSampler"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.uncertainty.validation.ImpactSampler" title="Link to this definition">#</a></dt>
+<dd><p>Realized impacts <code class="docutils literal notranslate"><span class="pre">X(s_k)</span></code> of fixed decisions, all on the same draws.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>uncertainty_data</strong> – the configuration to draw from; it may differ from
+the one the decisions were solved for.</p></li>
+<li><p><strong>lci_data</strong> – the LCI data, or a worker holding it.</p></li>
+<li><p><strong>scaling_vectors</strong> – one scaling vector per decision (original units).</p></li>
+<li><p><strong>seed</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>optional</em>) – keys every parameter’s stream (see the module
+docstring); a fresh one is drawn and kept as <code class="docutils literal notranslate"><span class="pre">seed</span></code> if omitted.</p></li>
+<li><p><strong>tol</strong> – the share of each decision’s <code class="docutils literal notranslate"><span class="pre">Var</span> <span class="pre">X</span></code> that may be held at its
+mean (see the module docstring); 0 draws every entry that carries
+variance.</p></li>
+<li><p><strong>method</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><em>optional</em>) – the LCIA method; the data’s only one by default.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Variables<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>moments</strong> (<a class="reference internal" href="../moments/index.html#pulpo.utils.uncertainty.moments.Moments" title="pulpo.utils.uncertainty.moments.Moments"><em>Moments</em></a>) – the closed-form moments of <code class="docutils literal notranslate"><span class="pre">uncertainty_data</span></code>.</p></li>
+<li><p><strong>covered</strong> (<em>ndarray</em>) – per decision, the share of <code class="docutils literal notranslate"><span class="pre">Var</span> <span class="pre">X</span></code> that is drawn.</p></li>
+<li><p><strong>drawn</strong> (<em>ndarray</em>) – <code class="docutils literal notranslate"><span class="pre">(flow,</span> <span class="pre">process)</span></code> of each B entry drawn.</p></li>
+<li><p><strong>n_drawn</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – the number of B entries drawn.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pulpo.utils.uncertainty.validation.ImpactSampler.sample">
+<span class="sig-name descname"><span class="pre">sample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/pulpo/utils/uncertainty/validation.html#ImpactSampler.sample"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.uncertainty.validation.ImpactSampler.sample" title="Link to this definition">#</a></dt>
+<dd><p>The next <code class="docutils literal notranslate"><span class="pre">n</span></code> realizations: an array <code class="docutils literal notranslate"><span class="pre">(decisions,</span> <span class="pre">n)</span></code>.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pulpo.utils.uncertainty.validation.wilson">
+<span class="sig-prename descclassname"><span class="pre">pulpo.utils.uncertainty.validation.</span></span><span class="sig-name descname"><span class="pre">wilson</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">successes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.95</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/pulpo/utils/uncertainty/validation.html#wilson"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.uncertainty.validation.wilson" title="Link to this definition">#</a></dt>
+<dd><p>The Wilson score interval <code class="docutils literal notranslate"><span class="pre">(low,</span> <span class="pre">high)</span></code> of a binomial proportion.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pulpo.utils.uncertainty.validation._cvar">
+<span class="sig-prename descclassname"><span class="pre">pulpo.utils.uncertainty.validation.</span></span><span class="sig-name descname"><span class="pre">_cvar</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/pulpo/utils/uncertainty/validation.html#_cvar"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.uncertainty.validation._cvar" title="Link to this definition">#</a></dt>
+<dd><p>Empirical CVaR at <code class="docutils literal notranslate"><span class="pre">level</span></code> (Rockafellar-Uryasev estimator).</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pulpo.utils.uncertainty.validation.Validation">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pulpo.utils.uncertainty.validation.</span></span><span class="sig-name descname"><span class="pre">Validation</span></span><a class="reference internal" href="../../../../../../_modules/pulpo/utils/uncertainty/validation.html#Validation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.uncertainty.validation.Validation" title="Link to this definition">#</a></dt>
+<dd><p>Outcome of <a class="reference internal" href="#pulpo.utils.uncertainty.validation.validate" title="pulpo.utils.uncertainty.validation.validate"><code class="xref py py-func docutils literal notranslate"><span class="pre">validate()</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Variables<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>table</strong> (<em>DataFrame</em>) – one row per front point (<code class="docutils literal notranslate"><span class="pre">design</span> <span class="pre">=</span> <span class="pre">'front'</span></code>) and
+per design and front point, indexed by <code class="docutils literal notranslate"><span class="pre">(design,</span> <span class="pre">lambda)</span></code>:
+the claim (<code class="docutils literal notranslate"><span class="pre">lambda_impact</span></code>, <code class="docutils literal notranslate"><span class="pre">threshold</span></code> = z*, <code class="docutils literal notranslate"><span class="pre">mean</span></code>,
+<code class="docutils literal notranslate"><span class="pre">sigma</span></code>); the audit of the sampler against the closed form of
+the drawn configuration (<code class="docutils literal notranslate"><span class="pre">mean_error_in_se</span></code>, <code class="docutils literal notranslate"><span class="pre">std_ratio</span></code>);
+the shape of <code class="docutils literal notranslate"><span class="pre">X</span></code> (<code class="docutils literal notranslate"><span class="pre">skew</span></code>, <code class="docutils literal notranslate"><span class="pre">excess_kurtosis</span></code>) and the
+normal-approximation error <code class="docutils literal notranslate"><span class="pre">quantile_error</span></code> (the empirical
+<code class="docutils literal notranslate"><span class="pre">lambda_z</span></code> quantile minus z*); <code class="docutils literal notranslate"><span class="pre">coverage</span></code> of the impact row,
+of each bound (<code class="docutils literal notranslate"><span class="pre">coverage</span> <span class="pre">&lt;kind&gt;:&lt;process&gt;</span></code>, against
+<code class="docutils literal notranslate"><span class="pre">nominal</span> <span class="pre">&lt;kind&gt;:&lt;process&gt;</span></code>) and <code class="docutils literal notranslate"><span class="pre">joint_coverage</span></code>, each with
+Wilson bounds <code class="docutils literal notranslate"><span class="pre">_low</span></code>/<code class="docutils literal notranslate"><span class="pre">_high</span></code>; <code class="docutils literal notranslate"><span class="pre">cvar_gaussian</span></code> and
+<code class="docutils literal notranslate"><span class="pre">cvar_empirical</span></code> at <code class="docutils literal notranslate"><span class="pre">lambda_z</span></code>; the regret against the lowest
+level of the front and against the best front point in each draw
+(mean and 95th percentile); <code class="docutils literal notranslate"><span class="pre">covered_variance</span></code>.</p></li>
+<li><p><strong>impacts</strong> (<em>ndarray</em>) – the realized impacts, one row per decision.</p></li>
+<li><p><strong>decisions</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><em>list</em></a>) – labels of the rows of <code class="docutils literal notranslate"><span class="pre">impacts</span></code>.</p></li>
+<li><p><strong>seed</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – reproduces the draws.</p></li>
+<li><p><strong>n</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – draws per decision.</p></li>
+<li><p><strong>tol</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – the variance share held at means (see <a class="reference internal" href="#pulpo.utils.uncertainty.validation.ImpactSampler" title="pulpo.utils.uncertainty.validation.ImpactSampler"><code class="xref py py-class docutils literal notranslate"><span class="pre">ImpactSampler</span></code></a>).</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pulpo.utils.uncertainty.validation.Validation.table">
+<span class="sig-name descname"><span class="pre">table</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v3.0.6)"><span class="pre">pandas.DataFrame</span></a></em><a class="reference internal" href="../../../../../../_modules/pulpo/utils/uncertainty/validation.html#Validation.table"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.uncertainty.validation.Validation.table" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pulpo.utils.uncertainty.validation.Validation.impacts">
+<span class="sig-name descname"><span class="pre">impacts</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></em><a class="reference internal" href="../../../../../../_modules/pulpo/utils/uncertainty/validation.html#Validation.impacts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.uncertainty.validation.Validation.impacts" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pulpo.utils.uncertainty.validation.Validation.decisions">
+<span class="sig-name descname"><span class="pre">decisions</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a></em><a class="reference internal" href="../../../../../../_modules/pulpo/utils/uncertainty/validation.html#Validation.decisions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.uncertainty.validation.Validation.decisions" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pulpo.utils.uncertainty.validation.Validation.seed">
+<span class="sig-name descname"><span class="pre">seed</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></em><a class="reference internal" href="../../../../../../_modules/pulpo/utils/uncertainty/validation.html#Validation.seed"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.uncertainty.validation.Validation.seed" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pulpo.utils.uncertainty.validation.Validation.n">
+<span class="sig-name descname"><span class="pre">n</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></em><a class="reference internal" href="../../../../../../_modules/pulpo/utils/uncertainty/validation.html#Validation.n"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.uncertainty.validation.Validation.n" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pulpo.utils.uncertainty.validation.Validation.level">
+<span class="sig-name descname"><span class="pre">level</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.95</span></em><a class="reference internal" href="../../../../../../_modules/pulpo/utils/uncertainty/validation.html#Validation.level"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.uncertainty.validation.Validation.level" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pulpo.utils.uncertainty.validation.Validation.tol">
+<span class="sig-name descname"><span class="pre">tol</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1e-09</span></em><a class="reference internal" href="../../../../../../_modules/pulpo/utils/uncertainty/validation.html#Validation.tol"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.uncertainty.validation.Validation.tol" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pulpo.utils.uncertainty.validation.Validation.covered">
+<span class="sig-name descname"><span class="pre">covered</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></em><a class="reference internal" href="../../../../../../_modules/pulpo/utils/uncertainty/validation.html#Validation.covered"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.uncertainty.validation.Validation.covered" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pulpo.utils.uncertainty.validation.validate">
+<span class="sig-prename descclassname"><span class="pre">pulpo.utils.uncertainty.validation.</span></span><span class="sig-name descname"><span class="pre">validate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">front</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">problem</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">uncertainty_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../preparer/index.html#pulpo.utils.uncertainty.preparer.UncertaintyData" title="pulpo.utils.uncertainty.preparer.UncertaintyData"><span class="pre">pulpo.utils.uncertainty.preparer.UncertaintyData</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">200000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">designs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-09</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.95</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#pulpo.utils.uncertainty.validation.Validation" title="pulpo.utils.uncertainty.validation.Validation"><span class="pre">Validation</span></a></span></span><a class="reference internal" href="../../../../../../_modules/pulpo/utils/uncertainty/validation.html#validate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.uncertainty.validation.validate" title="Link to this definition">#</a></dt>
+<dd><p>Validate the points of a front out of sample.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>front</strong> – a <code class="xref py py-class docutils literal notranslate"><span class="pre">cc.Front</span></code> or a list of <code class="xref py py-class docutils literal notranslate"><span class="pre">cc.Point</span></code>.</p></li>
+<li><p><strong>problem</strong> (<a class="reference internal" href="../cc/index.html#pulpo.utils.uncertainty.cc.ChanceConstrained" title="pulpo.utils.uncertainty.cc.ChanceConstrained"><em>ChanceConstrained</em></a>) – the problem the front was solved with; it
+gives the moments of the claim and the uncertain bounds.</p></li>
+<li><p><strong>uncertainty_data</strong> – the configuration to draw from (usually the one
+solved for; a widened one tests the undeclared parameters).</p></li>
+<li><p><strong>n</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – draws per decision.</p></li>
+<li><p><strong>seed</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>optional</em>) – a fresh one is drawn and recorded if omitted.</p></li>
+<li><p><strong>designs</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a><em>, </em><em>optional</em>) – <code class="docutils literal notranslate"><span class="pre">{name:</span> <span class="pre">s}</span></code>, further decisions (e.g. the
+deterministic optimum) priced on the same draws against each
+front point’s target and budget.</p></li>
+<li><p><strong>tol</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – see <a class="reference internal" href="#pulpo.utils.uncertainty.validation.ImpactSampler" title="pulpo.utils.uncertainty.validation.ImpactSampler"><code class="xref py py-class docutils literal notranslate"><span class="pre">ImpactSampler</span></code></a>.</p></li>
+<li><p><strong>level</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – confidence level of the Wilson intervals.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="../processor/index.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.uncertainty.processor</span></code></p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="../../bw_parser/index.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.bw_parser</span></code></p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#why">Why</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sampling">Sampling</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-contents">Module Contents</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#classes">Classes</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#functions">Functions</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#attributes">Attributes</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.uncertainty.validation.CHUNK_ENTRIES"><code class="docutils literal notranslate"><span class="pre">CHUNK_ENTRIES</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.uncertainty.validation._number"><code class="docutils literal notranslate"><span class="pre">_number()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.uncertainty.validation._NORMAL_BASED"><code class="docutils literal notranslate"><span class="pre">_NORMAL_BASED</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.uncertainty.validation._UNIFORM_BASED"><code class="docutils literal notranslate"><span class="pre">_UNIFORM_BASED</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.uncertainty.validation._streams"><code class="docutils literal notranslate"><span class="pre">_streams()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.uncertainty.validation._SpecArrays"><code class="docutils literal notranslate"><span class="pre">_SpecArrays</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.uncertainty.validation._SpecArrays.draw"><code class="docutils literal notranslate"><span class="pre">_SpecArrays.draw()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.uncertainty.validation._SpecArrays.draw_streams"><code class="docutils literal notranslate"><span class="pre">_SpecArrays.draw_streams()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.uncertainty.validation._SpecArrays._transform"><code class="docutils literal notranslate"><span class="pre">_SpecArrays._transform()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.uncertainty.validation.sample_specs"><code class="docutils literal notranslate"><span class="pre">sample_specs()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.uncertainty.validation.Draws"><code class="docutils literal notranslate"><span class="pre">Draws</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.uncertainty.validation.Draws.b_rows"><code class="docutils literal notranslate"><span class="pre">Draws.b_rows</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.uncertainty.validation.Draws.b_cols"><code class="docutils literal notranslate"><span class="pre">Draws.b_cols</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.uncertainty.validation.Draws.B"><code class="docutils literal notranslate"><span class="pre">Draws.B</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.uncertainty.validation.Draws.q_rows"><code class="docutils literal notranslate"><span class="pre">Draws.q_rows</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.uncertainty.validation.Draws.Q"><code class="docutils literal notranslate"><span class="pre">Draws.Q</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.uncertainty.validation.declared_parameters"><code class="docutils literal notranslate"><span class="pre">declared_parameters()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.uncertainty.validation.draw_parameters"><code class="docutils literal notranslate"><span class="pre">draw_parameters()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.uncertainty.validation.ImpactSampler"><code class="docutils literal notranslate"><span class="pre">ImpactSampler</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.uncertainty.validation.ImpactSampler.sample"><code class="docutils literal notranslate"><span class="pre">ImpactSampler.sample()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.uncertainty.validation.wilson"><code class="docutils literal notranslate"><span class="pre">wilson()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.uncertainty.validation._cvar"><code class="docutils literal notranslate"><span class="pre">_cvar()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.uncertainty.validation.Validation"><code class="docutils literal notranslate"><span class="pre">Validation</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.uncertainty.validation.Validation.table"><code class="docutils literal notranslate"><span class="pre">Validation.table</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.uncertainty.validation.Validation.impacts"><code class="docutils literal notranslate"><span class="pre">Validation.impacts</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.uncertainty.validation.Validation.decisions"><code class="docutils literal notranslate"><span class="pre">Validation.decisions</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.uncertainty.validation.Validation.seed"><code class="docutils literal notranslate"><span class="pre">Validation.seed</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.uncertainty.validation.Validation.n"><code class="docutils literal notranslate"><span class="pre">Validation.n</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.uncertainty.validation.Validation.level"><code class="docutils literal notranslate"><span class="pre">Validation.level</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.uncertainty.validation.Validation.tol"><code class="docutils literal notranslate"><span class="pre">Validation.tol</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.uncertainty.validation.Validation.covered"><code class="docutils literal notranslate"><span class="pre">Validation.covered</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.uncertainty.validation.validate"><code class="docutils literal notranslate"><span class="pre">validate()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  
+  <div class="tocsection editthispage">
+    <a href="https://github.com/flechtenberg/pulpo/edit/master/docs/content/api/pulpo/utils/uncertainty/validation/index.rst">
+      <i class="fa-solid fa-pencil"></i>
+      
+      
+        
+          Edit on GitHub
+        
+      
+    </a>
+  </div>
+</div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="../../../../../../_sources/content/api/pulpo/utils/uncertainty/validation/index.rst.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../../../../../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341"></script>
+<script src="../../../../../../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2026 pulpo developers.
+      <br/>
+    
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item"><p>🌿🐛 Found a bug? Something not working? Frustrated? <a href=" latest/../../../../../../../content/contributing.html">Please report it!</a></p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

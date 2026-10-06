@@ -1,0 +1,1095 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pulpo.utils.saver &#8212; pulpo 2.0.0 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+<link href="../../../_static/styles/bootstrap.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+
+  
+  <link href="../../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=913d6465" />
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341" />
+  <script src="../../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=3ee479438cf8b5e0d341"></script>
+
+    <script src="../../../_static/documentation_options.js?v=79f5c508"></script>
+    <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../../_static/design-tabs.js?v=36754332"></script>
+    <script src="https://unpkg.com/mermaid@10.2.0/dist/mermaid.min.js"></script>
+    <script>
+    function initializeMermaidBasedOnTheme() {
+        const theme = document.documentElement.dataset.theme;
+
+        if (theme === 'dark') {
+            mermaid.initialize({
+                startOnLoad: true,
+                theme: 'base',
+                themeVariables: {
+                    edgeLabelBackground: 'transparent',
+                    defaultLinkColor: '#ced6dd',
+                    titleColor: '#ced6dd',
+                    nodeTextColor: '#ced6dd',
+                    lineColor: '#ced6dd',
+                }
+            });
+        } else {
+            mermaid.initialize({
+                startOnLoad: true,
+                theme: 'base',
+                themeVariables: {
+                    edgeLabelBackground: 'transparent',
+                    defaultLinkColor: '#222832',
+                    titleColor: '#222832',
+                    nodeTextColor: '#222832',
+                    lineColor: '#222832',
+                }
+            });
+        }
+
+        // Re-render all Mermaid diagrams
+        mermaid.contentLoaded();
+    }
+
+    // Observer to detect changes to the data-theme attribute
+    const themeObserver = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            if (mutation.type === 'attributes' && mutation.attributeName === 'data-theme') {
+            initializeMermaidBasedOnTheme();
+            }
+        });
+    });
+
+    themeObserver.observe(document.documentElement, { attributes: true });
+
+    initializeMermaidBasedOnTheme();
+</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/pulpo/utils/saver';</script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+<meta name="google-site-verification" content="Fb3YVU81AToFlPNhlaQf6LLq1SMrHPbY-RtFsgZkw9Q" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+
+<a class="navbar-brand logo" href="../../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../../_static/pulpo_logo_big.svg" class="logo__image only-light" alt="pulpo 2.0.0 documentation - Home"/>
+    <script>document.write(`<img src="../../../_static/pulpo_logo_big.svg" class="logo__image only-dark" alt="pulpo 2.0.0 documentation - Home"/>`);</script>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav class="navbar-nav">
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/getting_started/index.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/theory.html">
+    Theory
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/uncertainty.html">
+    Uncertainty
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/examples/index.html">
+    Examples
+  </a>
+</li>
+
+            <li class="nav-item dropdown pst-header-nav-item">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../content/api/index.html">
+    API
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../content/contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../content/codeofconduct.html">
+    Code of Conduct
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../content/license.html">
+    License
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../content/changelog.html">
+    Changelog
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  </button>
+`);
+</script></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links navbar-nav"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/flechtenberg/pulpo" title="Open this Repo on GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fab fa-brands fa-github fa-lg" aria-hidden="true"></i></span>
+            <span class="sr-only">Open this Repo on GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <div class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav class="navbar-nav">
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/getting_started/index.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/theory.html">
+    Theory
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/uncertainty.html">
+    Uncertainty
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/examples/index.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/api/index.html">
+    API
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/codeofconduct.html">
+    Code of Conduct
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/license.html">
+    License
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/changelog.html">
+    Changelog
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  </button>
+`);
+</script></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links navbar-nav"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/flechtenberg/pulpo" title="Open this Repo on GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fab fa-brands fa-github fa-lg" aria-hidden="true"></i></span>
+            <span class="sr-only">Open this Repo on GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">Module code</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="../../pulpo.html" class="nav-link">pulpo</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page">pulpo.utils.saver</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for pulpo.utils.saver</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyomo.environ</span><span class="w"> </span><span class="kn">import</span> <span class="n">ConcreteModel</span><span class="p">,</span> <span class="n">Param</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TypedDict</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pulpo.utils.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">broadcast_over_time</span><span class="p">,</span> <span class="n">none_capacities</span>
+
+<div class="viewcode-block" id="ResultDataDict">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/saver/index.html#pulpo.utils.saver.ResultDataDict">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ResultDataDict</span><span class="p">(</span><span class="n">TypedDict</span><span class="p">,</span> <span class="n">total</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""The results of :func:`extract_results`, one entry per sheet of :func:`save_results`."""</span>
+<div class="viewcode-block" id="ResultDataDict.Scaling_Vector">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/saver/index.html#pulpo.utils.saver.ResultDataDict.Scaling_Vector">[docs]</a>
+    <span class="n">Scaling_Vector</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span></div>
+
+<div class="viewcode-block" id="ResultDataDict.Intervention_Vector">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/saver/index.html#pulpo.utils.saver.ResultDataDict.Intervention_Vector">[docs]</a>
+    <span class="n">Intervention_Vector</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span></div>
+
+<div class="viewcode-block" id="ResultDataDict.Slack">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/saver/index.html#pulpo.utils.saver.ResultDataDict.Slack">[docs]</a>
+    <span class="n">Slack</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span></div>
+
+<div class="viewcode-block" id="ResultDataDict.Impacts">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/saver/index.html#pulpo.utils.saver.ResultDataDict.Impacts">[docs]</a>
+    <span class="n">Impacts</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span></div>
+
+<div class="viewcode-block" id="ResultDataDict.Transgressions">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/saver/index.html#pulpo.utils.saver.ResultDataDict.Transgressions">[docs]</a>
+    <span class="n">Transgressions</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span></div>
+
+<div class="viewcode-block" id="ResultDataDict.Demand">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/saver/index.html#pulpo.utils.saver.ResultDataDict.Demand">[docs]</a>
+    <span class="n">Demand</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span></div>
+
+<div class="viewcode-block" id="ResultDataDict.Choices">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/saver/index.html#pulpo.utils.saver.ResultDataDict.Choices">[docs]</a>
+    <span class="n">Choices</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="ResultDataDict.Constraints_Upper">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/saver/index.html#pulpo.utils.saver.ResultDataDict.Constraints_Upper">[docs]</a>
+    <span class="n">Constraints_Upper</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span></div>
+
+<div class="viewcode-block" id="ResultDataDict.Constraints_Lower">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/saver/index.html#pulpo.utils.saver.ResultDataDict.Constraints_Lower">[docs]</a>
+    <span class="n">Constraints_Lower</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span></div>
+
+<div class="viewcode-block" id="ResultDataDict.Constraints_Upper_Elem">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/saver/index.html#pulpo.utils.saver.ResultDataDict.Constraints_Upper_Elem">[docs]</a>
+    <span class="n">Constraints_Upper_Elem</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span></div>
+</div>
+
+    <span class="c1"># Optionally, add parameter DataFrames if extractparams=True</span>
+    <span class="c1"># e.g. param_name: pd.DataFrame</span>
+
+<div class="viewcode-block" id="extract_flows">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/saver/index.html#pulpo.utils.saver.extract_flows">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">extract_flows</span><span class="p">(</span><span class="n">instance</span><span class="p">:</span> <span class="n">ConcreteModel</span><span class="p">,</span> <span class="n">mapping</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="n">metadata</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="n">flow_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Extracts scaling factors or inventory flows from a Pyomo model instance.</span>
+
+<span class="sd">    Transparently handles time-indexed instances: when the underlying Var is</span>
+<span class="sd">    indexed by (t, id) tuples instead of a plain id, the result gains a 'Time'</span>
+<span class="sd">    column/index level instead of the static single-'ID' shape.</span>
+<span class="sd">    """</span>
+
+    <span class="n">inverse_map</span> <span class="o">=</span> <span class="p">{</span><span class="n">v</span><span class="p">:</span> <span class="n">k</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">mapping</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>  <span class="c1"># Reverse lookup</span>
+
+    <span class="c1"># Select correct flow variable ('scaling' or 'intervention')</span>
+    <span class="n">flows</span> <span class="o">=</span> <span class="n">instance</span><span class="o">.</span><span class="n">scaling_vector</span> <span class="k">if</span> <span class="n">flow_type</span> <span class="o">==</span> <span class="s1">'scaling'</span> <span class="k">else</span> <span class="n">instance</span><span class="o">.</span><span class="n">inv_flows</span> <span class="k">if</span> <span class="n">flow_type</span> <span class="o">==</span> <span class="s1">'intervention'</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">flows</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Invalid flow_type. Use 'scaling' or 'intervention'."</span><span class="p">)</span>
+
+    <span class="c1"># Retrieve data from flows</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'ID'</span><span class="p">:</span> <span class="p">[],</span> <span class="s1">'Key'</span><span class="p">:</span> <span class="p">[],</span> <span class="s1">'Metadata'</span><span class="p">:</span> <span class="p">[],</span> <span class="s1">'Value'</span><span class="p">:</span> <span class="p">[],</span> <span class="s1">'Time'</span><span class="p">:</span> <span class="p">[]}</span>
+    <span class="n">time_indexed</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">for</span> <span class="n">flow</span> <span class="ow">in</span> <span class="n">flows</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">flow</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+            <span class="n">t</span><span class="p">,</span> <span class="n">key</span> <span class="o">=</span> <span class="n">flow</span>
+            <span class="n">time_indexed</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">t</span><span class="p">,</span> <span class="n">key</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">flow</span>
+        <span class="n">data</span><span class="p">[</span><span class="s1">'ID'</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+        <span class="n">data</span><span class="p">[</span><span class="s1">'Time'</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+        <span class="n">data</span><span class="p">[</span><span class="s1">'Key'</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">inverse_map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="s1">'Unknown'</span><span class="p">))</span>
+        <span class="n">data</span><span class="p">[</span><span class="s1">'Metadata'</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="s1">'No Metadata'</span><span class="p">))</span>
+        <span class="n">data</span><span class="p">[</span><span class="s1">'Value'</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">flows</span><span class="p">[</span><span class="n">flow</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+
+    <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">time_indexed</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">df</span><span class="o">.</span><span class="n">set_index</span><span class="p">([</span><span class="s1">'ID'</span><span class="p">,</span> <span class="s1">'Time'</span><span class="p">])</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s1">'Value'</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">'stable'</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">df</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="s1">'Time'</span><span class="p">)</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s1">'ID'</span><span class="p">)</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s1">'Value'</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">'stable'</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="extract_slack">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/saver/index.html#pulpo.utils.saver.extract_slack">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">extract_slack</span><span class="p">(</span><span class="n">instance</span><span class="p">:</span> <span class="n">ConcreteModel</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Extracts and sorts slack values from a Pyomo model.</span>
+
+<span class="sd">    Slack variables only exist for products with a specified supply</span>
+<span class="sd">    (identical lower and upper limit), so the result contains one row per</span>
+<span class="sd">    supply product and is empty when no supply is specified.</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+    <span class="p">{</span><span class="s1">'Value'</span><span class="p">:</span> <span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">value</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">instance</span><span class="o">.</span><span class="n">slack</span><span class="o">.</span><span class="n">values</span><span class="p">()]},</span>  <span class="c1"># Extract .value from each Pyomo variable</span>
+    <span class="n">index</span><span class="o">=</span><span class="n">instance</span><span class="o">.</span><span class="n">slack</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s1">'Value'</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">'stable'</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="extract_impacts">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/saver/index.html#pulpo.utils.saver.extract_impacts">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">extract_impacts</span><span class="p">(</span><span class="n">instance</span><span class="p">:</span> <span class="n">ConcreteModel</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Extracts impact values and corresponding weights from the Pyomo instance.</span>
+
+<span class="sd">    Transparently handles time-indexed instances: WEIGHTS is never time-indexed,</span>
+<span class="sd">    so the indicator component is looked up on its own even when instance.impacts</span>
+<span class="sd">    is keyed by (t, indicator) tuples; the result gains a 'Time' column/index</span>
+<span class="sd">    level in that case instead of the static single-'Method' shape.</span>
+<span class="sd">    """</span>
+
+    <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'Method'</span><span class="p">:</span> <span class="p">[],</span> <span class="s1">'Weight'</span><span class="p">:</span> <span class="p">[],</span> <span class="s1">'Value'</span><span class="p">:</span> <span class="p">[],</span> <span class="s1">'Time'</span><span class="p">:</span> <span class="p">[]}</span>
+    <span class="n">time_indexed</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">instance</span><span class="o">.</span><span class="n">impacts</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+            <span class="n">t</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="n">i</span>
+            <span class="n">time_indexed</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">t</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">i</span>
+        <span class="n">data</span><span class="p">[</span><span class="s1">'Method'</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
+        <span class="n">data</span><span class="p">[</span><span class="s1">'Time'</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+        <span class="n">data</span><span class="p">[</span><span class="s1">'Weight'</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">instance</span><span class="o">.</span><span class="n">WEIGHTS</span><span class="p">[</span><span class="n">h</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="k">if</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">instance</span><span class="o">.</span><span class="n">WEIGHTS</span> <span class="ow">and</span> <span class="n">instance</span><span class="o">.</span><span class="n">WEIGHTS</span><span class="p">[</span><span class="n">h</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">data</span><span class="p">[</span><span class="s1">'Value'</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">instance</span><span class="o">.</span><span class="n">impacts</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="k">if</span> <span class="n">instance</span><span class="o">.</span><span class="n">impacts</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="mi">0</span><span class="p">)</span>
+
+    <span class="c1"># Methods with weight 0 and no limit are not part of the model; their impacts</span>
+    <span class="c1"># are calculated after the solve (optimizer.calculate_methods).</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">instance</span><span class="p">,</span> <span class="s1">'impacts_calculated'</span><span class="p">):</span>
+        <span class="n">modelled</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">instance</span><span class="o">.</span><span class="n">impacts</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">instance</span><span class="o">.</span><span class="n">impacts_calculated</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">modelled</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">t</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="n">i</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span> <span class="k">else</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+            <span class="n">data</span><span class="p">[</span><span class="s1">'Method'</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
+            <span class="n">data</span><span class="p">[</span><span class="s1">'Time'</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+            <span class="n">data</span><span class="p">[</span><span class="s1">'Weight'</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+            <span class="n">data</span><span class="p">[</span><span class="s1">'Value'</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">instance</span><span class="o">.</span><span class="n">impacts_calculated</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+
+    <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">time_indexed</span><span class="p">:</span>
+        <span class="c1"># Create the DataFrame, sorted by 'Weight' (descending) and then by 'Method' (alphabetically)</span>
+        <span class="k">return</span> <span class="n">df</span><span class="o">.</span><span class="n">set_index</span><span class="p">([</span><span class="s1">'Method'</span><span class="p">,</span> <span class="s1">'Time'</span><span class="p">])</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="p">[</span><span class="s1">'Weight'</span><span class="p">,</span> <span class="s1">'Method'</span><span class="p">],</span> <span class="n">ascending</span><span class="o">=</span><span class="p">[</span><span class="kc">False</span><span class="p">,</span> <span class="kc">True</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">df</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="s1">'Time'</span><span class="p">)</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s1">'Method'</span><span class="p">)</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="p">[</span><span class="s1">'Weight'</span><span class="p">,</span> <span class="s1">'Method'</span><span class="p">],</span> <span class="n">ascending</span><span class="o">=</span><span class="p">[</span><span class="kc">False</span><span class="p">,</span> <span class="kc">True</span><span class="p">])</span></div>
+
+
+<div class="viewcode-block" id="extract_transgressions">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/saver/index.html#pulpo.utils.saver.extract_transgressions">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">extract_transgressions</span><span class="p">(</span><span class="n">instance</span><span class="p">:</span> <span class="n">ConcreteModel</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Extracts the goal-programming results: per goal category the impact, the goal</span>
+<span class="sd">    (soft limit), the transgression level TL = Impact/Goal, and the transgression</span>
+<span class="sd">    slack max(0, TL - 1). On time-indexed instances the goals apply to the impact</span>
+<span class="sd">    aggregated over all timesteps, so 'Impact' is the sum over t. When the instance</span>
+<span class="sd">    has no goal categories (weighted-sum objective), returns a zero-row DataFrame</span>
+<span class="sd">    with the same 'Method'-indexed schema as the populated case, so callers can</span>
+<span class="sd">    treat both uniformly (e.g. concatenate results across goal and non-goal runs).</span>
+<span class="sd">    """</span>
+    <span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'Impact'</span><span class="p">,</span> <span class="s1">'Goal'</span><span class="p">,</span> <span class="s1">'TL'</span><span class="p">,</span> <span class="s1">'Transgression'</span><span class="p">]</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">instance</span><span class="p">,</span> <span class="s1">'GOAL_INDICATOR'</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">instance</span><span class="o">.</span><span class="n">GOAL_INDICATOR</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="n">columns</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">Index</span><span class="p">([],</span> <span class="n">name</span><span class="o">=</span><span class="s1">'Method'</span><span class="p">))</span>
+
+    <span class="c1"># instance.impacts is keyed by (t, indicator) tuples on a time-indexed</span>
+    <span class="c1"># instance and by a plain indicator otherwise -- same detection idiom as</span>
+    <span class="c1"># extract_impacts()/extract_flows() above.</span>
+    <span class="n">time_indexed</span> <span class="o">=</span> <span class="nb">isinstance</span><span class="p">(</span><span class="nb">next</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="n">instance</span><span class="o">.</span><span class="n">impacts</span><span class="o">.</span><span class="n">keys</span><span class="p">())),</span> <span class="nb">tuple</span><span class="p">)</span>
+    <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'Method'</span><span class="p">:</span> <span class="p">[],</span> <span class="s1">'Impact'</span><span class="p">:</span> <span class="p">[],</span> <span class="s1">'Goal'</span><span class="p">:</span> <span class="p">[],</span> <span class="s1">'TL'</span><span class="p">:</span> <span class="p">[],</span> <span class="s1">'Transgression'</span><span class="p">:</span> <span class="p">[]}</span>
+    <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">instance</span><span class="o">.</span><span class="n">GOAL_INDICATOR</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">time_indexed</span><span class="p">:</span>
+            <span class="n">values</span> <span class="o">=</span> <span class="p">[</span><span class="n">instance</span><span class="o">.</span><span class="n">impacts</span><span class="p">[</span><span class="n">t</span><span class="p">,</span> <span class="n">h</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">instance</span><span class="o">.</span><span class="n">TIME</span><span class="p">]</span>
+            <span class="n">impact</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">v</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">values</span><span class="p">)</span> <span class="k">else</span> <span class="nb">sum</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">impact</span> <span class="o">=</span> <span class="n">instance</span><span class="o">.</span><span class="n">impacts</span><span class="p">[</span><span class="n">h</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+        <span class="n">goal</span> <span class="o">=</span> <span class="n">instance</span><span class="o">.</span><span class="n">IMP_GOALS</span><span class="p">[</span><span class="n">h</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+        <span class="n">data</span><span class="p">[</span><span class="s1">'Method'</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
+        <span class="n">data</span><span class="p">[</span><span class="s1">'Impact'</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">impact</span><span class="p">)</span>
+        <span class="n">data</span><span class="p">[</span><span class="s1">'Goal'</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">goal</span><span class="p">)</span>
+        <span class="n">data</span><span class="p">[</span><span class="s1">'TL'</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">impact</span> <span class="o">/</span> <span class="n">goal</span> <span class="k">if</span> <span class="n">impact</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">data</span><span class="p">[</span><span class="s1">'Transgression'</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">instance</span><span class="o">.</span><span class="n">transgression</span><span class="p">[</span><span class="n">h</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s1">'Method'</span><span class="p">)</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s1">'Transgression'</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">'stable'</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="extract_choices">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/saver/index.html#pulpo.utils.saver.extract_choices">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">extract_choices</span><span class="p">(</span><span class="n">instance</span><span class="p">:</span> <span class="n">ConcreteModel</span><span class="p">,</span> <span class="n">choices</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="nb">float</span><span class="p">]],</span> <span class="n">process_map</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="n">process_map_metadata</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="n">time_steps</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Extracts choice results from a Pyomo model and structures them into DataFrames.</span>
+
+<span class="sd">    When `time_steps` is given, `choices` may be static (broadcast across all</span>
+<span class="sd">    timesteps) or already in `{t: {...}}` form; the result gains a 'Time' index level.</span>
+<span class="sd">    """</span>
+
+    <span class="k">if</span> <span class="n">time_steps</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">choices_t</span> <span class="o">=</span> <span class="p">{</span><span class="n">t</span><span class="p">:</span> <span class="n">none_capacities</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">broadcast_over_time</span><span class="p">(</span><span class="n">choices</span><span class="p">,</span> <span class="n">time_steps</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+        <span class="n">choice_labels</span> <span class="o">=</span> <span class="p">{</span><span class="n">label</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">choices_t</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">c</span><span class="p">}</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">choice</span> <span class="ow">in</span> <span class="n">choice_labels</span><span class="p">:</span>
+            <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"Value"</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">"Capacity"</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">"Metadata"</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">"Time"</span><span class="p">:</span> <span class="p">[]}</span>
+            <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">time_steps</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">process</span><span class="p">,</span> <span class="n">capacity</span> <span class="ow">in</span> <span class="n">choices_t</span><span class="p">[</span><span class="n">t</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">choice</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="n">proc_id</span> <span class="o">=</span> <span class="n">process_map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">process</span><span class="o">.</span><span class="n">key</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">proc_id</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="k">continue</span>
+                    <span class="n">data</span><span class="p">[</span><span class="s2">"Metadata"</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">process_map_metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">proc_id</span><span class="p">,</span> <span class="s2">"No Metadata"</span><span class="p">))</span>
+                    <span class="n">data</span><span class="p">[</span><span class="s2">"Value"</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">instance</span><span class="o">.</span><span class="n">scaling_vector</span><span class="p">[</span><span class="n">t</span><span class="p">,</span> <span class="n">proc_id</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+                    <span class="n">data</span><span class="p">[</span><span class="s2">"Capacity"</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">capacity</span><span class="p">)</span>
+                    <span class="n">data</span><span class="p">[</span><span class="s2">"Time"</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+            <span class="n">results</span><span class="p">[</span><span class="n">choice</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">set_index</span><span class="p">([</span><span class="s2">"Metadata"</span><span class="p">,</span> <span class="s2">"Time"</span><span class="p">])</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s2">"Value"</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">'stable'</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">results</span>
+
+    <span class="n">results</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">choice</span><span class="p">,</span> <span class="n">processes</span> <span class="ow">in</span> <span class="n">none_capacities</span><span class="p">(</span><span class="n">choices</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">data</span><span class="p">:</span><span class="nb">dict</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">"Value"</span><span class="p">:</span> <span class="p">[],</span>
+            <span class="s2">"Capacity"</span><span class="p">:</span> <span class="p">[],</span>
+            <span class="s2">"Metadata"</span><span class="p">:</span> <span class="p">[]</span>
+        <span class="p">}</span>
+        <span class="k">for</span> <span class="n">process</span><span class="p">,</span> <span class="n">capacity</span> <span class="ow">in</span> <span class="n">processes</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">proc_id</span> <span class="o">=</span> <span class="n">process_map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">process</span><span class="o">.</span><span class="n">key</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">proc_id</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">data</span><span class="p">[</span><span class="s2">"Metadata"</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">process_map_metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">proc_id</span><span class="p">,</span> <span class="s2">"No Metadata"</span><span class="p">))</span>
+            <span class="n">data</span><span class="p">[</span><span class="s2">"Value"</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">instance</span><span class="o">.</span><span class="n">scaling_vector</span><span class="p">[</span><span class="n">proc_id</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+            <span class="n">data</span><span class="p">[</span><span class="s2">"Capacity"</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">capacity</span><span class="p">)</span>
+
+        <span class="n">results</span><span class="p">[</span><span class="n">choice</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s2">"Metadata"</span><span class="p">)</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s2">"Value"</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">'stable'</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">results</span></div>
+
+
+
+<div class="viewcode-block" id="extract_demand">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/saver/index.html#pulpo.utils.saver.extract_demand">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">extract_demand</span><span class="p">(</span><span class="n">demand</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> <span class="n">time_steps</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Converts demand data into a structured DataFrame.</span>
+<span class="sd">    Supports both Brightway Activities and string keys.</span>
+
+<span class="sd">    When `time_steps` is given, `demand` may be static (broadcast across all</span>
+<span class="sd">    timesteps) or already in `{t: {...}}` form; the result gains a 'Time' index level.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">time_steps</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">demand_t</span> <span class="o">=</span> <span class="n">broadcast_over_time</span><span class="p">(</span><span class="n">demand</span><span class="p">,</span> <span class="n">time_steps</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">{</span>
+                <span class="s2">"Reference Product"</span><span class="p">:</span> <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"reference product"</span><span class="p">,</span> <span class="s2">"Unknown"</span><span class="p">)</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="s2">"get"</span><span class="p">)</span> <span class="k">else</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">),</span>
+                <span class="s2">"Activity Name"</span><span class="p">:</span> <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"name"</span><span class="p">,</span> <span class="s2">"Unknown"</span><span class="p">)</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="s2">"get"</span><span class="p">)</span> <span class="k">else</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">),</span>
+                <span class="s2">"Location"</span><span class="p">:</span> <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"location"</span><span class="p">,</span> <span class="s2">"Unknown"</span><span class="p">)</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="s2">"get"</span><span class="p">)</span> <span class="k">else</span> <span class="s2">"Unknown"</span><span class="p">,</span>
+                <span class="s2">"Time"</span><span class="p">:</span> <span class="n">t</span><span class="p">,</span>
+                <span class="s2">"Value"</span><span class="p">:</span> <span class="n">v</span><span class="p">,</span>
+            <span class="p">}</span>
+            <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">time_steps</span>
+            <span class="k">for</span> <span class="n">e</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">demand_t</span><span class="p">[</span><span class="n">t</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+        <span class="p">]</span>
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">"Reference Product"</span><span class="p">,</span> <span class="s2">"Activity Name"</span><span class="p">,</span> <span class="s2">"Location"</span><span class="p">,</span> <span class="s2">"Time"</span><span class="p">,</span> <span class="s2">"Value"</span><span class="p">])</span><span class="o">.</span><span class="n">set_index</span><span class="p">([</span><span class="s2">"Reference Product"</span><span class="p">,</span> <span class="s2">"Activity Name"</span><span class="p">,</span> <span class="s2">"Location"</span><span class="p">,</span> <span class="s2">"Time"</span><span class="p">])</span>
+
+    <span class="n">data</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s2">"Reference Product"</span><span class="p">:</span> <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"reference product"</span><span class="p">,</span> <span class="s2">"Unknown"</span><span class="p">)</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="s2">"get"</span><span class="p">)</span> <span class="k">else</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">),</span>
+            <span class="s2">"Activity Name"</span><span class="p">:</span> <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"name"</span><span class="p">,</span> <span class="s2">"Unknown"</span><span class="p">)</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="s2">"get"</span><span class="p">)</span> <span class="k">else</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">),</span>
+            <span class="s2">"Location"</span><span class="p">:</span> <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"location"</span><span class="p">,</span> <span class="s2">"Unknown"</span><span class="p">)</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="s2">"get"</span><span class="p">)</span> <span class="k">else</span> <span class="s2">"Unknown"</span><span class="p">,</span>
+            <span class="s2">"Value"</span><span class="p">:</span> <span class="n">v</span>
+        <span class="p">}</span>
+        <span class="k">for</span> <span class="n">e</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">demand</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+    <span class="p">]</span>
+
+    <span class="c1"># Explicit columns keep the frame well-formed when no demand is specified</span>
+    <span class="c1"># (supply-driven runs), where data is empty.</span>
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">"Reference Product"</span><span class="p">,</span> <span class="s2">"Activity Name"</span><span class="p">,</span> <span class="s2">"Location"</span><span class="p">,</span> <span class="s2">"Value"</span><span class="p">])</span><span class="o">.</span><span class="n">set_index</span><span class="p">([</span><span class="s2">"Reference Product"</span><span class="p">,</span> <span class="s2">"Activity Name"</span><span class="p">,</span> <span class="s2">"Location"</span><span class="p">])</span></div>
+
+
+
+<div class="viewcode-block" id="extract_constraints">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/saver/index.html#pulpo.utils.saver.extract_constraints">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">extract_constraints</span><span class="p">(</span><span class="n">instance</span><span class="p">:</span> <span class="n">ConcreteModel</span><span class="p">,</span> <span class="n">constraints</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> <span class="n">mapping</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="n">metadata</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="n">constraint_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">time_steps</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Extracts scaling factors or inventory flows associated with constraints from a Pyomo model instance.</span>
+
+<span class="sd">    When `time_steps` is given, `constraints` may be static (broadcast across all</span>
+<span class="sd">    timesteps) or already in `{t: {...}}` form; the result gains a 'Time' index level.</span>
+<span class="sd">    """</span>
+
+    <span class="n">inverse_map</span> <span class="o">=</span> <span class="p">{</span><span class="n">v</span><span class="p">:</span> <span class="n">k</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">mapping</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>  <span class="c1"># Reverse lookup</span>
+
+    <span class="c1"># Select correct flow variable ('scaling' or 'intervention')</span>
+    <span class="n">flows</span> <span class="o">=</span> <span class="n">instance</span><span class="o">.</span><span class="n">scaling_vector</span> <span class="k">if</span> <span class="n">constraint_type</span> <span class="o">==</span> <span class="s1">'scaling'</span> <span class="k">else</span> <span class="n">instance</span><span class="o">.</span><span class="n">inv_flows</span> <span class="k">if</span> <span class="n">constraint_type</span> <span class="o">==</span> <span class="s1">'intervention'</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">flows</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Invalid flow_type. Use 'scaling' or 'intervention'."</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">time_steps</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">constraints_t</span> <span class="o">=</span> <span class="n">broadcast_over_time</span><span class="p">(</span><span class="n">constraints</span><span class="p">,</span> <span class="n">time_steps</span><span class="p">)</span>
+        <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'ID'</span><span class="p">:</span> <span class="p">[],</span> <span class="s1">'Key'</span><span class="p">:</span> <span class="p">[],</span> <span class="s1">'Metadata'</span><span class="p">:</span> <span class="p">[],</span> <span class="s1">'Value'</span><span class="p">:</span> <span class="p">[],</span> <span class="s1">'Limit'</span><span class="p">:</span> <span class="p">[],</span> <span class="s1">'Time'</span><span class="p">:</span> <span class="p">[]}</span>
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">time_steps</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">constraint</span><span class="p">,</span> <span class="n">limit</span> <span class="ow">in</span> <span class="n">constraints_t</span><span class="p">[</span><span class="n">t</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">flow</span> <span class="o">=</span> <span class="n">mapping</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">constraint</span><span class="o">.</span><span class="n">key</span><span class="p">)</span>
+                <span class="n">data</span><span class="p">[</span><span class="s1">'ID'</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">flow</span><span class="p">)</span>
+                <span class="n">data</span><span class="p">[</span><span class="s1">'Key'</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">inverse_map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">flow</span><span class="p">,</span> <span class="s1">'Unknown'</span><span class="p">))</span>
+                <span class="n">data</span><span class="p">[</span><span class="s1">'Metadata'</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">flow</span><span class="p">,</span> <span class="s1">'No Metadata'</span><span class="p">))</span>
+                <span class="n">data</span><span class="p">[</span><span class="s1">'Value'</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">flows</span><span class="p">[</span><span class="n">t</span><span class="p">,</span> <span class="n">flow</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+                <span class="n">data</span><span class="p">[</span><span class="s1">'Limit'</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">limit</span><span class="p">)</span>
+                <span class="n">data</span><span class="p">[</span><span class="s1">'Time'</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">set_index</span><span class="p">([</span><span class="s1">'ID'</span><span class="p">,</span> <span class="s1">'Time'</span><span class="p">])</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s1">'Value'</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">'stable'</span><span class="p">)</span>
+
+    <span class="c1"># Retrieve data from flows</span>
+    <span class="n">data</span><span class="p">:</span><span class="nb">dict</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'ID'</span><span class="p">:</span> <span class="p">[],</span> <span class="s1">'Key'</span><span class="p">:</span> <span class="p">[],</span> <span class="s1">'Metadata'</span><span class="p">:</span> <span class="p">[],</span> <span class="s1">'Value'</span><span class="p">:</span> <span class="p">[],</span> <span class="s1">'Limit'</span><span class="p">:</span> <span class="p">[]}</span>
+    <span class="k">for</span> <span class="n">constraint</span> <span class="ow">in</span> <span class="n">constraints</span><span class="p">:</span>
+        <span class="n">flow</span> <span class="o">=</span> <span class="n">mapping</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">constraint</span><span class="o">.</span><span class="n">key</span><span class="p">)</span>
+        <span class="n">data</span><span class="p">[</span><span class="s1">'ID'</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">flow</span><span class="p">)</span>
+        <span class="n">data</span><span class="p">[</span><span class="s1">'Key'</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">inverse_map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">flow</span><span class="p">,</span> <span class="s1">'Unknown'</span><span class="p">))</span>
+        <span class="n">data</span><span class="p">[</span><span class="s1">'Metadata'</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">flow</span><span class="p">,</span> <span class="s1">'No Metadata'</span><span class="p">))</span>
+        <span class="n">data</span><span class="p">[</span><span class="s1">'Value'</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">flows</span><span class="p">[</span><span class="n">flow</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+        <span class="n">data</span><span class="p">[</span><span class="s1">'Limit'</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">constraints</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">constraint</span><span class="p">,</span> <span class="s1">'No Limit'</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s1">'ID'</span><span class="p">)</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s1">'Value'</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">'stable'</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="extract_params">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/saver/index.html#pulpo.utils.saver.extract_params">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">extract_params</span><span class="p">(</span><span class="n">instance</span><span class="p">:</span> <span class="n">ConcreteModel</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Extracts the Parameter values from the optimization model</span>
+<span class="sd">    """</span>
+    <span class="n">data_all</span><span class="p">:</span><span class="nb">dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">instance</span><span class="o">.</span><span class="n">component_objects</span><span class="p">(</span><span class="n">ctype</span><span class="o">=</span><span class="n">Param</span><span class="p">):</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">extracted_values</span> <span class="o">=</span> <span class="n">param</span><span class="o">.</span><span class="n">extract_values</span><span class="p">()</span>
+        <span class="n">data</span><span class="p">[</span><span class="s1">'ID'</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">extracted_values</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="n">data</span><span class="p">[</span><span class="s1">'Value'</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">extracted_values</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+        <span class="n">data_all</span><span class="p">[</span><span class="n">param</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s1">'ID'</span><span class="p">)</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s1">'Value'</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">'stable'</span><span class="p">)</span>
+    <span class="c1"># The environmental cost coefficients are embedded in the impact</span>
+    <span class="c1"># constraints rather than stored as a Param; report them from the dense</span>
+    <span class="c1"># dictionary kept on the instance so the result schema stays unchanged.</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">instance</span><span class="p">,</span> <span class="s1">'_env_cost'</span><span class="p">):</span>
+        <span class="c1"># On an equilibrated instance the embedded coefficients are per unit of</span>
+        <span class="c1"># *scaled* activity; report them per unit of activity like the rest.</span>
+        <span class="n">col_scale</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">instance</span><span class="p">,</span> <span class="s1">'_col_scale'</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span>
+        <span class="n">data_all</span><span class="p">[</span><span class="s1">'ENV_COST_MATRIX'</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span>
+            <span class="s1">'ID'</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">instance</span><span class="o">.</span><span class="n">_env_cost</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span>
+            <span class="s1">'Value'</span><span class="p">:</span> <span class="p">[</span><span class="n">v</span> <span class="o">/</span> <span class="n">col_scale</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span> <span class="k">for</span> <span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">h</span><span class="p">),</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">instance</span><span class="o">.</span><span class="n">_env_cost</span><span class="o">.</span><span class="n">items</span><span class="p">()],</span>
+        <span class="p">})</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s1">'ID'</span><span class="p">)</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s1">'Value'</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">'stable'</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">data_all</span></div>
+
+
+<div class="viewcode-block" id="extract_results">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/saver/index.html#pulpo.utils.saver.extract_results">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">extract_results</span><span class="p">(</span><span class="n">worker</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">extractparams</span><span class="p">:</span><span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ResultDataDict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Extracts results from the Pyomo model instance and organizes them into a structured format. Calls all other extract functions.</span>
+<span class="sd">    """</span>
+    <span class="c1"># Extract common data</span>
+    <span class="n">instance</span> <span class="o">=</span> <span class="n">worker</span><span class="o">.</span><span class="n">instance</span>
+    <span class="n">lci</span> <span class="o">=</span> <span class="n">worker</span><span class="o">.</span><span class="n">lci_data</span>
+    <span class="n">proc_map</span><span class="p">,</span> <span class="n">proc_map_meta</span> <span class="o">=</span> <span class="n">lci</span><span class="p">[</span><span class="s1">'process_map'</span><span class="p">],</span> <span class="n">lci</span><span class="p">[</span><span class="s1">'process_map_metadata'</span><span class="p">]</span>
+    <span class="n">interv_map</span><span class="p">,</span> <span class="n">interv_map_meta</span> <span class="o">=</span> <span class="n">lci</span><span class="p">[</span><span class="s1">'intervention_map'</span><span class="p">],</span> <span class="n">lci</span><span class="p">[</span><span class="s1">'intervention_map_metadata'</span><span class="p">]</span>
+    <span class="n">time_steps</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">worker</span><span class="p">,</span> <span class="s1">'time_steps'</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="c1"># Extract choices once for reuse</span>
+    <span class="n">choices_dict</span> <span class="o">=</span> <span class="n">extract_choices</span><span class="p">(</span><span class="n">instance</span><span class="p">,</span> <span class="n">worker</span><span class="o">.</span><span class="n">choices</span><span class="p">,</span> <span class="n">proc_map</span><span class="p">,</span> <span class="n">proc_map_meta</span><span class="p">,</span> <span class="n">time_steps</span><span class="o">=</span><span class="n">time_steps</span><span class="p">)</span>
+
+    <span class="c1"># Build result data dictionary</span>
+    <span class="n">result_data</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">"Scaling Vector"</span><span class="p">:</span> <span class="n">extract_flows</span><span class="p">(</span><span class="n">instance</span><span class="p">,</span> <span class="n">proc_map</span><span class="p">,</span> <span class="n">proc_map_meta</span><span class="p">,</span> <span class="s1">'scaling'</span><span class="p">),</span>
+        <span class="s2">"Intervention Vector"</span><span class="p">:</span> <span class="n">extract_flows</span><span class="p">(</span><span class="n">instance</span><span class="p">,</span> <span class="n">interv_map</span><span class="p">,</span> <span class="n">interv_map_meta</span><span class="p">,</span> <span class="s1">'intervention'</span><span class="p">),</span>
+        <span class="s2">"Slack"</span><span class="p">:</span> <span class="n">extract_slack</span><span class="p">(</span><span class="n">instance</span><span class="p">),</span>
+        <span class="s2">"Impacts"</span><span class="p">:</span> <span class="n">extract_impacts</span><span class="p">(</span><span class="n">instance</span><span class="p">),</span>
+        <span class="s2">"Transgressions"</span><span class="p">:</span> <span class="n">extract_transgressions</span><span class="p">(</span><span class="n">instance</span><span class="p">),</span>
+        <span class="s2">"Demand"</span><span class="p">:</span> <span class="n">extract_demand</span><span class="p">(</span><span class="n">worker</span><span class="o">.</span><span class="n">demand</span><span class="p">,</span> <span class="n">time_steps</span><span class="o">=</span><span class="n">time_steps</span><span class="p">),</span>
+        <span class="s2">"Choices"</span><span class="p">:</span> <span class="n">choices_dict</span><span class="p">,</span>
+        <span class="s2">"Constraints Upper"</span><span class="p">:</span> <span class="n">extract_constraints</span><span class="p">(</span><span class="n">instance</span><span class="p">,</span> <span class="n">worker</span><span class="o">.</span><span class="n">upper_limit</span><span class="p">,</span> <span class="n">proc_map</span><span class="p">,</span> <span class="n">proc_map_meta</span><span class="p">,</span> <span class="s1">'scaling'</span><span class="p">,</span> <span class="n">time_steps</span><span class="o">=</span><span class="n">time_steps</span><span class="p">),</span>
+        <span class="s2">"Constraints Lower"</span><span class="p">:</span> <span class="n">extract_constraints</span><span class="p">(</span><span class="n">instance</span><span class="p">,</span> <span class="n">worker</span><span class="o">.</span><span class="n">lower_limit</span><span class="p">,</span> <span class="n">proc_map</span><span class="p">,</span> <span class="n">proc_map_meta</span><span class="p">,</span> <span class="s1">'scaling'</span><span class="p">,</span> <span class="n">time_steps</span><span class="o">=</span><span class="n">time_steps</span><span class="p">),</span>
+        <span class="s2">"Constraints Upper Elem"</span><span class="p">:</span> <span class="n">extract_constraints</span><span class="p">(</span><span class="n">instance</span><span class="p">,</span> <span class="n">worker</span><span class="o">.</span><span class="n">upper_elem_limit</span><span class="p">,</span> <span class="n">interv_map</span><span class="p">,</span> <span class="n">interv_map_meta</span><span class="p">,</span> <span class="s1">'intervention'</span><span class="p">,</span> <span class="n">time_steps</span><span class="o">=</span><span class="n">time_steps</span><span class="p">)</span>
+    <span class="p">}</span>
+
+    <span class="c1"># Append the parameter values to it</span>
+    <span class="k">if</span> <span class="n">extractparams</span><span class="p">:</span>
+        <span class="n">param_data</span> <span class="o">=</span> <span class="n">extract_params</span><span class="p">(</span><span class="n">instance</span><span class="p">)</span>
+        <span class="n">result_data</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">param_data</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">result_data</span></div>
+
+
+<div class="viewcode-block" id="save_results">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/saver/index.html#pulpo.utils.saver.save_results">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">save_results</span><span class="p">(</span><span class="n">worker</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">file_name</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Saves worker/result data to an Excel file with multiple sheets.</span>
+
+<span class="sd">    ``file_name`` is a path relative to the working directory or an absolute</span>
+<span class="sd">    one; missing folders on it are created.</span>
+<span class="sd">    """</span>
+    <span class="n">result_data</span> <span class="o">=</span> <span class="n">extract_results</span><span class="p">(</span><span class="n">worker</span><span class="p">)</span>
+    <span class="n">choices_dict</span> <span class="o">=</span> <span class="n">result_data</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"Choices"</span><span class="p">)</span>  <span class="c1"># Extract choices separately</span>
+
+    <span class="c1"># Prepare output path</span>
+    <span class="n">output_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">file_name</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">output_dir</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">output_dir</span><span class="p">):</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">output_dir</span><span class="p">)</span>
+
+    <span class="c1"># Save data to Excel</span>
+    <span class="k">with</span> <span class="n">pd</span><span class="o">.</span><span class="n">ExcelWriter</span><span class="p">(</span><span class="n">file_name</span><span class="p">,</span> <span class="n">engine</span><span class="o">=</span><span class="s1">'xlsxwriter'</span><span class="p">)</span> <span class="k">as</span> <span class="n">writer</span><span class="p">:</span>
+        <span class="c1"># Write the aggregated "Choices" sheet (none without choices)</span>
+        <span class="n">combined_choices</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">choice_name</span><span class="p">,</span> <span class="n">df</span> <span class="ow">in</span> <span class="n">choices_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">divider</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">([[</span><span class="n">choice_name</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)],</span> <span class="n">columns</span><span class="o">=</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+            <span class="n">combined_choices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">divider</span><span class="p">)</span>
+            <span class="n">df_with_index</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+            <span class="n">df_with_index</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s2">"Original Index"</span><span class="p">,</span> <span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+            <span class="n">combined_choices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">df_with_index</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">combined_choices</span><span class="p">:</span>
+            <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">combined_choices</span><span class="p">,</span> <span class="n">ignore_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">to_excel</span><span class="p">(</span><span class="n">writer</span><span class="p">,</span> <span class="n">sheet_name</span><span class="o">=</span><span class="s2">"Choices"</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="c1"># Write other sheets</span>
+        <span class="k">for</span> <span class="n">sheet_name</span><span class="p">,</span> <span class="n">df</span> <span class="ow">in</span> <span class="n">result_data</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">df</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+                <span class="n">df</span><span class="o">.</span><span class="n">to_excel</span><span class="p">(</span><span class="n">writer</span><span class="p">,</span> <span class="n">sheet_name</span><span class="o">=</span><span class="n">sheet_name</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Results saved to </span><span class="si">{</span><span class="n">file_name</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="summarize_results">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/saver/index.html#pulpo.utils.saver.summarize_results">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">summarize_results</span><span class="p">(</span><span class="n">worker</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">zeroes</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Displays a summary of worker data in the console/Jupyter.</span>
+<span class="sd">    Only the total impacts, the choices made, and the constraints (if any) are shown.</span>
+<span class="sd">    """</span>
+
+    <span class="n">display</span><span class="p">,</span> <span class="n">Markdown</span> <span class="o">=</span> <span class="nb">print</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">text</span><span class="p">:</span> <span class="n">text</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">IPython</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_ipython</span>
+        <span class="k">if</span> <span class="n">get_ipython</span><span class="p">()</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>            <span class="c1"># rich output only inside IPython / Jupyter</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">IPython.display</span><span class="w"> </span><span class="kn">import</span> <span class="n">display</span><span class="p">,</span> <span class="n">Markdown</span>
+    <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+        <span class="k">pass</span>
+
+    <span class="c1"># Extract the data</span>
+    <span class="n">result_data</span> <span class="o">=</span> <span class="n">extract_results</span><span class="p">(</span><span class="n">worker</span><span class="p">)</span>
+
+    <span class="c1"># Helper to filter a dataframe if it has a 'Value' column</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">filter_nonzero</span><span class="p">(</span><span class="n">df</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">df</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s2">"Value"</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">zeroes</span> <span class="ow">and</span> <span class="s2">"Value"</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span> <span class="k">else</span> <span class="n">df</span>
+
+    <span class="c1"># 1. Display Total Impact(s)</span>
+    <span class="n">impacts</span> <span class="o">=</span> <span class="n">result_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"Impacts"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">impacts</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">impacts</span> <span class="o">=</span> <span class="n">filter_nonzero</span><span class="p">(</span><span class="n">impacts</span><span class="p">)</span>
+        <span class="n">display</span><span class="p">(</span><span class="n">Markdown</span><span class="p">(</span><span class="s2">"## Total Impact(s)"</span><span class="p">))</span>
+        <span class="n">display</span><span class="p">(</span><span class="n">impacts</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">display</span><span class="p">(</span><span class="n">Markdown</span><span class="p">(</span><span class="s2">"## Total Impact(s): No data found"</span><span class="p">))</span>
+
+    <span class="c1"># 1b. Display Goal Transgressions (only when a goal-programming run)</span>
+    <span class="n">transgressions</span> <span class="o">=</span> <span class="n">result_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"Transgressions"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">transgressions</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">transgressions</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+        <span class="n">display</span><span class="p">(</span><span class="n">Markdown</span><span class="p">(</span><span class="s2">"## Goal Transgressions"</span><span class="p">))</span>
+        <span class="n">display</span><span class="p">(</span><span class="n">transgressions</span><span class="p">)</span>
+
+    <span class="c1"># 2. Display Choices Made</span>
+    <span class="n">choices_dict</span> <span class="o">=</span> <span class="n">result_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"Choices"</span><span class="p">,</span> <span class="p">{})</span>
+    <span class="n">display</span><span class="p">(</span><span class="n">Markdown</span><span class="p">(</span><span class="s2">"## Choices Made"</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">choices_dict</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">choice_name</span><span class="p">,</span> <span class="n">df</span> <span class="ow">in</span> <span class="n">choices_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">filter_nonzero</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+            <span class="n">display</span><span class="p">(</span><span class="n">Markdown</span><span class="p">(</span><span class="sa">f</span><span class="s2">"### </span><span class="si">{</span><span class="n">choice_name</span><span class="si">}</span><span class="s2">"</span><span class="p">))</span>
+            <span class="n">display</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">display</span><span class="p">(</span><span class="s2">"No choices data available."</span><span class="p">)</span>
+
+    <span class="c1"># 3. Display Constraints (if any)</span>
+    <span class="n">constraint_keys</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"Constraints Upper"</span><span class="p">,</span> <span class="s2">"Constraints Lower"</span><span class="p">,</span> <span class="s2">"Constraints Upper Elem"</span><span class="p">]</span>
+    <span class="n">display</span><span class="p">(</span><span class="n">Markdown</span><span class="p">(</span><span class="s2">"## Constraints"</span><span class="p">))</span>
+    <span class="n">constraints_found</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">constraint_keys</span><span class="p">:</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">result_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">df</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">filter_nonzero</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">df</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+                <span class="n">display</span><span class="p">(</span><span class="n">Markdown</span><span class="p">(</span><span class="sa">f</span><span class="s2">"### </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">"</span><span class="p">))</span>
+                <span class="n">display</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+                <span class="n">constraints_found</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">constraints_found</span><span class="p">:</span>
+        <span class="n">display</span><span class="p">(</span><span class="s2">"No constraint data to display."</span><span class="p">)</span></div>
+
+</pre></div>
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341"></script>
+<script src="../../../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2026 pulpo developers.
+      <br/>
+    
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item"><p>🌿🐛 Found a bug? Something not working? Frustrated? <a href=" latest/../../../../content/contributing.html">Please report it!</a></p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

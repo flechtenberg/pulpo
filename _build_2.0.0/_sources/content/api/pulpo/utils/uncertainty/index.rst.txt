@@ -1,0 +1,144 @@
+:py:mod:`pulpo.utils.uncertainty`
+=================================
+
+.. py:module:: pulpo.utils.uncertainty
+
+.. autoapi-nested-parse::
+
+   Uncertainty of an LCA impact, and chance-constrained optimization over it.
+
+   As of now the uncertainty of the LCA data is considered only in the biosphere
+   flows and the characterization factors; technosphere exchanges are
+   deterministic. The closed-form moments and the reduced space both rely on it.
+
+   The pieces, in the order a study uses them::
+
+       from pulpo.utils import uncertainty as unc
+
+       data  = unc.import_declared(worker)                         # parameters of the impact
+       unc.override(data, 'If', 'my_foreground_db', expert_specs)  # elicited distributions
+       mom   = unc.compute_moments(data, worker)                   # closed-form mean and variance
+       ccp   = unc.ChanceConstrained(worker, mom, upper_bounds={activity: spec})
+       front = ccp.solve([0.5, 0.9, 0.99])                         # reliability sweep, reduced space
+       dec   = unc.decompose(front[0.5], mom)                      # exact Sobol' indices at a decision
+       scr   = unc.screen_undeclared(front[0.5], data, worker, exact_cfs=unc.co2_flows(worker))
+       val   = unc.validate(front, ccp, data, n=200_000, seed=1)   # out-of-sample coverage
+
+   :mod:`preparer` imports the data, :mod:`moments` assembles the moments,
+   :mod:`cc` holds the risk budget, the exact bound quantiles and the cone,
+   :mod:`decomposition` the variance decomposition, the screening of undeclared
+   parameters and the diagnostics, :mod:`validation` the vectorized sampler and the
+   coverage statistics, and :mod:`processor` single draws and helpers.
+   ``pulpo.pulpo_unc.PulpoOptimizerUnc`` offers the same steps as methods of a
+   worker.
+
+
+
+Submodules
+----------
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+
+   cc/index.rst
+   decomposition/index.rst
+   moments/index.rst
+   preparer/index.rst
+   processor/index.rst
+   validation/index.rst
+
+
+Package Contents
+----------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   pulpo.utils.uncertainty.UncertaintyData
+   pulpo.utils.uncertainty.UncertaintySpec
+   pulpo.utils.uncertainty.Moments
+   pulpo.utils.uncertainty.ChanceConstrained
+   pulpo.utils.uncertainty.Front
+   pulpo.utils.uncertainty.Point
+   pulpo.utils.uncertainty.Projections
+   pulpo.utils.uncertainty.RiskBudget
+   pulpo.utils.uncertainty.Decomposition
+   pulpo.utils.uncertainty.Screening
+   pulpo.utils.uncertainty.Draws
+   pulpo.utils.uncertainty.ImpactSampler
+   pulpo.utils.uncertainty.Validation
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   pulpo.utils.uncertainty.counts
+   pulpo.utils.uncertainty.import_declared
+   pulpo.utils.uncertainty.override
+   pulpo.utils.uncertainty.undeclared
+   pulpo.utils.uncertainty.compute_closed_form_moments
+   pulpo.utils.uncertainty.compute_moments
+   pulpo.utils.uncertainty.current_scaling_vector
+   pulpo.utils.uncertainty.spec_moments
+   pulpo.utils.uncertainty.bonferroni_budget
+   pulpo.utils.uncertainty.declared_quantile
+   pulpo.utils.uncertainty.co2_flows
+   pulpo.utils.uncertainty.decompose
+   pulpo.utils.uncertainty.diagnostics
+   pulpo.utils.uncertainty.families_by_database
+   pulpo.utils.uncertainty.lognormal_with_cv
+   pulpo.utils.uncertainty.screen_undeclared
+   pulpo.utils.uncertainty.widen
+   pulpo.utils.uncertainty.width_sensitivity
+   pulpo.utils.uncertainty.declared_parameters
+   pulpo.utils.uncertainty.draw_parameters
+   pulpo.utils.uncertainty.sample_specs
+   pulpo.utils.uncertainty.validate
+   pulpo.utils.uncertainty.wilson
+   pulpo.utils.uncertainty.draw_uncertainty_sample
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

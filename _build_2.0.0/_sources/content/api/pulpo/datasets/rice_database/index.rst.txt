@@ -1,0 +1,26 @@
+:py:mod:`pulpo.datasets.rice_database`
+======================================
+
+.. py:module:: pulpo.datasets.rice_database
+
+
+Module Contents
+---------------
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   pulpo.datasets.rice_database.setup_rice_husk_db
+   pulpo.datasets.rice_database.main
+
+
+
+.. py:function:: setup_rice_husk_db()
+
+
+.. py:function:: main()
+
+

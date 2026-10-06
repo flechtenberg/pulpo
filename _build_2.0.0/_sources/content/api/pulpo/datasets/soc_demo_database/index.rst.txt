@@ -1,0 +1,126 @@
+:py:mod:`pulpo.datasets.soc_demo_database`
+==========================================
+
+.. py:module:: pulpo.datasets.soc_demo_database
+
+.. autoapi-nested-parse::
+
+   soc_demo_database.py
+
+   A purpose-built toy database for chance-constrained optimization under
+   uncertainty (``pulpo.utils.uncertainty``), small enough to run without
+   ecoinvent and with open-source solvers only; ``notebooks/uncertainty_toy.ipynb``
+   runs the whole method on it.
+
+   Unlike ``sample_database.py`` (which gives every non-production exchange a
+   blanket ``NormalUncertainty``), every uncertain exchange here is deliberately
+   assigned one of Normal / Lognormal / Triangular / Uniform, or is left with no
+   uncertainty declared at all, so that the closed-form moments, the validation
+   against non-normal draws and the screening of undeclared parameters each have
+   something to work on.
+
+   All three biosphere flows (CO2, CH4, N2O) and all three characterization
+   factors are climate-change flows, so ``METHOD_KEY`` is a single indicator
+   whose CFs belong together, and the three flows still exercise every
+   distribution family. One exception: CO2's own CF carries no
+   uncertainty at all, because CO2 is the flow GWP100 is defined *against* -
+   its CF of 1 is exact, not an estimate with error bars, so it is written as a
+   degenerate Normal (scale=0) rather than assigned a family from the gallery.
+
+   Mirrors the central mechanism of an ammonia case (uncertainty treatment
+   changes which hydrogen route gets chosen) at toy scale: one product (ammonia),
+   one choice axis (hydrogen route: SMR vs. electrolysis), everything else
+   reduced to simple utility inputs.
+
+   Important scope note for anyone extending this module: PULPO's uncertainty
+   machinery (the ``'If'``/``'Cf'`` groups of ``pulpo.utils.uncertainty``) only tracks uncertainty
+   on *biosphere* (intervention) flows and characterization factors - not on
+   technosphere-to-technosphere exchange amounts (``bw_parser.import_data`` reads
+   uncertainty parameters off the biosphere matrix only). So every uncertain
+   parameter below is a biosphere flow (an emission or a resource draw), even
+   where the table names it after the physical input it stands in for (e.g.
+   hydrogen electrolysis's dominant driver is its large electricity draw, but
+   that draw itself is a deterministic technosphere quantity; the uncertainty
+   lives on the *shared* ``electricity supply`` process's own CO2 emission,
+   which electrolysis's disproportionately large consumption then amplifies).
+
+
+
+Module Contents
+---------------
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   pulpo.datasets.soc_demo_database._project
+   pulpo.datasets.soc_demo_database.setup_biosphere_db
+   pulpo.datasets.soc_demo_database.setup_background_db
+   pulpo.datasets.soc_demo_database.setup_foreground_db
+   pulpo.datasets.soc_demo_database.setup_lcia_methods
+   pulpo.datasets.soc_demo_database.setup_soc_demo_db
+   pulpo.datasets.soc_demo_database.main
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   pulpo.datasets.soc_demo_database.METHOD_KEY
+
+
+.. py:data:: METHOD_KEY
+   :value: ('soc demo', 'climate change')
+
+   
+
+.. py:function:: _project()
+
+
+.. py:function:: setup_biosphere_db()
+
+   Create the biosphere flows used across the SOC demo system.
+
+   Three elementary flows, all genuinely climate-change-relevant (CO2, CH4,
+   N2O - the three GHGs that actually carry a GWP100 characterization
+   factor), chosen so all four native distribution families (Normal /
+   Lognormal / Triangular / Uniform) and the undeclared case each
+   appear at least once (see the module docstring's scope note for why they
+   are biosphere flows rather than technosphere exchange amounts). Flows of
+   other indicators (particulate matter, water) would need CFs that do not
+   belong in a GWP100 method; the uncertainty import handles one method.
+
+
+.. py:function:: setup_background_db()
+
+   Natural gas extraction, generic electricity, SMR hydrogen (the
+   conventional route), and N2 air separation.
+
+
+.. py:function:: setup_foreground_db()
+
+   Hydrogen electrolysis (the alternative route) and ammonia synthesis
+   (final product, demand target).
+
+
+.. py:function:: setup_lcia_methods()
+
+   Register a single, genuinely single-indicator LCIA method: GWP100 over
+   the three climate-change flows declared in ``setup_biosphere_db``.
+
+   Every CF registered here is an actual GWP100 value (AR6, rounded):
+   CO2 = 1, fossil CH4 = 29.7, N2O = 273. CO2's CF carries no uncertainty:
+   it is the *reference* flow GWP100 is defined against, so 1 is exact by
+   construction, not an empirically uncertain measurement like the other two.
+
+
+.. py:function:: setup_soc_demo_db()
+
+
+.. py:function:: main()
+
+

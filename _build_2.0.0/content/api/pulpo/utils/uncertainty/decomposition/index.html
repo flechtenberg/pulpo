@@ -1,0 +1,1075 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="../../../../../../_static/favicon.svg" type="image/svg+xml">
+    <link rel="icon" sizes="144x144" href="../../../../../../_static/favicon-144.png" type="image/png">
+    <link rel="mask-icon" href="../../../../../../_static/favicon_mask-icon.svg" color="#222832" type="image/svg+xml">
+    <link rel="apple-touch-icon" sizes="500x500" href="../../../../../../_static/favicon-500.png" type="image/png">
+    <title>pulpo.utils.uncertainty.decomposition &#8212; pulpo 2.0.0 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../../../../_static/styles/theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+<link href="../../../../../../_static/styles/bootstrap.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+<link href="../../../../../../_static/styles/pydata-sphinx-theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+
+  
+  <link href="../../../../../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../../../../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../../../../../_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="../../../../../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../../../../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+    <link rel="stylesheet" type="text/css" href="../../../../../../_static/custom.css?v=913d6465" />
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../../../../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341" />
+<link rel="preload" as="script" href="../../../../../../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341" />
+  <script src="../../../../../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=3ee479438cf8b5e0d341"></script>
+
+    <script src="../../../../../../_static/documentation_options.js?v=79f5c508"></script>
+    <script src="../../../../../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../../../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../../../../../_static/design-tabs.js?v=36754332"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'content/api/pulpo/utils/uncertainty/decomposition/index';</script>
+    <link rel="index" title="Index" href="../../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../../search.html" />
+    <link rel="next" title="pulpo.utils.uncertainty.moments" href="../moments/index.html" />
+    <link rel="prev" title="pulpo.utils.uncertainty.cc" href="../cc/index.html" />
+<meta name="google-site-verification" content="Fb3YVU81AToFlPNhlaQf6LLq1SMrHPbY-RtFsgZkw9Q" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../../../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+
+<a class="navbar-brand logo" href="../../../../../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../../../../../_static/pulpo_logo_big.svg" class="logo__image only-light" alt="pulpo 2.0.0 documentation - Home"/>
+    <script>document.write(`<img src="../../../../../../_static/pulpo_logo_big.svg" class="logo__image only-dark" alt="pulpo 2.0.0 documentation - Home"/>`);</script>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav class="navbar-nav">
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../../installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../../getting_started/index.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../../theory.html">
+    Theory
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../../uncertainty.html">
+    Uncertainty
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../../examples/index.html">
+    Examples
+  </a>
+</li>
+
+            <li class="nav-item dropdown pst-header-nav-item">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class="nav-item  current active">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../index.html">
+    API
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../../contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../../codeofconduct.html">
+    Code of Conduct
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../../license.html">
+    License
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../../changelog.html">
+    Changelog
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  </button>
+`);
+</script></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links navbar-nav"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/flechtenberg/pulpo" title="Open this Repo on GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fab fa-brands fa-github fa-lg" aria-hidden="true"></i></span>
+            <span class="sr-only">Open this Repo on GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+    </div>
+  
+
+  
+    <button class="sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav class="navbar-nav">
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../../installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../../getting_started/index.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../../theory.html">
+    Theory
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../../uncertainty.html">
+    Uncertainty
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../../examples/index.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item current active">
+  <a class="nav-link nav-internal" href="../../../../index.html">
+    API
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../../contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../../codeofconduct.html">
+    Code of Conduct
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../../license.html">
+    License
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../../changelog.html">
+    Changelog
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  </button>
+`);
+</script></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links navbar-nav"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/flechtenberg/pulpo" title="Open this Repo on GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fab fa-brands fa-github fa-lg" aria-hidden="true"></i></span>
+            <span class="sr-only">Open this Repo on GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="../../../index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo</span></code></a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../../../datasets/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.datasets</span></code></a></li>
+<li class="toctree-l2 current active has-children"><a class="reference internal" href="../../index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils</span></code></a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l3 current active has-children"><a class="reference internal" href="../index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.uncertainty</span></code></a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="../cc/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.uncertainty.cc</span></code></a></li>
+<li class="toctree-l4 current active"><a class="current reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.uncertainty.decomposition</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../moments/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.uncertainty.moments</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../preparer/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.uncertainty.preparer</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../processor/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.uncertainty.processor</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../validation/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.uncertainty.validation</span></code></a></li>
+</ul>
+</details></li>
+<li class="toctree-l3"><a class="reference internal" href="../../bw_parser/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.bw_parser</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../converter/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.converter</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../monte_carlo/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.monte_carlo</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../optimizer/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.optimizer</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../reduced/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.reduced</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../saver/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.saver</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../scaling/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.scaling</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../time_extension/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.time_extension</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../utils/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.utils</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../warning/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.warning</span></code></a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../pulpo/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.pulpo</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../pulpo_time/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.pulpo_time</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../pulpo_unc/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.pulpo_unc</span></code></a></li>
+</ul>
+</details></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../../../index.html" class="nav-link">API Reference</a></li>
+    
+    
+    <li class="breadcrumb-item"><i class="fa-solid fa-ellipsis"></i></li>
+    
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.uncertainty</span></code></a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><code...</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="module-pulpo.utils.uncertainty.decomposition">
+<span id="pulpo-utils-uncertainty-decomposition"></span><h1><a class="reference internal" href="#module-pulpo.utils.uncertainty.decomposition" title="pulpo.utils.uncertainty.decomposition"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.uncertainty.decomposition</span></code></a><a class="headerlink" href="#module-pulpo.utils.uncertainty.decomposition" title="Link to this heading">#</a></h1>
+<p>Exact variance decomposition at a fixed decision, screening of undeclared
+parameters, and post-hoc diagnostics of a solved front.</p>
+<section id="why">
+<h2>Why<a class="headerlink" href="#why" title="Link to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">X(s)</span> <span class="pre">=</span> <span class="pre">sum_e</span> <span class="pre">q_e</span> <span class="pre">sum_j</span> <span class="pre">b_ej</span> <span class="pre">s_j</span></code> is a sum of products of independent
+inputs (A1), so its ANOVA decomposition stops at second order. With
+<code class="docutils literal notranslate"><span class="pre">V</span> <span class="pre">=</span> <span class="pre">Var</span> <span class="pre">X(s)</span></code> and <code class="docutils literal notranslate"><span class="pre">y_e</span> <span class="pre">=</span> <span class="pre">sum_j</span> <span class="pre">E[b_ej]</span> <span class="pre">s_j</span></code>,</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">S1</span><span class="p">(</span><span class="n">q_e</span><span class="p">)</span>        <span class="o">=</span> <span class="n">w_e</span> <span class="n">y_e</span><span class="o">^</span><span class="mi">2</span> <span class="o">/</span> <span class="n">V</span>
+<span class="n">S1</span><span class="p">(</span><span class="n">b_ej</span><span class="p">)</span>       <span class="o">=</span> <span class="n">E</span><span class="p">[</span><span class="n">q_e</span><span class="p">]</span><span class="o">^</span><span class="mi">2</span> <span class="n">Var</span><span class="p">(</span><span class="n">b_ej</span><span class="p">)</span> <span class="n">s_j</span><span class="o">^</span><span class="mi">2</span> <span class="o">/</span> <span class="n">V</span>
+<span class="n">S2</span><span class="p">(</span><span class="n">q_e</span><span class="p">,</span> <span class="n">b_ej</span><span class="p">)</span>  <span class="o">=</span> <span class="n">w_e</span> <span class="n">Var</span><span class="p">(</span><span class="n">b_ej</span><span class="p">)</span> <span class="n">s_j</span><span class="o">^</span><span class="mi">2</span> <span class="o">/</span> <span class="n">V</span>
+<span class="n">ST</span><span class="p">(</span><span class="n">q_e</span><span class="p">)</span>        <span class="o">=</span> <span class="n">w_e</span> <span class="p">(</span><span class="n">y_e</span><span class="o">^</span><span class="mi">2</span> <span class="o">+</span> <span class="n">sum_j</span> <span class="n">Var</span><span class="p">(</span><span class="n">b_ej</span><span class="p">)</span> <span class="n">s_j</span><span class="o">^</span><span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="n">V</span>
+<span class="n">ST</span><span class="p">(</span><span class="n">b_ej</span><span class="p">)</span>       <span class="o">=</span> <span class="p">(</span><span class="n">E</span><span class="p">[</span><span class="n">q_e</span><span class="p">]</span><span class="o">^</span><span class="mi">2</span> <span class="o">+</span> <span class="n">w_e</span><span class="p">)</span> <span class="n">Var</span><span class="p">(</span><span class="n">b_ej</span><span class="p">)</span> <span class="n">s_j</span><span class="o">^</span><span class="mi">2</span> <span class="o">/</span> <span class="n">V</span>
+</pre></div>
+</div>
+<p>and <code class="docutils literal notranslate"><span class="pre">sum</span> <span class="pre">S1</span> <span class="pre">+</span> <span class="pre">sum</span> <span class="pre">S2</span> <span class="pre">=</span> <span class="pre">1</span></code> with no higher-order terms. The Sobol’ indices
+are therefore computed, not estimated: no sampling and no confidence
+intervals. Parameters of one kind (B entries among themselves, CFs among
+themselves) never interact, so the first-order and total-order indices of a
+family of B entries, or of CFs, are the sums over its members. The uncertain
+process bounds are not inputs of <code class="docutils literal notranslate"><span class="pre">X</span></code> at a fixed <code class="docutils literal notranslate"><span class="pre">s</span></code>; they shape <code class="docutils literal notranslate"><span class="pre">s</span></code>.</p>
+<p>Undeclared parameters are deterministic (A3). <a class="reference internal" href="#pulpo.utils.uncertainty.decomposition.screen_undeclared" title="pulpo.utils.uncertainty.decomposition.screen_undeclared"><code class="xref py py-func docutils literal notranslate"><span class="pre">screen_undeclared()</span></code></a>
+tests that assumption: every undeclared parameter gets the same coefficient of
+variation <code class="docutils literal notranslate"><span class="pre">r</span></code> with its mean unchanged (<a class="reference internal" href="#pulpo.utils.uncertainty.decomposition.widen" title="pulpo.utils.uncertainty.decomposition.widen"><code class="xref py py-func docutils literal notranslate"><span class="pre">widen()</span></code></a>), and the indices show
+which of them would carry variance. The caller names the CFs that are exact
+by definition (<code class="docutils literal notranslate"><span class="pre">exact_cfs</span></code>; for a global warming potential the CO2 flows,
+since CO2 is its reference gas), and those never receive a width. No B entry is
+exact by definition, so every undeclared one is widened: holding one exact
+could only lower the figures, and only the few at the top of the ranking need
+an expert’s judgement. The distribution family of a widened parameter does not matter to
+the moments; <a class="reference internal" href="#pulpo.utils.uncertainty.decomposition.widen" title="pulpo.utils.uncertainty.decomposition.widen"><code class="xref py py-func docutils literal notranslate"><span class="pre">widen()</span></code></a> uses a lognormal (mirrored for a negative amount),
+so the same data also serve for validation draws and for a re-solved front.</p>
+</section>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading">#</a></h2>
+<section id="classes">
+<h3>Classes<a class="headerlink" href="#classes" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pulpo.utils.uncertainty.decomposition.Decomposition" title="pulpo.utils.uncertainty.decomposition.Decomposition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Decomposition</span></code></a></p></td>
+<td><p>Sobol' indices of <code class="docutils literal notranslate"><span class="pre">X</span></code> at one decision (see the module docstring).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pulpo.utils.uncertainty.decomposition.Screening" title="pulpo.utils.uncertainty.decomposition.Screening"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Screening</span></code></a></p></td>
+<td><p>Outcome of <a class="reference internal" href="#pulpo.utils.uncertainty.decomposition.screen_undeclared" title="pulpo.utils.uncertainty.decomposition.screen_undeclared"><code class="xref py py-func docutils literal notranslate"><span class="pre">screen_undeclared()</span></code></a>.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="functions">
+<h3>Functions<a class="headerlink" href="#functions" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pulpo.utils.uncertainty.decomposition._lci" title="pulpo.utils.uncertainty.decomposition._lci"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_lci</span></code></a>(lci_data)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pulpo.utils.uncertainty.decomposition._decision" title="pulpo.utils.uncertainty.decomposition._decision"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_decision</span></code></a>(s)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(s,</span> <span class="pre">kappa)</span></code> from a solved point, or <code class="docutils literal notranslate"><span class="pre">(s,</span> <span class="pre">None)</span></code> from an array.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pulpo.utils.uncertainty.decomposition.co2_flows" title="pulpo.utils.uncertainty.decomposition.co2_flows"><code class="xref py py-obj docutils literal notranslate"><span class="pre">co2_flows</span></code></a>(lci_data)</p></td>
+<td><p>Rows of the intervention matrix whose flow name begins with &quot;Carbon dioxide&quot;.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pulpo.utils.uncertainty.decomposition.families_by_database" title="pulpo.utils.uncertainty.decomposition.families_by_database"><code class="xref py py-obj docutils literal notranslate"><span class="pre">families_by_database</span></code></a>(lci_data)</p></td>
+<td><p>A <code class="docutils literal notranslate"><span class="pre">families</span></code> function for <a class="reference internal" href="#pulpo.utils.uncertainty.decomposition.decompose" title="pulpo.utils.uncertainty.decomposition.decompose"><code class="xref py py-func docutils literal notranslate"><span class="pre">decompose()</span></code></a>: each B entry belongs to</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pulpo.utils.uncertainty.decomposition.decompose" title="pulpo.utils.uncertainty.decomposition.decompose"><code class="xref py py-obj docutils literal notranslate"><span class="pre">decompose</span></code></a>(→ Decomposition)</p></td>
+<td><p>Exact first-, second- and total-order Sobol' indices of <code class="docutils literal notranslate"><span class="pre">X(s)</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pulpo.utils.uncertainty.decomposition.lognormal_with_cv" title="pulpo.utils.uncertainty.decomposition.lognormal_with_cv"><code class="xref py py-obj docutils literal notranslate"><span class="pre">lognormal_with_cv</span></code></a>(amount, r)</p></td>
+<td><p>A lognormal spec with mean <code class="docutils literal notranslate"><span class="pre">amount</span></code> and coefficient of variation <code class="docutils literal notranslate"><span class="pre">r</span></code>,</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pulpo.utils.uncertainty.decomposition._width" title="pulpo.utils.uncertainty.decomposition._width"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_width</span></code></a>(widths, group, subgroup)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pulpo.utils.uncertainty.decomposition._check_widths" title="pulpo.utils.uncertainty.decomposition._check_widths"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_check_widths</span></code></a>(widths, uncertainty_data)</p></td>
+<td><p>A key that names no subgroup would leave a group deterministic unnoticed.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pulpo.utils.uncertainty.decomposition.widen" title="pulpo.utils.uncertainty.decomposition.widen"><code class="xref py py-obj docutils literal notranslate"><span class="pre">widen</span></code></a>(→ pulpo.utils.uncertainty.preparer.UncertaintyData)</p></td>
+<td><p>A copy of the data in which every undeclared parameter has a width.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pulpo.utils.uncertainty.decomposition._exact_cfs" title="pulpo.utils.uncertainty.decomposition._exact_cfs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_exact_cfs</span></code></a>(exact_cfs)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pulpo.utils.uncertainty.decomposition.screen_undeclared" title="pulpo.utils.uncertainty.decomposition.screen_undeclared"><code class="xref py py-obj docutils literal notranslate"><span class="pre">screen_undeclared</span></code></a>([n, families])</p></td>
+<td><p>Which undeclared parameters would matter if they were uncertain.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pulpo.utils.uncertainty.decomposition.width_sensitivity" title="pulpo.utils.uncertainty.decomposition.width_sensitivity"><code class="xref py py-obj docutils literal notranslate"><span class="pre">width_sensitivity</span></code></a>(→ pandas.DataFrame)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sigma(s)</span></code> with the undeclared parameters at each of <code class="docutils literal notranslate"><span class="pre">widths</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pulpo.utils.uncertainty.decomposition.diagnostics" title="pulpo.utils.uncertainty.decomposition.diagnostics"><code class="xref py py-obj docutils literal notranslate"><span class="pre">diagnostics</span></code></a>(→ pandas.DataFrame)</p></td>
+<td><p>Post-hoc figures of each solved point, all evaluated at its <code class="docutils literal notranslate"><span class="pre">s</span></code>.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<dl class="py function">
+<dt class="sig sig-object py" id="pulpo.utils.uncertainty.decomposition._lci">
+<span class="sig-prename descclassname"><span class="pre">pulpo.utils.uncertainty.decomposition.</span></span><span class="sig-name descname"><span class="pre">_lci</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lci_data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/pulpo/utils/uncertainty/decomposition.html#_lci"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.uncertainty.decomposition._lci" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pulpo.utils.uncertainty.decomposition._decision">
+<span class="sig-prename descclassname"><span class="pre">pulpo.utils.uncertainty.decomposition.</span></span><span class="sig-name descname"><span class="pre">_decision</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/pulpo/utils/uncertainty/decomposition.html#_decision"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.uncertainty.decomposition._decision" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">(s,</span> <span class="pre">kappa)</span></code> from a solved point, or <code class="docutils literal notranslate"><span class="pre">(s,</span> <span class="pre">None)</span></code> from an array.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pulpo.utils.uncertainty.decomposition.co2_flows">
+<span class="sig-prename descclassname"><span class="pre">pulpo.utils.uncertainty.decomposition.</span></span><span class="sig-name descname"><span class="pre">co2_flows</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lci_data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/pulpo/utils/uncertainty/decomposition.html#co2_flows"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.uncertainty.decomposition.co2_flows" title="Link to this definition">#</a></dt>
+<dd><p>Rows of the intervention matrix whose flow name begins with “Carbon dioxide”.</p>
+<p>Fossil, non-fossil, uptake from air, from or to soil: in a global warming
+potential each has the factor +-1 by definition, so this is the usual
+<code class="docutils literal notranslate"><span class="pre">exact_cfs</span></code> of <a class="reference internal" href="#pulpo.utils.uncertainty.decomposition.screen_undeclared" title="pulpo.utils.uncertainty.decomposition.screen_undeclared"><code class="xref py py-func docutils literal notranslate"><span class="pre">screen_undeclared()</span></code></a>, <a class="reference internal" href="#pulpo.utils.uncertainty.decomposition.width_sensitivity" title="pulpo.utils.uncertainty.decomposition.width_sensitivity"><code class="xref py py-func docutils literal notranslate"><span class="pre">width_sensitivity()</span></code></a> and
+<a class="reference internal" href="#pulpo.utils.uncertainty.decomposition.widen" title="pulpo.utils.uncertainty.decomposition.widen"><code class="xref py py-func docutils literal notranslate"><span class="pre">widen()</span></code></a> for such a method. Flows are matched by the name in
+<code class="docutils literal notranslate"><span class="pre">intervention_map_metadata</span></code> (ecoinvent’s naming); check the result on
+another biosphere.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pulpo.utils.uncertainty.decomposition.families_by_database">
+<span class="sig-prename descclassname"><span class="pre">pulpo.utils.uncertainty.decomposition.</span></span><span class="sig-name descname"><span class="pre">families_by_database</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lci_data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/pulpo/utils/uncertainty/decomposition.html#families_by_database"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.uncertainty.decomposition.families_by_database" title="Link to this definition">#</a></dt>
+<dd><p>A <code class="docutils literal notranslate"><span class="pre">families</span></code> function for <a class="reference internal" href="#pulpo.utils.uncertainty.decomposition.decompose" title="pulpo.utils.uncertainty.decomposition.decompose"><code class="xref py py-func docutils literal notranslate"><span class="pre">decompose()</span></code></a>: each B entry belongs to
+the database of its process.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pulpo.utils.uncertainty.decomposition.Decomposition">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pulpo.utils.uncertainty.decomposition.</span></span><span class="sig-name descname"><span class="pre">Decomposition</span></span><a class="reference internal" href="../../../../../../_modules/pulpo/utils/uncertainty/decomposition.html#Decomposition"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.uncertainty.decomposition.Decomposition" title="Link to this definition">#</a></dt>
+<dd><p>Sobol’ indices of <code class="docutils literal notranslate"><span class="pre">X</span></code> at one decision (see the module docstring).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Variables<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>variance</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – <code class="docutils literal notranslate"><span class="pre">V</span> <span class="pre">=</span> <span class="pre">Var</span> <span class="pre">X(s)</span></code>.</p></li>
+<li><p><strong>parameters</strong> (<em>DataFrame</em>) – one row per parameter that carries variance,
+by decreasing <code class="docutils literal notranslate"><span class="pre">ST</span></code>: <code class="docutils literal notranslate"><span class="pre">group</span></code> (<code class="docutils literal notranslate"><span class="pre">'If'</span></code> or <code class="docutils literal notranslate"><span class="pre">'Cf'</span></code>), <code class="docutils literal notranslate"><span class="pre">flow</span></code>,
+<code class="docutils literal notranslate"><span class="pre">process</span></code> (-1 for a CF), <code class="docutils literal notranslate"><span class="pre">family</span></code>, <code class="docutils literal notranslate"><span class="pre">S1</span></code>, <code class="docutils literal notranslate"><span class="pre">ST</span></code>.</p></li>
+<li><p><strong>interactions</strong> (<em>DataFrame</em>) – <code class="docutils literal notranslate"><span class="pre">S2(q_e,</span> <span class="pre">b_ej)</span></code> for each B entry whose CF
+is uncertain, by <code class="docutils literal notranslate"><span class="pre">flow</span></code> and <code class="docutils literal notranslate"><span class="pre">process</span></code>.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="pulpo.utils.uncertainty.decomposition.Decomposition.std">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">std</span></span><a class="reference internal" href="../../../../../../_modules/pulpo/utils/uncertainty/decomposition.html#Decomposition.std"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.uncertainty.decomposition.Decomposition.std" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pulpo.utils.uncertainty.decomposition.Decomposition.variance">
+<span class="sig-name descname"><span class="pre">variance</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></em><a class="reference internal" href="../../../../../../_modules/pulpo/utils/uncertainty/decomposition.html#Decomposition.variance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.uncertainty.decomposition.Decomposition.variance" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pulpo.utils.uncertainty.decomposition.Decomposition.parameters">
+<span class="sig-name descname"><span class="pre">parameters</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v3.0.6)"><span class="pre">pandas.DataFrame</span></a></em><a class="reference internal" href="../../../../../../_modules/pulpo/utils/uncertainty/decomposition.html#Decomposition.parameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.uncertainty.decomposition.Decomposition.parameters" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pulpo.utils.uncertainty.decomposition.Decomposition.interactions">
+<span class="sig-name descname"><span class="pre">interactions</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v3.0.6)"><span class="pre">pandas.DataFrame</span></a></em><a class="reference internal" href="../../../../../../_modules/pulpo/utils/uncertainty/decomposition.html#Decomposition.interactions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.uncertainty.decomposition.Decomposition.interactions" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pulpo.utils.uncertainty.decomposition.Decomposition.families">
+<span class="sig-name descname"><span class="pre">families</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v3.0.6)"><span class="pre">pandas.DataFrame</span></a></span></span><a class="reference internal" href="../../../../../../_modules/pulpo/utils/uncertainty/decomposition.html#Decomposition.families"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.uncertainty.decomposition.Decomposition.families" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">S1</span></code> and <code class="docutils literal notranslate"><span class="pre">ST</span></code> of each family: the sums over its members, exact
+because a family holds either B entries or CFs.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pulpo.utils.uncertainty.decomposition.Decomposition.top">
+<span class="sig-name descname"><span class="pre">top</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v3.0.6)"><span class="pre">pandas.DataFrame</span></a></span></span><a class="reference internal" href="../../../../../../_modules/pulpo/utils/uncertainty/decomposition.html#Decomposition.top"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.uncertainty.decomposition.Decomposition.top" title="Link to this definition">#</a></dt>
+<dd><p>The <code class="docutils literal notranslate"><span class="pre">n</span></code> parameters with the largest total-order index.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pulpo.utils.uncertainty.decomposition.decompose">
+<span class="sig-prename descclassname"><span class="pre">pulpo.utils.uncertainty.decomposition.</span></span><span class="sig-name descname"><span class="pre">decompose</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">moments</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../moments/index.html#pulpo.utils.uncertainty.moments.Moments" title="pulpo.utils.uncertainty.moments.Moments"><span class="pre">pulpo.utils.uncertainty.moments.Moments</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">families</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#pulpo.utils.uncertainty.decomposition.Decomposition" title="pulpo.utils.uncertainty.decomposition.Decomposition"><span class="pre">Decomposition</span></a></span></span><a class="reference internal" href="../../../../../../_modules/pulpo/utils/uncertainty/decomposition.html#decompose"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.uncertainty.decomposition.decompose" title="Link to this definition">#</a></dt>
+<dd><p>Exact first-, second- and total-order Sobol’ indices of <code class="docutils literal notranslate"><span class="pre">X(s)</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>s</strong> – a scaling vector in original units, or a solved
+<code class="xref py py-class docutils literal notranslate"><span class="pre">cc.Point</span></code>.</p></li>
+<li><p><strong>moments</strong> (<a class="reference internal" href="../moments/index.html#pulpo.utils.uncertainty.moments.Moments" title="pulpo.utils.uncertainty.moments.Moments"><em>Moments</em></a>) – from <code class="xref py py-func docutils literal notranslate"><span class="pre">moments.compute_moments()</span></code>.</p></li>
+<li><p><strong>families</strong> (<em>callable</em><em>, </em><em>optional</em>) – <code class="docutils literal notranslate"><span class="pre">families(flows,</span> <span class="pre">processes)</span></code> returns
+a label for each B entry (arrays of equal length), e.g.
+<a class="reference internal" href="#pulpo.utils.uncertainty.decomposition.families_by_database" title="pulpo.utils.uncertainty.decomposition.families_by_database"><code class="xref py py-func docutils literal notranslate"><span class="pre">families_by_database()</span></code></a>. CFs always form the family <code class="docutils literal notranslate"><span class="pre">'Cf'</span></code>;
+without it every B entry is in family <code class="docutils literal notranslate"><span class="pre">'If'</span></code>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pulpo.utils.uncertainty.decomposition.lognormal_with_cv">
+<span class="sig-prename descclassname"><span class="pre">pulpo.utils.uncertainty.decomposition.</span></span><span class="sig-name descname"><span class="pre">lognormal_with_cv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">amount</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/pulpo/utils/uncertainty/decomposition.html#lognormal_with_cv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.uncertainty.decomposition.lognormal_with_cv" title="Link to this definition">#</a></dt>
+<dd><p>A lognormal spec with mean <code class="docutils literal notranslate"><span class="pre">amount</span></code> and coefficient of variation <code class="docutils literal notranslate"><span class="pre">r</span></code>,
+mirrored for a negative amount (<code class="docutils literal notranslate"><span class="pre">Var</span> <span class="pre">=</span> <span class="pre">r^2</span> <span class="pre">amount^2</span></code> either way).</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pulpo.utils.uncertainty.decomposition._width">
+<span class="sig-prename descclassname"><span class="pre">pulpo.utils.uncertainty.decomposition.</span></span><span class="sig-name descname"><span class="pre">_width</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">widths</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">group</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subgroup</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/pulpo/utils/uncertainty/decomposition.html#_width"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.uncertainty.decomposition._width" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pulpo.utils.uncertainty.decomposition._check_widths">
+<span class="sig-prename descclassname"><span class="pre">pulpo.utils.uncertainty.decomposition.</span></span><span class="sig-name descname"><span class="pre">_check_widths</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">widths</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">uncertainty_data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/pulpo/utils/uncertainty/decomposition.html#_check_widths"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.uncertainty.decomposition._check_widths" title="Link to this definition">#</a></dt>
+<dd><p>A key that names no subgroup would leave a group deterministic unnoticed.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pulpo.utils.uncertainty.decomposition.widen">
+<span class="sig-prename descclassname"><span class="pre">pulpo.utils.uncertainty.decomposition.</span></span><span class="sig-name descname"><span class="pre">widen</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">uncertainty_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../preparer/index.html#pulpo.utils.uncertainty.preparer.UncertaintyData" title="pulpo.utils.uncertainty.preparer.UncertaintyData"><span class="pre">pulpo.utils.uncertainty.preparer.UncertaintyData</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">widths</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exact_cfs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="../preparer/index.html#pulpo.utils.uncertainty.preparer.UncertaintyData" title="pulpo.utils.uncertainty.preparer.UncertaintyData"><span class="pre">pulpo.utils.uncertainty.preparer.UncertaintyData</span></a></span></span><a class="reference internal" href="../../../../../../_modules/pulpo/utils/uncertainty/decomposition.html#widen"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.uncertainty.decomposition.widen" title="Link to this definition">#</a></dt>
+<dd><p>A copy of the data in which every undeclared parameter has a width.</p>
+<p>Each gets <a class="reference internal" href="#pulpo.utils.uncertainty.decomposition.lognormal_with_cv" title="pulpo.utils.uncertainty.decomposition.lognormal_with_cv"><code class="xref py py-func docutils literal notranslate"><span class="pre">lognormal_with_cv()</span></code></a> of its amount: its mean is unchanged
+and its variance is <code class="docutils literal notranslate"><span class="pre">r^2</span> <span class="pre">amount^2</span></code>. Parameters with a zero amount carry
+nothing and stay undeclared; declared parameters are not touched.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>uncertainty_data</strong> – from <code class="xref py py-func docutils literal notranslate"><span class="pre">preparer.import_declared()</span></code>.</p></li>
+<li><p><strong>widths</strong> – one coefficient of variation <code class="docutils literal notranslate"><span class="pre">r</span></code> for every undeclared
+parameter, or <code class="docutils literal notranslate"><span class="pre">{subgroup:</span> <span class="pre">r}</span></code> with a database name for its B
+entries and <code class="docutils literal notranslate"><span class="pre">'Cf'</span></code> for the CFs; a subgroup not named keeps its
+undeclared parameters deterministic.</p></li>
+<li><p><strong>exact_cfs</strong> – flow rows whose CF never receives a width, normally the
+CO2 flows, <code class="docutils literal notranslate"><span class="pre">co2_flows(worker)</span></code>; <code class="docutils literal notranslate"><span class="pre">()</span></code> holds none exact.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pulpo.utils.uncertainty.decomposition._exact_cfs">
+<span class="sig-prename descclassname"><span class="pre">pulpo.utils.uncertainty.decomposition.</span></span><span class="sig-name descname"><span class="pre">_exact_cfs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">exact_cfs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/pulpo/utils/uncertainty/decomposition.html#_exact_cfs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.uncertainty.decomposition._exact_cfs" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pulpo.utils.uncertainty.decomposition.Screening">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pulpo.utils.uncertainty.decomposition.</span></span><span class="sig-name descname"><span class="pre">Screening</span></span><a class="reference internal" href="../../../../../../_modules/pulpo/utils/uncertainty/decomposition.html#Screening"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.uncertainty.decomposition.Screening" title="Link to this definition">#</a></dt>
+<dd><p>Outcome of <a class="reference internal" href="#pulpo.utils.uncertainty.decomposition.screen_undeclared" title="pulpo.utils.uncertainty.decomposition.screen_undeclared"><code class="xref py py-func docutils literal notranslate"><span class="pre">screen_undeclared()</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Variables<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sigma</strong> (<em>DataFrame</em>) – per width <code class="docutils literal notranslate"><span class="pre">r</span></code>: <code class="docutils literal notranslate"><span class="pre">sigma</span></code>, <code class="docutils literal notranslate"><span class="pre">ratio</span></code> to the
+declared sigma, and the undeclared parameters’ share of <code class="docutils literal notranslate"><span class="pre">sum</span> <span class="pre">ST</span></code>.</p></li>
+<li><p><strong>ranking</strong> (<em>DataFrame</em>) – the undeclared parameters that receive a width,
+by decreasing <code class="docutils literal notranslate"><span class="pre">|contribution|</span></code>, their deterministic contribution
+<code class="docutils literal notranslate"><span class="pre">E[q_e]</span> <span class="pre">b_ej</span> <span class="pre">s_j</span></code> (<code class="docutils literal notranslate"><span class="pre">E[q_e]</span> <span class="pre">y_e</span></code> for a CF) to <code class="docutils literal notranslate"><span class="pre">E[X]</span></code>. This is
+the ranking: it does not depend on <code class="docutils literal notranslate"><span class="pre">r</span></code>. Columns <code class="docutils literal notranslate"><span class="pre">ST</span> <span class="pre">r=...</span></code>
+hold each parameter’s total-order index at each width.</p></li>
+<li><p><strong>top</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a>) – <code class="docutils literal notranslate"><span class="pre">{r:</span> <span class="pre">DataFrame}</span></code>, the <code class="docutils literal notranslate"><span class="pre">n</span></code> parameters, declared or not,
+with the largest total-order index at width <code class="docutils literal notranslate"><span class="pre">r</span></code>, with their
+<code class="docutils literal notranslate"><span class="pre">share</span></code> of <code class="docutils literal notranslate"><span class="pre">sum</span> <span class="pre">ST</span></code>.</p></li>
+<li><p><strong>exact_cfs</strong> (<em>ndarray</em>) – the flows whose CF was held exact.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pulpo.utils.uncertainty.decomposition.Screening.sigma">
+<span class="sig-name descname"><span class="pre">sigma</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v3.0.6)"><span class="pre">pandas.DataFrame</span></a></em><a class="reference internal" href="../../../../../../_modules/pulpo/utils/uncertainty/decomposition.html#Screening.sigma"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.uncertainty.decomposition.Screening.sigma" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pulpo.utils.uncertainty.decomposition.Screening.ranking">
+<span class="sig-name descname"><span class="pre">ranking</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v3.0.6)"><span class="pre">pandas.DataFrame</span></a></em><a class="reference internal" href="../../../../../../_modules/pulpo/utils/uncertainty/decomposition.html#Screening.ranking"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.uncertainty.decomposition.Screening.ranking" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pulpo.utils.uncertainty.decomposition.Screening.top">
+<span class="sig-name descname"><span class="pre">top</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a></em><a class="reference internal" href="../../../../../../_modules/pulpo/utils/uncertainty/decomposition.html#Screening.top"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.uncertainty.decomposition.Screening.top" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pulpo.utils.uncertainty.decomposition.Screening.exact_cfs">
+<span class="sig-name descname"><span class="pre">exact_cfs</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></em><a class="reference internal" href="../../../../../../_modules/pulpo/utils/uncertainty/decomposition.html#Screening.exact_cfs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.uncertainty.decomposition.Screening.exact_cfs" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pulpo.utils.uncertainty.decomposition.screen_undeclared">
+<span class="sig-prename descclassname"><span class="pre">pulpo.utils.uncertainty.decomposition.</span></span><span class="sig-name descname"><span class="pre">screen_undeclared</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">uncertainty_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../preparer/index.html#pulpo.utils.uncertainty.preparer.UncertaintyData" title="pulpo.utils.uncertainty.preparer.UncertaintyData"><span class="pre">pulpo.utils.uncertainty.preparer.UncertaintyData</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">lci_data</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exact_cfs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">widths</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0.1,</span> <span class="pre">0.3)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">families</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#pulpo.utils.uncertainty.decomposition.Screening" title="pulpo.utils.uncertainty.decomposition.Screening"><span class="pre">Screening</span></a></span></span><a class="reference internal" href="../../../../../../_modules/pulpo/utils/uncertainty/decomposition.html#screen_undeclared"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.uncertainty.decomposition.screen_undeclared" title="Link to this definition">#</a></dt>
+<dd><p>Which undeclared parameters would matter if they were uncertain.</p>
+<p>Every undeclared parameter gets each coefficient of variation <code class="docutils literal notranslate"><span class="pre">r</span></code> in <code class="docutils literal notranslate"><span class="pre">widths</span></code> (see
+<a class="reference internal" href="#pulpo.utils.uncertainty.decomposition.widen" title="pulpo.utils.uncertainty.decomposition.widen"><code class="xref py py-func docutils literal notranslate"><span class="pre">widen()</span></code></a>), the CFs in <code class="docutils literal notranslate"><span class="pre">exact_cfs</span></code> excepted, and the exact indices of
+<a class="reference internal" href="#pulpo.utils.uncertainty.decomposition.decompose" title="pulpo.utils.uncertainty.decomposition.decompose"><code class="xref py py-func docutils literal notranslate"><span class="pre">decompose()</span></code></a> are evaluated at the fixed decision <code class="docutils literal notranslate"><span class="pre">s</span></code>. For an
+undeclared B entry <code class="docutils literal notranslate"><span class="pre">ST</span></code> is <code class="docutils literal notranslate"><span class="pre">(E[q_e]^2</span> <span class="pre">+</span> <span class="pre">w_e)</span> <span class="pre">r^2</span> <span class="pre">b_ej^2</span> <span class="pre">s_j^2</span> <span class="pre">/</span> <span class="pre">V</span></code>:
+up to its CF’s factor <code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">+</span> <span class="pre">w_e</span> <span class="pre">/</span> <span class="pre">E[q_e]^2</span></code> it is proportional to
+<code class="docutils literal notranslate"><span class="pre">(E[q_e]</span> <span class="pre">b_ej</span> <span class="pre">s_j)^2</span></code>, the same at every <code class="docutils literal notranslate"><span class="pre">r</span></code>. The <code class="docutils literal notranslate"><span class="pre">ranking</span></code> uses
+that deterministic contribution, so it does not depend on <code class="docutils literal notranslate"><span class="pre">r</span></code>; the
+indices at each <code class="docutils literal notranslate"><span class="pre">r</span></code> sit beside it.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>s</strong> – a scaling vector (original units) or a solved <code class="xref py py-class docutils literal notranslate"><span class="pre">cc.Point</span></code>,
+typically the decision of the declared configuration.</p></li>
+<li><p><strong>uncertainty_data</strong> – the declared configuration.</p></li>
+<li><p><strong>lci_data</strong> – the LCI data, or a worker holding it.</p></li>
+<li><p><strong>widths</strong> – the coefficients of variation <code class="docutils literal notranslate"><span class="pre">r</span></code> to evaluate, each given to
+every undeclared parameter.</p></li>
+<li><p><strong>n</strong> – rows of each <code class="docutils literal notranslate"><span class="pre">top</span></code> table.</p></li>
+<li><p><strong>exact_cfs</strong> – flow rows whose CF is exact by definition and never
+receives a width, e.g. <code class="docutils literal notranslate"><span class="pre">co2_flows(worker)</span></code> for a GWP method.
+Undeclared B entries are all widened: none is exact by definition,
+and holding one exact could only lower the figures.</p></li>
+<li><p><strong>families</strong> – as in <a class="reference internal" href="#pulpo.utils.uncertainty.decomposition.decompose" title="pulpo.utils.uncertainty.decomposition.decompose"><code class="xref py py-func docutils literal notranslate"><span class="pre">decompose()</span></code></a>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pulpo.utils.uncertainty.decomposition.width_sensitivity">
+<span class="sig-prename descclassname"><span class="pre">pulpo.utils.uncertainty.decomposition.</span></span><span class="sig-name descname"><span class="pre">width_sensitivity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">uncertainty_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../preparer/index.html#pulpo.utils.uncertainty.preparer.UncertaintyData" title="pulpo.utils.uncertainty.preparer.UncertaintyData"><span class="pre">pulpo.utils.uncertainty.preparer.UncertaintyData</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">lci_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">widths</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exact_cfs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kappa</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v3.0.6)"><span class="pre">pandas.DataFrame</span></a></span></span><a class="reference internal" href="../../../../../../_modules/pulpo/utils/uncertainty/decomposition.html#width_sensitivity"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.uncertainty.decomposition.width_sensitivity" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">sigma(s)</span></code> with the undeclared parameters at each of <code class="docutils literal notranslate"><span class="pre">widths</span></code>.</p>
+<p>The mean does not change with the widths, so at a fixed decision the
+chance-constrained impact rises by <code class="docutils literal notranslate"><span class="pre">kappa</span> <span class="pre">*</span> <span class="pre">(sigma</span> <span class="pre">-</span> <span class="pre">sigma_declared)</span></code>.
+Re-optimizing at the wider setting can only do better, so that is an
+upper bound on the rise of the optimal adjusted impact (and the rise is
+not negative, since no variance decreases).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>s</strong> – a scaling vector, or a solved <code class="xref py py-class docutils literal notranslate"><span class="pre">cc.Point</span></code> (whose <code class="docutils literal notranslate"><span class="pre">kappa</span></code>
+is used unless <code class="docutils literal notranslate"><span class="pre">kappa</span></code> is given).</p></li>
+<li><p><strong>uncertainty_data</strong> – the configuration the decision was solved for.</p></li>
+<li><p><strong>lci_data</strong> – the LCI data, or a worker holding it.</p></li>
+<li><p><strong>widths</strong> – a list of settings, each a coefficient of variation for every
+undeclared parameter or <code class="docutils literal notranslate"><span class="pre">{subgroup:</span> <span class="pre">r}</span></code> (see <a class="reference internal" href="#pulpo.utils.uncertainty.decomposition.widen" title="pulpo.utils.uncertainty.decomposition.widen"><code class="xref py py-func docutils literal notranslate"><span class="pre">widen()</span></code></a>), e.g.
+<code class="docutils literal notranslate"><span class="pre">{'ecoinvent-3.10-cutoff':</span> <span class="pre">0.1,</span> <span class="pre">'my_foreground_db':</span> <span class="pre">0.3,</span> <span class="pre">'Cf':</span> <span class="pre">0.1}</span></code>
+with the names of the worker’s databases.</p></li>
+<li><p><strong>exact_cfs</strong> – flow rows whose CF never receives a width (see
+<a class="reference internal" href="#pulpo.utils.uncertainty.decomposition.screen_undeclared" title="pulpo.utils.uncertainty.decomposition.screen_undeclared"><code class="xref py py-func docutils literal notranslate"><span class="pre">screen_undeclared()</span></code></a>).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>per setting, the width of each subgroup (<code class="docutils literal notranslate"><span class="pre">r[...]</span></code>),
+<code class="docutils literal notranslate"><span class="pre">sigma</span></code>, <code class="docutils literal notranslate"><span class="pre">ratio</span></code> to the declared sigma, <code class="docutils literal notranslate"><span class="pre">delta_sigma</span></code> and, with
+a <code class="docutils literal notranslate"><span class="pre">kappa</span></code>, <code class="docutils literal notranslate"><span class="pre">bound</span></code> (<code class="docutils literal notranslate"><span class="pre">kappa</span> <span class="pre">*</span> <span class="pre">delta_sigma</span></code>).</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pulpo.utils.uncertainty.decomposition.diagnostics">
+<span class="sig-prename descclassname"><span class="pre">pulpo.utils.uncertainty.decomposition.</span></span><span class="sig-name descname"><span class="pre">diagnostics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">front</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">moments</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../moments/index.html#pulpo.utils.uncertainty.moments.Moments" title="pulpo.utils.uncertainty.moments.Moments"><span class="pre">pulpo.utils.uncertainty.moments.Moments</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v3.0.6)"><span class="pre">pandas.DataFrame</span></a></span></span><a class="reference internal" href="../../../../../../_modules/pulpo/utils/uncertainty/decomposition.html#diagnostics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.uncertainty.decomposition.diagnostics" title="Link to this definition">#</a></dt>
+<dd><p>Post-hoc figures of each solved point, all evaluated at its <code class="docutils literal notranslate"><span class="pre">s</span></code>.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">sigma_indep</span></code>: the standard deviation with the covariance through
+shared CFs dropped, and <code class="docutils literal notranslate"><span class="pre">sigma</span> <span class="pre">/</span> <span class="pre">sigma_indep</span></code>;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">cf_share</span></code>: the CFs’ share of <code class="docutils literal notranslate"><span class="pre">Var</span> <span class="pre">X</span></code> (the sum of their total-order
+indices: the variance that goes away when every CF is exact);</p></li>
+<li><p>the bound imposed on each uncertain process (<code class="docutils literal notranslate"><span class="pre">bound</span> <span class="pre">&lt;kind&gt;:&lt;process&gt;</span></code>);</p></li>
+<li><p>the size of the reduced problem and the solve times.</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>front</strong> – a <code class="xref py py-class docutils literal notranslate"><span class="pre">cc.Front</span></code> or an iterable of <code class="xref py py-class docutils literal notranslate"><span class="pre">cc.Point</span></code>.</p></li>
+<li><p><strong>moments</strong> (<a class="reference internal" href="../moments/index.html#pulpo.utils.uncertainty.moments.Moments" title="pulpo.utils.uncertainty.moments.Moments"><em>Moments</em></a>) – the moments the front was solved with.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="../cc/index.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.uncertainty.cc</span></code></p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="../moments/index.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.uncertainty.moments</span></code></p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#why">Why</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-contents">Module Contents</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#classes">Classes</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#functions">Functions</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.uncertainty.decomposition._lci"><code class="docutils literal notranslate"><span class="pre">_lci()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.uncertainty.decomposition._decision"><code class="docutils literal notranslate"><span class="pre">_decision()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.uncertainty.decomposition.co2_flows"><code class="docutils literal notranslate"><span class="pre">co2_flows()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.uncertainty.decomposition.families_by_database"><code class="docutils literal notranslate"><span class="pre">families_by_database()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.uncertainty.decomposition.Decomposition"><code class="docutils literal notranslate"><span class="pre">Decomposition</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.uncertainty.decomposition.Decomposition.std"><code class="docutils literal notranslate"><span class="pre">Decomposition.std</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.uncertainty.decomposition.Decomposition.variance"><code class="docutils literal notranslate"><span class="pre">Decomposition.variance</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.uncertainty.decomposition.Decomposition.parameters"><code class="docutils literal notranslate"><span class="pre">Decomposition.parameters</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.uncertainty.decomposition.Decomposition.interactions"><code class="docutils literal notranslate"><span class="pre">Decomposition.interactions</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.uncertainty.decomposition.Decomposition.families"><code class="docutils literal notranslate"><span class="pre">Decomposition.families()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.uncertainty.decomposition.Decomposition.top"><code class="docutils literal notranslate"><span class="pre">Decomposition.top()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.uncertainty.decomposition.decompose"><code class="docutils literal notranslate"><span class="pre">decompose()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.uncertainty.decomposition.lognormal_with_cv"><code class="docutils literal notranslate"><span class="pre">lognormal_with_cv()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.uncertainty.decomposition._width"><code class="docutils literal notranslate"><span class="pre">_width()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.uncertainty.decomposition._check_widths"><code class="docutils literal notranslate"><span class="pre">_check_widths()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.uncertainty.decomposition.widen"><code class="docutils literal notranslate"><span class="pre">widen()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.uncertainty.decomposition._exact_cfs"><code class="docutils literal notranslate"><span class="pre">_exact_cfs()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.uncertainty.decomposition.Screening"><code class="docutils literal notranslate"><span class="pre">Screening</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.uncertainty.decomposition.Screening.sigma"><code class="docutils literal notranslate"><span class="pre">Screening.sigma</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.uncertainty.decomposition.Screening.ranking"><code class="docutils literal notranslate"><span class="pre">Screening.ranking</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.uncertainty.decomposition.Screening.top"><code class="docutils literal notranslate"><span class="pre">Screening.top</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.uncertainty.decomposition.Screening.exact_cfs"><code class="docutils literal notranslate"><span class="pre">Screening.exact_cfs</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.uncertainty.decomposition.screen_undeclared"><code class="docutils literal notranslate"><span class="pre">screen_undeclared()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.uncertainty.decomposition.width_sensitivity"><code class="docutils literal notranslate"><span class="pre">width_sensitivity()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.uncertainty.decomposition.diagnostics"><code class="docutils literal notranslate"><span class="pre">diagnostics()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  
+  <div class="tocsection editthispage">
+    <a href="https://github.com/flechtenberg/pulpo/edit/master/docs/content/api/pulpo/utils/uncertainty/decomposition/index.rst">
+      <i class="fa-solid fa-pencil"></i>
+      
+      
+        
+          Edit on GitHub
+        
+      
+    </a>
+  </div>
+</div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="../../../../../../_sources/content/api/pulpo/utils/uncertainty/decomposition/index.rst.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../../../../../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341"></script>
+<script src="../../../../../../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2026 pulpo developers.
+      <br/>
+    
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item"><p>🌿🐛 Found a bug? Something not working? Frustrated? <a href=" latest/../../../../../../../content/contributing.html">Please report it!</a></p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

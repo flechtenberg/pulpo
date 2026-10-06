@@ -1,0 +1,294 @@
+:py:mod:`pulpo.utils.bw_parser`
+===============================
+
+.. py:module:: pulpo.utils.bw_parser
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   pulpo.utils.bw_parser.LCIDataDict
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   pulpo.utils.bw_parser.set_project
+   pulpo.utils.bw_parser._ensure_project_current
+   pulpo.utils.bw_parser.import_data
+   pulpo.utils.bw_parser._load_lci_bw25
+   pulpo.utils.bw_parser._load_lci_bw2
+   pulpo.utils.bw_parser._linked_databases
+   pulpo.utils.bw_parser._activity_rows
+   pulpo.utils.bw_parser._activity_orm
+   pulpo.utils.bw_parser._query_processes_sql
+   pulpo.utils.bw_parser._iterate_processes
+   pulpo.utils.bw_parser.retrieve_processes
+   pulpo.utils.bw_parser.retrieve_env_interventions
+   pulpo.utils.bw_parser._as_list
+   pulpo.utils.bw_parser._parse_tuple
+   pulpo.utils.bw_parser.retrieve_methods
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   pulpo.utils.bw_parser._SQL_BACKENDS
+
+
+.. py:class:: LCIDataDict
+
+
+   Bases: :py:obj:`TypedDict`
+
+   .. autoapi-inheritance-diagram:: pulpo.utils.bw_parser.LCIDataDict
+      :parts: 1
+      :private-bases:
+
+   The LCI data of a worker (``worker.lci_data``): matrices, maps and uncertainty parameters.
+
+   Initialize self.  See help(type(self)) for accurate signature.
+
+   .. py:attribute:: matrices
+      :type: Dict[str, numpy.ndarray]
+
+      
+
+   .. py:attribute:: intervention_matrix
+      :type: numpy.ndarray
+
+      
+
+   .. py:attribute:: technology_matrix
+      :type: numpy.ndarray
+
+      
+
+   .. py:attribute:: process_map
+      :type: Dict[Any, Any]
+
+      
+
+   .. py:attribute:: intervention_params
+      :type: Any
+
+      
+
+   .. py:attribute:: characterization_params
+      :type: Dict[str, Any]
+
+      
+
+   .. py:attribute:: intervention_map
+      :type: Dict[Any, Any]
+
+      
+
+   .. py:attribute:: intervention_map_metadata
+      :type: Dict[Any, str]
+
+      
+
+   .. py:attribute:: process_map_metadata
+      :type: Dict[Any, str]
+
+      
+
+
+.. py:function:: set_project(project: str)
+
+
+.. py:function:: _ensure_project_current(project: str)
+
+   Activate ``project`` only if it is not already the active bw2data project.
+
+   ``bd.projects.set_current()`` always tears down and rebuilds bw2data's sqlite3
+   connections (including a full ``gc.collect()``) even when re-selecting the active
+   project. Skipping that redundant reset matters because this runs once per
+   ``import_data`` call, i.e. once per Monte Carlo iteration.
+
+
+.. py:function:: import_data(project: str, databases: Union[str, List[str]], method: Union[str, List[str], Dict[str, int]], intervention_matrix_name: str, seed: Union[None, int] = None, resample: Union[str, List[str]] = ('A', 'B', 'Q'), compute_uncertainty_params: bool = True) -> LCIDataDict
+
+   Main function to import LCI data for a project from one or more databases.
+
+   :param project: Name of the project.
+   :type project: str
+   :param databases: One or more databases (e.g. foreground and
+                     background); order does not matter.
+   :type databases: Union[str, List[str]]
+   :param method: Method(s) for data retrieval.
+   :type method: Union[str, List[str], Dict[str, int]]
+   :param intervention_matrix_name: Name of the intervention matrix.
+   :type intervention_matrix_name: str
+   :param seed: Seed for RNG. If None, the default A, B, and Q matrices are used.
+   :type seed: Union[None, int], optional
+   :param compute_uncertainty_params: Whether to assemble the bw25
+                                      'intervention_params' / 'characterization_params' structured arrays. These are
+                                      only needed by the uncertainty sub-package (``uncertainty.import_declared``),
+                                      not by A/B/Q resampling, so skipping them speeds up repeated Monte Carlo calls.
+                                      Default True to preserve the full LCIDataDict. An array is ``None``, without a
+                                      warning, when the databases or the method carry no (complete) uncertainty
+                                      data: a deterministic study does not need it, and ``import_declared`` says so
+                                      when uncertainty is actually requested.
+   :type compute_uncertainty_params: bool, optional
+
+   :returns: Dictionary containing imported LCI data.
+   :rtype: Dict[str, Union[dict, Any]]
+
+
+.. py:function:: _load_lci_bw25(eidbs, methods, seed, dist, resample, compute_uncertainty_params, activity_rows)
+
+   Build the (optionally resampled) A/B/Q matrices and maps for a bw25 project.
+
+   One LCA with a combined functional unit (one activity per listed database) loads
+   the union of all databases and their dependencies into a single index space, so
+   database order does not matter.
+
+   Only the matrices in ``resample`` are drawn from their distributions, each
+   from its own random stream (child seeds spawned from ``seed``, as in the bw2
+   path); the others keep their deterministic values. bw2calc alone would draw
+   every matrix, all from the same seed.
+
+   Returns ``(lca, characterization_matrices, characterization_params, process_map,
+   intervention_params)``; ``intervention_params`` is ``None`` when not requested
+   or unavailable.
+
+
+.. py:function:: _load_lci_bw2(eidbs, methods, seed, dist, resample)
+
+   Build the (optionally resampled) A/B/Q matrices and maps for a legacy bw2 project.
+
+   One LCA with a combined functional unit (one activity per listed database) loads
+   the union of all databases and their dependencies into a single index space, so
+   database order does not matter.
+
+   A, B and each method's Q are resampled from independent child seeds spawned from
+   ``seed``: a shared seed would give every MCRandomNumberGenerator the identical
+   percentile stream and inject spurious cross-matrix correlation (bw25 likewise
+   draws each matrix independently).
+
+   Returns ``(lca, characterization_matrices, characterization_params, process_map,
+   intervention_params)``.
+
+
+.. py:function:: _linked_databases(names)
+
+   ``names`` and every database they link to, directly or not (``depends``).
+
+
+.. py:function:: _activity_rows(db_names)
+
+   ``(id, database, code, name, reference product, location)`` of every activity
+   of ``db_names``: one SQL query where the backend allows it, else by iteration.
+
+
+.. py:function:: _activity_orm()
+
+   Return (ActivityDataset, Activity) ORM handles for the installed bw2data version.
+
+   Both bw2 and bw25 store activities in a SQLite ``activitydataset`` table whose
+   ``name``, ``product`` (reference product) and ``location`` are real columns, so
+   exact-match filters can run server-side instead of loading every activity proxy.
+   Returns ``(None, None)`` if the ORM is unavailable (unexpected backend/version).
+
+
+.. py:data:: _SQL_BACKENDS
+
+   
+
+.. py:function:: _query_processes_sql(ActivityDataset, Activity, db_name, keys, activities, reference_products, locations)
+
+   Fetch matching activities of one database with a single SQL query.
+
+   Only the matching rows are materialized into ``Activity`` proxies, instead of
+   unpickling the whole database as the iteration fallback does.
+
+
+.. py:function:: _iterate_processes(db_name, keys, activities, reference_products, locations)
+
+   Legacy fallback: load every activity of the database and filter in Python.
+
+
+.. py:function:: retrieve_processes(project: str, databases: Union[str, List[str]], keys=None, activities=None, reference_products=None, locations=None)
+
+   Retrieve activities from one or more databases based on specified keys, activities, reference products, and locations.
+
+   Filters are matched exactly and combined with AND; ``keys`` takes precedence over
+   the other filters. Uses a server-side SQL query where possible (SQLite-backed
+   databases) and falls back to iterating the database otherwise.
+
+   :param project: Name of the project.
+   :type project: str
+   :param databases: Name of the primary database or a list of databases (foreground, background).
+   :type databases: Union[str, List[str]]
+   :param keys: List of keys to filter activities, as "('db', 'code')" strings or (db, code) tuples.
+   :type keys: list, optional
+   :param activities: List of activity names to filter.
+   :type activities: list, optional
+   :param reference_products: List of reference products to filter.
+   :type reference_products: list, optional
+   :param locations: List of locations to filter.
+   :type locations: list, optional
+
+   :returns: List of matching activities from the specified databases.
+   :rtype: list
+
+
+.. py:function:: retrieve_env_interventions(project: str = '', intervention_matrix: str = 'biosphere3', keys=None, activities=None, categories=None)
+
+   Retrieve environmental interventions from the biosphere database based on specified keys, activities, and categories.
+
+   Filters are matched exactly and combined with AND; ``keys`` takes precedence over
+   the other filters. Each filter takes one value or a list of them. Categories are
+   tuples such as ``('air', 'urban air close to ground')``.
+
+   :param project: Name of the project.
+   :type project: str, optional
+   :param intervention_matrix: Name of the intervention matrix.
+   :type intervention_matrix: str
+   :param keys: Flow keys, as (database, code) tuples or their string form.
+   :type keys: optional
+   :param activities: Flow names.
+   :type activities: optional
+   :param categories: Flow categories, as tuples or their string form.
+   :type categories: optional
+
+   :returns: The matching environmental flows; empty, with a warning, if none match.
+   :rtype: list
+
+
+.. py:function:: _as_list(value)
+
+   A filter value as a list: a string or a tuple is one value.
+
+
+.. py:function:: _parse_tuple(value, name, example)
+
+   A key or category given as a tuple or its string form, as a tuple.
+
+
+.. py:function:: retrieve_methods(project: str, sub_string: List[str]) -> List[str]
+
+   Retrieve all methods that contain the specified list of substrings.
+
+   :param project: Name of the project.
+   :type project: str
+   :param sub_string: List of substrings to search for in method names.
+   :type sub_string: List[str]
+
+   :returns: List of methods that match the substrings.
+   :rtype: List[str]
+
+

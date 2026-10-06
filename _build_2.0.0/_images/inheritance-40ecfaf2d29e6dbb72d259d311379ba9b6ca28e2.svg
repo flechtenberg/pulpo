@@ -1,0 +1,89 @@
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" xmlns:ns1="http://www.w3.org/1999/xlink" width="192pt" height="143pt" viewBox="0.00 0.00 191.50 143.43">
+<ns0:g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 139.43)">
+<ns0:title>inheritancebdf1f83b78</ns0:title>
+
+<ns0:g id="node1" class="node">
+<ns0:title>TypedDict</ns0:title>
+<ns0:g id="a_node1"><ns0:a ns1:href="https://docs.python.org/3/library/typing.html#typing.TypedDict" ns1:title="TypedDict" target="_top">
+<ns0:polygon fill="white" stroke="black" stroke-width="0.5" points="60.25,-77.71 0,-77.71 0,-57.71 60.25,-57.71 60.25,-77.71" />
+<ns0:text text-anchor="middle" x="30.12" y="-64.21" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">TypedDict</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="node2" class="node">
+<ns0:title>UncertaintyData</ns0:title>
+<ns0:g id="a_node2"><ns0:a ns1:href="..\content\api\pulpo\utils\uncertainty\preparer\index.html#pulpo.utils.uncertainty.preparer.UncertaintyData" ns1:title="The uncertainty data of an impact: ``'If'`` per database, ``'Cf'`` for the method." target="_top">
+<ns0:polygon fill="white" stroke="black" stroke-width="0.5" points="183.5,-77.71 96.25,-77.71 96.25,-57.71 183.5,-57.71 183.5,-77.71" />
+<ns0:text text-anchor="middle" x="139.88" y="-64.21" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">UncertaintyData</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge1" class="edge">
+<ns0:title>TypedDict-&gt;UncertaintyData</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M31.61,-57.58C38.86,16.79 125.91,18.85 137.58,-51.4" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="135.9,-52.01 138.29,-56.74 139.37,-51.56 135.9,-52.01" />
+</ns0:g>
+
+<ns0:g id="edge2" class="edge">
+<ns0:title>TypedDict-&gt;UncertaintyData</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M31.93,-57.3C40.92,-1.3 122.48,0.74 136.75,-51.2" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="135.17,-52.18 137.93,-56.7 138.59,-51.45 135.17,-52.18" />
+</ns0:g>
+
+<ns0:g id="edge3" class="edge">
+<ns0:title>TypedDict-&gt;UncertaintyData</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M32.57,-57.4C43.8,-19.23 117.39,-17.26 135.06,-51.48" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="133.63,-52.6 137.12,-56.58 136.87,-51.29 133.63,-52.6" />
+</ns0:g>
+
+<ns0:g id="edge4" class="edge">
+<ns0:title>TypedDict-&gt;UncertaintyData</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M34.47,-57.52C49.27,-36.85 109.11,-35.24 130.89,-52.71" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="130.08,-54.39 134.83,-56.74 132.59,-51.94 130.08,-54.39" />
+</ns0:g>
+
+<ns0:g id="edge5" class="edge">
+<ns0:title>TypedDict-&gt;UncertaintyData</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M49.4,-57.28C67.2,-53.61 94.39,-53.23 114.12,-56.15" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="114.54,-58 119.76,-57.13 115.14,-54.55 114.54,-58" />
+</ns0:g>
+
+<ns0:g id="edge6" class="edge">
+<ns0:title>TypedDict-&gt;UncertaintyData</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M60.57,-67.71C69.56,-67.71 79.71,-67.71 89.65,-67.71" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="90.38,-69.46 95.38,-67.71 90.38,-65.96 90.38,-69.46" />
+</ns0:g>
+
+<ns0:g id="edge7" class="edge">
+<ns0:title>TypedDict-&gt;UncertaintyData</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M49.4,-78.15C67.2,-81.81 94.39,-82.19 114.12,-79.28" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="115.14,-80.88 119.76,-78.3 114.54,-77.43 115.14,-80.88" />
+</ns0:g>
+
+<ns0:g id="edge8" class="edge">
+<ns0:title>TypedDict-&gt;UncertaintyData</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M34.47,-77.9C49.27,-98.58 109.11,-100.18 130.89,-82.71" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="132.59,-83.49 134.83,-78.69 130.08,-81.04 132.59,-83.49" />
+</ns0:g>
+
+<ns0:g id="edge9" class="edge">
+<ns0:title>TypedDict-&gt;UncertaintyData</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M32.57,-78.03C43.8,-116.2 117.39,-118.17 135.06,-83.94" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="136.87,-84.13 137.12,-78.84 133.63,-82.83 136.87,-84.13" />
+</ns0:g>
+
+<ns0:g id="edge10" class="edge">
+<ns0:title>TypedDict-&gt;UncertaintyData</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M31.93,-78.13C40.92,-134.13 122.48,-136.17 136.75,-84.23" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="138.59,-83.98 137.93,-78.72 135.17,-83.25 138.59,-83.98" />
+</ns0:g>
+
+<ns0:g id="edge11" class="edge">
+<ns0:title>TypedDict-&gt;UncertaintyData</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M31.61,-77.85C38.86,-152.22 125.91,-154.28 137.58,-84.03" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="139.37,-83.87 138.29,-78.69 135.9,-83.41 139.37,-83.87" />
+</ns0:g>
+</ns0:g>
+</ns0:svg>

@@ -1,0 +1,253 @@
+:py:mod:`pulpo.utils.uncertainty.preparer`
+==========================================
+
+.. py:module:: pulpo.utils.uncertainty.preparer
+
+.. autoapi-nested-parse::
+
+   Import of the uncertainty data an impact ``X(s) = sum_e q_e sum_j b_ej s_j`` depends on.
+
+   Which parameters
+   ----------------
+   Every entry ``b_ej`` of the intervention matrix on a flow ``e`` that the LCIA
+   method characterizes, and every characterization factor ``q_e`` of the method
+   on a flow that occurs in the intervention matrix. Nothing else can move ``X``:
+   an entry on an uncharacterized flow is multiplied by a CF of exactly zero, and
+   an entry that is zero in ``B`` is no coefficient at all. No contribution
+   filter is applied, so the parameter set does not depend on a reference
+   solution.
+
+   Technosphere exchanges are not parameters, as of now: ``A`` is deterministic
+   and any distribution the database declares for its entries is not read. The
+   closed-form moments and the reduced space both rely on that.
+
+   Declared and undeclared
+   -----------------------
+   A parameter is *declared* when the database or the method gives it a
+   distribution (``uncertainty_type > 0``) and *undeclared* otherwise. Undeclared
+   parameters are deterministic in every result (mean = amount, variance 0); they
+   are kept, under ``'undeclared'``, so that the screening of undeclared parameters
+   can rank them. ``uncertainty_type = 1`` ("no uncertainty") is a declaration of
+   an exact value and is kept under ``'declared'`` with variance 0.
+
+   The container (``UncertaintyData``) is a nested dict::
+
+       {'If': {database: {'declared': {(e, j): spec}, 'undeclared': {(e, j): spec}}},
+        'Cf': {method:   {'declared': {e: spec},      'undeclared': {e: spec}}}}
+
+   with ``spec`` a stats_arrays-style dict (``uncertainty_type``, ``amount``,
+   ``loc``, ``scale``, ``shape``, ``minimum``, ``maximum``, ``negative``) and
+   ``(e, j)`` the (flow row, process column) of the entry in ``B``.
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   pulpo.utils.uncertainty.preparer.UncertaintySpec
+   pulpo.utils.uncertainty.preparer.ParameterBlock
+   pulpo.utils.uncertainty.preparer.UncertaintyData
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   pulpo.utils.uncertainty.preparer._single_method
+   pulpo.utils.uncertainty.preparer._record
+   pulpo.utils.uncertainty.preparer._split
+   pulpo.utils.uncertainty.preparer.import_declared
+   pulpo.utils.uncertainty.preparer._iter_defined
+   pulpo.utils.uncertainty.preparer._validate
+   pulpo.utils.uncertainty.preparer.override
+   pulpo.utils.uncertainty.preparer.undeclared
+   pulpo.utils.uncertainty.preparer.counts
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   pulpo.utils.uncertainty.preparer.ParamIndex
+   pulpo.utils.uncertainty.preparer.SUPPORTED_FAMILIES
+   pulpo.utils.uncertainty.preparer._SPEC_FIELDS
+
+
+.. py:class:: UncertaintySpec
+
+
+   Bases: :py:obj:`TypedDict`
+
+   .. autoapi-inheritance-diagram:: pulpo.utils.uncertainty.preparer.UncertaintySpec
+      :parts: 1
+      :private-bases:
+
+   One parameter's declared distribution, in stats_arrays' field names.
+
+   Initialize self.  See help(type(self)) for accurate signature.
+
+   .. py:attribute:: uncertainty_type
+      :type: int
+
+      
+
+   .. py:attribute:: amount
+      :type: float
+
+      
+
+   .. py:attribute:: loc
+      :type: float
+
+      
+
+   .. py:attribute:: scale
+      :type: float
+
+      
+
+   .. py:attribute:: shape
+      :type: float
+
+      
+
+   .. py:attribute:: minimum
+      :type: float
+
+      
+
+   .. py:attribute:: maximum
+      :type: float
+
+      
+
+   .. py:attribute:: negative
+      :type: bool
+
+      
+
+
+.. py:data:: ParamIndex
+
+   
+
+.. py:class:: ParameterBlock
+
+
+   Bases: :py:obj:`TypedDict`
+
+   .. autoapi-inheritance-diagram:: pulpo.utils.uncertainty.preparer.ParameterBlock
+      :parts: 1
+      :private-bases:
+
+   The parameters of one database or method, split by whether they declare a distribution.
+
+   Initialize self.  See help(type(self)) for accurate signature.
+
+   .. py:attribute:: declared
+      :type: Dict[ParamIndex, UncertaintySpec]
+
+      
+
+   .. py:attribute:: undeclared
+      :type: Dict[ParamIndex, UncertaintySpec]
+
+      
+
+
+.. py:class:: UncertaintyData
+
+
+   Bases: :py:obj:`TypedDict`
+
+   .. autoapi-inheritance-diagram:: pulpo.utils.uncertainty.preparer.UncertaintyData
+      :parts: 1
+      :private-bases:
+
+   The uncertainty data of an impact: ``'If'`` per database, ``'Cf'`` for the method.
+
+   Initialize self.  See help(type(self)) for accurate signature.
+
+   .. py:attribute:: If
+      :type: Dict[str, ParameterBlock]
+
+      
+
+   .. py:attribute:: Cf
+      :type: Dict[str, ParameterBlock]
+
+      
+
+
+.. py:data:: SUPPORTED_FAMILIES
+
+   
+
+.. py:data:: _SPEC_FIELDS
+   :value: ('uncertainty_type', 'amount', 'loc', 'scale', 'shape', 'minimum', 'maximum', 'negative')
+
+   
+
+.. py:function:: _single_method(worker)
+
+
+.. py:function:: _record(row) -> UncertaintySpec
+
+
+.. py:function:: _split(records)
+
+
+.. py:function:: import_declared(worker, method=None) -> UncertaintyData
+
+   The parameters of the worker's impact and their declared distributions.
+
+   :param worker: a worker after ``get_lci_data()``.
+   :type worker: PulpoOptimizer
+   :param method: the LCIA method; defaults to the worker's only one.
+   :type method: str, optional
+
+   :returns: see the module docstring.
+   :rtype: UncertaintyData
+
+
+.. py:function:: _iter_defined(data)
+
+
+.. py:function:: _validate(spec: UncertaintySpec, index=None)
+
+
+.. py:function:: override(uncertainty_data: UncertaintyData, group: str, subgroup: str, specs: Dict[ParamIndex, UncertaintySpec]) -> UncertaintyData
+
+   Declare or replace distributions, e.g. from expert elicitation.
+
+   Each spec replaces the parameter's distribution; ``amount`` (the value the
+   deterministic model uses) is kept unless the spec gives one. A parameter
+   that is not in the data raises ``KeyError``: it is not a coefficient of
+   the impact (a zero entry of ``B``, or an uncharacterized flow).
+
+   :param uncertainty_data: from :func:`import_declared`; modified in place and returned.
+   :param group: ``'If'`` or ``'Cf'``.
+   :param subgroup: the database (``'If'``) or the method (``'Cf'``).
+   :param specs: ``{index: spec}`` with ``index`` = ``(flow row, process column)``
+                 for ``'If'`` and the flow row for ``'Cf'``.
+
+
+.. py:function:: undeclared(uncertainty_data: UncertaintyData) -> Dict[str, Dict[str, Dict[ParamIndex, UncertaintySpec]]]
+
+   ``{group: {subgroup: {index: spec}}}`` of every undeclared parameter.
+
+
+.. py:function:: counts(uncertainty_data: UncertaintyData) -> List[dict]
+
+   One row per group, subgroup and family: how many parameters each holds.
+
+

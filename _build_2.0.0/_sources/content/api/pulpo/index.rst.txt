@@ -1,0 +1,34 @@
+:py:mod:`pulpo`
+===============
+
+.. py:module:: pulpo
+
+
+Subpackages
+-----------
+.. toctree::
+   :titlesonly:
+   :maxdepth: 3
+
+   datasets/index.rst
+   utils/index.rst
+
+
+Submodules
+----------
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+
+   pulpo/index.rst
+   pulpo_time/index.rst
+   pulpo_unc/index.rst
+
+
+Package Contents
+----------------
+
+.. py:data:: _missing
+
+   
+

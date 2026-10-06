@@ -1,0 +1,1380 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pulpo.utils.uncertainty.cc &#8212; pulpo 2.0.0 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../../_static/styles/theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+<link href="../../../../_static/styles/bootstrap.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+<link href="../../../../_static/styles/pydata-sphinx-theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+
+  
+  <link href="../../../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/custom.css?v=913d6465" />
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341" />
+<link rel="preload" as="script" href="../../../../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341" />
+  <script src="../../../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=3ee479438cf8b5e0d341"></script>
+
+    <script src="../../../../_static/documentation_options.js?v=79f5c508"></script>
+    <script src="../../../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../../../_static/design-tabs.js?v=36754332"></script>
+    <script src="https://unpkg.com/mermaid@10.2.0/dist/mermaid.min.js"></script>
+    <script>
+    function initializeMermaidBasedOnTheme() {
+        const theme = document.documentElement.dataset.theme;
+
+        if (theme === 'dark') {
+            mermaid.initialize({
+                startOnLoad: true,
+                theme: 'base',
+                themeVariables: {
+                    edgeLabelBackground: 'transparent',
+                    defaultLinkColor: '#ced6dd',
+                    titleColor: '#ced6dd',
+                    nodeTextColor: '#ced6dd',
+                    lineColor: '#ced6dd',
+                }
+            });
+        } else {
+            mermaid.initialize({
+                startOnLoad: true,
+                theme: 'base',
+                themeVariables: {
+                    edgeLabelBackground: 'transparent',
+                    defaultLinkColor: '#222832',
+                    titleColor: '#222832',
+                    nodeTextColor: '#222832',
+                    lineColor: '#222832',
+                }
+            });
+        }
+
+        // Re-render all Mermaid diagrams
+        mermaid.contentLoaded();
+    }
+
+    // Observer to detect changes to the data-theme attribute
+    const themeObserver = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            if (mutation.type === 'attributes' && mutation.attributeName === 'data-theme') {
+            initializeMermaidBasedOnTheme();
+            }
+        });
+    });
+
+    themeObserver.observe(document.documentElement, { attributes: true });
+
+    initializeMermaidBasedOnTheme();
+</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/pulpo/utils/uncertainty/cc';</script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+<meta name="google-site-verification" content="Fb3YVU81AToFlPNhlaQf6LLq1SMrHPbY-RtFsgZkw9Q" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+
+<a class="navbar-brand logo" href="../../../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../../../_static/pulpo_logo_big.svg" class="logo__image only-light" alt="pulpo 2.0.0 documentation - Home"/>
+    <script>document.write(`<img src="../../../../_static/pulpo_logo_big.svg" class="logo__image only-dark" alt="pulpo 2.0.0 documentation - Home"/>`);</script>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav class="navbar-nav">
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../content/installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../content/getting_started/index.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../content/theory.html">
+    Theory
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../content/uncertainty.html">
+    Uncertainty
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../content/examples/index.html">
+    Examples
+  </a>
+</li>
+
+            <li class="nav-item dropdown pst-header-nav-item">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../content/api/index.html">
+    API
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../content/contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../content/codeofconduct.html">
+    Code of Conduct
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../content/license.html">
+    License
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../content/changelog.html">
+    Changelog
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  </button>
+`);
+</script></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links navbar-nav"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/flechtenberg/pulpo" title="Open this Repo on GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fab fa-brands fa-github fa-lg" aria-hidden="true"></i></span>
+            <span class="sr-only">Open this Repo on GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <div class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav class="navbar-nav">
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../content/installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../content/getting_started/index.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../content/theory.html">
+    Theory
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../content/uncertainty.html">
+    Uncertainty
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../content/examples/index.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../content/api/index.html">
+    API
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../content/contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../content/codeofconduct.html">
+    Code of Conduct
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../content/license.html">
+    License
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../content/changelog.html">
+    Changelog
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  </button>
+`);
+</script></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links navbar-nav"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/flechtenberg/pulpo" title="Open this Repo on GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fab fa-brands fa-github fa-lg" aria-hidden="true"></i></span>
+            <span class="sr-only">Open this Repo on GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../../index.html" class="nav-link">Module code</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="../../../pulpo.html" class="nav-link">pulpo</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page">pulpo.utils....</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for pulpo.utils.uncertainty.cc</h1><div class="highlight"><pre>
+<span></span><span class="sd">"""Chance-constrained optimization in reduced space.</span>
+
+<span class="sd">Why</span>
+<span class="sd">---</span>
+<span class="sd">With a joint reliability level ``lambda`` over ``K`` events (the impact row</span>
+<span class="sd">and one per uncertain bound) and Boole's inequality, each event may fail with</span>
+<span class="sd">probability ``eps_k = w_k (1 - lambda)`` (equal weights by default). Then ::</span>
+
+<span class="sd">    impact row:  P(X &lt;= z) &gt;= lambda_z = 1 - eps_0</span>
+<span class="sd">                 =&gt;  mu' s + kappa sigma(s) &lt;= z,   kappa = Phi^-1(lambda_z)   (X normal, A2)</span>
+<span class="sd">    bound j:     P(s_j &lt;= U_j) &gt;= 1 - eps_k   =&gt;  s_j &lt;= F_Uj^-1(eps_k)        (exact quantile)</span>
+
+<span class="sd">and minimizing ``z`` gives ``min mu' s + kappa sigma(s)`` subject to PULPO's</span>
+<span class="sd">constraints with the uncertain bounds at their quantiles. In reduced space</span>
+<span class="sd">(``pulpo.utils.reduced``) ``s = s0 + S v`` and ::</span>
+
+<span class="sd">    sigma(s) = || R [1; v] ||,     R' R = G' G,     G = Q^(1/2) [s0, S]</span>
+
+<span class="sd">with ``Q = diag(d) + B_u' diag(w) B_u`` from :mod:`moments`. The problem is a</span>
+<span class="sd">second-order cone program with one column per alternative, solved directly by</span>
+<span class="sd">Clarabel (open source, the default) or Gurobi. ``kappa &gt;= 0`` (``lambda_z &gt;=</span>
+<span class="sd">1/2``) keeps it convex; lower levels are refused.</span>
+
+<span class="sd">``allocation='individual'`` imposes every event at ``lambda`` on its own (a</span>
+<span class="sd">comparison only: it controls no joint probability).</span>
+<span class="sd">"""</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Tuple</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">scipy.sparse</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">sp</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">scipy.stats</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">stats_arrays</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyomo.opt</span><span class="w"> </span><span class="kn">import</span> <span class="n">TerminationCondition</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">pulpo.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">optimizer</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pulpo.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">reduced</span> <span class="k">as</span> <span class="n">_reduced</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pulpo.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">scaling</span> <span class="k">as</span> <span class="n">_scaling</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pulpo.utils.uncertainty.moments</span><span class="w"> </span><span class="kn">import</span> <span class="n">Moments</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pulpo.utils.uncertainty.preparer</span><span class="w"> </span><span class="kn">import</span> <span class="n">UncertaintySpec</span><span class="p">,</span> <span class="n">_validate</span>
+
+<span class="c1">#: Below this many entries of ``Q^(1/2) [s0, S]`` the factor ``R`` comes from a</span>
+<span class="c1">#: QR decomposition of that matrix; above, from the Gram matrix assembled with</span>
+<span class="c1">#: ``2 (K + 1)`` solves, which never stores the rows of ``S``.</span>
+<div class="viewcode-block" id="QR_ENTRIES">
+<a class="viewcode-back" href="../../../../content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.QR_ENTRIES">[docs]</a>
+<span class="n">QR_ENTRIES</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">**</span> <span class="mi">24</span></div>
+
+
+<span class="c1">#: Clarabel options for the cone. The error in the optimum scales with the</span>
+<span class="c1">#: tolerance (about 1e-6 relative at Clarabel's default of 1e-8 on an ecoinvent</span>
+<span class="c1">#: problem); 1e-10 is the tightest setting that still converges reliably.</span>
+<div class="viewcode-block" id="CLARABEL_OPTIONS">
+<a class="viewcode-back" href="../../../../content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.CLARABEL_OPTIONS">[docs]</a>
+<span class="n">CLARABEL_OPTIONS</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'tol_gap_abs'</span><span class="p">:</span> <span class="mf">1e-10</span><span class="p">,</span> <span class="s1">'tol_gap_rel'</span><span class="p">:</span> <span class="mf">1e-10</span><span class="p">,</span> <span class="s1">'tol_feas'</span><span class="p">:</span> <span class="mf">1e-10</span><span class="p">}</span></div>
+
+
+<span class="c1">#: Gurobi options for the cone. Its default BarQCPConvTol (1e-6) moves the</span>
+<span class="c1">#: Pareto front by up to 1e-5 in the objective's units.</span>
+<div class="viewcode-block" id="GUROBI_CONE_OPTIONS">
+<a class="viewcode-back" href="../../../../content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.GUROBI_CONE_OPTIONS">[docs]</a>
+<span class="n">GUROBI_CONE_OPTIONS</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'BarQCPConvTol'</span><span class="p">:</span> <span class="mf">1e-9</span><span class="p">,</span> <span class="s1">'FeasibilityTol'</span><span class="p">:</span> <span class="mf">1e-9</span><span class="p">,</span> <span class="s1">'OptimalityTol'</span><span class="p">:</span> <span class="mf">1e-9</span><span class="p">}</span></div>
+
+
+
+<span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="c1"># Risk budget and exact quantiles</span>
+<span class="c1"># ---------------------------------------------------------------------------</span>
+
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<div class="viewcode-block" id="RiskBudget">
+<a class="viewcode-back" href="../../../../content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.RiskBudget">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">RiskBudget</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""A total failure budget ``eps = 1 - lambda`` split across ``K`` events.</span>
+
+<span class="sd">    Imposing each chance constraint at ``lambda`` individually controls no joint</span>
+<span class="sd">    probability: with ``K`` rows each allowed to fail with probability ``eps``,</span>
+<span class="sd">    the chance that at least one fails reaches ``K * eps``. Boole's inequality</span>
+<span class="sd">    repairs this - allocate ``eps_k = w_k * eps`` with ``sum(w_k) = 1`` and the</span>
+<span class="sd">    union of the failures is bounded by ``eps``, so every row holds *together*</span>
+<span class="sd">    with probability at least ``lambda``. It needs only marginals, so no</span>
+<span class="sd">    correlation between the events has to be estimated.</span>
+
+<span class="sd">    ``weights[0]`` is the impact target; ``weights[1:]`` are the uncertain</span>
+<span class="sd">    bounds in the order of :attr:`ChanceConstrained.events` (lower bounds</span>
+<span class="sd">    first, then upper bounds, each by process index). The weights are</span>
+<span class="sd">    fixed before the solve - choosing them after seeing a solution would make</span>
+<span class="sd">    the budget a function of the decision it certifies.</span>
+<span class="sd">    """</span>
+
+<div class="viewcode-block" id="RiskBudget.lambda_level">
+<a class="viewcode-back" href="../../../../content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.RiskBudget.lambda_level">[docs]</a>
+    <span class="n">lambda_level</span><span class="p">:</span> <span class="nb">float</span></div>
+
+<div class="viewcode-block" id="RiskBudget.K">
+<a class="viewcode-back" href="../../../../content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.RiskBudget.K">[docs]</a>
+    <span class="n">K</span><span class="p">:</span> <span class="nb">int</span></div>
+
+<div class="viewcode-block" id="RiskBudget.weights">
+<a class="viewcode-back" href="../../../../content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.RiskBudget.weights">[docs]</a>
+    <span class="n">weights</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span></div>
+
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="RiskBudget.epsilon">
+<a class="viewcode-back" href="../../../../content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.RiskBudget.epsilon">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">epsilon</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""The total failure budget being divided."""</span>
+        <span class="k">return</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">lambda_level</span></div>
+
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="RiskBudget.lambda_impact">
+<a class="viewcode-back" href="../../../../content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.RiskBudget.lambda_impact">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">lambda_impact</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Level for the impact target: ``1 - w_0 * eps``, replacing ``lambda``."""</span>
+        <span class="k">return</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">epsilon</span></div>
+
+
+<div class="viewcode-block" id="RiskBudget.epsilon_at">
+<a class="viewcode-back" href="../../../../content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.RiskBudget.epsilon_at">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">epsilon_at</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">position</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""The share of the budget allocated to the event at ``position``."""</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="p">[</span><span class="n">position</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">epsilon</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="bonferroni_budget">
+<a class="viewcode-back" href="../../../../content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.bonferroni_budget">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">bonferroni_budget</span><span class="p">(</span><span class="n">lambda_level</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">K</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RiskBudget</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Split ``1 - lambda_level`` across ``K`` events, equally unless told otherwise.</span>
+
+<span class="sd">    An equal split is the default because it is neutral: it needs no</span>
+<span class="sd">    justification and cannot be read as tuned to produce a result. Unequal</span>
+<span class="sd">    weights are valid - Boole's inequality only requires them to sum to one -</span>
+<span class="sd">    but each must be positive: a weight of zero demands its event with</span>
+<span class="sd">    certainty, which no distribution with unbounded support can meet.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="mf">0.0</span> <span class="o">&lt;=</span> <span class="n">lambda_level</span> <span class="o">&lt;</span> <span class="mf">1.0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"lambda_level must lie in [0, 1); got </span><span class="si">{</span><span class="n">lambda_level</span><span class="si">!r}</span><span class="s2">."</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">K</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"K must be at least 1; got </span><span class="si">{</span><span class="n">K</span><span class="si">!r}</span><span class="s2">."</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">weights</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">weights</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">/</span> <span class="n">K</span><span class="p">,)</span> <span class="o">*</span> <span class="n">K</span>
+    <span class="n">weights</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">w</span><span class="p">)</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">weights</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">weights</span><span class="p">)</span> <span class="o">!=</span> <span class="n">K</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"weights has length </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">weights</span><span class="p">)</span><span class="si">}</span><span class="s2"> but K is </span><span class="si">{</span><span class="n">K</span><span class="si">}</span><span class="s2">; one weight per "</span>
+                         <span class="s2">"event, the first for the impact target."</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="ow">not</span> <span class="n">w</span> <span class="o">&gt;</span> <span class="mf">0.0</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">weights</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"weights must be positive; got </span><span class="si">{</span><span class="n">weights</span><span class="si">!r}</span><span class="s2">."</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">weights</span><span class="p">),</span> <span class="mf">1.0</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"weights must sum to 1 for Boole's inequality to bound the joint "</span>
+                         <span class="sa">f</span><span class="s2">"failure probability by </span><span class="si">{</span><span class="mf">1.0</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">lambda_level</span><span class="si">:</span><span class="s2">.4g</span><span class="si">}</span><span class="s2">; got </span><span class="si">{</span><span class="nb">sum</span><span class="p">(</span><span class="n">weights</span><span class="p">)</span><span class="si">:</span><span class="s2">.6g</span><span class="si">}</span><span class="s2">."</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">RiskBudget</span><span class="p">(</span><span class="n">lambda_level</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">lambda_level</span><span class="p">),</span> <span class="n">K</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">K</span><span class="p">),</span> <span class="n">weights</span><span class="o">=</span><span class="n">weights</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="declared_quantile">
+<a class="viewcode-back" href="../../../../content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.declared_quantile">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">declared_quantile</span><span class="p">(</span><span class="n">spec</span><span class="p">:</span> <span class="n">UncertaintySpec</span><span class="p">,</span> <span class="n">probability</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The exact ``probability``-quantile of a parameter's declared family.</span>
+
+<span class="sd">    A right-hand-side-only chance constraint ``P(s &lt;= xi) &gt;= 1 - eps`` is</span>
+<span class="sd">    ``s &lt;= F^-1(eps)`` with ``F`` the declared distribution, so it needs no</span>
+<span class="sd">    Gaussian representation. For a triangular distribution the inverse CDF is</span>
+<span class="sd">    elementary and never leaves the support, which a moment-matched normal does</span>
+<span class="sd">    at high reliability.</span>
+<span class="sd">    """</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">probability</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="mf">0.0</span> <span class="o">&lt;=</span> <span class="n">p</span> <span class="o">&lt;=</span> <span class="mf">1.0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"probability must lie in [0, 1]; got </span><span class="si">{</span><span class="n">p</span><span class="si">!r}</span><span class="s2">."</span><span class="p">)</span>
+    <span class="n">utype</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">spec</span><span class="p">[</span><span class="s1">'uncertainty_type'</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">utype</span> <span class="ow">in</span> <span class="p">(</span><span class="n">stats_arrays</span><span class="o">.</span><span class="n">UndefinedUncertainty</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">stats_arrays</span><span class="o">.</span><span class="n">NoUncertainty</span><span class="o">.</span><span class="n">id</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">spec</span><span class="p">[</span><span class="s1">'amount'</span><span class="p">])</span>
+    <span class="n">_validate</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">utype</span> <span class="o">==</span> <span class="n">stats_arrays</span><span class="o">.</span><span class="n">NormalUncertainty</span><span class="o">.</span><span class="n">id</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">spec</span><span class="p">[</span><span class="s1">'loc'</span><span class="p">]</span> <span class="o">+</span> <span class="n">spec</span><span class="p">[</span><span class="s1">'scale'</span><span class="p">]</span> <span class="o">*</span> <span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">norm</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="n">p</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">utype</span> <span class="o">==</span> <span class="n">stats_arrays</span><span class="o">.</span><span class="n">UniformUncertainty</span><span class="o">.</span><span class="n">id</span><span class="p">:</span>
+        <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">spec</span><span class="p">[</span><span class="s1">'minimum'</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">spec</span><span class="p">[</span><span class="s1">'maximum'</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">a</span> <span class="o">+</span> <span class="n">p</span> <span class="o">*</span> <span class="p">(</span><span class="n">b</span> <span class="o">-</span> <span class="n">a</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">utype</span> <span class="o">==</span> <span class="n">stats_arrays</span><span class="o">.</span><span class="n">TriangularUncertainty</span><span class="o">.</span><span class="n">id</span><span class="p">:</span>
+        <span class="n">a</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">spec</span><span class="p">[</span><span class="s1">'minimum'</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">spec</span><span class="p">[</span><span class="s1">'loc'</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">spec</span><span class="p">[</span><span class="s1">'maximum'</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">b</span> <span class="o">&lt;=</span> <span class="n">a</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">a</span>
+        <span class="c1"># The branch follows from where the mode sits: a large share of the</span>
+        <span class="c1"># budget at a low level can cross it.</span>
+        <span class="k">if</span> <span class="n">p</span> <span class="o">&lt;=</span> <span class="p">(</span><span class="n">c</span> <span class="o">-</span> <span class="n">a</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">b</span> <span class="o">-</span> <span class="n">a</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">a</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">p</span> <span class="o">*</span> <span class="p">(</span><span class="n">b</span> <span class="o">-</span> <span class="n">a</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">c</span> <span class="o">-</span> <span class="n">a</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">b</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">((</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">p</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">b</span> <span class="o">-</span> <span class="n">a</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">b</span> <span class="o">-</span> <span class="n">c</span><span class="p">))</span>
+    <span class="n">mu</span><span class="p">,</span> <span class="n">sigma</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">spec</span><span class="p">[</span><span class="s1">'loc'</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">spec</span><span class="p">[</span><span class="s1">'scale'</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">spec</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'negative'</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+        <span class="c1"># A mirrored lognormal is decreasing in its own quantile.</span>
+        <span class="k">return</span> <span class="o">-</span><span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">mu</span> <span class="o">+</span> <span class="n">sigma</span> <span class="o">*</span> <span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">norm</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">p</span><span class="p">)))</span>
+    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">mu</span> <span class="o">+</span> <span class="n">sigma</span> <span class="o">*</span> <span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">norm</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="n">p</span><span class="p">)))</span></div>
+
+
+
+<span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="c1"># The cone</span>
+<span class="c1"># ---------------------------------------------------------------------------</span>
+
+<div class="viewcode-block" id="solve_socp">
+<a class="viewcode-back" href="../../../../content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.solve_socp">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">solve_socp</span><span class="p">(</span><span class="n">lp</span><span class="p">,</span> <span class="n">R</span><span class="p">,</span> <span class="n">kappa</span><span class="p">,</span> <span class="n">solver_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""``min c'x + c0 + kappa ||R [1; x_v]||`` over the rows and bounds of ``lp``.</span>
+
+<span class="sd">    ``x_v`` are the first ``R.shape[1] - 1`` columns of ``lp``. Rows, columns</span>
+<span class="sd">    and the objective are equilibrated as in :func:`reduced.solve_lp`. Returns</span>
+<span class="sd">    a :class:`reduced.LPSolution`; ``objective`` includes the cone term.</span>
+<span class="sd">    """</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="p">(</span><span class="n">solver_name</span> <span class="ow">or</span> <span class="s1">'clarabel'</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">'clarabel'</span><span class="p">,</span> <span class="s1">'gurobi'</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"The chance-constrained problem solves with 'clarabel' or 'gurobi', not </span><span class="si">{</span><span class="n">solver_name</span><span class="si">!r}</span><span class="s2">."</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">kappa</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"kappa = </span><span class="si">{</span><span class="n">kappa</span><span class="si">:</span><span class="s2">.4g</span><span class="si">}</span><span class="s2"> &lt; 0 (impact level below 1/2) makes the problem non-convex."</span><span class="p">)</span>
+    <span class="n">options</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">options</span> <span class="ow">or</span> <span class="p">{})</span>
+    <span class="n">tee</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">'tee'</span><span class="p">,</span> <span class="kc">False</span><span class="p">))</span>
+    <span class="n">n</span><span class="p">,</span> <span class="n">kv</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">lp</span><span class="o">.</span><span class="n">c</span><span class="p">),</span> <span class="n">R</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="n">R0</span><span class="p">,</span> <span class="n">R1</span> <span class="o">=</span> <span class="n">R</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">R</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">:],</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">R</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">n</span> <span class="o">-</span> <span class="n">kv</span><span class="p">))])</span>
+    <span class="n">stats</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span><span class="n">lp</span><span class="o">.</span><span class="n">matrix</span><span class="p">,</span> <span class="n">sp</span><span class="o">.</span><span class="n">csr_matrix</span><span class="p">(</span><span class="n">lp</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)),</span> <span class="n">sp</span><span class="o">.</span><span class="n">csr_matrix</span><span class="p">(</span><span class="n">R1</span><span class="p">)],</span> <span class="nb">format</span><span class="o">=</span><span class="s1">'csr'</span><span class="p">)</span>
+    <span class="n">r</span><span class="p">,</span> <span class="n">d</span> <span class="o">=</span> <span class="n">_scaling</span><span class="o">.</span><span class="n">ruiz_scaling</span><span class="p">(</span><span class="n">stats</span><span class="p">)</span>
+    <span class="n">r</span> <span class="o">=</span> <span class="n">r</span><span class="p">[:</span><span class="n">lp</span><span class="o">.</span><span class="n">matrix</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+    <span class="n">M</span> <span class="o">=</span> <span class="p">(</span><span class="n">sp</span><span class="o">.</span><span class="n">diags</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="o">@</span> <span class="n">lp</span><span class="o">.</span><span class="n">matrix</span> <span class="o">@</span> <span class="n">sp</span><span class="o">.</span><span class="n">diags</span><span class="p">(</span><span class="n">d</span><span class="p">))</span><span class="o">.</span><span class="n">tocsr</span><span class="p">()</span>
+    <span class="n">c</span> <span class="o">=</span> <span class="n">lp</span><span class="o">.</span><span class="n">c</span> <span class="o">*</span> <span class="n">d</span>
+    <span class="n">R1</span> <span class="o">=</span> <span class="n">R1</span> <span class="o">*</span> <span class="n">d</span>
+    <span class="n">cmax</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">c</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">size</span> <span class="k">else</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">kappa</span><span class="p">)</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="mf">2.0</span> <span class="o">**</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log2</span><span class="p">(</span><span class="n">cmax</span><span class="p">))</span> <span class="k">if</span> <span class="n">cmax</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mf">1.0</span>
+    <span class="k">with</span> <span class="n">np</span><span class="o">.</span><span class="n">errstate</span><span class="p">(</span><span class="n">invalid</span><span class="o">=</span><span class="s1">'ignore'</span><span class="p">):</span>
+        <span class="n">lo</span><span class="p">,</span> <span class="n">up</span> <span class="o">=</span> <span class="n">lp</span><span class="o">.</span><span class="n">row_lower</span> <span class="o">*</span> <span class="n">r</span><span class="p">,</span> <span class="n">lp</span><span class="o">.</span><span class="n">row_upper</span> <span class="o">*</span> <span class="n">r</span>
+        <span class="n">clo</span><span class="p">,</span> <span class="n">cup</span> <span class="o">=</span> <span class="n">lp</span><span class="o">.</span><span class="n">col_lower</span> <span class="o">/</span> <span class="n">d</span><span class="p">,</span> <span class="n">lp</span><span class="o">.</span><span class="n">col_upper</span> <span class="o">/</span> <span class="n">d</span>
+
+    <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s1">'clarabel'</span><span class="p">:</span>
+        <span class="n">status</span><span class="p">,</span> <span class="n">x</span> <span class="o">=</span> <span class="n">_solve_clarabel</span><span class="p">(</span><span class="n">c</span> <span class="o">*</span> <span class="n">f</span><span class="p">,</span> <span class="n">kappa</span> <span class="o">*</span> <span class="n">f</span><span class="p">,</span> <span class="n">M</span><span class="p">,</span> <span class="n">lo</span><span class="p">,</span> <span class="n">up</span><span class="p">,</span> <span class="n">clo</span><span class="p">,</span> <span class="n">cup</span><span class="p">,</span> <span class="n">R0</span><span class="p">,</span> <span class="n">R1</span><span class="p">,</span> <span class="n">options</span><span class="p">,</span> <span class="n">tee</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">status</span><span class="p">,</span> <span class="n">x</span> <span class="o">=</span> <span class="n">_solve_gurobi_cone</span><span class="p">(</span><span class="n">c</span> <span class="o">*</span> <span class="n">f</span><span class="p">,</span> <span class="n">kappa</span> <span class="o">*</span> <span class="n">f</span><span class="p">,</span> <span class="n">M</span><span class="p">,</span> <span class="n">lo</span><span class="p">,</span> <span class="n">up</span><span class="p">,</span> <span class="n">clo</span><span class="p">,</span> <span class="n">cup</span><span class="p">,</span> <span class="n">R0</span><span class="p">,</span> <span class="n">R1</span><span class="p">,</span> <span class="n">options</span><span class="p">,</span> <span class="n">tee</span><span class="p">)</span>
+    <span class="n">seconds</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span> <span class="o">-</span> <span class="n">start</span>
+    <span class="k">if</span> <span class="n">x</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_reduced</span><span class="o">.</span><span class="n">LPSolution</span><span class="p">(</span><span class="n">status</span><span class="p">,</span> <span class="n">seconds</span><span class="o">=</span><span class="n">seconds</span><span class="p">)</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">x</span> <span class="o">*</span> <span class="n">d</span>
+    <span class="n">sigma</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">R0</span> <span class="o">+</span> <span class="n">R</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">:]</span> <span class="o">@</span> <span class="n">x</span><span class="p">[:</span><span class="n">kv</span><span class="p">]))</span>
+    <span class="k">return</span> <span class="n">_reduced</span><span class="o">.</span><span class="n">LPSolution</span><span class="p">(</span><span class="n">status</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">lp</span><span class="o">.</span><span class="n">c</span> <span class="o">@</span> <span class="n">x</span> <span class="o">+</span> <span class="n">lp</span><span class="o">.</span><span class="n">c0</span> <span class="o">+</span> <span class="n">kappa</span> <span class="o">*</span> <span class="n">sigma</span><span class="p">),</span> <span class="n">seconds</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="_linear_rows">
+<a class="viewcode-back" href="../../../../content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc._linear_rows">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">_linear_rows</span><span class="p">(</span><span class="n">M</span><span class="p">,</span> <span class="n">lo</span><span class="p">,</span> <span class="n">up</span><span class="p">,</span> <span class="n">clo</span><span class="p">,</span> <span class="n">cup</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Split ``lo &lt;= M x &lt;= up`` and the column bounds into equalities and ``&lt;=`` rows."""</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="n">M</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">eq</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">flatnonzero</span><span class="p">(</span><span class="n">lo</span> <span class="o">==</span> <span class="n">up</span><span class="p">)</span>
+    <span class="n">rows_le</span><span class="p">,</span> <span class="n">rhs_le</span> <span class="o">=</span> <span class="p">[</span><span class="n">M</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">flatnonzero</span><span class="p">((</span><span class="n">lo</span> <span class="o">!=</span> <span class="n">up</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">up</span><span class="p">))]],</span> <span class="p">[</span><span class="n">up</span><span class="p">[(</span><span class="n">lo</span> <span class="o">!=</span> <span class="n">up</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">up</span><span class="p">)]]</span>
+    <span class="n">rows_le</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="o">-</span><span class="n">M</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">flatnonzero</span><span class="p">((</span><span class="n">lo</span> <span class="o">!=</span> <span class="n">up</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">lo</span><span class="p">))])</span>
+    <span class="n">rhs_le</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="o">-</span><span class="n">lo</span><span class="p">[(</span><span class="n">lo</span> <span class="o">!=</span> <span class="n">up</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">lo</span><span class="p">)])</span>
+    <span class="n">ident</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">identity</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">'csr'</span><span class="p">)</span>
+    <span class="n">rows_le</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ident</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">flatnonzero</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">cup</span><span class="p">))])</span>
+    <span class="n">rhs_le</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cup</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">cup</span><span class="p">)])</span>
+    <span class="n">rows_le</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="o">-</span><span class="n">ident</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">flatnonzero</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">clo</span><span class="p">))])</span>
+    <span class="n">rhs_le</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="o">-</span><span class="n">clo</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">clo</span><span class="p">)])</span>
+    <span class="k">return</span> <span class="n">M</span><span class="p">[</span><span class="n">eq</span><span class="p">],</span> <span class="n">lo</span><span class="p">[</span><span class="n">eq</span><span class="p">],</span> <span class="n">sp</span><span class="o">.</span><span class="n">vstack</span><span class="p">(</span><span class="n">rows_le</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">'csr'</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">rhs_le</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="_solve_clarabel">
+<a class="viewcode-back" href="../../../../content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc._solve_clarabel">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">_solve_clarabel</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">kappa</span><span class="p">,</span> <span class="n">M</span><span class="p">,</span> <span class="n">lo</span><span class="p">,</span> <span class="n">up</span><span class="p">,</span> <span class="n">clo</span><span class="p">,</span> <span class="n">cup</span><span class="p">,</span> <span class="n">R0</span><span class="p">,</span> <span class="n">R1</span><span class="p">,</span> <span class="n">options</span><span class="p">,</span> <span class="n">tee</span><span class="p">):</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">clarabel</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="n">M</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">A_eq</span><span class="p">,</span> <span class="n">b_eq</span><span class="p">,</span> <span class="n">A_le</span><span class="p">,</span> <span class="n">b_le</span> <span class="o">=</span> <span class="n">_linear_rows</span><span class="p">(</span><span class="n">M</span><span class="p">,</span> <span class="n">lo</span><span class="p">,</span> <span class="n">up</span><span class="p">,</span> <span class="n">clo</span><span class="p">,</span> <span class="n">cup</span><span class="p">)</span>
+    <span class="c1"># Variables (x, t). Cones: x rows = b_eq; b_le - A_le x &gt;= 0; (t, R0 + R1 x) in SOC.</span>
+    <span class="n">zero_col</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">m</span><span class="p">:</span> <span class="n">sp</span><span class="o">.</span><span class="n">csr_matrix</span><span class="p">((</span><span class="n">m</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">1</span><span class="p">))</span>
+    <span class="n">soc</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span><span class="n">sp</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">sp</span><span class="o">.</span><span class="n">csr_matrix</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="n">n</span><span class="p">)),</span> <span class="n">sp</span><span class="o">.</span><span class="n">csr_matrix</span><span class="p">([[</span><span class="o">-</span><span class="mf">1.0</span><span class="p">]])]),</span>
+                     <span class="n">sp</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">sp</span><span class="o">.</span><span class="n">csr_matrix</span><span class="p">(</span><span class="o">-</span><span class="n">R1</span><span class="p">),</span> <span class="n">zero_col</span><span class="p">(</span><span class="n">R1</span><span class="p">)])],</span> <span class="nb">format</span><span class="o">=</span><span class="s1">'csc'</span><span class="p">)</span>
+    <span class="n">A</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span><span class="n">sp</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">A_eq</span><span class="p">,</span> <span class="n">zero_col</span><span class="p">(</span><span class="n">A_eq</span><span class="p">)]),</span> <span class="n">sp</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">A_le</span><span class="p">,</span> <span class="n">zero_col</span><span class="p">(</span><span class="n">A_le</span><span class="p">)]),</span> <span class="n">soc</span><span class="p">],</span> <span class="nb">format</span><span class="o">=</span><span class="s1">'csc'</span><span class="p">)</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">b_eq</span><span class="p">,</span> <span class="n">b_le</span><span class="p">,</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">],</span> <span class="n">R0</span><span class="p">])</span>
+    <span class="n">cones</span> <span class="o">=</span> <span class="p">[</span><span class="n">clarabel</span><span class="o">.</span><span class="n">ZeroConeT</span><span class="p">(</span><span class="n">A_eq</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">clarabel</span><span class="o">.</span><span class="n">NonnegativeConeT</span><span class="p">(</span><span class="n">A_le</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+             <span class="n">clarabel</span><span class="o">.</span><span class="n">SecondOrderConeT</span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">R0</span><span class="p">))]</span>
+    <span class="n">settings</span> <span class="o">=</span> <span class="n">clarabel</span><span class="o">.</span><span class="n">DefaultSettings</span><span class="p">()</span>
+    <span class="n">settings</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="n">tee</span>
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="p">{</span><span class="o">**</span><span class="n">CLARABEL_OPTIONS</span><span class="p">,</span> <span class="o">**</span><span class="n">options</span><span class="p">}</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="nb">setattr</span><span class="p">(</span><span class="n">settings</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+    <span class="n">solution</span> <span class="o">=</span> <span class="n">clarabel</span><span class="o">.</span><span class="n">DefaultSolver</span><span class="p">(</span><span class="n">sp</span><span class="o">.</span><span class="n">csc_matrix</span><span class="p">((</span><span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)),</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">kappa</span><span class="p">),</span> <span class="n">A</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span>
+                                      <span class="n">cones</span><span class="p">,</span> <span class="n">settings</span><span class="p">)</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
+    <span class="n">status</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">solution</span><span class="o">.</span><span class="n">status</span><span class="p">)</span>
+    <span class="n">condition</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'Solved'</span><span class="p">:</span> <span class="n">TerminationCondition</span><span class="o">.</span><span class="n">optimal</span><span class="p">,</span>
+                 <span class="s1">'PrimalInfeasible'</span><span class="p">:</span> <span class="n">TerminationCondition</span><span class="o">.</span><span class="n">infeasible</span><span class="p">,</span>
+                 <span class="s1">'DualInfeasible'</span><span class="p">:</span> <span class="n">TerminationCondition</span><span class="o">.</span><span class="n">unbounded</span><span class="p">,</span>
+                 <span class="s1">'MaxIterations'</span><span class="p">:</span> <span class="n">TerminationCondition</span><span class="o">.</span><span class="n">maxIterations</span><span class="p">,</span>
+                 <span class="s1">'MaxTime'</span><span class="p">:</span> <span class="n">TerminationCondition</span><span class="o">.</span><span class="n">maxTimeLimit</span><span class="p">}</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">status</span><span class="p">,</span> <span class="n">TerminationCondition</span><span class="o">.</span><span class="n">other</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">condition</span> <span class="o">!=</span> <span class="n">TerminationCondition</span><span class="o">.</span><span class="n">optimal</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">condition</span><span class="p">,</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="n">condition</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">solution</span><span class="o">.</span><span class="n">x</span><span class="p">[:</span><span class="n">n</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="_solve_gurobi_cone">
+<a class="viewcode-back" href="../../../../content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc._solve_gurobi_cone">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">_solve_gurobi_cone</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">kappa</span><span class="p">,</span> <span class="n">M</span><span class="p">,</span> <span class="n">lo</span><span class="p">,</span> <span class="n">up</span><span class="p">,</span> <span class="n">clo</span><span class="p">,</span> <span class="n">cup</span><span class="p">,</span> <span class="n">R0</span><span class="p">,</span> <span class="n">R1</span><span class="p">,</span> <span class="n">options</span><span class="p">,</span> <span class="n">tee</span><span class="p">):</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">gurobipy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gp</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">gurobipy</span><span class="w"> </span><span class="kn">import</span> <span class="n">GRB</span>
+    <span class="n">env</span> <span class="o">=</span> <span class="n">gp</span><span class="o">.</span><span class="n">Env</span><span class="p">(</span><span class="n">empty</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">env</span><span class="o">.</span><span class="n">setParam</span><span class="p">(</span><span class="s1">'OutputFlag'</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">tee</span><span class="p">))</span>
+    <span class="n">env</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">gp</span><span class="o">.</span><span class="n">Model</span><span class="p">(</span><span class="n">env</span><span class="o">=</span><span class="n">env</span><span class="p">)</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="n">M</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">addMVar</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">lb</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">clo</span><span class="p">),</span> <span class="n">clo</span><span class="p">,</span> <span class="o">-</span><span class="n">GRB</span><span class="o">.</span><span class="n">INFINITY</span><span class="p">),</span>
+                          <span class="n">ub</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">cup</span><span class="p">),</span> <span class="n">cup</span><span class="p">,</span> <span class="n">GRB</span><span class="o">.</span><span class="n">INFINITY</span><span class="p">))</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">addVar</span><span class="p">(</span><span class="n">lb</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">addMVar</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">R0</span><span class="p">),</span> <span class="n">lb</span><span class="o">=-</span><span class="n">GRB</span><span class="o">.</span><span class="n">INFINITY</span><span class="p">)</span>
+        <span class="n">eq</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">flatnonzero</span><span class="p">(</span><span class="n">lo</span> <span class="o">==</span> <span class="n">up</span><span class="p">)</span>
+        <span class="n">le</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">flatnonzero</span><span class="p">((</span><span class="n">lo</span> <span class="o">!=</span> <span class="n">up</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">up</span><span class="p">))</span>
+        <span class="n">ge</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">flatnonzero</span><span class="p">((</span><span class="n">lo</span> <span class="o">!=</span> <span class="n">up</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">lo</span><span class="p">))</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">eq</span><span class="p">):</span>
+            <span class="n">model</span><span class="o">.</span><span class="n">addMConstr</span><span class="p">(</span><span class="n">M</span><span class="p">[</span><span class="n">eq</span><span class="p">],</span> <span class="n">x</span><span class="p">,</span> <span class="n">GRB</span><span class="o">.</span><span class="n">EQUAL</span><span class="p">,</span> <span class="n">lo</span><span class="p">[</span><span class="n">eq</span><span class="p">])</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">le</span><span class="p">):</span>
+            <span class="n">model</span><span class="o">.</span><span class="n">addMConstr</span><span class="p">(</span><span class="n">M</span><span class="p">[</span><span class="n">le</span><span class="p">],</span> <span class="n">x</span><span class="p">,</span> <span class="n">GRB</span><span class="o">.</span><span class="n">LESS_EQUAL</span><span class="p">,</span> <span class="n">up</span><span class="p">[</span><span class="n">le</span><span class="p">])</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ge</span><span class="p">):</span>
+            <span class="n">model</span><span class="o">.</span><span class="n">addMConstr</span><span class="p">(</span><span class="n">M</span><span class="p">[</span><span class="n">ge</span><span class="p">],</span> <span class="n">x</span><span class="p">,</span> <span class="n">GRB</span><span class="o">.</span><span class="n">GREATER_EQUAL</span><span class="p">,</span> <span class="n">lo</span><span class="p">[</span><span class="n">ge</span><span class="p">])</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">addConstr</span><span class="p">(</span><span class="n">y</span> <span class="o">==</span> <span class="n">R0</span> <span class="o">+</span> <span class="n">sp</span><span class="o">.</span><span class="n">csr_matrix</span><span class="p">(</span><span class="n">R1</span><span class="p">)</span> <span class="o">@</span> <span class="n">x</span><span class="p">)</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">addConstr</span><span class="p">(</span><span class="n">y</span> <span class="o">@</span> <span class="n">y</span> <span class="o">&lt;=</span> <span class="n">t</span> <span class="o">*</span> <span class="n">t</span><span class="p">)</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">setObjective</span><span class="p">(</span><span class="n">c</span> <span class="o">@</span> <span class="n">x</span> <span class="o">+</span> <span class="n">kappa</span> <span class="o">*</span> <span class="n">t</span><span class="p">,</span> <span class="n">GRB</span><span class="o">.</span><span class="n">MINIMIZE</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="p">{</span><span class="o">**</span><span class="n">GUROBI_CONE_OPTIONS</span><span class="p">,</span> <span class="o">**</span><span class="n">options</span><span class="p">}</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">model</span><span class="o">.</span><span class="n">setParam</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">optimize</span><span class="p">()</span>
+        <span class="n">condition</span> <span class="o">=</span> <span class="p">{</span><span class="n">GRB</span><span class="o">.</span><span class="n">OPTIMAL</span><span class="p">:</span> <span class="n">TerminationCondition</span><span class="o">.</span><span class="n">optimal</span><span class="p">,</span>
+                     <span class="n">GRB</span><span class="o">.</span><span class="n">INFEASIBLE</span><span class="p">:</span> <span class="n">TerminationCondition</span><span class="o">.</span><span class="n">infeasible</span><span class="p">,</span>
+                     <span class="n">GRB</span><span class="o">.</span><span class="n">UNBOUNDED</span><span class="p">:</span> <span class="n">TerminationCondition</span><span class="o">.</span><span class="n">unbounded</span><span class="p">,</span>
+                     <span class="n">GRB</span><span class="o">.</span><span class="n">INF_OR_UNBD</span><span class="p">:</span> <span class="n">TerminationCondition</span><span class="o">.</span><span class="n">infeasibleOrUnbounded</span><span class="p">,</span>
+                     <span class="n">GRB</span><span class="o">.</span><span class="n">TIME_LIMIT</span><span class="p">:</span> <span class="n">TerminationCondition</span><span class="o">.</span><span class="n">maxTimeLimit</span><span class="p">}</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">Status</span><span class="p">,</span> <span class="n">TerminationCondition</span><span class="o">.</span><span class="n">other</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">condition</span> <span class="o">!=</span> <span class="n">TerminationCondition</span><span class="o">.</span><span class="n">optimal</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">condition</span><span class="p">,</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="n">condition</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">X</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="n">env</span><span class="o">.</span><span class="n">dispose</span><span class="p">()</span></div>
+
+
+
+<span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="c1"># The chance-constrained problem</span>
+<span class="c1"># ---------------------------------------------------------------------------</span>
+
+<span class="nd">@dataclass</span>
+<div class="viewcode-block" id="Point">
+<a class="viewcode-back" href="../../../../content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.Point">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Point</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""One solved reliability level.</span>
+
+<span class="sd">    ``adjusted`` is the chance-constrained impact ``z = mean + kappa * sigma``;</span>
+<span class="sd">    ``mean`` and ``sigma`` are evaluated exactly at ``s`` (not read off the</span>
+<span class="sd">    cone). ``bounds`` holds the bound imposed on each uncertain process and</span>
+<span class="sd">    ``epsilon`` the failure probability allocated to it, both keyed by the event</span>
+<span class="sd">    ``(kind, process)``, e.g. ``('upper', 4)``; ``size`` is the</span>
+<span class="sd">    number of processes and the columns and rows of the reduced problem.</span>
+<span class="sd">    """</span>
+<div class="viewcode-block" id="Point.lambda_level">
+<a class="viewcode-back" href="../../../../content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.Point.lambda_level">[docs]</a>
+    <span class="n">lambda_level</span><span class="p">:</span> <span class="nb">float</span></div>
+
+<div class="viewcode-block" id="Point.lambda_impact">
+<a class="viewcode-back" href="../../../../content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.Point.lambda_impact">[docs]</a>
+    <span class="n">lambda_impact</span><span class="p">:</span> <span class="nb">float</span></div>
+
+<div class="viewcode-block" id="Point.kappa">
+<a class="viewcode-back" href="../../../../content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.Point.kappa">[docs]</a>
+    <span class="n">kappa</span><span class="p">:</span> <span class="nb">float</span></div>
+
+<div class="viewcode-block" id="Point.mean">
+<a class="viewcode-back" href="../../../../content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.Point.mean">[docs]</a>
+    <span class="n">mean</span><span class="p">:</span> <span class="nb">float</span></div>
+
+<div class="viewcode-block" id="Point.sigma">
+<a class="viewcode-back" href="../../../../content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.Point.sigma">[docs]</a>
+    <span class="n">sigma</span><span class="p">:</span> <span class="nb">float</span></div>
+
+<div class="viewcode-block" id="Point.adjusted">
+<a class="viewcode-back" href="../../../../content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.Point.adjusted">[docs]</a>
+    <span class="n">adjusted</span><span class="p">:</span> <span class="nb">float</span></div>
+
+<div class="viewcode-block" id="Point.s">
+<a class="viewcode-back" href="../../../../content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.Point.s">[docs]</a>
+    <span class="n">s</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span></div>
+
+<div class="viewcode-block" id="Point.v">
+<a class="viewcode-back" href="../../../../content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.Point.v">[docs]</a>
+    <span class="n">v</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span></div>
+
+<div class="viewcode-block" id="Point.bounds">
+<a class="viewcode-back" href="../../../../content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.Point.bounds">[docs]</a>
+    <span class="n">bounds</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="nb">float</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="Point.epsilon">
+<a class="viewcode-back" href="../../../../content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.Point.epsilon">[docs]</a>
+    <span class="n">epsilon</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="nb">float</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="Point.seconds">
+<a class="viewcode-back" href="../../../../content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.Point.seconds">[docs]</a>
+    <span class="n">seconds</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Point.rounds">
+<a class="viewcode-back" href="../../../../content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.Point.rounds">[docs]</a>
+    <span class="n">rounds</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span></div>
+
+<div class="viewcode-block" id="Point.balance_residual">
+<a class="viewcode-back" href="../../../../content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.Point.balance_residual">[docs]</a>
+    <span class="n">balance_residual</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="Point.size">
+<a class="viewcode-back" href="../../../../content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.Point.size">[docs]</a>
+    <span class="n">size</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span></div>
+</div>
+
+
+
+<span class="nd">@dataclass</span>
+<div class="viewcode-block" id="Projections">
+<a class="viewcode-back" href="../../../../content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.Projections">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Projections</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The impact's moments on the reduced space ``s = s0 + S v``.</span>
+
+<span class="sd">    With these and :meth:`reduced.ReducedModel.linear_program` a formulation</span>
+<span class="sd">    over ``v`` needs no further solves::</span>
+
+<span class="sd">        E[X]  = m0 + m' v</span>
+<span class="sd">        Var X = sum_{j in J} d_j (s0_J + S_J v)_j^2 + sum_e w_e (B_unc_s0 + B_unc_S v)_e^2</span>
+
+<span class="sd">    ``J`` are the processes that carry variance (``d_j &gt; 0``), ``S_J`` their</span>
+<span class="sd">    rows of ``S``, and ``B_unc_S = E[B_u] S`` the mean flows of the uncertain</span>
+<span class="sd">    CFs per unit of ``v``. A sampled impact of the base and of one unit of each</span>
+<span class="sd">    alternative follows from the same arrays (see :mod:`validation`).</span>
+<span class="sd">    """</span>
+<div class="viewcode-block" id="Projections.s0">
+<a class="viewcode-back" href="../../../../content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.Projections.s0">[docs]</a>
+    <span class="n">s0</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span></div>
+
+<div class="viewcode-block" id="Projections.m0">
+<a class="viewcode-back" href="../../../../content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.Projections.m0">[docs]</a>
+    <span class="n">m0</span><span class="p">:</span> <span class="nb">float</span></div>
+
+<div class="viewcode-block" id="Projections.m">
+<a class="viewcode-back" href="../../../../content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.Projections.m">[docs]</a>
+    <span class="n">m</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span></div>
+
+<div class="viewcode-block" id="Projections.J">
+<a class="viewcode-back" href="../../../../content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.Projections.J">[docs]</a>
+    <span class="n">J</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span></div>
+
+<div class="viewcode-block" id="Projections.S_J">
+<a class="viewcode-back" href="../../../../content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.Projections.S_J">[docs]</a>
+    <span class="n">S_J</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span></div>
+
+<div class="viewcode-block" id="Projections.B_unc_s0">
+<a class="viewcode-back" href="../../../../content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.Projections.B_unc_s0">[docs]</a>
+    <span class="n">B_unc_s0</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span></div>
+
+<div class="viewcode-block" id="Projections.B_unc_S">
+<a class="viewcode-back" href="../../../../content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.Projections.B_unc_S">[docs]</a>
+    <span class="n">B_unc_S</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="Front">
+<a class="viewcode-back" href="../../../../content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.Front">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Front</span><span class="p">(</span><span class="nb">dict</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""``{lambda: Point}`` with a tabular view."""</span>
+
+<div class="viewcode-block" id="Front.table">
+<a class="viewcode-back" href="../../../../content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.Front.table">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">table</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">([{</span><span class="s1">'lambda'</span><span class="p">:</span> <span class="n">p</span><span class="o">.</span><span class="n">lambda_level</span><span class="p">,</span> <span class="s1">'lambda_impact'</span><span class="p">:</span> <span class="n">p</span><span class="o">.</span><span class="n">lambda_impact</span><span class="p">,</span>
+                              <span class="s1">'kappa'</span><span class="p">:</span> <span class="n">p</span><span class="o">.</span><span class="n">kappa</span><span class="p">,</span> <span class="s1">'mean'</span><span class="p">:</span> <span class="n">p</span><span class="o">.</span><span class="n">mean</span><span class="p">,</span> <span class="s1">'sigma'</span><span class="p">:</span> <span class="n">p</span><span class="o">.</span><span class="n">sigma</span><span class="p">,</span>
+                              <span class="s1">'adjusted'</span><span class="p">:</span> <span class="n">p</span><span class="o">.</span><span class="n">adjusted</span><span class="p">,</span> <span class="s1">'seconds'</span><span class="p">:</span> <span class="n">p</span><span class="o">.</span><span class="n">seconds</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'total'</span><span class="p">)}</span>
+                             <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">()])</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s1">'lambda'</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="ChanceConstrainedError">
+<a class="viewcode-back" href="../../../../content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.ChanceConstrainedError">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ChanceConstrainedError</span><span class="p">(</span><span class="n">optimizer</span><span class="o">.</span><span class="n">SolveError</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""A reliability level did not solve to optimality; ``results`` holds its</span>
+<span class="sd">    :class:`reduced.ReducedResults`."""</span></div>
+
+
+
+<div class="viewcode-block" id="ChanceConstrained">
+<a class="viewcode-back" href="../../../../content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.ChanceConstrained">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ChanceConstrained</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""``min mu' s + kappa sigma(s)`` at a reliability level, in reduced space.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        model: a :class:`reduced.ReducedModel`, or an instantiated worker (whose</span>
+<span class="sd">            reduced model is built). Every deterministic constraint of the</span>
+<span class="sd">            instance applies; its objective is replaced by the chance-constrained</span>
+<span class="sd">            impact of ``moments.method``. A limit on that impact itself applies to</span>
+<span class="sd">            its mean ``mu' s`` (it is not chance-constrained).</span>
+<span class="sd">        moments (Moments): from :func:`moments.compute_moments`.</span>
+<span class="sd">        upper_bounds, lower_bounds (dict): uncertain process bounds,</span>
+<span class="sd">            ``{process: spec}`` with ``process`` an activity, a key or a process</span>
+<span class="sd">            index and ``spec`` a declared distribution (normal, lognormal,</span>
+<span class="sd">            uniform, triangular). They replace the instance's bounds on those</span>
+<span class="sd">            processes. Each one is an event of the risk budget.</span>
+<span class="sd">        allocation (str): ``'bonferroni'`` (joint, the default) or ``'individual'``.</span>
+<span class="sd">        weights (sequence, optional): Bonferroni weights, the first for the</span>
+<span class="sd">            impact row, then one per event in the order of :attr:`events`.</span>
+<span class="sd">    """</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">moments</span><span class="p">:</span> <span class="n">Moments</span><span class="p">,</span> <span class="n">upper_bounds</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">lower_bounds</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">allocation</span><span class="o">=</span><span class="s1">'bonferroni'</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">worker</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">_reduced</span><span class="o">.</span><span class="n">ReducedModel</span><span class="p">)</span> <span class="k">else</span> <span class="n">model</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">moments</span> <span class="o">=</span> <span class="n">moments</span>
+        <span class="k">if</span> <span class="n">allocation</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">'bonferroni'</span><span class="p">,</span> <span class="s1">'individual'</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"allocation must be 'bonferroni' or 'individual'; got </span><span class="si">{</span><span class="n">allocation</span><span class="si">!r}</span><span class="s2">."</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">allocation</span> <span class="o">=</span> <span class="n">allocation</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="p">(</span><span class="n">model</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">worker</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">events</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">kind</span><span class="p">,</span> <span class="n">specs</span> <span class="ow">in</span> <span class="p">((</span><span class="s1">'lower'</span><span class="p">,</span> <span class="n">lower_bounds</span> <span class="ow">or</span> <span class="p">{}),</span> <span class="p">(</span><span class="s1">'upper'</span><span class="p">,</span> <span class="n">upper_bounds</span> <span class="ow">or</span> <span class="p">{})):</span>
+            <span class="k">for</span> <span class="n">process</span><span class="p">,</span> <span class="n">spec</span> <span class="ow">in</span> <span class="n">specs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">spec</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
+                <span class="n">_validate</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="n">process</span><span class="p">)</span>
+                <span class="n">events</span><span class="o">.</span><span class="n">append</span><span class="p">(((</span><span class="n">kind</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_index</span><span class="p">(</span><span class="n">process</span><span class="p">)),</span> <span class="n">spec</span><span class="p">))</span>
+        <span class="c1"># Lower bounds first, then upper bounds, each by process index: the</span>
+        <span class="c1"># order in which weights[1:] are read, the same as PULPO 1.8.0's.</span>
+        <span class="n">events</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">e</span><span class="p">:</span> <span class="p">(</span><span class="n">e</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">'lower'</span><span class="p">,</span> <span class="n">e</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]))</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">({</span><span class="n">e</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">events</span><span class="p">})</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">events</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"A process carries the same uncertain bound twice."</span><span class="p">)</span>
+        <span class="c1">#: The events after the impact row, in budget order: ``(kind, process)``.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">events</span> <span class="o">=</span> <span class="p">[</span><span class="n">e</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">events</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_specs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">events</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">weights</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">allocation</span> <span class="o">!=</span> <span class="s1">'bonferroni'</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"weights apply to the Bonferroni allocation only."</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">weights</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">weights</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">weights</span><span class="p">)</span>
+        <span class="n">bonferroni_budget</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">K</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="p">)</span>        <span class="c1"># validates the weights</span>
+
+<div class="viewcode-block" id="ChanceConstrained._model">
+<a class="viewcode-back" href="../../../../content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.ChanceConstrained._model">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""The reduced model of the worker's current instance (rebuilt after a</span>
+<span class="sd">        re-instantiation), checked for what the problem supports."""</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">model</span> <span class="ow">or</span> <span class="n">_reduced</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">worker</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">model</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">model</span><span class="o">.</span><span class="n">system</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">system</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_C_SS</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_qr</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">moments</span><span class="o">.</span><span class="n">mu</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">model</span><span class="o">.</span><span class="n">n</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"The moments and the model have different numbers of processes."</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">instance</span><span class="o">.</span><span class="n">GOAL_INDICATOR</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">"The chance-constrained objective replaces the goal objective; "</span>
+                                          <span class="s2">"instantiate with objective='weighted_sum'."</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
+        <span class="k">return</span> <span class="n">model</span></div>
+
+
+<div class="viewcode-block" id="ChanceConstrained._process_index">
+<a class="viewcode-back" href="../../../../content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.ChanceConstrained._process_index">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_process_index</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">process</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">process</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">integer</span><span class="p">)):</span>
+            <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">process</span><span class="p">)</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">process</span><span class="p">,</span> <span class="s1">'key'</span><span class="p">,</span> <span class="n">process</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">lci_data</span><span class="p">[</span><span class="s1">'process_map'</span><span class="p">][</span><span class="n">key</span><span class="p">])</span></div>
+
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="ChanceConstrained.K">
+<a class="viewcode-back" href="../../../../content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.ChanceConstrained.K">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">K</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Number of events: the impact row and every uncertain bound."""</span>
+        <span class="k">return</span> <span class="mi">1</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="p">)</span></div>
+
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="ChanceConstrained.bound_specs">
+<a class="viewcode-back" href="../../../../content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.ChanceConstrained.bound_specs">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">bound_specs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""``{(kind, process): spec}``: the declared distribution of each uncertain bound."""</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">event</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span> <span class="k">for</span> <span class="n">event</span><span class="p">,</span> <span class="n">spec</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_specs</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span></div>
+
+
+    <span class="c1"># -- levels and bounds ---------------------------------------------------</span>
+
+<div class="viewcode-block" id="ChanceConstrained.levels">
+<a class="viewcode-back" href="../../../../content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.ChanceConstrained.levels">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">levels</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lambda_level</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""``(lambda_impact, {event: epsilon})`` at a joint level."""</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="mf">0.0</span> <span class="o">&lt;</span> <span class="n">lambda_level</span> <span class="o">&lt;</span> <span class="mf">1.0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"lambda must lie in (0, 1); got </span><span class="si">{</span><span class="n">lambda_level</span><span class="si">!r}</span><span class="s2">."</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">allocation</span> <span class="o">==</span> <span class="s1">'individual'</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">lambda_level</span><span class="p">,</span> <span class="p">{</span><span class="n">event</span><span class="p">:</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="n">lambda_level</span> <span class="k">for</span> <span class="n">event</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="p">}</span>
+        <span class="n">budget</span> <span class="o">=</span> <span class="n">bonferroni_budget</span><span class="p">(</span><span class="n">lambda_level</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">K</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">budget</span><span class="o">.</span><span class="n">lambda_impact</span><span class="p">,</span> <span class="p">{</span><span class="n">event</span><span class="p">:</span> <span class="n">budget</span><span class="o">.</span><span class="n">epsilon_at</span><span class="p">(</span><span class="n">k</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">event</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="p">)}</span></div>
+
+
+<div class="viewcode-block" id="ChanceConstrained.bounds">
+<a class="viewcode-back" href="../../../../content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.ChanceConstrained.bounds">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">bounds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lambda_level</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""``{event: bound}``: the exact quantile imposed on each uncertain bound."""</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">eps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">levels</span><span class="p">(</span><span class="n">lambda_level</span><span class="p">)</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">kind</span><span class="p">,</span> <span class="n">j</span><span class="p">),</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">eps</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">declared_quantile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_specs</span><span class="p">[(</span><span class="n">kind</span><span class="p">,</span> <span class="n">j</span><span class="p">)],</span> <span class="n">e</span> <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s1">'upper'</span> <span class="k">else</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="n">e</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"The </span><span class="si">{</span><span class="n">kind</span><span class="si">}</span><span class="s2"> bound on process </span><span class="si">{</span><span class="n">j</span><span class="si">}</span><span class="s2"> cannot hold with probability "</span>
+                                 <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="mi">1</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">e</span><span class="si">:</span><span class="s2">.6g</span><span class="si">}</span><span class="s2">: its quantile is </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2">."</span><span class="p">)</span>
+            <span class="n">out</span><span class="p">[(</span><span class="n">kind</span><span class="p">,</span> <span class="n">j</span><span class="p">)]</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="k">return</span> <span class="n">out</span></div>
+
+
+    <span class="c1"># -- variance factor -----------------------------------------------------</span>
+
+<div class="viewcode-block" id="ChanceConstrained.projections">
+<a class="viewcode-back" href="../../../../content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.ChanceConstrained.projections">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">projections</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Projections</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""The moments of the impact on the current instance's reduced space."""</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="p">()</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">worker</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span>
+        <span class="n">mom</span><span class="p">,</span> <span class="n">system</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">moments</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">system</span>
+        <span class="n">s0</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">base</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">demand</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">J</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">flatnonzero</span><span class="p">(</span><span class="n">mom</span><span class="o">.</span><span class="n">d</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">B_unc</span> <span class="o">=</span> <span class="n">mom</span><span class="o">.</span><span class="n">B_unc</span>
+        <span class="k">return</span> <span class="n">Projections</span><span class="p">(</span><span class="n">s0</span><span class="o">=</span><span class="n">s0</span><span class="p">,</span> <span class="n">m0</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">mom</span><span class="o">.</span><span class="n">mu</span> <span class="o">@</span> <span class="n">s0</span><span class="p">),</span> <span class="n">m</span><span class="o">=</span><span class="n">system</span><span class="o">.</span><span class="n">project_vectors</span><span class="p">([</span><span class="n">mom</span><span class="o">.</span><span class="n">mu</span><span class="p">])[</span><span class="mi">0</span><span class="p">],</span>
+                           <span class="n">J</span><span class="o">=</span><span class="n">J</span><span class="p">,</span> <span class="n">S_J</span><span class="o">=</span><span class="n">system</span><span class="o">.</span><span class="n">rows</span><span class="p">(</span><span class="n">J</span><span class="p">),</span> <span class="n">B_unc_s0</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">B_unc</span> <span class="o">@</span> <span class="n">s0</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span>
+                           <span class="n">B_unc_S</span><span class="o">=</span><span class="n">system</span><span class="o">.</span><span class="n">project_vectors</span><span class="p">([</span><span class="n">B_unc</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">B_unc</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])]))</span></div>
+
+
+<div class="viewcode-block" id="ChanceConstrained._factor">
+<a class="viewcode-back" href="../../../../content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.ChanceConstrained._factor">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_factor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">f_tilde</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""``R`` with ``R' R = G' G`` for the current demand (``s0`` depends on it)."""</span>
+        <span class="n">mom</span><span class="p">,</span> <span class="n">system</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">moments</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">system</span>
+        <span class="n">s0</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">base</span><span class="p">(</span><span class="n">f_tilde</span><span class="p">)</span>
+        <span class="n">J</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">flatnonzero</span><span class="p">(</span><span class="n">mom</span><span class="o">.</span><span class="n">d</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">K</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">n_free</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">J</span><span class="p">)</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">mom</span><span class="o">.</span><span class="n">cf_rows</span><span class="p">))</span> <span class="o">*</span> <span class="p">(</span><span class="n">K</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">QR_ENTRIES</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qr</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">B_unc</span> <span class="o">=</span> <span class="n">mom</span><span class="o">.</span><span class="n">B_unc</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_qr</span> <span class="o">=</span> <span class="p">(</span><span class="n">J</span><span class="p">,</span> <span class="n">system</span><span class="o">.</span><span class="n">rows</span><span class="p">(</span><span class="n">J</span><span class="p">),</span> <span class="n">B_unc</span><span class="p">,</span>
+                            <span class="n">system</span><span class="o">.</span><span class="n">project_vectors</span><span class="p">([</span><span class="n">B_unc</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">B_unc</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])]))</span>
+            <span class="n">J</span><span class="p">,</span> <span class="n">S_J</span><span class="p">,</span> <span class="n">B_unc</span><span class="p">,</span> <span class="n">BS</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qr</span>
+            <span class="n">sd</span><span class="p">,</span> <span class="n">sw</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">mom</span><span class="o">.</span><span class="n">d</span><span class="p">[</span><span class="n">J</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">mom</span><span class="o">.</span><span class="n">w</span><span class="p">)</span>
+            <span class="n">G</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">column_stack</span><span class="p">([</span><span class="n">sd</span> <span class="o">*</span> <span class="n">s0</span><span class="p">[</span><span class="n">J</span><span class="p">],</span> <span class="n">sd</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">S_J</span><span class="p">]),</span>
+                           <span class="n">np</span><span class="o">.</span><span class="n">column_stack</span><span class="p">([</span><span class="n">sw</span> <span class="o">*</span> <span class="p">(</span><span class="n">B_unc</span> <span class="o">@</span> <span class="n">s0</span><span class="p">),</span> <span class="n">sw</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">BS</span><span class="p">])])</span>
+            <span class="k">if</span> <span class="n">G</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="n">K</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">qr</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">'r'</span><span class="p">)</span>
+        <span class="c1"># Gram matrix C = [s0, S]' Q [s0, S] without storing rows of S:</span>
+        <span class="c1"># C_SS from K forward and K adjoint solves (once), C_S0 from one adjoint solve.</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">Q</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">mom</span><span class="o">.</span><span class="n">d</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">x</span> <span class="o">+</span> <span class="n">mom</span><span class="o">.</span><span class="n">B_unc</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="p">(</span><span class="n">mom</span><span class="o">.</span><span class="n">w</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">mom</span><span class="o">.</span><span class="n">B_unc</span> <span class="o">@</span> <span class="n">x</span><span class="p">))</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_C_SS</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">C</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">K</span><span class="p">,</span> <span class="n">K</span><span class="p">))</span>
+            <span class="n">chunk</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">_reduced</span><span class="o">.</span><span class="n">CHUNK_ENTRIES</span> <span class="o">//</span> <span class="nb">max</span><span class="p">(</span><span class="n">system</span><span class="o">.</span><span class="n">n</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">start</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">chunk</span><span class="p">):</span>
+                <span class="n">cols</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">start</span> <span class="o">+</span> <span class="n">chunk</span><span class="p">]</span>
+                <span class="n">rhs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">system</span><span class="o">.</span><span class="n">n</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">cols</span><span class="p">)))</span>
+                <span class="n">rhs</span><span class="p">[</span><span class="n">cols</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">cols</span><span class="p">))]</span> <span class="o">=</span> <span class="mf">1.0</span>
+                <span class="n">X</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">factorization</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">rhs</span><span class="p">)</span>
+                <span class="n">Z</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">factorization</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">Q</span><span class="p">(</span><span class="n">X</span><span class="p">),</span> <span class="n">transpose</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">C</span><span class="p">[:,</span> <span class="n">start</span><span class="p">:</span><span class="n">start</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">cols</span><span class="p">)]</span> <span class="o">=</span> <span class="n">Z</span><span class="p">[</span><span class="n">system</span><span class="o">.</span><span class="n">columns</span><span class="p">,</span> <span class="p">:]</span>
+                <span class="n">system</span><span class="o">.</span><span class="n">solves</span> <span class="o">+=</span> <span class="mi">2</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">cols</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_C_SS</span> <span class="o">=</span> <span class="p">(</span><span class="n">C</span> <span class="o">+</span> <span class="n">C</span><span class="o">.</span><span class="n">T</span><span class="p">)</span> <span class="o">/</span> <span class="mf">2.0</span>
+        <span class="n">q0</span> <span class="o">=</span> <span class="n">Q</span><span class="p">(</span><span class="n">s0</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">])[:,</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="n">C</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="n">K</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">K</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="n">C</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">s0</span> <span class="o">@</span> <span class="n">q0</span><span class="p">)</span>
+        <span class="n">C</span><span class="p">[</span><span class="mi">1</span><span class="p">:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">C</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">:]</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">project_vectors</span><span class="p">([</span><span class="n">q0</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">C</span><span class="p">[</span><span class="mi">1</span><span class="p">:,</span> <span class="mi">1</span><span class="p">:]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_C_SS</span>
+        <span class="n">vals</span><span class="p">,</span> <span class="n">vecs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">eigh</span><span class="p">(</span><span class="n">C</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">vals</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">))[:,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">vecs</span><span class="o">.</span><span class="n">T</span></div>
+
+
+    <span class="c1"># -- solve -----------------------------------------------------------------</span>
+
+<div class="viewcode-block" id="ChanceConstrained.solve_point">
+<a class="viewcode-back" href="../../../../content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.ChanceConstrained.solve_point">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">solve_point</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lambda_level</span><span class="p">,</span> <span class="n">solver_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Point</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Solve one reliability level; raises :class:`ChanceConstrainedError` unless optimal."""</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
+        <span class="n">lambda_impact</span><span class="p">,</span> <span class="n">eps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">levels</span><span class="p">(</span><span class="n">lambda_level</span><span class="p">)</span>
+        <span class="n">kappa</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">norm</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="n">lambda_impact</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">kappa</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"The impact row is imposed at </span><span class="si">{</span><span class="n">lambda_impact</span><span class="si">:</span><span class="s2">.4g</span><span class="si">}</span><span class="s2"> &lt; 1/2, which makes the "</span>
+                             <span class="s2">"problem non-convex; raise lambda."</span><span class="p">)</span>
+        <span class="n">model</span><span class="p">,</span> <span class="n">mom</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="p">()</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">worker</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">moments</span>
+        <span class="n">lower</span><span class="p">,</span> <span class="n">upper</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">process_bounds</span><span class="p">()</span>
+        <span class="n">imposed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span><span class="p">(</span><span class="n">lambda_level</span><span class="p">)</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">kind</span><span class="p">,</span> <span class="n">j</span><span class="p">),</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">imposed</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="p">(</span><span class="n">upper</span> <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s1">'upper'</span> <span class="k">else</span> <span class="n">lower</span><span class="p">)[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="n">K</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">n_free</span>
+        <span class="n">m</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">project_vectors</span><span class="p">([</span><span class="n">mom</span><span class="o">.</span><span class="n">mu</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">cache</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">factor</span><span class="p">(</span><span class="n">f_tilde</span><span class="p">):</span>
+            <span class="n">key</span> <span class="o">=</span> <span class="n">f_tilde</span><span class="o">.</span><span class="n">tobytes</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">cache</span><span class="p">:</span>
+                <span class="n">cache</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_factor</span><span class="p">(</span><span class="n">f_tilde</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">mom</span><span class="o">.</span><span class="n">mu</span> <span class="o">@</span> <span class="n">model</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">base</span><span class="p">(</span><span class="n">f_tilde</span><span class="p">)))</span>
+            <span class="k">return</span> <span class="n">cache</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">transform</span><span class="p">(</span><span class="n">lp</span><span class="p">,</span> <span class="n">f_tilde</span><span class="p">):</span>
+            <span class="n">m0</span> <span class="o">=</span> <span class="n">factor</span><span class="p">(</span><span class="n">f_tilde</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">lp</span><span class="o">.</span><span class="n">c</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">m</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">lp</span><span class="o">.</span><span class="n">c</span><span class="p">)</span> <span class="o">-</span> <span class="n">K</span><span class="p">)])</span>
+            <span class="n">lp</span><span class="o">.</span><span class="n">c0</span> <span class="o">=</span> <span class="n">m0</span>
+            <span class="k">if</span> <span class="p">(</span><span class="s1">'impact'</span><span class="p">,</span> <span class="n">mom</span><span class="o">.</span><span class="n">method</span><span class="p">)</span> <span class="ow">in</span> <span class="n">lp</span><span class="o">.</span><span class="n">row_labels</span><span class="p">:</span>
+                <span class="c1"># A limit on the uncertain impact holds for its mean.</span>
+                <span class="n">i</span> <span class="o">=</span> <span class="n">lp</span><span class="o">.</span><span class="n">row_labels</span><span class="o">.</span><span class="n">index</span><span class="p">((</span><span class="s1">'impact'</span><span class="p">,</span> <span class="n">mom</span><span class="o">.</span><span class="n">method</span><span class="p">))</span>
+                <span class="n">lb</span><span class="p">,</span> <span class="n">ub</span> <span class="o">=</span> <span class="n">_reduced</span><span class="o">.</span><span class="n">_var_bounds</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">instance</span><span class="o">.</span><span class="n">impacts</span><span class="p">[</span><span class="n">mom</span><span class="o">.</span><span class="n">method</span><span class="p">])</span>
+                <span class="n">matrix</span> <span class="o">=</span> <span class="n">lp</span><span class="o">.</span><span class="n">matrix</span><span class="o">.</span><span class="n">tolil</span><span class="p">()</span>
+                <span class="n">matrix</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">m</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">lp</span><span class="o">.</span><span class="n">c</span><span class="p">)</span> <span class="o">-</span> <span class="n">K</span><span class="p">)])</span>
+                <span class="n">lp</span><span class="o">.</span><span class="n">matrix</span> <span class="o">=</span> <span class="n">matrix</span><span class="o">.</span><span class="n">tocsr</span><span class="p">()</span>
+                <span class="n">lp</span><span class="o">.</span><span class="n">row_lower</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">lp</span><span class="o">.</span><span class="n">row_upper</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">lb</span> <span class="o">-</span> <span class="n">m0</span><span class="p">,</span> <span class="n">ub</span> <span class="o">-</span> <span class="n">m0</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">solve</span><span class="p">(</span><span class="n">lp</span><span class="p">,</span> <span class="n">f_tilde</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">solve_socp</span><span class="p">(</span><span class="n">lp</span><span class="p">,</span> <span class="n">factor</span><span class="p">(</span><span class="n">f_tilde</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span> <span class="n">kappa</span><span class="p">,</span> <span class="n">solver_name</span><span class="o">=</span><span class="n">solver_name</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="n">options</span><span class="p">)</span>
+
+        <span class="n">results</span><span class="p">,</span> <span class="n">s</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">optimize</span><span class="p">(</span><span class="n">solve</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="p">(</span><span class="n">lower</span><span class="p">,</span> <span class="n">upper</span><span class="p">),</span> <span class="n">transform</span><span class="o">=</span><span class="n">transform</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">results</span><span class="o">.</span><span class="n">termination_condition</span> <span class="o">!=</span> <span class="n">TerminationCondition</span><span class="o">.</span><span class="n">optimal</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ChanceConstrainedError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"lambda = </span><span class="si">{</span><span class="n">lambda_level</span><span class="si">}</span><span class="s2">: the chance-constrained problem did not solve to optimality "</span>
+                <span class="sa">f</span><span class="s2">"(</span><span class="si">{</span><span class="n">results</span><span class="o">.</span><span class="n">termination_condition</span><span class="si">}</span><span class="s2">)."</span><span class="p">,</span> <span class="n">results</span><span class="p">)</span>
+        <span class="n">mean</span><span class="p">,</span> <span class="n">sigma</span> <span class="o">=</span> <span class="n">mom</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">s</span><span class="p">),</span> <span class="n">mom</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="n">results</span><span class="o">.</span><span class="n">seconds</span><span class="p">[</span><span class="s1">'total'</span><span class="p">]</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span> <span class="o">-</span> <span class="n">start</span>
+        <span class="k">return</span> <span class="n">Point</span><span class="p">(</span><span class="n">lambda_level</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">lambda_level</span><span class="p">),</span> <span class="n">lambda_impact</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">lambda_impact</span><span class="p">),</span> <span class="n">kappa</span><span class="o">=</span><span class="n">kappa</span><span class="p">,</span>
+                     <span class="n">mean</span><span class="o">=</span><span class="n">mean</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="n">sigma</span><span class="p">,</span> <span class="n">adjusted</span><span class="o">=</span><span class="n">mean</span> <span class="o">+</span> <span class="n">kappa</span> <span class="o">*</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="n">s</span><span class="p">,</span> <span class="n">v</span><span class="o">=</span><span class="n">results</span><span class="o">.</span><span class="n">v</span><span class="p">,</span>
+                     <span class="n">bounds</span><span class="o">=</span><span class="n">imposed</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">eps</span><span class="p">),</span>
+                     <span class="n">seconds</span><span class="o">=</span><span class="n">results</span><span class="o">.</span><span class="n">seconds</span><span class="p">,</span> <span class="n">rounds</span><span class="o">=</span><span class="n">results</span><span class="o">.</span><span class="n">rounds</span><span class="p">,</span>
+                     <span class="n">balance_residual</span><span class="o">=</span><span class="n">results</span><span class="o">.</span><span class="n">balance_residual</span><span class="p">,</span>
+                     <span class="n">size</span><span class="o">=</span><span class="p">{</span><span class="s1">'processes'</span><span class="p">:</span> <span class="n">model</span><span class="o">.</span><span class="n">n</span><span class="p">,</span> <span class="s1">'variables'</span><span class="p">:</span> <span class="n">results</span><span class="o">.</span><span class="n">n_variables</span><span class="p">,</span> <span class="s1">'rows'</span><span class="p">:</span> <span class="n">results</span><span class="o">.</span><span class="n">n_rows</span><span class="p">})</span></div>
+
+
+<div class="viewcode-block" id="ChanceConstrained.solve">
+<a class="viewcode-back" href="../../../../content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.ChanceConstrained.solve">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">solve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lambdas</span><span class="p">,</span> <span class="n">solver_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Front</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Solve every level of ``lambdas`` (one factorization serves them all)."""</span>
+        <span class="n">lambdas</span> <span class="o">=</span> <span class="p">[</span><span class="n">lambdas</span><span class="p">]</span> <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isscalar</span><span class="p">(</span><span class="n">lambdas</span><span class="p">)</span> <span class="k">else</span> <span class="nb">list</span><span class="p">(</span><span class="n">lambdas</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">Front</span><span class="p">((</span><span class="nb">float</span><span class="p">(</span><span class="n">lam</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">solve_point</span><span class="p">(</span><span class="n">lam</span><span class="p">,</span> <span class="n">solver_name</span><span class="p">,</span> <span class="n">options</span><span class="p">))</span> <span class="k">for</span> <span class="n">lam</span> <span class="ow">in</span> <span class="n">lambdas</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ChanceConstrained.write">
+<a class="viewcode-back" href="../../../../content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.ChanceConstrained.write">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">point</span><span class="p">:</span> <span class="n">Point</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Write a solved point onto the instance, as a solve would leave it, so</span>
+<span class="sd">        ``extract_results()`` and the rest read it. The impacts there are the</span>
+<span class="sd">        instance's deterministic ones; the point carries the chance-constrained ones."""</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="p">()</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">worker</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">write_solution</span><span class="p">(</span><span class="n">point</span><span class="o">.</span><span class="n">s</span><span class="p">,</span> <span class="n">point</span><span class="o">.</span><span class="n">v</span><span class="p">)</span>
+        <span class="n">inst</span><span class="p">,</span> <span class="n">lci</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">instance</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">lci_data</span>
+        <span class="n">methods</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">worker</span><span class="p">,</span> <span class="s1">'method'</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">methods</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">methods</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="mi">0</span> <span class="ow">in</span> <span class="n">methods</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="n">optimizer</span><span class="o">.</span><span class="n">calculate_methods</span><span class="p">(</span><span class="n">inst</span><span class="p">,</span> <span class="n">lci</span><span class="p">,</span> <span class="n">methods</span><span class="p">)</span>
+        <span class="n">optimizer</span><span class="o">.</span><span class="n">calculate_inv_flows</span><span class="p">(</span><span class="n">inst</span><span class="p">,</span> <span class="n">lci</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="apply_CC_formulation">
+<a class="viewcode-back" href="../../../../content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.apply_CC_formulation">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">apply_CC_formulation</span><span class="p">(</span><span class="n">model_instance</span><span class="p">,</span> <span class="n">risk_budget</span><span class="p">:</span> <span class="n">RiskBudget</span><span class="p">,</span> <span class="n">upper_bounds</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">lower_bounds</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Write the exact-quantile bounds of a risk budget onto a Pyomo instance.</span>
+
+<span class="sd">    For a full-space solve of a problem whose only uncertain rows are process</span>
+<span class="sd">    bounds. ``upper_bounds`` / ``lower_bounds`` map process indices to declared</span>
+<span class="sd">    distributions and take the budget's positions ``1, 2, ...``: lower bounds</span>
+<span class="sd">    first, then upper bounds, each by process index, as in</span>
+<span class="sd">    :class:`ChanceConstrained`. Values are</span>
+<span class="sd">    stored in the instance's units (see :mod:`pulpo.utils.scaling`).</span>
+<span class="sd">    """</span>
+    <span class="n">events</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">([(</span><span class="n">j</span><span class="p">,</span> <span class="s1">'upper'</span><span class="p">,</span> <span class="n">spec</span><span class="p">)</span> <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">spec</span> <span class="ow">in</span> <span class="p">(</span><span class="n">upper_bounds</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">items</span><span class="p">()]</span>
+                    <span class="o">+</span> <span class="p">[(</span><span class="n">j</span><span class="p">,</span> <span class="s1">'lower'</span><span class="p">,</span> <span class="n">spec</span><span class="p">)</span> <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">spec</span> <span class="ow">in</span> <span class="p">(</span><span class="n">lower_bounds</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">items</span><span class="p">()],</span>
+                    <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">e</span><span class="p">:</span> <span class="p">(</span><span class="n">e</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">'lower'</span><span class="p">,</span> <span class="n">e</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">events</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">!=</span> <span class="n">risk_budget</span><span class="o">.</span><span class="n">K</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"the risk budget covers K=</span><span class="si">{</span><span class="n">risk_budget</span><span class="o">.</span><span class="n">K</span><span class="si">}</span><span class="s2"> events but </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">events</span><span class="p">)</span><span class="si">}</span><span class="s2"> bound(s) plus "</span>
+                         <span class="sa">f</span><span class="s2">"the impact target are </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">events</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">."</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">position</span><span class="p">,</span> <span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">kind</span><span class="p">,</span> <span class="n">spec</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+        <span class="n">eps</span> <span class="o">=</span> <span class="n">risk_budget</span><span class="o">.</span><span class="n">epsilon_at</span><span class="p">(</span><span class="n">position</span><span class="p">)</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">declared_quantile</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="n">eps</span> <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s1">'upper'</span> <span class="k">else</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="n">eps</span><span class="p">)</span>
+        <span class="n">param</span> <span class="o">=</span> <span class="n">model_instance</span><span class="o">.</span><span class="n">UPPER_LIMIT</span> <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s1">'upper'</span> <span class="k">else</span> <span class="n">model_instance</span><span class="o">.</span><span class="n">LOWER_LIMIT</span>
+        <span class="n">param</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">_scaling</span><span class="o">.</span><span class="n">to_scaled_process_bound</span><span class="p">(</span><span class="n">model_instance</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span></div>
+
+</pre></div>
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../../../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341"></script>
+<script src="../../../../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2026 pulpo developers.
+      <br/>
+    
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item"><p>🌿🐛 Found a bug? Something not working? Frustrated? <a href=" latest/../../../../../content/contributing.html">Please report it!</a></p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

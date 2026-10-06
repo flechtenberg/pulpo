@@ -1,0 +1,1186 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pulpo.utils.bw_parser &#8212; pulpo 2.0.0 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+<link href="../../../_static/styles/bootstrap.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+
+  
+  <link href="../../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=913d6465" />
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341" />
+  <script src="../../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=3ee479438cf8b5e0d341"></script>
+
+    <script src="../../../_static/documentation_options.js?v=79f5c508"></script>
+    <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../../_static/design-tabs.js?v=36754332"></script>
+    <script src="https://unpkg.com/mermaid@10.2.0/dist/mermaid.min.js"></script>
+    <script>
+    function initializeMermaidBasedOnTheme() {
+        const theme = document.documentElement.dataset.theme;
+
+        if (theme === 'dark') {
+            mermaid.initialize({
+                startOnLoad: true,
+                theme: 'base',
+                themeVariables: {
+                    edgeLabelBackground: 'transparent',
+                    defaultLinkColor: '#ced6dd',
+                    titleColor: '#ced6dd',
+                    nodeTextColor: '#ced6dd',
+                    lineColor: '#ced6dd',
+                }
+            });
+        } else {
+            mermaid.initialize({
+                startOnLoad: true,
+                theme: 'base',
+                themeVariables: {
+                    edgeLabelBackground: 'transparent',
+                    defaultLinkColor: '#222832',
+                    titleColor: '#222832',
+                    nodeTextColor: '#222832',
+                    lineColor: '#222832',
+                }
+            });
+        }
+
+        // Re-render all Mermaid diagrams
+        mermaid.contentLoaded();
+    }
+
+    // Observer to detect changes to the data-theme attribute
+    const themeObserver = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            if (mutation.type === 'attributes' && mutation.attributeName === 'data-theme') {
+            initializeMermaidBasedOnTheme();
+            }
+        });
+    });
+
+    themeObserver.observe(document.documentElement, { attributes: true });
+
+    initializeMermaidBasedOnTheme();
+</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/pulpo/utils/bw_parser';</script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+<meta name="google-site-verification" content="Fb3YVU81AToFlPNhlaQf6LLq1SMrHPbY-RtFsgZkw9Q" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+
+<a class="navbar-brand logo" href="../../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../../_static/pulpo_logo_big.svg" class="logo__image only-light" alt="pulpo 2.0.0 documentation - Home"/>
+    <script>document.write(`<img src="../../../_static/pulpo_logo_big.svg" class="logo__image only-dark" alt="pulpo 2.0.0 documentation - Home"/>`);</script>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav class="navbar-nav">
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/getting_started/index.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/theory.html">
+    Theory
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/uncertainty.html">
+    Uncertainty
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/examples/index.html">
+    Examples
+  </a>
+</li>
+
+            <li class="nav-item dropdown pst-header-nav-item">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../content/api/index.html">
+    API
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../content/contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../content/codeofconduct.html">
+    Code of Conduct
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../content/license.html">
+    License
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../content/changelog.html">
+    Changelog
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  </button>
+`);
+</script></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links navbar-nav"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/flechtenberg/pulpo" title="Open this Repo on GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fab fa-brands fa-github fa-lg" aria-hidden="true"></i></span>
+            <span class="sr-only">Open this Repo on GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <div class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav class="navbar-nav">
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/getting_started/index.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/theory.html">
+    Theory
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/uncertainty.html">
+    Uncertainty
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/examples/index.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/api/index.html">
+    API
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/codeofconduct.html">
+    Code of Conduct
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/license.html">
+    License
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/changelog.html">
+    Changelog
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  </button>
+`);
+</script></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links navbar-nav"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/flechtenberg/pulpo" title="Open this Repo on GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fab fa-brands fa-github fa-lg" aria-hidden="true"></i></span>
+            <span class="sr-only">Open this Repo on GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">Module code</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="../../pulpo.html" class="nav-link">pulpo</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page">pulpo.utils....</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for pulpo.utils.bw_parser</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">ast</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">TypedDict</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">bw2calc</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">bc</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">bw2data</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">bd</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pulpo.utils.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_bw_version</span><span class="p">,</span> <span class="n">build_bw25_params</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">stats_arrays.random</span><span class="w"> </span><span class="kn">import</span> <span class="n">MCRandomNumberGenerator</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pulpo.utils.warning</span><span class="w"> </span><span class="kn">import</span> <span class="n">warn</span>
+
+<div class="viewcode-block" id="LCIDataDict">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/bw_parser/index.html#pulpo.utils.bw_parser.LCIDataDict">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">LCIDataDict</span><span class="p">(</span><span class="n">TypedDict</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""The LCI data of a worker (``worker.lci_data``): matrices, maps and uncertainty parameters."""</span>
+<div class="viewcode-block" id="LCIDataDict.matrices">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/bw_parser/index.html#pulpo.utils.bw_parser.LCIDataDict.matrices">[docs]</a>
+    <span class="n">matrices</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="LCIDataDict.intervention_matrix">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/bw_parser/index.html#pulpo.utils.bw_parser.LCIDataDict.intervention_matrix">[docs]</a>
+    <span class="n">intervention_matrix</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span></div>
+
+<div class="viewcode-block" id="LCIDataDict.technology_matrix">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/bw_parser/index.html#pulpo.utils.bw_parser.LCIDataDict.technology_matrix">[docs]</a>
+    <span class="n">technology_matrix</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span></div>
+
+<div class="viewcode-block" id="LCIDataDict.process_map">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/bw_parser/index.html#pulpo.utils.bw_parser.LCIDataDict.process_map">[docs]</a>
+    <span class="n">process_map</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="LCIDataDict.intervention_params">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/bw_parser/index.html#pulpo.utils.bw_parser.LCIDataDict.intervention_params">[docs]</a>
+    <span class="n">intervention_params</span><span class="p">:</span> <span class="n">Any</span></div>
+
+<div class="viewcode-block" id="LCIDataDict.characterization_params">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/bw_parser/index.html#pulpo.utils.bw_parser.LCIDataDict.characterization_params">[docs]</a>
+    <span class="n">characterization_params</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="LCIDataDict.intervention_map">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/bw_parser/index.html#pulpo.utils.bw_parser.LCIDataDict.intervention_map">[docs]</a>
+    <span class="n">intervention_map</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="LCIDataDict.intervention_map_metadata">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/bw_parser/index.html#pulpo.utils.bw_parser.LCIDataDict.intervention_map_metadata">[docs]</a>
+    <span class="n">intervention_map_metadata</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="LCIDataDict.process_map_metadata">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/bw_parser/index.html#pulpo.utils.bw_parser.LCIDataDict.process_map_metadata">[docs]</a>
+    <span class="n">process_map_metadata</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span></div>
+</div>
+
+
+<div class="viewcode-block" id="set_project">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/bw_parser/index.html#pulpo.utils.bw_parser.set_project">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">set_project</span><span class="p">(</span><span class="n">project</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="c1"># Set project and check if it exists</span>
+    <span class="k">if</span> <span class="n">project</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">bd</span><span class="o">.</span><span class="n">projects</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Project '</span><span class="si">{</span><span class="n">project</span><span class="si">}</span><span class="s2">' does not exist. Please check the project name."</span><span class="p">)</span>
+    <span class="n">_ensure_project_current</span><span class="p">(</span><span class="n">project</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="_ensure_project_current">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/bw_parser/index.html#pulpo.utils.bw_parser._ensure_project_current">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">_ensure_project_current</span><span class="p">(</span><span class="n">project</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Activate ``project`` only if it is not already the active bw2data project.</span>
+
+<span class="sd">    ``bd.projects.set_current()`` always tears down and rebuilds bw2data's sqlite3</span>
+<span class="sd">    connections (including a full ``gc.collect()``) even when re-selecting the active</span>
+<span class="sd">    project. Skipping that redundant reset matters because this runs once per</span>
+<span class="sd">    ``import_data`` call, i.e. once per Monte Carlo iteration.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">bd</span><span class="o">.</span><span class="n">projects</span><span class="o">.</span><span class="n">current</span> <span class="o">!=</span> <span class="n">project</span><span class="p">:</span>
+        <span class="n">bd</span><span class="o">.</span><span class="n">projects</span><span class="o">.</span><span class="n">set_current</span><span class="p">(</span><span class="n">project</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="import_data">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/bw_parser/index.html#pulpo.utils.bw_parser.import_data">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">import_data</span><span class="p">(</span><span class="n">project</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">databases</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]],</span> <span class="n">method</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]],</span>
+                <span class="n">intervention_matrix_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">seed</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">resample</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"A"</span><span class="p">,</span> <span class="s2">"B"</span><span class="p">,</span> <span class="s2">"Q"</span><span class="p">),</span>
+                <span class="n">compute_uncertainty_params</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">LCIDataDict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Main function to import LCI data for a project from one or more databases.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        project (str): Name of the project.</span>
+<span class="sd">        databases (Union[str, List[str]]): One or more databases (e.g. foreground and</span>
+<span class="sd">            background); order does not matter.</span>
+<span class="sd">        method (Union[str, List[str], Dict[str, int]]): Method(s) for data retrieval.</span>
+<span class="sd">        intervention_matrix_name (str): Name of the intervention matrix.</span>
+<span class="sd">        seed (Union[None, int], optional): Seed for RNG. If None, the default A, B, and Q matrices are used.</span>
+<span class="sd">        compute_uncertainty_params (bool, optional): Whether to assemble the bw25</span>
+<span class="sd">            'intervention_params' / 'characterization_params' structured arrays. These are</span>
+<span class="sd">            only needed by the uncertainty sub-package (``uncertainty.import_declared``),</span>
+<span class="sd">            not by A/B/Q resampling, so skipping them speeds up repeated Monte Carlo calls.</span>
+<span class="sd">            Default True to preserve the full LCIDataDict. An array is ``None``, without a</span>
+<span class="sd">            warning, when the databases or the method carry no (complete) uncertainty</span>
+<span class="sd">            data: a deterministic study does not need it, and ``import_declared`` says so</span>
+<span class="sd">            when uncertainty is actually requested.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Dict[str, Union[dict, Any]]: Dictionary containing imported LCI data.</span>
+<span class="sd">    """</span>
+    <span class="n">set_project</span><span class="p">(</span><span class="n">project</span><span class="p">)</span>
+
+    <span class="c1"># Normalize databases input to a list</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">databases</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">databases</span> <span class="o">=</span> <span class="p">[</span><span class="n">databases</span><span class="p">]</span>
+
+    <span class="c1"># Validate each specified database</span>
+    <span class="k">for</span> <span class="n">db</span> <span class="ow">in</span> <span class="n">databases</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">db</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">bd</span><span class="o">.</span><span class="n">databases</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"Database '</span><span class="si">{</span><span class="n">db</span><span class="si">}</span><span class="s2">' does not exist in the project '</span><span class="si">{</span><span class="n">project</span><span class="si">}</span><span class="s2">'. "</span>
+                <span class="sa">f</span><span class="s2">"Available databases: </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="n">bd</span><span class="o">.</span><span class="n">databases</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="si">}</span><span class="s2">"</span>
+            <span class="p">)</span>
+
+    <span class="c1"># Prepare methods</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">method</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">method</span> <span class="o">=</span> <span class="p">[</span><span class="n">method</span><span class="p">]</span>  <span class="c1"># Convert single string to list of strings</span>
+    <span class="n">method</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">method</span><span class="p">)</span>
+
+    <span class="c1"># Retrieve and validate methods</span>
+    <span class="n">methods</span> <span class="o">=</span> <span class="n">retrieve_methods</span><span class="p">(</span><span class="n">project</span><span class="p">,</span> <span class="n">method</span><span class="p">)</span>
+    <span class="n">invalid_methods</span> <span class="o">=</span> <span class="p">[</span><span class="n">m</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">method</span> <span class="k">if</span> <span class="n">m</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">mt</span><span class="p">)</span> <span class="k">for</span> <span class="n">mt</span> <span class="ow">in</span> <span class="n">bd</span><span class="o">.</span><span class="n">methods</span><span class="p">]]</span>
+    <span class="k">if</span> <span class="n">invalid_methods</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"The following methods do not exist in the project '</span><span class="si">{</span><span class="n">project</span><span class="si">}</span><span class="s2">': </span><span class="si">{</span><span class="n">invalid_methods</span><span class="si">}</span><span class="s2">. "</span>
+            <span class="sa">f</span><span class="s2">"Available methods: </span><span class="si">{</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">mt</span><span class="p">)</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">mt</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">bd</span><span class="o">.</span><span class="n">methods</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span>
+        <span class="p">)</span>
+
+    <span class="c1"># Initialize database objects</span>
+    <span class="n">eidbs</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">database</span> <span class="ow">in</span> <span class="n">databases</span><span class="p">:</span>
+        <span class="n">eidbs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bd</span><span class="o">.</span><span class="n">Database</span><span class="p">(</span><span class="n">database</span><span class="p">))</span>
+    <span class="c1"># The LCA also loads the databases these link to (ecoinvent behind a foreground,</span>
+    <span class="c1"># say); their processes are columns of the matrices as well.</span>
+    <span class="n">activity_rows</span> <span class="o">=</span> <span class="n">_activity_rows</span><span class="p">(</span><span class="n">_linked_databases</span><span class="p">(</span><span class="n">databases</span><span class="p">))</span>
+
+    <span class="n">bw_version</span> <span class="o">=</span> <span class="n">get_bw_version</span><span class="p">()</span>
+    <span class="n">dist</span> <span class="o">=</span> <span class="n">seed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">resample</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">resample</span> <span class="o">=</span> <span class="p">[</span><span class="n">resample</span><span class="o">.</span><span class="n">upper</span><span class="p">()]</span>
+    <span class="n">resample</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">resample</span><span class="p">]</span>
+
+    <span class="k">match</span> <span class="n">bw_version</span><span class="p">:</span>
+        <span class="k">case</span> <span class="s1">'bw25'</span><span class="p">:</span>
+            <span class="n">lca</span><span class="p">,</span> <span class="n">characterization_matrices</span><span class="p">,</span> <span class="n">characterization_params</span><span class="p">,</span> <span class="n">process_map</span><span class="p">,</span> <span class="n">bio_params</span> <span class="o">=</span> \
+                <span class="n">_load_lci_bw25</span><span class="p">(</span><span class="n">eidbs</span><span class="p">,</span> <span class="n">methods</span><span class="p">,</span> <span class="n">seed</span><span class="p">,</span> <span class="n">dist</span><span class="p">,</span> <span class="n">resample</span><span class="p">,</span> <span class="n">compute_uncertainty_params</span><span class="p">,</span>
+                               <span class="n">activity_rows</span><span class="p">)</span>
+        <span class="k">case</span> <span class="s1">'bw2'</span><span class="p">:</span>
+            <span class="n">lca</span><span class="p">,</span> <span class="n">characterization_matrices</span><span class="p">,</span> <span class="n">characterization_params</span><span class="p">,</span> <span class="n">process_map</span><span class="p">,</span> <span class="n">bio_params</span> <span class="o">=</span> \
+                <span class="n">_load_lci_bw2</span><span class="p">(</span><span class="n">eidbs</span><span class="p">,</span> <span class="n">methods</span><span class="p">,</span> <span class="n">seed</span><span class="p">,</span> <span class="n">dist</span><span class="p">,</span> <span class="n">resample</span><span class="p">)</span>
+
+    <span class="c1"># final A &amp; B matrices</span>
+    <span class="n">technology_matrix</span>   <span class="o">=</span> <span class="n">lca</span><span class="o">.</span><span class="n">technosphere_matrix</span>
+    <span class="n">intervention_matrix</span> <span class="o">=</span> <span class="n">lca</span><span class="o">.</span><span class="n">biosphere_matrix</span>
+
+
+    <span class="c1"># Descriptive labels for every process in the matrices, linked databases included</span>
+    <span class="n">process_map_metadata</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">process_map</span><span class="p">[(</span><span class="n">db</span><span class="p">,</span> <span class="n">code</span><span class="p">)]:</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="n">product</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="s1">''</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="n">location</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="s1">''</span><span class="si">}</span><span class="s2">"</span>
+        <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">db</span><span class="p">,</span> <span class="n">code</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">product</span><span class="p">,</span> <span class="n">location</span> <span class="ow">in</span> <span class="n">activity_rows</span> <span class="k">if</span> <span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">code</span><span class="p">)</span> <span class="ow">in</span> <span class="n">process_map</span>
+    <span class="p">}</span>
+
+    <span class="c1"># ATTN: could probbly ask BW what the biosphere matrix is and then move this code into the cases further up</span>
+    <span class="k">if</span> <span class="n">intervention_matrix_name</span> <span class="ow">in</span> <span class="n">bd</span><span class="o">.</span><span class="n">databases</span><span class="p">:</span>
+        <span class="n">eidb_bio</span> <span class="o">=</span> <span class="n">bd</span><span class="o">.</span><span class="n">Database</span><span class="p">(</span><span class="n">intervention_matrix_name</span><span class="p">)</span>
+        <span class="k">match</span> <span class="n">bw_version</span><span class="p">:</span>
+            <span class="k">case</span> <span class="s1">'bw25'</span><span class="p">:</span>
+                <span class="n">intervention_map</span> <span class="o">=</span> <span class="p">{</span><span class="n">act</span><span class="o">.</span><span class="n">key</span><span class="p">:</span> <span class="n">lca</span><span class="o">.</span><span class="n">dicts</span><span class="o">.</span><span class="n">biosphere</span><span class="p">[</span><span class="n">act</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="k">for</span> <span class="n">act</span> <span class="ow">in</span> <span class="n">eidb_bio</span> <span class="k">if</span> <span class="n">act</span><span class="o">.</span><span class="n">id</span> <span class="ow">in</span> <span class="n">lca</span><span class="o">.</span><span class="n">dicts</span><span class="o">.</span><span class="n">biosphere</span><span class="p">}</span>  <span class="c1"># ATTN: This is adherring to old ways of storring data with keys ... how to work with IDs instead?</span>
+            <span class="k">case</span> <span class="s1">'bw2'</span><span class="p">:</span>
+                <span class="n">intervention_map</span> <span class="o">=</span> <span class="n">lca</span><span class="o">.</span><span class="n">biosphere_dict</span>
+        <span class="n">intervention_map_metadata</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">act</span> <span class="ow">in</span> <span class="n">eidb_bio</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">act</span><span class="o">.</span><span class="n">key</span> <span class="ow">in</span> <span class="n">intervention_map</span><span class="p">:</span>
+                <span class="n">intervention_map_metadata</span><span class="p">[</span><span class="n">intervention_map</span><span class="p">[</span><span class="n">act</span><span class="o">.</span><span class="n">key</span><span class="p">]]</span> <span class="o">=</span> <span class="n">act</span><span class="p">[</span><span class="s1">'name'</span><span class="p">]</span> <span class="o">+</span> <span class="s1">' | '</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">act</span><span class="p">[</span><span class="s1">'categories'</span><span class="p">])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span>
+            <span class="s2">"The name of the biosphere is not '"</span> <span class="o">+</span> <span class="n">intervention_matrix_name</span> <span class="o">+</span> <span class="s2">"'. Please specify the correct biosphere."</span><span class="p">)</span>
+
+    <span class="n">lci_data</span><span class="p">:</span><span class="n">LCIDataDict</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">'matrices'</span><span class="p">:</span> <span class="n">characterization_matrices</span><span class="p">,</span>
+        <span class="s1">'intervention_matrix'</span><span class="p">:</span> <span class="n">intervention_matrix</span><span class="p">,</span>
+        <span class="s1">'technology_matrix'</span><span class="p">:</span> <span class="n">technology_matrix</span><span class="p">,</span>
+        <span class="s1">'process_map'</span><span class="p">:</span> <span class="n">process_map</span><span class="p">,</span>
+        <span class="s1">'intervention_params'</span><span class="p">:</span> <span class="n">bio_params</span><span class="p">,</span>
+        <span class="s1">'characterization_params'</span><span class="p">:</span> <span class="n">characterization_params</span><span class="p">,</span>
+        <span class="s1">'intervention_map'</span><span class="p">:</span> <span class="n">intervention_map</span><span class="p">,</span>
+        <span class="s1">'intervention_map_metadata'</span><span class="p">:</span><span class="n">intervention_map_metadata</span><span class="p">,</span>
+        <span class="s1">'process_map_metadata'</span><span class="p">:</span><span class="n">process_map_metadata</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="k">return</span> <span class="n">lci_data</span></div>
+
+
+
+<div class="viewcode-block" id="_load_lci_bw25">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/bw_parser/index.html#pulpo.utils.bw_parser._load_lci_bw25">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">_load_lci_bw25</span><span class="p">(</span><span class="n">eidbs</span><span class="p">,</span> <span class="n">methods</span><span class="p">,</span> <span class="n">seed</span><span class="p">,</span> <span class="n">dist</span><span class="p">,</span> <span class="n">resample</span><span class="p">,</span> <span class="n">compute_uncertainty_params</span><span class="p">,</span> <span class="n">activity_rows</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Build the (optionally resampled) A/B/Q matrices and maps for a bw25 project.</span>
+
+<span class="sd">    One LCA with a combined functional unit (one activity per listed database) loads</span>
+<span class="sd">    the union of all databases and their dependencies into a single index space, so</span>
+<span class="sd">    database order does not matter.</span>
+
+<span class="sd">    Only the matrices in ``resample`` are drawn from their distributions, each</span>
+<span class="sd">    from its own random stream (child seeds spawned from ``seed``, as in the bw2</span>
+<span class="sd">    path); the others keep their deterministic values. bw2calc alone would draw</span>
+<span class="sd">    every matrix, all from the same seed.</span>
+
+<span class="sd">    Returns ``(lca, characterization_matrices, characterization_params, process_map,</span>
+<span class="sd">    intervention_params)``; ``intervention_params`` is ``None`` when not requested</span>
+<span class="sd">    or unavailable.</span>
+<span class="sd">    """</span>
+    <span class="n">characterization_matrices</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">characterization_params</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">draw</span> <span class="o">=</span> <span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="n">dist</span> <span class="ow">and</span> <span class="n">letter</span> <span class="ow">in</span> <span class="n">resample</span> <span class="k">for</span> <span class="n">letter</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span>
+            <span class="p">((</span><span class="s1">'A'</span><span class="p">,</span> <span class="s1">'technosphere_matrix'</span><span class="p">),</span> <span class="p">(</span><span class="s1">'B'</span><span class="p">,</span> <span class="s1">'biosphere_matrix'</span><span class="p">),</span> <span class="p">(</span><span class="s1">'Q'</span><span class="p">,</span> <span class="s1">'characterization_matrix'</span><span class="p">))}</span>
+    <span class="k">if</span> <span class="n">dist</span><span class="p">:</span>
+        <span class="n">child_seeds</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">generate_state</span><span class="p">(</span><span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">SeedSequence</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span><span class="o">.</span><span class="n">spawn</span><span class="p">(</span><span class="mi">2</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">methods</span><span class="p">))]</span>
+        <span class="n">tech_seed</span><span class="p">,</span> <span class="n">bio_seed</span> <span class="o">=</span> <span class="n">child_seeds</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">method_seeds</span> <span class="o">=</span> <span class="p">{</span><span class="nb">str</span><span class="p">(</span><span class="n">mth</span><span class="p">):</span> <span class="n">s</span> <span class="k">for</span> <span class="n">mth</span><span class="p">,</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">methods</span><span class="p">,</span> <span class="n">child_seeds</span><span class="p">[</span><span class="mi">2</span><span class="p">:])}</span>
+
+    <span class="c1"># Build technosphere/biosphere matrices ONCE for all databases (heavy step)</span>
+    <span class="n">demand</span> <span class="o">=</span> <span class="p">{</span><span class="n">eidb</span><span class="o">.</span><span class="n">random</span><span class="p">():</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">eidb</span> <span class="ow">in</span> <span class="n">eidbs</span><span class="p">}</span>
+    <span class="n">fu</span><span class="p">,</span> <span class="n">data_objs</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">bd</span><span class="o">.</span><span class="n">prepare_lca_inputs</span><span class="p">(</span><span class="n">demand</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">methods</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">lca</span> <span class="o">=</span> <span class="n">bc</span><span class="o">.</span><span class="n">LCA</span><span class="p">(</span><span class="n">demand</span><span class="o">=</span><span class="n">fu</span><span class="p">,</span> <span class="n">data_objs</span><span class="o">=</span><span class="n">data_objs</span><span class="p">,</span> <span class="n">use_distributions</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                 <span class="n">selective_use</span><span class="o">=</span><span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="p">{</span><span class="s1">'use_distributions'</span><span class="p">:</span> <span class="n">use</span><span class="p">}</span> <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">use</span> <span class="ow">in</span> <span class="n">draw</span><span class="o">.</span><span class="n">items</span><span class="p">()},</span>
+                 <span class="n">seed_override</span><span class="o">=</span><span class="n">tech_seed</span> <span class="k">if</span> <span class="n">dist</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">lca</span><span class="o">.</span><span class="n">load_lci_data</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">draw</span><span class="p">[</span><span class="s1">'biosphere_matrix'</span><span class="p">]:</span>
+        <span class="c1"># bw2calc draws B with A's seed; redraw it from a stream of its own.</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">matrix_utils</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">mu</span>
+        <span class="n">lca</span><span class="o">.</span><span class="n">biosphere_mm</span> <span class="o">=</span> <span class="n">mu</span><span class="o">.</span><span class="n">MappedMatrix</span><span class="p">(</span>
+            <span class="n">packages</span><span class="o">=</span><span class="n">lca</span><span class="o">.</span><span class="n">packages</span><span class="p">,</span> <span class="n">matrix</span><span class="o">=</span><span class="s1">'biosphere_matrix'</span><span class="p">,</span>
+            <span class="n">use_arrays</span><span class="o">=</span><span class="n">lca</span><span class="o">.</span><span class="n">check_selective_use</span><span class="p">(</span><span class="s1">'biosphere_matrix'</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span> <span class="n">use_distributions</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">seed_override</span><span class="o">=</span><span class="n">bio_seed</span><span class="p">,</span> <span class="n">row_mapper</span><span class="o">=</span><span class="n">lca</span><span class="o">.</span><span class="n">biosphere_mm</span><span class="o">.</span><span class="n">row_mapper</span><span class="p">,</span>
+            <span class="n">col_mapper</span><span class="o">=</span><span class="n">lca</span><span class="o">.</span><span class="n">technosphere_mm</span><span class="o">.</span><span class="n">col_mapper</span><span class="p">,</span> <span class="n">empty_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">lca</span><span class="o">.</span><span class="n">biosphere_matrix</span> <span class="o">=</span> <span class="n">lca</span><span class="o">.</span><span class="n">biosphere_mm</span><span class="o">.</span><span class="n">matrix</span>
+
+    <span class="k">for</span> <span class="n">method</span> <span class="ow">in</span> <span class="n">methods</span><span class="p">:</span>
+        <span class="n">m</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">method</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">dist</span><span class="p">:</span>
+            <span class="n">lca</span><span class="o">.</span><span class="n">seed_override</span> <span class="o">=</span> <span class="n">method_seeds</span><span class="p">[</span><span class="n">m</span><span class="p">]</span>   <span class="c1"># the Q of each method from its own stream</span>
+        <span class="n">lca</span><span class="o">.</span><span class="n">switch_method</span><span class="p">(</span><span class="n">method</span><span class="p">)</span>  <span class="c1"># cheap: swaps only the characterization datapackage/matrix</span>
+
+        <span class="k">if</span> <span class="n">compute_uncertainty_params</span><span class="p">:</span>
+            <span class="n">cf_params</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">build_bw25_params</span><span class="p">(</span>
+                <span class="n">lca</span><span class="o">.</span><span class="n">packages</span><span class="p">,</span> <span class="s1">'characterization_matrix'</span><span class="p">,</span> <span class="n">lca</span><span class="o">.</span><span class="n">dicts</span><span class="o">.</span><span class="n">biosphere</span>
+            <span class="p">)</span>
+            <span class="n">characterization_params</span><span class="p">[</span><span class="n">m</span><span class="p">]</span> <span class="o">=</span> <span class="n">cf_params</span>
+
+        <span class="n">characterization_matrices</span><span class="p">[</span><span class="n">m</span><span class="p">]</span> <span class="o">=</span> <span class="n">lca</span><span class="o">.</span><span class="n">characterization_matrix</span>
+
+    <span class="c1"># Method-independent biosphere uncertainty params: data_objs spans all listed</span>
+    <span class="c1"># databases (and is unaffected by switch_method), so one call covers everything.</span>
+    <span class="k">if</span> <span class="n">compute_uncertainty_params</span><span class="p">:</span>
+        <span class="n">intervention_params</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">build_bw25_params</span><span class="p">(</span>
+            <span class="n">data_objs</span><span class="p">,</span> <span class="s1">'biosphere_matrix'</span><span class="p">,</span> <span class="n">lca</span><span class="o">.</span><span class="n">dicts</span><span class="o">.</span><span class="n">biosphere</span><span class="p">,</span> <span class="n">lca</span><span class="o">.</span><span class="n">dicts</span><span class="o">.</span><span class="n">product</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">intervention_params</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="c1"># Every process the LCA loaded, also those of linked databases that were not listed.</span>
+    <span class="n">process_map</span> <span class="o">=</span> <span class="p">{(</span><span class="n">db</span><span class="p">,</span> <span class="n">code</span><span class="p">):</span> <span class="n">lca</span><span class="o">.</span><span class="n">dicts</span><span class="o">.</span><span class="n">product</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                   <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">db</span><span class="p">,</span> <span class="n">code</span><span class="p">,</span> <span class="o">*</span><span class="n">_</span> <span class="ow">in</span> <span class="n">activity_rows</span> <span class="k">if</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">lca</span><span class="o">.</span><span class="n">dicts</span><span class="o">.</span><span class="n">product</span><span class="p">}</span>
+
+    <span class="k">return</span> <span class="n">lca</span><span class="p">,</span> <span class="n">characterization_matrices</span><span class="p">,</span> <span class="n">characterization_params</span><span class="p">,</span> <span class="n">process_map</span><span class="p">,</span> <span class="n">intervention_params</span></div>
+
+
+
+<div class="viewcode-block" id="_load_lci_bw2">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/bw_parser/index.html#pulpo.utils.bw_parser._load_lci_bw2">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">_load_lci_bw2</span><span class="p">(</span><span class="n">eidbs</span><span class="p">,</span> <span class="n">methods</span><span class="p">,</span> <span class="n">seed</span><span class="p">,</span> <span class="n">dist</span><span class="p">,</span> <span class="n">resample</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Build the (optionally resampled) A/B/Q matrices and maps for a legacy bw2 project.</span>
+
+<span class="sd">    One LCA with a combined functional unit (one activity per listed database) loads</span>
+<span class="sd">    the union of all databases and their dependencies into a single index space, so</span>
+<span class="sd">    database order does not matter.</span>
+
+<span class="sd">    A, B and each method's Q are resampled from independent child seeds spawned from</span>
+<span class="sd">    ``seed``: a shared seed would give every MCRandomNumberGenerator the identical</span>
+<span class="sd">    percentile stream and inject spurious cross-matrix correlation (bw25 likewise</span>
+<span class="sd">    draws each matrix independently).</span>
+
+<span class="sd">    Returns ``(lca, characterization_matrices, characterization_params, process_map,</span>
+<span class="sd">    intervention_params)``.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">dist</span><span class="p">:</span>
+        <span class="n">child_seeds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">SeedSequence</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span><span class="o">.</span><span class="n">spawn</span><span class="p">(</span><span class="mi">2</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">methods</span><span class="p">))</span>
+        <span class="n">tech_seed</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">child_seeds</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">generate_state</span><span class="p">(</span><span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">bio_seed</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">child_seeds</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">generate_state</span><span class="p">(</span><span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">method_cf_seeds</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="nb">str</span><span class="p">(</span><span class="n">mth</span><span class="p">):</span> <span class="nb">int</span><span class="p">(</span><span class="n">child_seeds</span><span class="p">[</span><span class="mi">2</span> <span class="o">+</span> <span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">generate_state</span><span class="p">(</span><span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">mth</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">methods</span><span class="p">)</span>
+        <span class="p">}</span>
+
+    <span class="n">characterization_matrices</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">characterization_params</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="c1"># Build technosphere/biosphere matrices ONCE for all databases (heavy step)</span>
+    <span class="n">demand</span> <span class="o">=</span> <span class="p">{</span><span class="n">eidb</span><span class="o">.</span><span class="n">random</span><span class="p">():</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">eidb</span> <span class="ow">in</span> <span class="n">eidbs</span><span class="p">}</span>
+    <span class="n">lca</span> <span class="o">=</span> <span class="n">bc</span><span class="o">.</span><span class="n">LCA</span><span class="p">(</span><span class="n">demand</span><span class="p">,</span> <span class="n">methods</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">lca</span><span class="o">.</span><span class="n">load_lci_data</span><span class="p">()</span>
+
+    <span class="k">for</span> <span class="n">method</span> <span class="ow">in</span> <span class="n">methods</span><span class="p">:</span>
+        <span class="n">lca</span><span class="o">.</span><span class="n">switch_method</span><span class="p">(</span><span class="n">method</span><span class="p">)</span>  <span class="c1"># cheap: swaps only the characterization factors</span>
+        <span class="n">m</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">method</span><span class="p">)</span>
+        <span class="n">characterization_params</span><span class="p">[</span><span class="n">m</span><span class="p">]</span> <span class="o">=</span> <span class="n">lca</span><span class="o">.</span><span class="n">cf_params</span>
+        <span class="k">if</span> <span class="n">dist</span> <span class="ow">and</span> <span class="s2">"Q"</span> <span class="ow">in</span> <span class="n">resample</span><span class="p">:</span>
+            <span class="n">rng</span> <span class="o">=</span> <span class="n">MCRandomNumberGenerator</span><span class="p">(</span><span class="n">lca</span><span class="o">.</span><span class="n">cf_params</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="n">method_cf_seeds</span><span class="p">[</span><span class="n">m</span><span class="p">])</span>
+            <span class="n">lca</span><span class="o">.</span><span class="n">rebuild_characterization_matrix</span><span class="p">(</span><span class="n">rng</span><span class="o">.</span><span class="n">next</span><span class="p">())</span>
+        <span class="n">characterization_matrices</span><span class="p">[</span><span class="n">m</span><span class="p">]</span> <span class="o">=</span> <span class="n">lca</span><span class="o">.</span><span class="n">characterization_matrix</span>
+
+    <span class="n">process_map</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">lca</span><span class="o">.</span><span class="n">product_dict</span><span class="p">)</span>
+    <span class="n">tech_params</span><span class="p">,</span> <span class="n">bio_params</span> <span class="o">=</span> <span class="n">lca</span><span class="o">.</span><span class="n">tech_params</span><span class="p">,</span> <span class="n">lca</span><span class="o">.</span><span class="n">bio_params</span>
+
+    <span class="k">if</span> <span class="n">dist</span> <span class="ow">and</span> <span class="s2">"A"</span> <span class="ow">in</span> <span class="n">resample</span><span class="p">:</span>
+        <span class="n">lca</span><span class="o">.</span><span class="n">rebuild_technosphere_matrix</span><span class="p">(</span><span class="n">MCRandomNumberGenerator</span><span class="p">(</span><span class="n">tech_params</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="n">tech_seed</span><span class="p">)</span><span class="o">.</span><span class="n">next</span><span class="p">())</span>
+    <span class="k">if</span> <span class="n">dist</span> <span class="ow">and</span> <span class="s2">"B"</span> <span class="ow">in</span> <span class="n">resample</span><span class="p">:</span>
+        <span class="n">lca</span><span class="o">.</span><span class="n">rebuild_biosphere_matrix</span><span class="p">(</span><span class="n">MCRandomNumberGenerator</span><span class="p">(</span><span class="n">bio_params</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="n">bio_seed</span><span class="p">)</span><span class="o">.</span><span class="n">next</span><span class="p">())</span>
+
+    <span class="k">return</span> <span class="n">lca</span><span class="p">,</span> <span class="n">characterization_matrices</span><span class="p">,</span> <span class="n">characterization_params</span><span class="p">,</span> <span class="n">process_map</span><span class="p">,</span> <span class="n">bio_params</span></div>
+
+
+
+<div class="viewcode-block" id="_linked_databases">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/bw_parser/index.html#pulpo.utils.bw_parser._linked_databases">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">_linked_databases</span><span class="p">(</span><span class="n">names</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""``names`` and every database they link to, directly or not (``depends``)."""</span>
+    <span class="n">seen</span><span class="p">,</span> <span class="n">stack</span> <span class="o">=</span> <span class="p">[],</span> <span class="nb">list</span><span class="p">(</span><span class="n">names</span><span class="p">)</span>
+    <span class="k">while</span> <span class="n">stack</span><span class="p">:</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">stack</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">seen</span> <span class="ow">or</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">bd</span><span class="o">.</span><span class="n">databases</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">seen</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">stack</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">bd</span><span class="o">.</span><span class="n">databases</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'depends'</span><span class="p">,</span> <span class="p">[]))</span>
+    <span class="k">return</span> <span class="n">seen</span></div>
+
+
+
+<div class="viewcode-block" id="_activity_rows">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/bw_parser/index.html#pulpo.utils.bw_parser._activity_rows">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">_activity_rows</span><span class="p">(</span><span class="n">db_names</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""``(id, database, code, name, reference product, location)`` of every activity</span>
+<span class="sd">    of ``db_names``: one SQL query where the backend allows it, else by iteration."""</span>
+    <span class="n">ActivityDataset</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">_activity_orm</span><span class="p">()</span>
+    <span class="n">in_sql</span> <span class="o">=</span> <span class="p">[</span><span class="n">db</span> <span class="k">for</span> <span class="n">db</span> <span class="ow">in</span> <span class="n">db_names</span>
+              <span class="k">if</span> <span class="n">ActivityDataset</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">bd</span><span class="o">.</span><span class="n">databases</span><span class="p">[</span><span class="n">db</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'backend'</span><span class="p">,</span> <span class="s1">'sqlite'</span><span class="p">)</span> <span class="ow">in</span> <span class="n">_SQL_BACKENDS</span><span class="p">]</span>
+    <span class="n">rows</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="n">in_sql</span><span class="p">:</span>
+        <span class="n">A</span> <span class="o">=</span> <span class="n">ActivityDataset</span>
+        <span class="n">rows</span> <span class="o">+=</span> <span class="nb">list</span><span class="p">(</span><span class="n">A</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">A</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">A</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="n">A</span><span class="o">.</span><span class="n">code</span><span class="p">,</span> <span class="n">A</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">A</span><span class="o">.</span><span class="n">product</span><span class="p">,</span> <span class="n">A</span><span class="o">.</span><span class="n">location</span><span class="p">)</span>
+                     <span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">A</span><span class="o">.</span><span class="n">database</span><span class="o">.</span><span class="n">in_</span><span class="p">(</span><span class="n">in_sql</span><span class="p">))</span><span class="o">.</span><span class="n">tuples</span><span class="p">())</span>
+    <span class="k">for</span> <span class="n">db</span> <span class="ow">in</span> <span class="n">db_names</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">db</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">in_sql</span><span class="p">:</span>
+            <span class="n">rows</span> <span class="o">+=</span> <span class="p">[(</span><span class="n">act</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">act</span><span class="p">[</span><span class="s1">'database'</span><span class="p">],</span> <span class="n">act</span><span class="p">[</span><span class="s1">'code'</span><span class="p">],</span> <span class="n">act</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'name'</span><span class="p">),</span>
+                      <span class="n">act</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'reference product'</span><span class="p">),</span> <span class="n">act</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'location'</span><span class="p">))</span> <span class="k">for</span> <span class="n">act</span> <span class="ow">in</span> <span class="n">bd</span><span class="o">.</span><span class="n">Database</span><span class="p">(</span><span class="n">db</span><span class="p">)]</span>
+    <span class="k">return</span> <span class="n">rows</span></div>
+
+
+
+<div class="viewcode-block" id="_activity_orm">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/bw_parser/index.html#pulpo.utils.bw_parser._activity_orm">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">_activity_orm</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">"""Return (ActivityDataset, Activity) ORM handles for the installed bw2data version.</span>
+
+<span class="sd">    Both bw2 and bw25 store activities in a SQLite ``activitydataset`` table whose</span>
+<span class="sd">    ``name``, ``product`` (reference product) and ``location`` are real columns, so</span>
+<span class="sd">    exact-match filters can run server-side instead of loading every activity proxy.</span>
+<span class="sd">    Returns ``(None, None)`` if the ORM is unavailable (unexpected backend/version).</span>
+<span class="sd">    """</span>
+    <span class="k">try</span><span class="p">:</span>  <span class="c1"># bw25</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">bw2data.backends</span><span class="w"> </span><span class="kn">import</span> <span class="n">ActivityDataset</span><span class="p">,</span> <span class="n">Activity</span>
+        <span class="k">return</span> <span class="n">ActivityDataset</span><span class="p">,</span> <span class="n">Activity</span>
+    <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="k">try</span><span class="p">:</span>  <span class="c1"># bw2 (peewee backend)</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">bw2data.backends.peewee.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">ActivityDataset</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">bw2data.backends.peewee.proxies</span><span class="w"> </span><span class="kn">import</span> <span class="n">Activity</span>
+        <span class="k">return</span> <span class="n">ActivityDataset</span><span class="p">,</span> <span class="n">Activity</span>
+    <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span></div>
+
+
+
+<span class="c1"># Backends whose activities live in the SQLite activitydataset table and can be</span>
+<span class="c1"># queried server-side. Anything else falls back to iterating the database.</span>
+<div class="viewcode-block" id="_SQL_BACKENDS">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/bw_parser/index.html#pulpo.utils.bw_parser._SQL_BACKENDS">[docs]</a>
+<span class="n">_SQL_BACKENDS</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'sqlite'</span><span class="p">,</span> <span class="s1">'iotable'</span><span class="p">}</span></div>
+
+
+
+<div class="viewcode-block" id="_query_processes_sql">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/bw_parser/index.html#pulpo.utils.bw_parser._query_processes_sql">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">_query_processes_sql</span><span class="p">(</span><span class="n">ActivityDataset</span><span class="p">,</span> <span class="n">Activity</span><span class="p">,</span> <span class="n">db_name</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">activities</span><span class="p">,</span>
+                         <span class="n">reference_products</span><span class="p">,</span> <span class="n">locations</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Fetch matching activities of one database with a single SQL query.</span>
+
+<span class="sd">    Only the matching rows are materialized into ``Activity`` proxies, instead of</span>
+<span class="sd">    unpickling the whole database as the iteration fallback does.</span>
+<span class="sd">    """</span>
+    <span class="n">query</span> <span class="o">=</span> <span class="n">ActivityDataset</span><span class="o">.</span><span class="n">select</span><span class="p">()</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">ActivityDataset</span><span class="o">.</span><span class="n">database</span> <span class="o">==</span> <span class="n">db_name</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">keys</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">codes</span> <span class="o">=</span> <span class="p">[</span><span class="n">code</span> <span class="k">for</span> <span class="n">key_db</span><span class="p">,</span> <span class="n">code</span> <span class="ow">in</span> <span class="n">keys</span> <span class="k">if</span> <span class="n">key_db</span> <span class="o">==</span> <span class="n">db_name</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">codes</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[]</span>
+        <span class="n">query</span> <span class="o">=</span> <span class="n">query</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">ActivityDataset</span><span class="o">.</span><span class="n">code</span><span class="o">.</span><span class="n">in_</span><span class="p">(</span><span class="n">codes</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">activities</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">query</span> <span class="o">=</span> <span class="n">query</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">ActivityDataset</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">in_</span><span class="p">(</span><span class="n">activities</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">reference_products</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">query</span> <span class="o">=</span> <span class="n">query</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">ActivityDataset</span><span class="o">.</span><span class="n">product</span><span class="o">.</span><span class="n">in_</span><span class="p">(</span><span class="n">reference_products</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">locations</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">query</span> <span class="o">=</span> <span class="n">query</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">ActivityDataset</span><span class="o">.</span><span class="n">location</span><span class="o">.</span><span class="n">in_</span><span class="p">(</span><span class="n">locations</span><span class="p">))</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">Activity</span><span class="p">(</span><span class="n">document</span><span class="p">)</span> <span class="k">for</span> <span class="n">document</span> <span class="ow">in</span> <span class="n">query</span><span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="_iterate_processes">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/bw_parser/index.html#pulpo.utils.bw_parser._iterate_processes">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">_iterate_processes</span><span class="p">(</span><span class="n">db_name</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">activities</span><span class="p">,</span> <span class="n">reference_products</span><span class="p">,</span> <span class="n">locations</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Legacy fallback: load every activity of the database and filter in Python."""</span>
+    <span class="n">eidb</span> <span class="o">=</span> <span class="n">bd</span><span class="o">.</span><span class="n">Database</span><span class="p">(</span><span class="n">db_name</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">keys</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">keys_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">keys</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">proc</span> <span class="k">for</span> <span class="n">proc</span> <span class="ow">in</span> <span class="n">eidb</span> <span class="k">if</span> <span class="n">proc</span><span class="o">.</span><span class="n">key</span> <span class="ow">in</span> <span class="n">keys_set</span><span class="p">]</span>
+    <span class="n">activity_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">activities</span><span class="p">)</span> <span class="k">if</span> <span class="n">activities</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="n">reference_product_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">reference_products</span><span class="p">)</span> <span class="k">if</span> <span class="n">reference_products</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="n">location_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">locations</span><span class="p">)</span> <span class="k">if</span> <span class="n">locations</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="p">[</span>
+        <span class="n">proc</span> <span class="k">for</span> <span class="n">proc</span> <span class="ow">in</span> <span class="n">eidb</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">activity_set</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">proc</span><span class="p">[</span><span class="s1">'name'</span><span class="p">]</span> <span class="ow">in</span> <span class="n">activity_set</span><span class="p">)</span> <span class="ow">and</span>
+           <span class="p">(</span><span class="n">reference_product_set</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">proc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'reference product'</span><span class="p">)</span> <span class="ow">in</span> <span class="n">reference_product_set</span><span class="p">)</span> <span class="ow">and</span>
+           <span class="p">(</span><span class="n">location_set</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">proc</span><span class="p">[</span><span class="s1">'location'</span><span class="p">]</span> <span class="ow">in</span> <span class="n">location_set</span><span class="p">)</span>
+    <span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="retrieve_processes">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/bw_parser/index.html#pulpo.utils.bw_parser.retrieve_processes">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">retrieve_processes</span><span class="p">(</span><span class="n">project</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">databases</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]],</span> <span class="n">keys</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">activities</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                       <span class="n">reference_products</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">locations</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Retrieve activities from one or more databases based on specified keys, activities, reference products, and locations.</span>
+
+<span class="sd">    Filters are matched exactly and combined with AND; ``keys`` takes precedence over</span>
+<span class="sd">    the other filters. Uses a server-side SQL query where possible (SQLite-backed</span>
+<span class="sd">    databases) and falls back to iterating the database otherwise.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        project (str): Name of the project.</span>
+<span class="sd">        databases (Union[str, List[str]]): Name of the primary database or a list of databases (foreground, background).</span>
+<span class="sd">        keys (list, optional): List of keys to filter activities, as "('db', 'code')" strings or (db, code) tuples.</span>
+<span class="sd">        activities (list, optional): List of activity names to filter.</span>
+<span class="sd">        reference_products (list, optional): List of reference products to filter.</span>
+<span class="sd">        locations (list, optional): List of locations to filter.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: List of matching activities from the specified databases.</span>
+<span class="sd">    """</span>
+    <span class="n">_ensure_project_current</span><span class="p">(</span><span class="n">project</span><span class="p">)</span>
+
+    <span class="c1"># Normalize inputs to lists</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">databases</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">databases</span> <span class="o">=</span> <span class="p">[</span><span class="n">databases</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">activities</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">activities</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="n">activities</span> <span class="o">=</span> <span class="p">[</span><span class="n">activities</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">reference_products</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">reference_products</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="n">reference_products</span> <span class="o">=</span> <span class="p">[</span><span class="n">reference_products</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">locations</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">locations</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="n">locations</span> <span class="o">=</span> <span class="p">[</span><span class="n">locations</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">keys</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">keys</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">keys</span> <span class="o">=</span> <span class="p">[</span><span class="n">keys</span><span class="p">]</span>
+        <span class="n">keys</span> <span class="o">=</span> <span class="p">[</span><span class="n">key</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span> <span class="k">else</span> <span class="n">ast</span><span class="o">.</span><span class="n">literal_eval</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">]</span>
+
+    <span class="n">ActivityDataset</span><span class="p">,</span> <span class="n">Activity</span> <span class="o">=</span> <span class="n">_activity_orm</span><span class="p">()</span>
+
+    <span class="n">matching_processes</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">db_name</span> <span class="ow">in</span> <span class="n">databases</span><span class="p">:</span>
+        <span class="n">use_sql</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">ActivityDataset</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="ow">and</span> <span class="n">bd</span><span class="o">.</span><span class="n">databases</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">db_name</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'backend'</span><span class="p">,</span> <span class="s1">'sqlite'</span><span class="p">)</span> <span class="ow">in</span> <span class="n">_SQL_BACKENDS</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">use_sql</span><span class="p">:</span>
+            <span class="n">matching_processes</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">_query_processes_sql</span><span class="p">(</span>
+                <span class="n">ActivityDataset</span><span class="p">,</span> <span class="n">Activity</span><span class="p">,</span> <span class="n">db_name</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">activities</span><span class="p">,</span> <span class="n">reference_products</span><span class="p">,</span> <span class="n">locations</span>
+            <span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">matching_processes</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">_iterate_processes</span><span class="p">(</span>
+                <span class="n">db_name</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">activities</span><span class="p">,</span> <span class="n">reference_products</span><span class="p">,</span> <span class="n">locations</span>
+            <span class="p">))</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">matching_processes</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"No activities match the given specifications or the input format is incorrect."</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">matching_processes</span></div>
+
+
+
+<div class="viewcode-block" id="retrieve_env_interventions">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/bw_parser/index.html#pulpo.utils.bw_parser.retrieve_env_interventions">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">retrieve_env_interventions</span><span class="p">(</span><span class="n">project</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">''</span><span class="p">,</span> <span class="n">intervention_matrix</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">'biosphere3'</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">activities</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                               <span class="n">categories</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Retrieve environmental interventions from the biosphere database based on specified keys, activities, and categories.</span>
+
+<span class="sd">    Filters are matched exactly and combined with AND; ``keys`` takes precedence over</span>
+<span class="sd">    the other filters. Each filter takes one value or a list of them. Categories are</span>
+<span class="sd">    tuples such as ``('air', 'urban air close to ground')``.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        project (str, optional): Name of the project.</span>
+<span class="sd">        intervention_matrix (str): Name of the intervention matrix.</span>
+<span class="sd">        keys (optional): Flow keys, as (database, code) tuples or their string form.</span>
+<span class="sd">        activities (optional): Flow names.</span>
+<span class="sd">        categories (optional): Flow categories, as tuples or their string form.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: The matching environmental flows; empty, with a warning, if none match.</span>
+<span class="sd">    """</span>
+
+    <span class="c1"># Set project and get database</span>
+    <span class="n">_ensure_project_current</span><span class="p">(</span><span class="n">project</span><span class="p">)</span>
+    <span class="n">eidb</span> <span class="o">=</span> <span class="n">bd</span><span class="o">.</span><span class="n">Database</span><span class="p">(</span><span class="n">intervention_matrix</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">keys</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">keys</span> <span class="o">=</span> <span class="p">{</span><span class="n">_parse_tuple</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="s1">'keys'</span><span class="p">,</span> <span class="s2">"('biosphere3', 'code')"</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">_as_list</span><span class="p">(</span><span class="n">keys</span><span class="p">)}</span>
+        <span class="n">matching_flows</span> <span class="o">=</span> <span class="p">[</span><span class="n">flow</span> <span class="k">for</span> <span class="n">flow</span> <span class="ow">in</span> <span class="n">eidb</span> <span class="k">if</span> <span class="n">flow</span><span class="o">.</span><span class="n">key</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">names</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">activities</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">set</span><span class="p">(</span><span class="n">_as_list</span><span class="p">(</span><span class="n">activities</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">categories</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">categories</span> <span class="o">=</span> <span class="p">{</span><span class="n">_parse_tuple</span><span class="p">(</span><span class="n">category</span><span class="p">,</span> <span class="s1">'categories'</span><span class="p">,</span> <span class="s2">"('air', 'urban air close to ground')"</span><span class="p">)</span>
+                          <span class="k">for</span> <span class="n">category</span> <span class="ow">in</span> <span class="n">_as_list</span><span class="p">(</span><span class="n">categories</span><span class="p">)}</span>
+        <span class="n">matching_flows</span> <span class="o">=</span> <span class="p">[</span><span class="n">flow</span> <span class="k">for</span> <span class="n">flow</span> <span class="ow">in</span> <span class="n">eidb</span>
+                          <span class="k">if</span> <span class="p">(</span><span class="n">names</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">flow</span><span class="p">[</span><span class="s1">'name'</span><span class="p">]</span> <span class="ow">in</span> <span class="n">names</span><span class="p">)</span>
+                          <span class="ow">and</span> <span class="p">(</span><span class="n">categories</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">flow</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'categories'</span><span class="p">)</span> <span class="ow">or</span> <span class="p">())</span> <span class="ow">in</span> <span class="n">categories</span><span class="p">)]</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">matching_flows</span><span class="p">:</span>
+        <span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s2">"No flows in </span><span class="si">{</span><span class="n">intervention_matrix</span><span class="si">!r}</span><span class="s2"> match keys=</span><span class="si">{</span><span class="n">keys</span><span class="si">!r}</span><span class="s2">, activities=</span><span class="si">{</span><span class="n">activities</span><span class="si">!r}</span><span class="s2">, "</span>
+             <span class="sa">f</span><span class="s2">"categories=</span><span class="si">{</span><span class="n">categories</span><span class="si">!r}</span><span class="s2">; names, keys and categories are matched exactly."</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">matching_flows</span></div>
+
+
+
+<div class="viewcode-block" id="_as_list">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/bw_parser/index.html#pulpo.utils.bw_parser._as_list">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">_as_list</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""A filter value as a list: a string or a tuple is one value."""</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">value</span><span class="p">]</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">))</span> <span class="k">else</span> <span class="nb">list</span><span class="p">(</span><span class="n">value</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="_parse_tuple">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/bw_parser/index.html#pulpo.utils.bw_parser._parse_tuple">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">_parse_tuple</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">example</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""A key or category given as a tuple or its string form, as a tuple."""</span>
+    <span class="n">parsed</span> <span class="o">=</span> <span class="n">value</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">parsed</span> <span class="o">=</span> <span class="n">ast</span><span class="o">.</span><span class="n">literal_eval</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">SyntaxError</span><span class="p">):</span>
+            <span class="k">pass</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">parsed</span><span class="p">,</span> <span class="p">(</span><span class="nb">tuple</span><span class="p">,</span> <span class="nb">list</span><span class="p">)):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">: expected tuples such as </span><span class="si">{</span><span class="n">example</span><span class="si">}</span><span class="s2"> or their string form, got </span><span class="si">{</span><span class="n">value</span><span class="si">!r}</span><span class="s2">."</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">parsed</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="retrieve_methods">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/bw_parser/index.html#pulpo.utils.bw_parser.retrieve_methods">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">retrieve_methods</span><span class="p">(</span><span class="n">project</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">sub_string</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Retrieve all methods that contain the specified list of substrings.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        project (str): Name of the project.</span>
+<span class="sd">        sub_string (List[str]): List of substrings to search for in method names.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        List[str]: List of methods that match the substrings.</span>
+<span class="sd">    """</span>
+    <span class="n">_ensure_project_current</span><span class="p">(</span><span class="n">project</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">method</span> <span class="k">for</span> <span class="n">method</span> <span class="ow">in</span> <span class="n">bd</span><span class="o">.</span><span class="n">methods</span> <span class="k">if</span> <span class="nb">any</span><span class="p">([</span><span class="n">x</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">method</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">sub_string</span><span class="p">])]</span></div>
+
+</pre></div>
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341"></script>
+<script src="../../../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2026 pulpo developers.
+      <br/>
+    
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item"><p>🌿🐛 Found a bug? Something not working? Frustrated? <a href=" latest/../../../../content/contributing.html">Please report it!</a></p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

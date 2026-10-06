@@ -1,0 +1,1899 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="../../_static/favicon.svg" type="image/svg+xml">
+    <link rel="icon" sizes="144x144" href="../../_static/favicon-144.png" type="image/png">
+    <link rel="mask-icon" href="../../_static/favicon_mask-icon.svg" color="#222832" type="image/svg+xml">
+    <link rel="apple-touch-icon" sizes="500x500" href="../../_static/favicon-500.png" type="image/png">
+    <title>Chance-constrained PULPO under uncertainty: an open example &#8212; pulpo 2.0.0 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+<link href="../../_static/styles/bootstrap.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+
+  
+  <link href="../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+    <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=913d6465" />
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341" />
+  <script src="../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=3ee479438cf8b5e0d341"></script>
+
+    <script src="../../_static/documentation_options.js?v=79f5c508"></script>
+    <script src="../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../_static/design-tabs.js?v=36754332"></script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'content/examples/uncertainty_toy';</script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="API Reference" href="../api/index.html" />
+    <link rel="prev" title="Time-dependent toy example" href="elec_time_toy.html" />
+<meta name="google-site-verification" content="Fb3YVU81AToFlPNhlaQf6LLq1SMrHPbY-RtFsgZkw9Q" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../_static/pulpo_logo_big.svg" class="logo__image only-light" alt="pulpo 2.0.0 documentation - Home"/>
+    <script>document.write(`<img src="../../_static/pulpo_logo_big.svg" class="logo__image only-dark" alt="pulpo 2.0.0 documentation - Home"/>`);</script>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav class="navbar-nav">
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../getting_started/index.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../theory.html">
+    Theory
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../uncertainty.html">
+    Uncertainty
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    Examples
+  </a>
+</li>
+
+            <li class="nav-item dropdown pst-header-nav-item">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="../api/index.html">
+    API
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="../contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="../codeofconduct.html">
+    Code of Conduct
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="../license.html">
+    License
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="../changelog.html">
+    Changelog
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  </button>
+`);
+</script></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links navbar-nav"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/flechtenberg/pulpo" title="Open this Repo on GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fab fa-brands fa-github fa-lg" aria-hidden="true"></i></span>
+            <span class="sr-only">Open this Repo on GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+    </div>
+  
+
+  
+    <button class="sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav class="navbar-nav">
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../getting_started/index.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../theory.html">
+    Theory
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../uncertainty.html">
+    Uncertainty
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../api/index.html">
+    API
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../codeofconduct.html">
+    Code of Conduct
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../license.html">
+    License
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../changelog.html">
+    Changelog
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  </button>
+`);
+</script></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links navbar-nav"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/flechtenberg/pulpo" title="Open this Repo on GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fab fa-brands fa-github fa-lg" aria-hidden="true"></i></span>
+            <span class="sr-only">Open this Repo on GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="index.html">Example Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pulpo_showcase.html">PULPO Optimization Framework: Complete Demonstration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rice_example.html">Rice Example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="elec_time_toy.html">Time-dependent toy example</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Chance-constrained PULPO under uncertainty: an open example</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">Example Collection</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page">Chance-const...</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="chance-constrained-pulpo-under-uncertainty-an-open-example">
+<h1>Chance-constrained PULPO under uncertainty: an open example<a class="headerlink" href="#chance-constrained-pulpo-under-uncertainty-an-open-example" title="Link to this heading">#</a></h1>
+<p>This notebook runs PULPO’s uncertainty method end to end on the bundled
+<code class="docutils literal notranslate"><span class="pre">soc_demo_database</span></code>: a toy ammonia system whose hydrogen comes from steam
+methane reforming (SMR) or electrolysis. It needs neither ecoinvent nor a
+commercial solver: the linear programs go to HiGHS and the cone to Clarabel,
+both installed with PULPO.</p>
+<p>As of now, PULPO considers uncertainty in the biosphere flows and the
+characterization factors only; technosphere exchanges are deterministic.</p>
+<ol class="arabic simple">
+<li><p>the deterministic optimum, solved in reduced space (<code class="docutils literal notranslate"><span class="pre">formulation='reduced'</span></code>);</p></li>
+<li><p>the declared uncertainty and its closed-form moments;</p></li>
+<li><p>a chance-constrained front over the reliability level <span class="math notranslate nohighlight">\(\lambda\)</span>, with an
+uncertain capacity of the electrolyzer;</p></li>
+<li><p>the exact variance decomposition at a solution;</p></li>
+<li><p>a screening of the parameters that declare no uncertainty;</p></li>
+<li><p>an out-of-sample validation of every point, and the check that the coverage
+is exact when the impact is exactly normal;</p></li>
+<li><p>the building blocks for formulations of your own.</p></li>
+</ol>
+<p>The method is described in the documentation (<em>Uncertainty</em>). The one plot
+needs <code class="docutils literal notranslate"><span class="pre">matplotlib</span></code>, which PULPO does not install; without it the plot is
+skipped and everything else runs.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">contextlib</span><span class="o">,</span><span class="w"> </span><span class="nn">io</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">pulpo</span><span class="w"> </span><span class="kn">import</span> <span class="n">pulpo</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pulpo.datasets.soc_demo_database</span><span class="w"> </span><span class="kn">import</span> <span class="n">setup_soc_demo_db</span><span class="p">,</span> <span class="n">METHOD_KEY</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pulpo.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">uncertainty</span> <span class="k">as</span> <span class="n">unc</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pulpo.utils.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">is_bw25</span>
+
+<span class="n">pd</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="s1">'display.precision'</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+<span class="n">pd</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="s1">'display.width'</span><span class="p">,</span> <span class="mi">120</span><span class="p">)</span>
+
+<span class="n">quiet</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">StringIO</span><span class="p">()</span>
+<span class="k">with</span> <span class="n">contextlib</span><span class="o">.</span><span class="n">redirect_stdout</span><span class="p">(</span><span class="n">quiet</span><span class="p">),</span> <span class="n">contextlib</span><span class="o">.</span><span class="n">redirect_stderr</span><span class="p">(</span><span class="n">quiet</span><span class="p">):</span>   <span class="c1"># it reports every write</span>
+    <span class="n">setup_soc_demo_db</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+<section id="the-system-and-its-deterministic-optimum">
+<h2>1. The system and its deterministic optimum<a class="headerlink" href="#the-system-and-its-deterministic-optimum" title="Link to this heading">#</a></h2>
+<p>One unit of ammonia is demanded. Its hydrogen comes from SMR, which emits CO₂ and
+draws natural gas (with its methane leaks), or from electrolysis, which emits
+nothing directly but draws much electricity. The LCIA method is GWP100 over CO₂,
+CH₄ and N₂O.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">project</span> <span class="o">=</span> <span class="s1">'soc_demo_project_bw25'</span> <span class="k">if</span> <span class="n">is_bw25</span><span class="p">()</span> <span class="k">else</span> <span class="s1">'soc_demo_project'</span>
+<span class="n">databases</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'soc_demo_background_db'</span><span class="p">,</span> <span class="s1">'soc_demo_foreground_db'</span><span class="p">]</span>
+<span class="n">method</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">METHOD_KEY</span><span class="p">)</span>
+
+<span class="n">worker</span> <span class="o">=</span> <span class="n">pulpo</span><span class="o">.</span><span class="n">PulpoOptimizer</span><span class="p">(</span><span class="n">project</span><span class="p">,</span> <span class="n">databases</span><span class="p">,</span> <span class="p">{</span><span class="n">method</span><span class="p">:</span> <span class="mi">1</span><span class="p">})</span>
+<span class="k">with</span> <span class="n">contextlib</span><span class="o">.</span><span class="n">redirect_stdout</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">StringIO</span><span class="p">()):</span>
+    <span class="n">worker</span><span class="o">.</span><span class="n">get_lci_data</span><span class="p">()</span>
+<span class="n">ammonia</span> <span class="o">=</span> <span class="n">worker</span><span class="o">.</span><span class="n">retrieve_processes</span><span class="p">(</span><span class="n">processes</span><span class="o">=</span><span class="p">[</span><span class="s1">'ammonia synthesis'</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">smr</span> <span class="o">=</span> <span class="n">worker</span><span class="o">.</span><span class="n">retrieve_processes</span><span class="p">(</span><span class="n">processes</span><span class="o">=</span><span class="p">[</span><span class="s1">'hydrogen SMR'</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">electrolysis</span> <span class="o">=</span> <span class="n">worker</span><span class="o">.</span><span class="n">retrieve_processes</span><span class="p">(</span><span class="n">processes</span><span class="o">=</span><span class="p">[</span><span class="s1">'hydrogen electrolysis'</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+
+<span class="n">choices</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'hydrogen'</span><span class="p">:</span> <span class="p">{</span><span class="n">smr</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="s1">'inf'</span><span class="p">),</span> <span class="n">electrolysis</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="s1">'inf'</span><span class="p">)}}</span>
+<span class="k">with</span> <span class="n">contextlib</span><span class="o">.</span><span class="n">redirect_stdout</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">StringIO</span><span class="p">()):</span>
+    <span class="n">worker</span><span class="o">.</span><span class="n">instantiate</span><span class="p">(</span><span class="n">choices</span><span class="o">=</span><span class="n">choices</span><span class="p">,</span> <span class="n">demand</span><span class="o">=</span><span class="p">{</span><span class="n">ammonia</span><span class="p">:</span> <span class="mi">1</span><span class="p">})</span>
+
+<span class="n">lci</span> <span class="o">=</span> <span class="n">worker</span><span class="o">.</span><span class="n">lci_data</span>
+<span class="n">process_name</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">j</span><span class="p">:</span> <span class="n">lci</span><span class="p">[</span><span class="s1">'process_map_metadata'</span><span class="p">][</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">' | '</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">flow_name</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">e</span><span class="p">:</span> <span class="n">lci</span><span class="p">[</span><span class="s1">'intervention_map_metadata'</span><span class="p">][</span><span class="n">e</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">' | '</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">SMR</span><span class="p">,</span> <span class="n">ELY</span> <span class="o">=</span> <span class="p">(</span><span class="n">lci</span><span class="p">[</span><span class="s1">'process_map'</span><span class="p">][</span><span class="n">a</span><span class="o">.</span><span class="n">key</span><span class="p">]</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="p">(</span><span class="n">smr</span><span class="p">,</span> <span class="n">electrolysis</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>With the technosphere matrix <span class="math notranslate nohighlight">\(A\)</span> square and invertible, every scaling vector that
+meets the balances is <span class="math notranslate nohighlight">\(s = s_0 + S v\)</span> with one free variable <span class="math notranslate nohighlight">\(v_k\)</span> per alternative.
+<code class="docutils literal notranslate"><span class="pre">solve(formulation='reduced')</span></code> solves the LP over <span class="math notranslate nohighlight">\(v\)</span> (here: two columns instead of six
+processes) and recovers <span class="math notranslate nohighlight">\(s\)</span> with one forward solve. The full Pyomo model gives the
+same optimum.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">contextlib</span><span class="o">.</span><span class="n">redirect_stdout</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">StringIO</span><span class="p">()):</span>
+    <span class="n">worker</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">formulation</span><span class="o">=</span><span class="s1">'reduced'</span><span class="p">)</span>
+<span class="n">s_det</span> <span class="o">=</span> <span class="n">unc</span><span class="o">.</span><span class="n">current_scaling_vector</span><span class="p">(</span><span class="n">worker</span><span class="o">.</span><span class="n">instance</span><span class="p">)</span>
+<span class="n">reduced_impact</span> <span class="o">=</span> <span class="n">worker</span><span class="o">.</span><span class="n">instance</span><span class="o">.</span><span class="n">impacts</span><span class="p">[</span><span class="n">method</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+
+<span class="k">with</span> <span class="n">contextlib</span><span class="o">.</span><span class="n">redirect_stdout</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">StringIO</span><span class="p">()):</span>
+    <span class="n">worker</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>                                   <span class="c1"># the full LP, HiGHS</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"impact, reduced: </span><span class="si">{</span><span class="n">reduced_impact</span><span class="si">:</span><span class="s2">.10f</span><span class="si">}</span><span class="s2">   full: </span><span class="si">{</span><span class="n">worker</span><span class="o">.</span><span class="n">instance</span><span class="o">.</span><span class="n">impacts</span><span class="p">[</span><span class="n">method</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="si">:</span><span class="s2">.10f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"SMR </span><span class="si">{</span><span class="n">s_det</span><span class="p">[</span><span class="n">SMR</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">, electrolysis </span><span class="si">{</span><span class="n">s_det</span><span class="p">[</span><span class="n">ELY</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>impact, reduced: 1.6505600737   full: 1.6505600737
+SMR 0.0000, electrolysis 0.1780
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="declared-uncertainty-and-closed-form-moments">
+<h2>2. Declared uncertainty and closed-form moments<a class="headerlink" href="#declared-uncertainty-and-closed-form-moments" title="Link to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">import_declared</span></code> takes every nonzero entry of <span class="math notranslate nohighlight">\(B\)</span> on a characterized flow and every
+CF of the method, with the distribution the database declares. Parameters without
+one are <em>undeclared</em>: they stay deterministic (mean = amount, variance 0) and are
+listed for the screening in section 5. CO₂’s CF is exact (a normal with zero
+width): CO₂ is the reference gas of GWP100.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">data</span> <span class="o">=</span> <span class="n">unc</span><span class="o">.</span><span class="n">import_declared</span><span class="p">(</span><span class="n">worker</span><span class="p">)</span>
+<span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">unc</span><span class="o">.</span><span class="n">counts</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>group</th>
+      <th>subgroup</th>
+      <th>status</th>
+      <th>uncertainty_type</th>
+      <th>n</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>If</td>
+      <td>soc_demo_background_db</td>
+      <td>undeclared</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>If</td>
+      <td>soc_demo_background_db</td>
+      <td>declared</td>
+      <td>2</td>
+      <td>3</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>If</td>
+      <td>soc_demo_background_db</td>
+      <td>declared</td>
+      <td>3</td>
+      <td>2</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>If</td>
+      <td>soc_demo_background_db</td>
+      <td>declared</td>
+      <td>5</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>If</td>
+      <td>soc_demo_foreground_db</td>
+      <td>undeclared</td>
+      <td>0</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>If</td>
+      <td>soc_demo_foreground_db</td>
+      <td>declared</td>
+      <td>4</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <th>6</th>
+      <td>Cf</td>
+      <td>('soc demo', 'climate change')</td>
+      <td>undeclared</td>
+      <td>0</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <th>7</th>
+      <td>Cf</td>
+      <td>('soc demo', 'climate change')</td>
+      <td>declared</td>
+      <td>2</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <th>8</th>
+      <td>Cf</td>
+      <td>('soc demo', 'climate change')</td>
+      <td>declared</td>
+      <td>3</td>
+      <td>1</td>
+    </tr>
+  </tbody>
+</table>
+</div></div></div>
+</div>
+<p>With independent inputs, <span class="math notranslate nohighlight">\(X(s)=\sum_e q_e \sum_j b_{ej} s_j\)</span> has, for every
+supported family (lognormal, normal, uniform, triangular),</p>
+<div class="math notranslate nohighlight">
+\[\mathrm{E}[X] = \mu^\top s, \qquad
+\mathrm{Var}\,X = \sum_j d_j s_j^2 + \sum_e w_e y_e^2,\]</div>
+<p>with <span class="math notranslate nohighlight">\(\mu_j=\sum_e \mathrm{E}[q_e]\mathrm{E}[b_{ej}]\)</span>,
+<span class="math notranslate nohighlight">\(d_j=\sum_e(\mathrm{E}[q_e]^2+\mathrm{Var}\,q_e)\mathrm{Var}\,b_{ej}\)</span>,
+<span class="math notranslate nohighlight">\(w_e=\mathrm{Var}\,q_e\)</span> and <span class="math notranslate nohighlight">\(y_e=\sum_j \mathrm{E}[b_{ej}] s_j\)</span>. The second sum is the
+covariance that all processes emitting flow <span class="math notranslate nohighlight">\(e\)</span> share through its one factor.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">mom</span> <span class="o">=</span> <span class="n">unc</span><span class="o">.</span><span class="n">compute_moments</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">worker</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">mom</span><span class="o">.</span><span class="n">summary</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"at the deterministic optimum: E[X] = </span><span class="si">{</span><span class="n">mom</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">s_det</span><span class="p">)</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">, sigma = </span><span class="si">{</span><span class="n">mom</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">s_det</span><span class="p">)</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">, "</span>
+      <span class="sa">f</span><span class="s2">"sigma without the shared-CF covariance = </span><span class="si">{</span><span class="n">mom</span><span class="o">.</span><span class="n">std_independent</span><span class="p">(</span><span class="n">s_det</span><span class="p">)</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>{'processes': 6, 'processes_with_variance': 4, 'uncertain_cfs': 1}
+at the deterministic optimum: E[X] = 1.8659, sigma = 0.8580, sigma without the shared-CF covariance = 0.8580
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="chance-constrained-front">
+<h2>3. Chance-constrained front<a class="headerlink" href="#chance-constrained-front" title="Link to this heading">#</a></h2>
+<p>The electrolyzer’s capacity is uncertain: a triangular distribution between
+0.005 and 0.035 with its mode at 0.03. At a joint reliability <span class="math notranslate nohighlight">\(\lambda\)</span> the impact
+target and the capacity must hold together. Boole’s inequality splits the failure
+budget <span class="math notranslate nohighlight">\(1-\lambda\)</span> across the <span class="math notranslate nohighlight">\(K=2\)</span> events, which needs no assumption on how they
+depend on each other:</p>
+<div class="math notranslate nohighlight">
+\[\min_s\ \mu^\top s + \kappa\,\sigma(s)\quad\text{s.t. PULPO's constraints},\quad
+s_{\text{ely}} \le F_U^{-1}(\varepsilon_1),\qquad
+\kappa = \Phi^{-1}(\lambda_z),\ \lambda_z = 1-\varepsilon_0 .\]</div>
+<p>The capacity enters at its exact quantile. The impact row assumes <span class="math notranslate nohighlight">\(X\)</span> normal
+(the only normality assumption; section 6 tests it). In reduced space the
+problem is a second-order cone with one column per alternative, solved by
+Clarabel.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">capacity</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'uncertainty_type'</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span> <span class="s1">'minimum'</span><span class="p">:</span> <span class="mf">0.005</span><span class="p">,</span> <span class="s1">'loc'</span><span class="p">:</span> <span class="mf">0.03</span><span class="p">,</span> <span class="s1">'maximum'</span><span class="p">:</span> <span class="mf">0.035</span><span class="p">}</span>
+<span class="n">problem</span> <span class="o">=</span> <span class="n">unc</span><span class="o">.</span><span class="n">ChanceConstrained</span><span class="p">(</span><span class="n">worker</span><span class="p">,</span> <span class="n">mom</span><span class="p">,</span> <span class="n">upper_bounds</span><span class="o">=</span><span class="p">{</span><span class="n">electrolysis</span><span class="p">:</span> <span class="n">capacity</span><span class="p">})</span>
+<span class="n">front</span> <span class="o">=</span> <span class="n">problem</span><span class="o">.</span><span class="n">solve</span><span class="p">([</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.7</span><span class="p">,</span> <span class="mf">0.9</span><span class="p">,</span> <span class="mf">0.95</span><span class="p">,</span> <span class="mf">0.99</span><span class="p">])</span>
+
+<span class="n">table</span> <span class="o">=</span> <span class="n">front</span><span class="o">.</span><span class="n">table</span><span class="p">()</span>
+<span class="n">table</span><span class="p">[</span><span class="s1">'electrolysis'</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span><span class="o">.</span><span class="n">s</span><span class="p">[</span><span class="n">ELY</span><span class="p">]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">front</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span>
+<span class="n">table</span><span class="p">[</span><span class="s1">'capacity bound'</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span><span class="o">.</span><span class="n">bounds</span><span class="p">[(</span><span class="s1">'upper'</span><span class="p">,</span> <span class="n">ELY</span><span class="p">)]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">front</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span>
+<span class="n">table</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>lambda_impact</th>
+      <th>kappa</th>
+      <th>mean</th>
+      <th>sigma</th>
+      <th>adjusted</th>
+      <th>seconds</th>
+      <th>electrolysis</th>
+      <th>capacity bound</th>
+    </tr>
+    <tr>
+      <th>lambda</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0.50</th>
+      <td>0.750</td>
+      <td>0.6745</td>
+      <td>2.1519</td>
+      <td>0.2740</td>
+      <td>2.3367</td>
+      <td>0.0119</td>
+      <td>0.0187</td>
+      <td>0.0187</td>
+    </tr>
+    <tr>
+      <th>0.70</th>
+      <td>0.850</td>
+      <td>1.0364</td>
+      <td>2.1574</td>
+      <td>0.2726</td>
+      <td>2.4399</td>
+      <td>0.0155</td>
+      <td>0.0156</td>
+      <td>0.0156</td>
+    </tr>
+    <tr>
+      <th>0.90</th>
+      <td>0.950</td>
+      <td>1.6449</td>
+      <td>2.1655</td>
+      <td>0.2720</td>
+      <td>2.6128</td>
+      <td>0.0157</td>
+      <td>0.0111</td>
+      <td>0.0111</td>
+    </tr>
+    <tr>
+      <th>0.95</th>
+      <td>0.975</td>
+      <td>1.9600</td>
+      <td>2.1687</td>
+      <td>0.2722</td>
+      <td>2.7023</td>
+      <td>0.0148</td>
+      <td>0.0093</td>
+      <td>0.0093</td>
+    </tr>
+    <tr>
+      <th>0.99</th>
+      <td>0.995</td>
+      <td>2.5758</td>
+      <td>2.1730</td>
+      <td>0.2730</td>
+      <td>2.8762</td>
+      <td>0.0150</td>
+      <td>0.0069</td>
+      <td>0.0069</td>
+    </tr>
+  </tbody>
+</table>
+</div></div></div>
+</div>
+<p>Diagnostics at every point: <span class="math notranslate nohighlight">\(\sigma\)</span> without the shared-CF covariance and the
+ratio <span class="math notranslate nohighlight">\(\sigma/\sigma_{\text{indep}}\)</span>, the CFs’ share of the variance.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">unc</span><span class="o">.</span><span class="n">diagnostics</span><span class="p">(</span><span class="n">front</span><span class="p">,</span> <span class="n">mom</span><span class="p">)[[</span><span class="s1">'sigma'</span><span class="p">,</span> <span class="s1">'sigma_indep'</span><span class="p">,</span> <span class="s1">'sigma_over_indep'</span><span class="p">,</span> <span class="s1">'cf_share'</span><span class="p">,</span> <span class="s1">'n_variables'</span><span class="p">,</span> <span class="s1">'n_rows'</span><span class="p">]]</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>sigma</th>
+      <th>sigma_indep</th>
+      <th>sigma_over_indep</th>
+      <th>cf_share</th>
+      <th>n_variables</th>
+      <th>n_rows</th>
+    </tr>
+    <tr>
+      <th>lambda</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0.50</th>
+      <td>0.2740</td>
+      <td>0.2740</td>
+      <td>1.0002</td>
+      <td>0.0018</td>
+      <td>2</td>
+      <td>3</td>
+    </tr>
+    <tr>
+      <th>0.70</th>
+      <td>0.2726</td>
+      <td>0.2725</td>
+      <td>1.0002</td>
+      <td>0.0019</td>
+      <td>2</td>
+      <td>3</td>
+    </tr>
+    <tr>
+      <th>0.90</th>
+      <td>0.2720</td>
+      <td>0.2719</td>
+      <td>1.0002</td>
+      <td>0.0020</td>
+      <td>2</td>
+      <td>3</td>
+    </tr>
+    <tr>
+      <th>0.95</th>
+      <td>0.2722</td>
+      <td>0.2722</td>
+      <td>1.0002</td>
+      <td>0.0021</td>
+      <td>2</td>
+      <td>3</td>
+    </tr>
+    <tr>
+      <th>0.99</th>
+      <td>0.2730</td>
+      <td>0.2730</td>
+      <td>1.0002</td>
+      <td>0.0021</td>
+      <td>2</td>
+      <td>3</td>
+    </tr>
+  </tbody>
+</table>
+</div></div></div>
+</div>
+</section>
+<section id="where-the-variance-comes-from">
+<h2>4. Where the variance comes from<a class="headerlink" href="#where-the-variance-comes-from" title="Link to this heading">#</a></h2>
+<p><span class="math notranslate nohighlight">\(X\)</span> is a sum of products of independent inputs, so its Sobol’ decomposition stops
+at second order and is exact:</p>
+<div class="math notranslate nohighlight">
+\[S_1(b_{ej}) = \frac{\mathrm{E}[q_e]^2\,\mathrm{Var}(b_{ej})\,s_j^2}{V},\quad
+S_1(q_e) = \frac{w_e y_e^2}{V},\quad
+S_2(q_e,b_{ej}) = \frac{w_e\,\mathrm{Var}(b_{ej})\,s_j^2}{V},\]</div>
+<p>and <span class="math notranslate nohighlight">\(\sum S_1+\sum S_2=1\)</span>. No sampling, no confidence intervals.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">point</span> <span class="o">=</span> <span class="n">front</span><span class="p">[</span><span class="mf">0.9</span><span class="p">]</span>
+<span class="n">dec</span> <span class="o">=</span> <span class="n">unc</span><span class="o">.</span><span class="n">decompose</span><span class="p">(</span><span class="n">point</span><span class="p">,</span> <span class="n">mom</span><span class="p">,</span> <span class="n">unc</span><span class="o">.</span><span class="n">families_by_database</span><span class="p">(</span><span class="n">worker</span><span class="p">))</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">named</span><span class="p">(</span><span class="n">frame</span><span class="p">):</span>
+    <span class="n">label</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">"CF </span><span class="si">{</span><span class="n">flow_name</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span> <span class="k">if</span> <span class="n">g</span> <span class="o">==</span> <span class="s1">'Cf'</span> <span class="k">else</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">flow_name</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2"> @ </span><span class="si">{</span><span class="n">process_name</span><span class="p">(</span><span class="n">j</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
+             <span class="k">for</span> <span class="n">g</span><span class="p">,</span> <span class="n">e</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">frame</span><span class="p">[</span><span class="s1">'group'</span><span class="p">],</span> <span class="n">frame</span><span class="p">[</span><span class="s1">'flow'</span><span class="p">],</span> <span class="n">frame</span><span class="p">[</span><span class="s1">'process'</span><span class="p">])]</span>
+    <span class="k">return</span> <span class="n">frame</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">parameter</span><span class="o">=</span><span class="n">label</span><span class="p">)</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s1">'parameter'</span><span class="p">)</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">'group'</span><span class="p">,</span> <span class="s1">'flow'</span><span class="p">,</span> <span class="s1">'process'</span><span class="p">])</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"sum S1 + sum S2 = </span><span class="si">{</span><span class="n">dec</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="s1">'S1'</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">dec</span><span class="o">.</span><span class="n">interactions</span><span class="p">[</span><span class="s1">'S2'</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="si">:</span><span class="s2">.15f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="n">named</span><span class="p">(</span><span class="n">dec</span><span class="o">.</span><span class="n">top</span><span class="p">(</span><span class="mi">6</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>sum S1 + sum S2 = 1.000000000000000
+</pre></div>
+</div>
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>family</th>
+      <th>S1</th>
+      <th>ST</th>
+    </tr>
+    <tr>
+      <th>parameter</th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>Carbon dioxide, fossil @ hydrogen SMR</th>
+      <td>soc_demo_background_db</td>
+      <td>0.7908</td>
+      <td>0.7908</td>
+    </tr>
+    <tr>
+      <th>Dinitrogen monoxide, fossil @ ammonia synthesis</th>
+      <td>soc_demo_foreground_db</td>
+      <td>0.1209</td>
+      <td>0.1209</td>
+    </tr>
+    <tr>
+      <th>Carbon dioxide, fossil @ electricity supply</th>
+      <td>soc_demo_background_db</td>
+      <td>0.0716</td>
+      <td>0.0716</td>
+    </tr>
+    <tr>
+      <th>Methane, fossil @ natural gas extraction</th>
+      <td>soc_demo_background_db</td>
+      <td>0.0144</td>
+      <td>0.0145</td>
+    </tr>
+    <tr>
+      <th>CF Methane, fossil</th>
+      <td>Cf</td>
+      <td>0.0019</td>
+      <td>0.0020</td>
+    </tr>
+    <tr>
+      <th>Methane, fossil @ hydrogen SMR</th>
+      <td>soc_demo_background_db</td>
+      <td>0.0001</td>
+      <td>0.0001</td>
+    </tr>
+  </tbody>
+</table>
+</div></div></div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">dec</span><span class="o">.</span><span class="n">families</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>S1</th>
+      <th>ST</th>
+    </tr>
+    <tr>
+      <th>family</th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>soc_demo_background_db</th>
+      <td>0.8771</td>
+      <td>0.8772</td>
+    </tr>
+    <tr>
+      <th>soc_demo_foreground_db</th>
+      <td>0.1209</td>
+      <td>0.1209</td>
+    </tr>
+    <tr>
+      <th>Cf</th>
+      <td>0.0019</td>
+      <td>0.0020</td>
+    </tr>
+  </tbody>
+</table>
+</div></div></div>
+</div>
+</section>
+<section id="parameters-that-declare-no-uncertainty">
+<h2>5. Parameters that declare no uncertainty<a class="headerlink" href="#parameters-that-declare-no-uncertainty" title="Link to this heading">#</a></h2>
+<p>Undeclared parameters are deterministic in every result above. The screening
+asks what they would carry if they were uncertain: each gets the same coefficient
+of variation <span class="math notranslate nohighlight">\(r\)</span>, with its mean unchanged (a lognormal, mirrored for negative
+amounts), CO₂’s CF excepted. The ranking orders them by their deterministic
+contribution <span class="math notranslate nohighlight">\(\mathrm{E}[q_e]\,b_{ej}\,s_j\)</span>, which fixes the order of their
+total-order indices up to the CF factor and does not depend on <span class="math notranslate nohighlight">\(r\)</span>.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">screening</span> <span class="o">=</span> <span class="n">unc</span><span class="o">.</span><span class="n">screen_undeclared</span><span class="p">(</span><span class="n">point</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">worker</span><span class="p">,</span> <span class="n">exact_cfs</span><span class="o">=</span><span class="n">unc</span><span class="o">.</span><span class="n">co2_flows</span><span class="p">(</span><span class="n">worker</span><span class="p">),</span> <span class="n">widths</span><span class="o">=</span><span class="p">(</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">))</span>
+<span class="n">screening</span><span class="o">.</span><span class="n">sigma</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>sigma</th>
+      <th>ratio</th>
+      <th>undeclared_share</th>
+    </tr>
+    <tr>
+      <th>r</th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0.1</th>
+      <td>0.2734</td>
+      <td>1.0052</td>
+      <td>0.0102</td>
+    </tr>
+    <tr>
+      <th>0.3</th>
+      <td>0.2844</td>
+      <td>1.0456</td>
+      <td>0.0844</td>
+    </tr>
+  </tbody>
+</table>
+</div></div></div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ranking</span> <span class="o">=</span> <span class="n">screening</span><span class="o">.</span><span class="n">ranking</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+<span class="n">ranking</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">"CF </span><span class="si">{</span><span class="n">flow_name</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span> <span class="k">if</span> <span class="n">g</span> <span class="o">==</span> <span class="s1">'Cf'</span> <span class="k">else</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">flow_name</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2"> @ </span><span class="si">{</span><span class="n">process_name</span><span class="p">(</span><span class="n">j</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
+                 <span class="k">for</span> <span class="n">g</span><span class="p">,</span> <span class="n">e</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">ranking</span><span class="p">[</span><span class="s1">'group'</span><span class="p">],</span> <span class="n">ranking</span><span class="p">[</span><span class="s1">'flow'</span><span class="p">],</span> <span class="n">ranking</span><span class="p">[</span><span class="s1">'process'</span><span class="p">])]</span>
+<span class="n">ranking</span><span class="p">[[</span><span class="s1">'amount'</span><span class="p">,</span> <span class="s1">'contribution'</span><span class="p">,</span> <span class="s1">'ST r=0.1'</span><span class="p">,</span> <span class="s1">'ST r=0.3'</span><span class="p">]]</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>amount</th>
+      <th>contribution</th>
+      <th>ST r=0.1</th>
+      <th>ST r=0.3</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>CF Dinitrogen monoxide, fossil</th>
+      <td>273.00</td>
+      <td>0.2594</td>
+      <td>1.0199e-02</td>
+      <td>0.0848</td>
+    </tr>
+    <tr>
+      <th>Carbon dioxide, fossil @ ammonia synthesis</th>
+      <td>0.02</td>
+      <td>0.0200</td>
+      <td>5.3523e-05</td>
+      <td>0.0004</td>
+    </tr>
+  </tbody>
+</table>
+</div></div></div>
+</div>
+<p>Width sensitivity: separate widths for each database and for the CFs. At the fixed
+decision the mean does not move, so the adjusted impact rises by
+<span class="math notranslate nohighlight">\(\kappa\,\Delta\sigma\)</span>; re-optimizing can only do better, which makes it an upper
+bound on the rise of the optimum. A re-solved point confirms it.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">widths</span> <span class="o">=</span> <span class="p">[{</span><span class="s1">'soc_demo_background_db'</span><span class="p">:</span> <span class="mf">0.3</span><span class="p">},</span> <span class="p">{</span><span class="s1">'soc_demo_foreground_db'</span><span class="p">:</span> <span class="mf">0.3</span><span class="p">},</span> <span class="p">{</span><span class="s1">'Cf'</span><span class="p">:</span> <span class="mf">0.3</span><span class="p">},</span> <span class="mf">0.3</span><span class="p">]</span>
+<span class="n">sensitivity</span> <span class="o">=</span> <span class="n">unc</span><span class="o">.</span><span class="n">width_sensitivity</span><span class="p">(</span><span class="n">point</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">worker</span><span class="p">,</span> <span class="n">widths</span><span class="p">,</span> <span class="n">exact_cfs</span><span class="o">=</span><span class="n">unc</span><span class="o">.</span><span class="n">co2_flows</span><span class="p">(</span><span class="n">worker</span><span class="p">))</span>
+
+<span class="n">wide</span> <span class="o">=</span> <span class="n">unc</span><span class="o">.</span><span class="n">compute_moments</span><span class="p">(</span><span class="n">unc</span><span class="o">.</span><span class="n">widen</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">,</span> <span class="n">exact_cfs</span><span class="o">=</span><span class="n">unc</span><span class="o">.</span><span class="n">co2_flows</span><span class="p">(</span><span class="n">worker</span><span class="p">)),</span> <span class="n">worker</span><span class="p">)</span>
+<span class="n">resolved</span> <span class="o">=</span> <span class="n">unc</span><span class="o">.</span><span class="n">ChanceConstrained</span><span class="p">(</span><span class="n">worker</span><span class="p">,</span> <span class="n">wide</span><span class="p">,</span> <span class="n">upper_bounds</span><span class="o">=</span><span class="p">{</span><span class="n">electrolysis</span><span class="p">:</span> <span class="n">capacity</span><span class="p">})</span><span class="o">.</span><span class="n">solve_point</span><span class="p">(</span><span class="mf">0.9</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"re-solved at r = 0.3: the optimum rises by </span><span class="si">{</span><span class="n">resolved</span><span class="o">.</span><span class="n">adjusted</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">point</span><span class="o">.</span><span class="n">adjusted</span><span class="si">:</span><span class="s2">.5f</span><span class="si">}</span><span class="s2"> "</span>
+      <span class="sa">f</span><span class="s2">"(bound </span><span class="si">{</span><span class="n">sensitivity</span><span class="p">[</span><span class="s1">'bound'</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s2">.5f</span><span class="si">}</span><span class="s2">)"</span><span class="p">)</span>
+<span class="n">sensitivity</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>re-solved at r = 0.3: the optimum rises by 0.02039 (bound 0.02039)
+</pre></div>
+</div>
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>r[soc_demo_background_db]</th>
+      <th>r[soc_demo_foreground_db]</th>
+      <th>r[Cf]</th>
+      <th>sigma</th>
+      <th>ratio</th>
+      <th>delta_sigma</th>
+      <th>bound</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>0.3</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.2720</td>
+      <td>1.0000</td>
+      <td>0.0000e+00</td>
+      <td>0.0000</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>0.0</td>
+      <td>0.3</td>
+      <td>0.0</td>
+      <td>0.2720</td>
+      <td>1.0002</td>
+      <td>6.6176e-05</td>
+      <td>0.0001</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.3</td>
+      <td>0.2843</td>
+      <td>1.0453</td>
+      <td>1.2331e-02</td>
+      <td>0.0203</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>0.3</td>
+      <td>0.3</td>
+      <td>0.3</td>
+      <td>0.2844</td>
+      <td>1.0456</td>
+      <td>1.2395e-02</td>
+      <td>0.0204</td>
+    </tr>
+  </tbody>
+</table>
+</div></div></div>
+</div>
+</section>
+<section id="out-of-sample-validation">
+<h2>6. Out-of-sample validation<a class="headerlink" href="#out-of-sample-validation" title="Link to this heading">#</a></h2>
+<p>Each solution is held fixed and every declared input is drawn from its own family
+(not a fitted normal), together with the capacity: <span class="math notranslate nohighlight">\(N = 200{,}000\)</span> draws, each
+parameter from its own stream keyed by one recorded seed, the same draws for
+every decision. Per point: the coverage of the
+impact row against <span class="math notranslate nohighlight">\(\lambda_z\)</span>, of the capacity against <span class="math notranslate nohighlight">\(1-\varepsilon_1\)</span>, and of both
+together against <span class="math notranslate nohighlight">\(\lambda\)</span>, with Wilson intervals; the normal-approximation error
+of the <span class="math notranslate nohighlight">\(\lambda_z\)</span> quantile; skewness; the empirical and the Gaussian CVaR; and the
+regret against the lowest level and against the best point of the front in each
+draw. The deterministic optimum is priced on the same draws.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">validation</span> <span class="o">=</span> <span class="n">unc</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">front</span><span class="p">,</span> <span class="n">problem</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">200_000</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">2026</span><span class="p">,</span> <span class="n">designs</span><span class="o">=</span><span class="p">{</span><span class="s1">'deterministic'</span><span class="p">:</span> <span class="n">s_det</span><span class="p">})</span>
+<span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'lambda_impact'</span><span class="p">,</span> <span class="s1">'coverage'</span><span class="p">,</span> <span class="s1">'coverage_low'</span><span class="p">,</span> <span class="s1">'coverage_high'</span><span class="p">,</span> <span class="sa">f</span><span class="s1">'nominal upper:</span><span class="si">{</span><span class="n">ELY</span><span class="si">}</span><span class="s1">'</span><span class="p">,</span>
+           <span class="sa">f</span><span class="s1">'coverage upper:</span><span class="si">{</span><span class="n">ELY</span><span class="si">}</span><span class="s1">'</span><span class="p">,</span> <span class="s1">'joint_coverage'</span><span class="p">,</span> <span class="s1">'quantile_error'</span><span class="p">,</span> <span class="s1">'skew'</span><span class="p">]</span>
+<span class="n">validation</span><span class="o">.</span><span class="n">table</span><span class="p">[</span><span class="n">columns</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th></th>
+      <th>lambda_impact</th>
+      <th>coverage</th>
+      <th>coverage_low</th>
+      <th>coverage_high</th>
+      <th>nominal upper:4</th>
+      <th>coverage upper:4</th>
+      <th>joint_coverage</th>
+      <th>quantile_error</th>
+      <th>skew</th>
+    </tr>
+    <tr>
+      <th>design</th>
+      <th>lambda</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th rowspan="5" valign="top">front</th>
+      <th>0.50</th>
+      <td>0.750</td>
+      <td>0.7618</td>
+      <td>0.7599</td>
+      <td>0.7636</td>
+      <td>0.750</td>
+      <td>0.7507</td>
+      <td>0.5705</td>
+      <td>-0.0111</td>
+      <td>0.3829</td>
+    </tr>
+    <tr>
+      <th>0.70</th>
+      <td>0.850</td>
+      <td>0.8513</td>
+      <td>0.8498</td>
+      <td>0.8529</td>
+      <td>0.850</td>
+      <td>0.8495</td>
+      <td>0.7229</td>
+      <td>-0.0018</td>
+      <td>0.3661</td>
+    </tr>
+    <tr>
+      <th>0.90</th>
+      <td>0.950</td>
+      <td>0.9416</td>
+      <td>0.9405</td>
+      <td>0.9426</td>
+      <td>0.950</td>
+      <td>0.9499</td>
+      <td>0.8944</td>
+      <td>0.0255</td>
+      <td>0.3542</td>
+    </tr>
+    <tr>
+      <th>0.95</th>
+      <td>0.975</td>
+      <td>0.9660</td>
+      <td>0.9652</td>
+      <td>0.9668</td>
+      <td>0.975</td>
+      <td>0.9753</td>
+      <td>0.9422</td>
+      <td>0.0449</td>
+      <td>0.3529</td>
+    </tr>
+    <tr>
+      <th>0.99</th>
+      <td>0.995</td>
+      <td>0.9897</td>
+      <td>0.9893</td>
+      <td>0.9902</td>
+      <td>0.995</td>
+      <td>0.9948</td>
+      <td>0.9846</td>
+      <td>0.0946</td>
+      <td>0.3535</td>
+    </tr>
+    <tr>
+      <th rowspan="5" valign="top">deterministic</th>
+      <th>0.50</th>
+      <td>0.750</td>
+      <td>0.7755</td>
+      <td>0.7736</td>
+      <td>0.7773</td>
+      <td>0.750</td>
+      <td>0.0000</td>
+      <td>0.0000</td>
+      <td>-0.0842</td>
+      <td>1.7324</td>
+    </tr>
+    <tr>
+      <th>0.70</th>
+      <td>0.850</td>
+      <td>0.8036</td>
+      <td>0.8018</td>
+      <td>0.8053</td>
+      <td>0.850</td>
+      <td>0.0000</td>
+      <td>0.0000</td>
+      <td>0.2100</td>
+      <td>1.7324</td>
+    </tr>
+    <tr>
+      <th>0.90</th>
+      <td>0.950</td>
+      <td>0.8425</td>
+      <td>0.8409</td>
+      <td>0.8441</td>
+      <td>0.950</td>
+      <td>0.0000</td>
+      <td>0.0000</td>
+      <td>0.8849</td>
+      <td>1.7324</td>
+    </tr>
+    <tr>
+      <th>0.95</th>
+      <td>0.975</td>
+      <td>0.8602</td>
+      <td>0.8587</td>
+      <td>0.8618</td>
+      <td>0.975</td>
+      <td>0.0000</td>
+      <td>0.0000</td>
+      <td>1.3520</td>
+      <td>1.7324</td>
+    </tr>
+    <tr>
+      <th>0.99</th>
+      <td>0.995</td>
+      <td>0.8887</td>
+      <td>0.8873</td>
+      <td>0.8901</td>
+      <td>0.995</td>
+      <td>0.0000</td>
+      <td>0.0000</td>
+      <td>2.5319</td>
+      <td>1.7324</td>
+    </tr>
+  </tbody>
+</table>
+</div></div></div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">validation</span><span class="o">.</span><span class="n">table</span><span class="p">[[</span><span class="s1">'threshold'</span><span class="p">,</span> <span class="s1">'cvar_gaussian'</span><span class="p">,</span> <span class="s1">'cvar_empirical'</span><span class="p">,</span> <span class="s1">'regret_vs_lowest_lambda_mean'</span><span class="p">,</span>
+                  <span class="s1">'regret_vs_front_best_mean'</span><span class="p">]]</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="s1">'front'</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>threshold</th>
+      <th>cvar_gaussian</th>
+      <th>cvar_empirical</th>
+      <th>regret_vs_lowest_lambda_mean</th>
+      <th>regret_vs_front_best_mean</th>
+    </tr>
+    <tr>
+      <th>lambda</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0.50</th>
+      <td>2.3367</td>
+      <td>2.5002</td>
+      <td>2.5133</td>
+      <td>0.0000</td>
+      <td>0.0143</td>
+    </tr>
+    <tr>
+      <th>0.70</th>
+      <td>2.4399</td>
+      <td>2.5811</td>
+      <td>2.6065</td>
+      <td>0.0055</td>
+      <td>0.0198</td>
+    </tr>
+    <tr>
+      <th>0.90</th>
+      <td>2.6128</td>
+      <td>2.7265</td>
+      <td>2.7817</td>
+      <td>0.0135</td>
+      <td>0.0278</td>
+    </tr>
+    <tr>
+      <th>0.95</th>
+      <td>2.7023</td>
+      <td>2.8051</td>
+      <td>2.8806</td>
+      <td>0.0167</td>
+      <td>0.0310</td>
+    </tr>
+    <tr>
+      <th>0.99</th>
+      <td>2.8762</td>
+      <td>2.9626</td>
+      <td>3.0904</td>
+      <td>0.0210</td>
+      <td>0.0352</td>
+    </tr>
+  </tbody>
+</table>
+</div></div></div>
+</div>
+<p>The impact is right-skewed here (the lognormal CO₂ emission of SMR dominates its
+variance), so the Gaussian quantile sits below the empirical one at high
+reliability: the impact row holds slightly less often than it claims, the joint
+event falls short of <span class="math notranslate nohighlight">\(\lambda\)</span> by a similar margin, and the empirical CVaR exceeds
+the Gaussian one. The capacity holds at its nominal level, since it enters at its
+exact quantile. The deterministic optimum was solved without the capacity and
+runs the electrolyzer at 0.178, above the capacity’s maximum, so the bound never
+holds.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">scipy.stats</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="n">plt</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">'matplotlib is not installed: the plot is skipped.'</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="n">plt</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">k</span> <span class="o">=</span> <span class="n">validation</span><span class="o">.</span><span class="n">decisions</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">'lambda=0.9'</span><span class="p">)</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">validation</span><span class="o">.</span><span class="n">impacts</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+    <span class="n">grid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">np</span><span class="o">.</span><span class="n">quantile</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="mf">0.9995</span><span class="p">),</span> <span class="mi">400</span><span class="p">)</span>
+    <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mf">3.5</span><span class="p">))</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="nb">range</span><span class="o">=</span><span class="p">(</span><span class="n">grid</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">grid</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]),</span> <span class="n">density</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.6</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">'draws'</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">norm</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="n">point</span><span class="o">.</span><span class="n">mean</span><span class="p">,</span> <span class="n">point</span><span class="o">.</span><span class="n">sigma</span><span class="p">),</span> <span class="n">label</span><span class="o">=</span><span class="s1">'normal, closed-form moments'</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">axvline</span><span class="p">(</span><span class="n">point</span><span class="o">.</span><span class="n">adjusted</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">'k'</span><span class="p">,</span> <span class="n">ls</span><span class="o">=</span><span class="s1">'--'</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="sa">r</span><span class="s1">'$z^*$ at $\lambda = 0.9$'</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">'impact X (kg CO$_2$-eq)'</span><span class="p">);</span> <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">();</span> <span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../../_images/6bbe56fbcb65df6f69141ae591f5afd7a79b325c67bbef343777e65ff76db4b4.png" src="../../_images/6bbe56fbcb65df6f69141ae591f5afd7a79b325c67bbef343777e65ff76db4b4.png" />
+</div>
+</div>
+<p><strong>When <span class="math notranslate nohighlight">\(X\)</span> is exactly normal, the coverage is exact.</strong> Replace every declared <span class="math notranslate nohighlight">\(B\)</span>
+entry by a normal with the same mean and variance and make the CFs exact: then <span class="math notranslate nohighlight">\(X\)</span>
+is normal, and the empirical coverage of the impact row must equal <span class="math notranslate nohighlight">\(\lambda_z\)</span> up to
+Monte Carlo error. This is the check that separates the method from its one
+approximation.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">copy</span>
+<span class="n">normal</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">db</span><span class="p">,</span> <span class="n">block</span> <span class="ow">in</span> <span class="n">normal</span><span class="p">[</span><span class="s1">'If'</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="n">specs</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">spec</span> <span class="ow">in</span> <span class="n">block</span><span class="p">[</span><span class="s1">'declared'</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">mean</span><span class="p">,</span> <span class="n">var</span> <span class="o">=</span> <span class="n">unc</span><span class="o">.</span><span class="n">spec_moments</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
+        <span class="n">specs</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'uncertainty_type'</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="s1">'loc'</span><span class="p">:</span> <span class="n">mean</span><span class="p">,</span> <span class="s1">'scale'</span><span class="p">:</span> <span class="n">var</span> <span class="o">**</span> <span class="mf">0.5</span><span class="p">}</span>
+    <span class="n">unc</span><span class="o">.</span><span class="n">override</span><span class="p">(</span><span class="n">normal</span><span class="p">,</span> <span class="s1">'If'</span><span class="p">,</span> <span class="n">db</span><span class="p">,</span> <span class="n">specs</span><span class="p">)</span>
+<span class="n">unc</span><span class="o">.</span><span class="n">override</span><span class="p">(</span><span class="n">normal</span><span class="p">,</span> <span class="s1">'Cf'</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="p">{</span><span class="n">e</span><span class="p">:</span> <span class="p">{</span><span class="s1">'uncertainty_type'</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">normal</span><span class="p">[</span><span class="s1">'Cf'</span><span class="p">][</span><span class="n">method</span><span class="p">][</span><span class="s1">'declared'</span><span class="p">]})</span>
+
+<span class="n">normal_problem</span> <span class="o">=</span> <span class="n">unc</span><span class="o">.</span><span class="n">ChanceConstrained</span><span class="p">(</span><span class="n">worker</span><span class="p">,</span> <span class="n">unc</span><span class="o">.</span><span class="n">compute_moments</span><span class="p">(</span><span class="n">normal</span><span class="p">,</span> <span class="n">worker</span><span class="p">),</span>
+                                       <span class="n">upper_bounds</span><span class="o">=</span><span class="p">{</span><span class="n">electrolysis</span><span class="p">:</span> <span class="n">capacity</span><span class="p">})</span>
+<span class="n">normal_front</span> <span class="o">=</span> <span class="n">normal_problem</span><span class="o">.</span><span class="n">solve</span><span class="p">([</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.9</span><span class="p">,</span> <span class="mf">0.99</span><span class="p">])</span>
+<span class="n">check</span> <span class="o">=</span> <span class="n">unc</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">normal_front</span><span class="p">,</span> <span class="n">normal_problem</span><span class="p">,</span> <span class="n">normal</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">200_000</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">7</span><span class="p">)</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="s1">'front'</span><span class="p">]</span>
+<span class="n">check</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">se</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">check</span><span class="p">[</span><span class="s1">'lambda_impact'</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">check</span><span class="p">[</span><span class="s1">'lambda_impact'</span><span class="p">])</span> <span class="o">/</span> <span class="mi">200_000</span><span class="p">))[</span>
+    <span class="p">[</span><span class="s1">'lambda_impact'</span><span class="p">,</span> <span class="s1">'coverage'</span><span class="p">,</span> <span class="s1">'se'</span><span class="p">,</span> <span class="s1">'coverage_low'</span><span class="p">,</span> <span class="s1">'coverage_high'</span><span class="p">,</span> <span class="s1">'skew'</span><span class="p">]]</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>lambda_impact</th>
+      <th>coverage</th>
+      <th>se</th>
+      <th>coverage_low</th>
+      <th>coverage_high</th>
+      <th>skew</th>
+    </tr>
+    <tr>
+      <th>lambda</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0.50</th>
+      <td>0.750</td>
+      <td>0.7511</td>
+      <td>0.0010</td>
+      <td>0.7492</td>
+      <td>0.7530</td>
+      <td>-0.0030</td>
+    </tr>
+    <tr>
+      <th>0.90</th>
+      <td>0.950</td>
+      <td>0.9506</td>
+      <td>0.0005</td>
+      <td>0.9496</td>
+      <td>0.9515</td>
+      <td>-0.0032</td>
+    </tr>
+    <tr>
+      <th>0.99</th>
+      <td>0.995</td>
+      <td>0.9949</td>
+      <td>0.0002</td>
+      <td>0.9946</td>
+      <td>0.9952</td>
+      <td>-0.0034</td>
+    </tr>
+  </tbody>
+</table>
+</div></div></div>
+</div>
+</section>
+<section id="building-blocks">
+<h2>7. Building blocks<a class="headerlink" href="#building-blocks" title="Link to this heading">#</a></h2>
+<p>The reduced system and the sampler are public, so a study can formulate its own
+problem on top of them, e.g. a scenario-based CVaR front. <code class="docutils literal notranslate"><span class="pre">problem.projections()</span></code>
+returns <span class="math notranslate nohighlight">\(s_0\)</span>, <span class="math notranslate nohighlight">\(\mathrm{E}[X]=m_0+m^\top v\)</span>, the rows of <span class="math notranslate nohighlight">\(S\)</span> on the processes that
+carry variance and <span class="math notranslate nohighlight">\(\mathrm{E}[B_u]S\)</span>; <code class="docutils literal notranslate"><span class="pre">draw_parameters</span></code> returns draws of the declared
+parameters as arrays. Together they give the sampled impact of the base and of
+one unit of each alternative without further solves.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">p</span> <span class="o">=</span> <span class="n">problem</span><span class="o">.</span><span class="n">projections</span><span class="p">()</span>
+<span class="n">draws</span> <span class="o">=</span> <span class="n">unc</span><span class="o">.</span><span class="n">draw_parameters</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="mi">1000</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">processes</span><span class="o">=</span><span class="n">p</span><span class="o">.</span><span class="n">J</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"m0 = </span><span class="si">{</span><span class="n">p</span><span class="o">.</span><span class="n">m0</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">, m = </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">m</span><span class="p">,</span><span class="w"> </span><span class="mi">4</span><span class="p">)</span><span class="si">}</span><span class="s2">, S_J </span><span class="si">{</span><span class="n">p</span><span class="o">.</span><span class="n">S_J</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">, B_u S </span><span class="si">{</span><span class="n">p</span><span class="o">.</span><span class="n">B_unc_S</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">, "</span>
+      <span class="sa">f</span><span class="s2">"draws: B </span><span class="si">{</span><span class="n">draws</span><span class="o">.</span><span class="n">B</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">, CFs </span><span class="si">{</span><span class="n">draws</span><span class="o">.</span><span class="n">Q</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>m0 = 1.8659, m = [10.634   8.8386], S_J (4, 2), B_u S (1, 2), draws: B (7, 1000), CFs (2, 1000)
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="elec_time_toy.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Time-dependent toy example</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="../api/index.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">API Reference</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-system-and-its-deterministic-optimum">1. The system and its deterministic optimum</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#declared-uncertainty-and-closed-form-moments">2. Declared uncertainty and closed-form moments</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#chance-constrained-front">3. Chance-constrained front</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#where-the-variance-comes-from">4. Where the variance comes from</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#parameters-that-declare-no-uncertainty">5. Parameters that declare no uncertainty</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#out-of-sample-validation">6. Out-of-sample validation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#building-blocks">7. Building blocks</a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  
+  <div class="tocsection editthispage">
+    <a href="https://github.com/flechtenberg/pulpo/edit/master/docs/content/examples/uncertainty_toy.ipynb">
+      <i class="fa-solid fa-pencil"></i>
+      
+      
+        
+          Edit on GitHub
+        
+      
+    </a>
+  </div>
+</div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="../../_sources/content/examples/uncertainty_toy.ipynb.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341"></script>
+<script src="../../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2026 pulpo developers.
+      <br/>
+    
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item"><p>🌿🐛 Found a bug? Something not working? Frustrated? <a href=" latest/../../../content/contributing.html">Please report it!</a></p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

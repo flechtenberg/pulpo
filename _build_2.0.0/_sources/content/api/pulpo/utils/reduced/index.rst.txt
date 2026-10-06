@@ -1,0 +1,624 @@
+:py:mod:`pulpo.utils.reduced`
+=============================
+
+.. py:module:: pulpo.utils.reduced
+
+.. autoapi-nested-parse::
+
+   Reduced-space solution of PULPO's static LP: ``solve(formulation='reduced')``.
+
+   Why
+   ---
+   PULPO's LP has one variable per process and one balance row per product. The
+   choices free only a few directions: one per alternative, minus one per
+   category (16 on a 23,569-process ecoinvent model). With the technosphere
+   matrix ``A`` square and invertible, every scaling vector that satisfies the
+   merged balances is ::
+
+       s = s0 + S v,        s0 = A^-1 f~,        S = A^-1 E
+
+   where ``v_k`` is the net output on alternative ``k``'s own product row (plus
+   the slack of every supply product), ``E`` places ``v`` on those rows, and
+   ``f~`` is the demand on all other rows. Conversely every ``v`` gives a
+   balanced ``s``. The LP over ``s`` and the LP over ``v`` are therefore the same
+   problem: the reduction is exact, and it holds for every static PULPO
+   constraint because each of them is linear in ``s``.
+
+   The reduced LP has one column per alternative and one row per constraint
+   that is not a balance, so it is small and dense. It is solved directly; the
+   full scaling vector is recovered with one forward solve, and all balances
+   hold to the precision of the factorization rather than to the LP solver's
+   feasibility tolerance.
+
+   What
+   ----
+   Every constraint of the instance becomes one row in ``v``::
+
+       category c            sum_{k in c} v_k = f_c
+       bound on process j    l_j - s0_j  <=  S[j, :] v  <=  u_j - s0_j
+       impact h              S' c_h  (objective, impact limits, goals)
+       flow limit g          S' B_g'
+       dependent constraint  S' (L_d - R_d)  <=  -(L_d - R_d)' s0
+
+   ``S`` is never formed: on a large database it is a dense n x K matrix (2.6 GB
+   for 216,467 processes and 1,500 alternatives). A row ``m' S`` needs only the
+   adjoint solve ``A' x = m``, after which ``(m' S)_k = x[p_k]``; a block of
+   bound rows ``S[J, :]`` can instead be read off K forward solves, keeping only
+   the rows ``J``. :meth:`ReducedSystem.project` picks whichever needs fewer
+   solves. One factorization of ``A`` serves both directions and every solve
+   after it: across objective weights, limits, demand and repeated solves.
+   Every finite process bound is a row ``S[j, :]``, so the LP stays small only
+   while few processes are bounded, which is PULPO's default (bounds are +-inf
+   unless set). Finite ``default_limits`` on every process put the whole of
+   ``S`` into the LP (see ``PulpoOptimizer.instantiate``).
+
+   Reading a solved instance: unchanged. :meth:`ReducedModel.solve` writes the
+   recovered scaling vector, the impacts, the flows, the supply slacks and the
+   transgressions onto the Pyomo instance in original units, exactly where a
+   full solve leaves them, so ``extract_results`` / ``summarize_results`` and
+   the post-processing in ``PulpoOptimizer.solve`` work as before.
+
+   Requirements, checked when the model is built: ``A`` square and non-singular;
+   a static instance (the time-dependent model raises ``NotImplementedError``);
+   no constraints, variables or objectives beyond those ``optimizer.instantiate``
+   creates. Changes made on the instance itself are honoured: limit Params,
+   variable bounds, fixed variables, deactivated optional rows.
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   pulpo.utils.reduced.Factorization
+   pulpo.utils.reduced.ReducedSystem
+   pulpo.utils.reduced.ReducedLP
+   pulpo.utils.reduced.LPSolution
+   pulpo.utils.reduced.ReducedResults
+   pulpo.utils.reduced.ReducedModel
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   pulpo.utils.reduced.backward_error
+   pulpo.utils.reduced._resolve_backend
+   pulpo.utils.reduced.matrix_digest
+   pulpo.utils.reduced._vector_key
+   pulpo.utils.reduced.solve_lp
+   pulpo.utils.reduced._solve_highs
+   pulpo.utils.reduced._solve_gurobi
+   pulpo.utils.reduced._finite
+   pulpo.utils.reduced._var_bounds
+   pulpo.utils.reduced._check_instance
+   pulpo.utils.reduced._free_rows
+   pulpo.utils.reduced.build
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   pulpo.utils.reduced.CHUNK_ENTRIES
+   pulpo.utils.reduced.REFINEMENT_STEPS
+   pulpo.utils.reduced.REFINEMENT_TOL
+   pulpo.utils.reduced.RESIDUAL_LIMIT
+   pulpo.utils.reduced.HIGHS_OPTIONS
+   pulpo.utils.reduced.GUROBI_OPTIONS
+   pulpo.utils.reduced._KNOWN_VARS
+   pulpo.utils.reduced._KNOWN_CONSTRAINTS
+   pulpo.utils.reduced._CACHES
+
+
+.. py:data:: CHUNK_ENTRIES
+
+   
+
+.. py:data:: REFINEMENT_STEPS
+   :value: 2
+
+   
+
+.. py:data:: REFINEMENT_TOL
+   :value: 1e-14
+
+   
+
+.. py:data:: RESIDUAL_LIMIT
+   :value: 1e-08
+
+   
+
+.. py:data:: HIGHS_OPTIONS
+
+   
+
+.. py:data:: GUROBI_OPTIONS
+
+   
+
+.. py:data:: _KNOWN_VARS
+
+   
+
+.. py:data:: _KNOWN_CONSTRAINTS
+
+   
+
+.. py:class:: Factorization(A, backend='auto')
+
+
+   One sparse LU of the technosphere matrix, for ``A x = b`` and ``A' x = b``.
+
+   PARDISO (``pypardiso``, a PULPO dependency on x86-64 Windows and Linux)
+   factorizes an ecoinvent-sized matrix in about a second. Where MKL is
+   unavailable (macOS, ARM), UMFPACK (``scikit-umfpack``, optional; install it
+   from conda-forge) is the next choice, several times slower than PARDISO but
+   an order of magnitude faster than SciPy's SuperLU, the last resort, which
+   takes tens of seconds with the ``MMD_AT_PLUS_A`` ordering and minutes with
+   its default.
+
+   ``pypardiso`` keeps a single solver instance per process, which bw2calc
+   uses as well. A factorization that was replaced in between (by an LCA
+   calculation, say) is detected before each solve and redone. The factors
+   themselves are native objects and are not pickled: a copied or unpickled
+   factorization refactorizes on its first solve.
+
+   A singular ``A`` is refused: the reduction parametrizes the balanced
+   scaling vectors only when ``A`` is invertible. SuperLU and UMFPACK stop at
+   an exact zero pivot; PARDISO instead perturbs pivots below ``1e-13 * |A|``
+   and returns the solution of a nearby matrix, so any perturbed pivot
+   (``iparm(14)``) counts as singular.
+
+   :param A: square sparse matrix.
+   :param backend: ``'auto'`` (the first available of PARDISO, UMFPACK and
+                   SciPy), ``'pardiso'``, ``'umfpack'`` or ``'scipy'``.
+   :type backend: str
+
+   .. py:method:: _factorize()
+
+
+   .. py:method:: solve(b, transpose=False)
+
+      Solve ``A x = b`` (or ``A' x = b``) for a vector or a dense block ``b``.
+
+      A plain solve can leave a componentwise backward error far above
+      roundoff on an ecoinvent technosphere (entries 1e-13 .. 1e11): up to
+      1e-5 with SuperLU, 4e-8 with PARDISO on a 216,467-process system.
+      Iterative refinement with the same factors brings it to roundoff; it
+      runs only while :func:`backward_error` exceeds ``REFINEMENT_TOL``.
+
+
+   .. py:method:: _raw_solve(b, transpose)
+
+
+
+.. py:function:: backward_error(residual, size)
+
+   Largest ``|r_i| / size_i``: each residual relative to the size of its
+   row's terms (``|A| |x| + |b|``), zero where the row is empty.
+
+   The size is floored at machine epsilon times the largest one: a row whose
+   terms are smaller than that (activities of 1e-40 next to 1e10, say) holds
+   only the rounding of the larger terms, which no solve can remove.
+
+
+.. py:function:: _resolve_backend(backend)
+
+   The backend to use: the requested one, or for ``'auto'`` the first
+   available of PARDISO, UMFPACK and SciPy. A requested backend that is not
+   installed raises its ImportError.
+
+
+.. py:function:: matrix_digest(A)
+
+   Content hash of a sparse matrix (shape, pattern and values).
+
+
+.. py:class:: ReducedSystem(factorization, columns)
+
+
+   The affine map ``v -> s = A^-1 (f~ + E v)`` for a fixed set of free rows.
+
+   ``columns[k]`` is the product row whose net output is ``v_k``. This is the
+   public building block for formulations on top of PULPO's reduced space:
+   :meth:`project` gives ``M S`` for any linear functional ``M`` of the
+   scaling vector (impact rows, flow rows, rows of ``S`` itself) and
+   :meth:`base` gives ``s0``, so that ``M s = M s0 + (M S) v``.
+
+   Projections of process rows are cached per process, so the bound rows
+   are computed once for every solve that keeps ``A`` and the columns.
+
+   .. py:property:: n_free
+
+      Number of reduced variables ``v``.
+
+   .. py:method:: base(f_tilde)
+
+      ``s0 = A^-1 f~``: the scaling vector at ``v = 0``.
+
+
+   .. py:method:: recover(f_tilde, v)
+
+      ``s = A^-1 (f~ + E v)``: the full scaling vector of a reduced point.
+
+
+   .. py:method:: project(M)
+
+      ``M S`` for a sparse ``(r, n)`` matrix ``M``, without forming ``S``.
+
+      Uses ``r`` adjoint solves or ``n_free`` forward solves, whichever is
+      fewer, in chunks of :data:`CHUNK_ENTRIES`.
+
+
+   .. py:method:: rows(processes)
+
+      ``S[J, :]`` for the processes ``J`` (cached per process).
+
+
+   .. py:method:: project_vectors(vectors)
+
+      ``m' S`` for each dense or sparse vector ``m`` (cached by content).
+
+
+
+.. py:function:: _vector_key(m)
+
+
+.. py:class:: ReducedLP
+
+
+   ``min c'x + c0  s.t.  row_lower <= matrix x <= row_upper,  col_lower <= x <= col_upper``.
+
+   The variables are ``v`` (in original units), followed by any auxiliary
+   columns of the formulation (the transgressions of a goal objective).
+   ``row_labels`` / ``col_labels`` name what each row and column is.
+
+   .. py:attribute:: c
+      :type: numpy.ndarray
+
+      
+
+   .. py:attribute:: c0
+      :type: float
+
+      
+
+   .. py:attribute:: matrix
+      :type: scipy.sparse.csr_matrix
+
+      
+
+   .. py:attribute:: row_lower
+      :type: numpy.ndarray
+
+      
+
+   .. py:attribute:: row_upper
+      :type: numpy.ndarray
+
+      
+
+   .. py:attribute:: col_lower
+      :type: numpy.ndarray
+
+      
+
+   .. py:attribute:: col_upper
+      :type: numpy.ndarray
+
+      
+
+   .. py:attribute:: row_labels
+      :type: list
+
+      
+
+   .. py:attribute:: col_labels
+      :type: list
+
+      
+
+
+.. py:class:: LPSolution
+
+
+   .. py:attribute:: termination_condition
+      :type: pyomo.opt.TerminationCondition
+
+      
+
+   .. py:attribute:: x
+      :type: numpy.ndarray
+
+      
+
+   .. py:attribute:: objective
+      :type: float
+
+      
+
+   .. py:attribute:: seconds
+      :type: float
+      :value: 0.0
+
+      
+
+
+.. py:function:: solve_lp(lp, solver_name=None, options=None)
+
+   Equilibrate and solve a :class:`ReducedLP` with HiGHS (default) or Gurobi.
+
+   ``options`` are passed to the solver after :data:`HIGHS_OPTIONS` /
+   :data:`GUROBI_OPTIONS`, so they win; the key ``'tee'`` shows the solver log.
+   The returned ``x`` and ``objective`` are in the units of ``lp``.
+
+
+.. py:function:: _solve_highs(c, matrix, row_lower, row_upper, col_lower, col_upper, options, tee)
+
+
+.. py:function:: _solve_gurobi(c, matrix, row_lower, row_upper, col_lower, col_upper, options, tee)
+
+
+.. py:class:: ReducedResults
+
+
+   Outcome of :meth:`ReducedModel.solve`.
+
+   ``termination_condition`` is Pyomo's enum, as in the results of a full
+   solve with Gurobi. ``v`` and ``s`` are in original units; ``seconds``
+   splits the time into assembling the LP (projections included), solving
+   it and recovering ``s``. ``balance_residual`` is the largest
+   ``|A s - f~ - E v|`` of a balance relative to the size of its terms,
+   ``|A| |s| + |f~ + E v|``.
+   ``rounds`` counts the LP solves: more than one only when a remote bound
+   side or limit (see :attr:`ReducedModel.REMOTE_BOUND`) was withheld and the
+   solution violated it, or the problem was unbounded without it.
+
+   .. py:attribute:: termination_condition
+      :type: pyomo.opt.TerminationCondition
+
+      
+
+   .. py:attribute:: objective
+      :type: float
+
+      
+
+   .. py:attribute:: solver
+      :type: str
+
+      
+
+   .. py:attribute:: v
+      :type: numpy.ndarray
+
+      
+
+   .. py:attribute:: s
+      :type: numpy.ndarray
+
+      
+
+   .. py:attribute:: seconds
+      :type: dict
+
+      
+
+   .. py:attribute:: n_variables
+      :type: int
+      :value: 0
+
+      
+
+   .. py:attribute:: n_rows
+      :type: int
+      :value: 0
+
+      
+
+   .. py:attribute:: balance_residual
+      :type: float
+
+      
+
+   .. py:attribute:: rounds
+      :type: int
+      :value: 1
+
+      
+
+
+.. py:exception:: ReducedSolveError(message, results)
+
+
+   Bases: :py:obj:`pulpo.utils.optimizer.SolveError`
+
+   .. autoapi-inheritance-diagram:: pulpo.utils.reduced.ReducedSolveError
+      :parts: 1
+      :private-bases:
+
+   The reduced LP did not end optimal. ``results`` (a :class:`ReducedResults`)
+   holds the termination condition, the size of the LP and the times.
+
+   Initialize self.  See help(type(self)) for accurate signature.
+
+
+.. py:function:: _finite(value, default)
+
+
+.. py:function:: _var_bounds(var, factor=1.0, unscaled=True)
+
+   Bounds of a Pyomo variable in original units; a fixed variable is pinned
+   at its value. ``factor`` converts the model's units to original units;
+   ``unscaled`` says whether the stored *value* is already in original units
+   (it is after every solve, see ``scaling.unscale_solution``).
+
+
+.. py:class:: ReducedModel(instance, lci_data, choices, system)
+
+
+   The reduced formulation of one instantiated (static) PULPO model.
+
+   Built by :func:`build`. Every call to :meth:`linear_program` /
+   :meth:`solve` reads the instance's current limits, demand, weights, goals,
+   dependent-constraint weights, variable bounds and fixed variables, so
+   changes made in place between solves (an epsilon-constraint sweep on
+   ``UPPER_IMP_LIMIT``, say) are honoured, while the projections, which depend
+   only on ``A``, the choices and the coefficient vectors, are reused.
+
+   Every finite process bound is a row of the LP. A bound side far beyond
+   every activity of the problem, such as a capacity of 1e10 meaning
+   "unlimited", is the exception: its right-hand side would only degrade the
+   conditioning of a solve (of the chance-constrained cone above all), so it
+   is withheld and imposed only if a solution violates it (:meth:`optimize`
+   re-solves then, which is exact). Impact and flow limits are treated alike.
+
+   :ivar system: the map ``v -> s``.
+   :vartype system: ReducedSystem
+   :ivar column_labels: per reduced variable, ``('alternative', category,
+                        process)`` or ``('slack', product)``.
+   :vartype column_labels: list
+   :ivar categories: category -> indices of its alternatives in ``v``.
+
+   :vartype categories: dict
+
+   .. py:attribute:: BOUND_TOL
+      :value: 1e-09
+
+      
+
+   .. py:attribute:: REMOTE_BOUND
+      :value: 1000000.0
+
+      
+
+   .. py:method:: _unscaled()
+
+
+   .. py:method:: process_bounds()
+
+      ``(lower, upper)``: every process bound in original units, a fixed
+      ``scaling_vector`` entry pinned at its value.
+
+
+   .. py:method:: demand()
+
+      ``f~`` (demand on every non-category row) and the category demands.
+
+
+   .. py:method:: impact_vectors()
+
+      ``{h: c_h}``: the dense environmental cost vector of each indicator, in
+      original units (per unit of activity), as the impact rows hold it now.
+
+
+   .. py:method:: _dependent_vectors()
+
+
+   .. py:method:: _slack_bounds()
+
+
+   .. py:method:: linear_program(processes=None, bounds=None)
+
+      Assemble the reduced LP for the instance's current data.
+
+      :param processes: process ids whose bounds become rows; ``None`` (as
+                        :meth:`optimize` uses it) adds a row for every bounded process.
+      :param bounds: ``(lower, upper)`` from :meth:`process_bounds`, if already read.
+
+      Returns ``(lp, f_tilde)``; the first ``system.n_free`` columns of
+      ``lp`` are ``v``.
+
+
+   .. py:method:: optimize(solve, bounds=None, transform=None)
+
+      Solve with every process bound as a row, remote sides withheld.
+
+      :param solve: ``solve(lp, f_tilde) -> LPSolution`` for an LP from
+                    :meth:`linear_program` (whose first ``system.n_free`` columns are
+                    ``v``); the chance-constrained problem passes its cone solve here.
+      :param bounds: ``(lower, upper)`` process bounds in original units; defaults
+                     to :meth:`process_bounds`.
+      :param transform: ``transform(lp, f_tilde)``, applied to every LP before it
+                        is solved (the chance-constrained problem replaces the objective).
+
+      Bound sides and impact or flow limits beyond :attr:`REMOTE_BOUND` times
+      the problem's scale are withheld from the solve and checked against its
+      solution; one that is violated, or one without which the problem is
+      unbounded, is imposed and the LP solved again.
+
+      :returns: a :class:`ReducedResults` (``v``, ``objective``,
+                ``balance_residual`` set when optimal) and the full scaling vector.
+                Nothing is written onto the instance, and nothing is raised: the
+                caller checks ``results.termination_condition``.
+      :rtype: ``(results, s)``
+
+
+   .. py:method:: _warn_remote(far_lo, far_up, lower, upper, limits, scale)
+
+      Tell the user about bounds that stand for "no limit" (see :meth:`optimize`).
+
+
+   .. py:method:: solve(solver_name=None, options=None)
+
+      Solve the reduced LP and write the solution onto the instance.
+
+      Raises :class:`ReducedSolveError` when the LP does not end optimal (or
+      the recovered scaling vector does not satisfy the balances); the
+      instance then keeps its previous values.
+
+
+   .. py:method:: write_solution(s, v)
+
+      Write a full scaling vector (and the slacks in ``v``) onto the instance.
+
+      Impacts, flows and transgressions are evaluated from ``s`` as the
+      constraints of the full model define them. Values are in original
+      units; on an equilibrated instance this is the state ``solve_model``
+      leaves after a solve. Fixed variables keep their value, converted to
+      original units as ``scaling.unscale_solution`` does.
+
+
+
+.. py:function:: _check_instance(inst)
+
+
+.. py:function:: _free_rows(instance, lci_data, choices)
+
+   The alternatives (in the order of ``choices``), their categories, and the
+   supply products: the product rows whose net output is free in the LP.
+
+   Mirrors ``converter.combine_inputs``: an alternative's product row is the
+   row of its process, and an activity listed in two categories is pooled in
+   the last one.
+
+
+.. py:data:: _CACHES
+
+   
+
+.. py:function:: build(worker, backend='auto')
+
+   The :class:`ReducedModel` of the worker's current instance.
+
+   The factorization of ``A`` and the projections are cached per worker and
+   reused by every later call while the technosphere matrix keeps its content
+   (and, for the projections, the alternatives and supply products), across
+   re-instantiations with other limits, weights or demand.
+
+   :param worker: an instantiated optimizer.
+   :type worker: PulpoOptimizer
+   :param backend: factorization backend, see :class:`Factorization`.
+   :type backend: str
+
+

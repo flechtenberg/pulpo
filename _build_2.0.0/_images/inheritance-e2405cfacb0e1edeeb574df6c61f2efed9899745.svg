@@ -1,0 +1,83 @@
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" xmlns:ns1="http://www.w3.org/1999/xlink" width="188pt" height="130pt" viewBox="0.00 0.00 187.75 129.91">
+<ns0:g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 125.91)">
+<ns0:title>inheritance03316e2721</ns0:title>
+
+<ns0:g id="node1" class="node">
+<ns0:title>ResultDataDict</ns0:title>
+<ns0:g id="a_node1"><ns0:a ns1:href="..\content\api\pulpo\utils\saver\index.html#pulpo.utils.saver.ResultDataDict" ns1:title="The results of :func:`extract_results`, one entry per sheet of :func:`save_results`." target="_top">
+<ns0:polygon fill="white" stroke="black" stroke-width="0.5" points="179.75,-70.95 96.25,-70.95 96.25,-50.95 179.75,-50.95 179.75,-70.95" />
+<ns0:text text-anchor="middle" x="138" y="-57.45" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">ResultDataDict</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="node2" class="node">
+<ns0:title>TypedDict</ns0:title>
+<ns0:g id="a_node2"><ns0:a ns1:href="https://docs.python.org/3/library/typing.html#typing.TypedDict" ns1:title="TypedDict" target="_top">
+<ns0:polygon fill="white" stroke="black" stroke-width="0.5" points="60.25,-70.95 0,-70.95 0,-50.95 60.25,-50.95 60.25,-70.95" />
+<ns0:text text-anchor="middle" x="30.12" y="-57.45" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">TypedDict</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge1" class="edge">
+<ns0:title>TypedDict-&gt;ResultDataDict</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M31.75,-50.53C39.76,14.48 122.71,16.51 135.38,-44.47" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="133.72,-45.17 136.26,-49.82 137.18,-44.6 133.72,-45.17" />
+</ns0:g>
+
+<ns0:g id="edge2" class="edge">
+<ns0:title>TypedDict-&gt;ResultDataDict</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M32.17,-50.53C42.04,-3.55 118.59,-1.52 134.22,-44.44" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="132.68,-45.43 135.74,-49.76 136.05,-44.47 132.68,-45.43" />
+</ns0:g>
+
+<ns0:g id="edge3" class="edge">
+<ns0:title>TypedDict-&gt;ResultDataDict</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M33.15,-50.79C45.63,-21.32 112.42,-19.47 131.76,-45.22" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="130.55,-46.64 134.58,-50.08 133.58,-44.88 130.55,-46.64" />
+</ns0:g>
+
+<ns0:g id="edge4" class="edge">
+<ns0:title>TypedDict-&gt;ResultDataDict</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M37.75,-50.49C55.13,-38.56 102.25,-37.54 124.73,-47.42" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="124.49,-49.28 129.72,-50.13 126.16,-46.2 124.49,-49.28" />
+</ns0:g>
+
+<ns0:g id="edge5" class="edge">
+<ns0:title>TypedDict-&gt;ResultDataDict</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M60.62,-54.83C69.55,-54.32 79.6,-54.12 89.41,-54.23" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="90.01,-56 95.04,-54.34 90.08,-52.5 90.01,-56" />
+</ns0:g>
+
+<ns0:g id="edge6" class="edge">
+<ns0:title>TypedDict-&gt;ResultDataDict</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M60.62,-67.08C69.55,-67.59 79.6,-67.79 89.41,-67.67" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="90.08,-69.41 95.04,-67.57 90.01,-65.91 90.08,-69.41" />
+</ns0:g>
+
+<ns0:g id="edge7" class="edge">
+<ns0:title>TypedDict-&gt;ResultDataDict</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M37.75,-71.41C55.13,-83.35 102.25,-84.37 124.73,-74.49" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="126.16,-75.7 129.72,-71.77 124.49,-72.63 126.16,-75.7" />
+</ns0:g>
+
+<ns0:g id="edge8" class="edge">
+<ns0:title>TypedDict-&gt;ResultDataDict</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M33.15,-71.12C45.63,-100.58 112.42,-102.44 131.76,-76.69" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="133.58,-77.03 134.58,-71.82 130.55,-75.27 133.58,-77.03" />
+</ns0:g>
+
+<ns0:g id="edge9" class="edge">
+<ns0:title>TypedDict-&gt;ResultDataDict</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M32.17,-71.38C42.04,-118.36 118.59,-120.39 134.22,-77.47" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="136.05,-77.44 135.74,-72.15 132.68,-76.48 136.05,-77.44" />
+</ns0:g>
+
+<ns0:g id="edge10" class="edge">
+<ns0:title>TypedDict-&gt;ResultDataDict</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M31.75,-71.38C39.76,-136.39 122.71,-138.41 135.38,-77.44" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="137.18,-77.31 136.26,-72.09 133.72,-76.74 137.18,-77.31" />
+</ns0:g>
+</ns0:g>
+</ns0:svg>

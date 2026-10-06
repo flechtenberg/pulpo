@@ -1,0 +1,935 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="../../../../../_static/favicon.svg" type="image/svg+xml">
+    <link rel="icon" sizes="144x144" href="../../../../../_static/favicon-144.png" type="image/png">
+    <link rel="mask-icon" href="../../../../../_static/favicon_mask-icon.svg" color="#222832" type="image/svg+xml">
+    <link rel="apple-touch-icon" sizes="500x500" href="../../../../../_static/favicon-500.png" type="image/png">
+    <title>pulpo.utils.scaling &#8212; pulpo 2.0.0 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../../../_static/styles/theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+<link href="../../../../../_static/styles/bootstrap.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+<link href="../../../../../_static/styles/pydata-sphinx-theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+
+  
+  <link href="../../../../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/custom.css?v=913d6465" />
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../../../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341" />
+<link rel="preload" as="script" href="../../../../../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341" />
+  <script src="../../../../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=3ee479438cf8b5e0d341"></script>
+
+    <script src="../../../../../_static/documentation_options.js?v=79f5c508"></script>
+    <script src="../../../../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../../../../_static/design-tabs.js?v=36754332"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'content/api/pulpo/utils/scaling/index';</script>
+    <link rel="index" title="Index" href="../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../search.html" />
+    <link rel="next" title="pulpo.utils.time_extension" href="../time_extension/index.html" />
+    <link rel="prev" title="pulpo.utils.saver" href="../saver/index.html" />
+<meta name="google-site-verification" content="Fb3YVU81AToFlPNhlaQf6LLq1SMrHPbY-RtFsgZkw9Q" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+
+<a class="navbar-brand logo" href="../../../../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../../../../_static/pulpo_logo_big.svg" class="logo__image only-light" alt="pulpo 2.0.0 documentation - Home"/>
+    <script>document.write(`<img src="../../../../../_static/pulpo_logo_big.svg" class="logo__image only-dark" alt="pulpo 2.0.0 documentation - Home"/>`);</script>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav class="navbar-nav">
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../getting_started/index.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../theory.html">
+    Theory
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../uncertainty.html">
+    Uncertainty
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../examples/index.html">
+    Examples
+  </a>
+</li>
+
+            <li class="nav-item dropdown pst-header-nav-item">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class="nav-item  current active">
+  <a class="nav-link dropdown-item nav-internal" href="../../../index.html">
+    API
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../codeofconduct.html">
+    Code of Conduct
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../license.html">
+    License
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../changelog.html">
+    Changelog
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  </button>
+`);
+</script></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links navbar-nav"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/flechtenberg/pulpo" title="Open this Repo on GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fab fa-brands fa-github fa-lg" aria-hidden="true"></i></span>
+            <span class="sr-only">Open this Repo on GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+    </div>
+  
+
+  
+    <button class="sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav class="navbar-nav">
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../getting_started/index.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../theory.html">
+    Theory
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../uncertainty.html">
+    Uncertainty
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../examples/index.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item current active">
+  <a class="nav-link nav-internal" href="../../../index.html">
+    API
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../codeofconduct.html">
+    Code of Conduct
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../license.html">
+    License
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../changelog.html">
+    Changelog
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  </button>
+`);
+</script></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links navbar-nav"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/flechtenberg/pulpo" title="Open this Repo on GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fab fa-brands fa-github fa-lg" aria-hidden="true"></i></span>
+            <span class="sr-only">Open this Repo on GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="../../index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo</span></code></a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../../datasets/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.datasets</span></code></a></li>
+<li class="toctree-l2 current active has-children"><a class="reference internal" href="../index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils</span></code></a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="../uncertainty/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.uncertainty</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../bw_parser/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.bw_parser</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../converter/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.converter</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../monte_carlo/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.monte_carlo</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../optimizer/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.optimizer</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reduced/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.reduced</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../saver/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.saver</span></code></a></li>
+<li class="toctree-l3 current active"><a class="current reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.scaling</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../time_extension/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.time_extension</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../utils/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.utils</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../warning/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.warning</span></code></a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pulpo/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.pulpo</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pulpo_time/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.pulpo_time</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pulpo_unc/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.pulpo_unc</span></code></a></li>
+</ul>
+</details></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../../index.html" class="nav-link">API Reference</a></li>
+    
+    
+    <li class="breadcrumb-item"><i class="fa-solid fa-ellipsis"></i></li>
+    
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils</span></code></a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><code...</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="module-pulpo.utils.scaling">
+<span id="pulpo-utils-scaling"></span><h1><a class="reference internal" href="#module-pulpo.utils.scaling" title="pulpo.utils.scaling"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.scaling</span></code></a><a class="headerlink" href="#module-pulpo.utils.scaling" title="Link to this heading">#</a></h1>
+<p>LP equilibration for PULPO’s optimization model.</p>
+<section id="why">
+<h2>Why<a class="headerlink" href="#why" title="Link to this heading">#</a></h2>
+<p>An ecoinvent technosphere spans roughly 1e-13 .. 2e+11. Infrastructure
+processes have a functional unit of one whole facility – a port consumes
+2.3e11 kWh, a hydropower plant 1.7e11 kg of gravel – while their activity
+level in any solution is ~1e-10 facilities. Every LP solver scales each row by
+its largest coefficient and applies its feasibility tolerance (1e-7 .. 1e-6) in
+that scaled space, so the balance row of a facility product counts as satisfied
+even when the facility is short-supplied by 1e-7 units: more than its whole
+activity level, and enough to obtain 2e11 * 1e-7 kWh of electricity for free.
+On a 52k-process model this leak was worth 0.9% of the GWP optimum; HiGHS,
+Gurobi and their numeric-focus / tolerance options all returned points that
+were only feasible under that tolerance, and disagreed with each other.</p>
+</section>
+<section id="what">
+<h2>What<a class="headerlink" href="#what" title="Link to this heading">#</a></h2>
+<p><a class="reference internal" href="#pulpo.utils.scaling.equilibrate_model_data" title="pulpo.utils.scaling.equilibrate_model_data"><code class="xref py py-func docutils literal notranslate"><span class="pre">equilibrate_model_data()</span></code></a> rewrites the data dictionary produced by
+<code class="docutils literal notranslate"><span class="pre">combine_inputs</span></code> / <code class="docutils literal notranslate"><span class="pre">combine_inputs_time</span></code> in place, substituting</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">x_j</span> <span class="o">=</span> <span class="n">s_j</span> <span class="o">*</span> <span class="n">y_j</span>          <span class="p">(</span><span class="n">column</span> <span class="n">scaling</span> <span class="n">of</span> <span class="n">the</span> <span class="n">scaling</span> <span class="n">vector</span><span class="p">)</span>
+<span class="n">row_i</span> <span class="o">*</span> <span class="n">r_i</span>              <span class="p">(</span><span class="n">row</span> <span class="n">scaling</span> <span class="n">of</span> <span class="n">every</span> <span class="n">product</span> <span class="n">balance</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>with <code class="docutils literal notranslate"><span class="pre">r</span></code> and <code class="docutils literal notranslate"><span class="pre">s</span></code> chosen by alternating geometric-mean equilibration so that
+all meaningful coefficients of <code class="docutils literal notranslate"><span class="pre">diag(r)</span> <span class="pre">A</span> <span class="pre">diag(s)</span></code> are O(1e-4 .. 1e4). The
+factors are powers of two, hence the scaled LP is bit-for-bit equivalent to the
+original one. The impact variables, their limits and the objective weights are
+untouched, so <code class="docutils literal notranslate"><span class="pre">instance.impacts</span></code> reads exactly as before; after the solve,
+<a class="reference internal" href="#pulpo.utils.scaling.unscale_solution" title="pulpo.utils.scaling.unscale_solution"><code class="xref py py-func docutils literal notranslate"><span class="pre">unscale_solution()</span></code></a> multiplies the scaling vector back.</p>
+<p>Reading a solved instance: <code class="docutils literal notranslate"><span class="pre">scaling_vector</span></code> and <code class="docutils literal notranslate"><span class="pre">slack</span></code> hold <em>unscaled</em>
+values as soon as <code class="docutils literal notranslate"><span class="pre">solve_model</span></code> returns. The constraint rows of the instance,
+<code class="docutils literal notranslate"><span class="pre">model._env_cost</span></code> and the limit Params stay in scaled units; the factors are
+available as <code class="docutils literal notranslate"><span class="pre">model._row_scale</span></code> (per product) and <code class="docutils literal notranslate"><span class="pre">model._col_scale</span></code> (per
+process).</p>
+<p>Writing onto a scaled instance: anything that adds a term <code class="docutils literal notranslate"><span class="pre">c</span> <span class="pre">*</span> <span class="pre">x_j</span></code> to a
+constraint or a bound <code class="docutils literal notranslate"><span class="pre">x_j</span> <span class="pre">&lt;=</span> <span class="pre">b</span></code> after <code class="docutils literal notranslate"><span class="pre">instantiate</span></code> must express it in the
+model’s units, i.e. <code class="docutils literal notranslate"><span class="pre">(c</span> <span class="pre">*</span> <span class="pre">s_j)</span> <span class="pre">*</span> <span class="pre">scaling_vector[j]</span></code> and <code class="docutils literal notranslate"><span class="pre">b</span> <span class="pre">/</span> <span class="pre">s_j</span></code> in
+<code class="docutils literal notranslate"><span class="pre">LOWER_LIMIT</span></code> / <code class="docutils literal notranslate"><span class="pre">UPPER_LIMIT</span></code>. <a class="reference internal" href="#pulpo.utils.scaling.to_scaled_coefficient" title="pulpo.utils.scaling.to_scaled_coefficient"><code class="xref py py-func docutils literal notranslate"><span class="pre">to_scaled_coefficient()</span></code></a>,
+<a class="reference internal" href="#pulpo.utils.scaling.to_scaled_process_bound" title="pulpo.utils.scaling.to_scaled_process_bound"><code class="xref py py-func docutils literal notranslate"><span class="pre">to_scaled_process_bound()</span></code></a> and <a class="reference internal" href="#pulpo.utils.scaling.from_scaled_process_bound" title="pulpo.utils.scaling.from_scaled_process_bound"><code class="xref py py-func docutils literal notranslate"><span class="pre">from_scaled_process_bound()</span></code></a> do
+that and are the identity on an unscaled model. Impact and inventory
+quantities are never scaled and need no conversion.</p>
+<p>The reduced backend (<code class="docutils literal notranslate"><span class="pre">solve(formulation='reduced')</span></code>) solves a different, small
+and dense LP and equilibrates it with <a class="reference internal" href="#pulpo.utils.scaling.ruiz_scaling" title="pulpo.utils.scaling.ruiz_scaling"><code class="xref py py-func docutils literal notranslate"><span class="pre">ruiz_scaling()</span></code></a> on every solve,
+whatever <code class="docutils literal notranslate"><span class="pre">scale</span></code> is; it reads the instance back in original units, so
+<code class="docutils literal notranslate"><span class="pre">scale=True</span></code> does not change the problem it solves.</p>
+</section>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading">#</a></h2>
+<section id="functions">
+<h3>Functions<a class="headerlink" href="#functions" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pulpo.utils.scaling.geometric_scaling" title="pulpo.utils.scaling.geometric_scaling"><code class="xref py py-obj docutils literal notranslate"><span class="pre">geometric_scaling</span></code></a>(A[, iters, stat_cut])</p></td>
+<td><p>Alternating geometric-mean row/column scaling of a sparse matrix.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pulpo.utils.scaling.ruiz_scaling" title="pulpo.utils.scaling.ruiz_scaling"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ruiz_scaling</span></code></a>(M[, iters])</p></td>
+<td><p>Power-of-two row and column factors that bring every row and column of</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pulpo.utils.scaling._cap_bound" title="pulpo.utils.scaling._cap_bound"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_cap_bound</span></code></a>(value, n_capped)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pulpo.utils.scaling.equilibrate_model_data" title="pulpo.utils.scaling.equilibrate_model_data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">equilibrate_model_data</span></code></a>(model_data[, iters, stat_cut, ...])</p></td>
+<td><p>Scale the <code class="docutils literal notranslate"><span class="pre">combine_inputs</span></code> / <code class="docutils literal notranslate"><span class="pre">combine_inputs_time</span></code> data in place.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pulpo.utils.scaling.relax_default_bounds" title="pulpo.utils.scaling.relax_default_bounds"><code class="xref py py-obj docutils literal notranslate"><span class="pre">relax_default_bounds</span></code></a>(lower_limit_dict, ...)</p></td>
+<td><p>Set every process bound that is <em>not</em> an explicit limit to +-inf, in place.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pulpo.utils.scaling.attach_scale" title="pulpo.utils.scaling.attach_scale"><code class="xref py py-obj docutils literal notranslate"><span class="pre">attach_scale</span></code></a>(model, data)</p></td>
+<td><p>Store the factors from <code class="docutils literal notranslate"><span class="pre">data</span></code> (a <code class="docutils literal notranslate"><span class="pre">model_data[None]</span></code> dict) on <code class="docutils literal notranslate"><span class="pre">model</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pulpo.utils.scaling.is_scaled" title="pulpo.utils.scaling.is_scaled"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_scaled</span></code></a>(model)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pulpo.utils.scaling.col_factor" title="pulpo.utils.scaling.col_factor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">col_factor</span></code></a>(model, j)</p></td>
+<td><p>Column factor <code class="docutils literal notranslate"><span class="pre">s_j</span></code> of process <code class="docutils literal notranslate"><span class="pre">j</span></code> (<code class="docutils literal notranslate"><span class="pre">x_j</span> <span class="pre">=</span> <span class="pre">s_j</span> <span class="pre">*</span> <span class="pre">y_j</span></code>); 1.0 if unscaled.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pulpo.utils.scaling.to_scaled_coefficient" title="pulpo.utils.scaling.to_scaled_coefficient"><code class="xref py py-obj docutils literal notranslate"><span class="pre">to_scaled_coefficient</span></code></a>(model, j, coefficient)</p></td>
+<td><p>Coefficient of <code class="docutils literal notranslate"><span class="pre">scaling_vector[j]</span></code> for a term <code class="docutils literal notranslate"><span class="pre">coefficient</span> <span class="pre">*</span> <span class="pre">x_j</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pulpo.utils.scaling.to_scaled_process_bound" title="pulpo.utils.scaling.to_scaled_process_bound"><code class="xref py py-obj docutils literal notranslate"><span class="pre">to_scaled_process_bound</span></code></a>(model, j, bound)</p></td>
+<td><p>Value to store in <code class="docutils literal notranslate"><span class="pre">LOWER_LIMIT[j]</span></code> / <code class="docutils literal notranslate"><span class="pre">UPPER_LIMIT[j]</span></code> for <code class="docutils literal notranslate"><span class="pre">x_j</span> <span class="pre">&lt;&gt;</span> <span class="pre">bound</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pulpo.utils.scaling.from_scaled_process_bound" title="pulpo.utils.scaling.from_scaled_process_bound"><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_scaled_process_bound</span></code></a>(model, j, value)</p></td>
+<td><p>Read a <code class="docutils literal notranslate"><span class="pre">LOWER_LIMIT[j]</span></code> / <code class="docutils literal notranslate"><span class="pre">UPPER_LIMIT[j]</span></code> value back in original units.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pulpo.utils.scaling._apply" title="pulpo.utils.scaling._apply"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_apply</span></code></a>(model, unscale)</p></td>
+<td><p>Multiply (unscale) or divide (rescale) the solution by the factors.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pulpo.utils.scaling.unscale_solution" title="pulpo.utils.scaling.unscale_solution"><code class="xref py py-obj docutils literal notranslate"><span class="pre">unscale_solution</span></code></a>(model)</p></td>
+<td><p>Bring <code class="docutils literal notranslate"><span class="pre">scaling_vector</span></code> / <code class="docutils literal notranslate"><span class="pre">slack</span></code> to original units (no-op if already).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pulpo.utils.scaling.rescale_solution" title="pulpo.utils.scaling.rescale_solution"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rescale_solution</span></code></a>(model)</p></td>
+<td><p>Bring <code class="docutils literal notranslate"><span class="pre">scaling_vector</span></code> / <code class="docutils literal notranslate"><span class="pre">slack</span></code> back to scaled units before a solve.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="attributes">
+<h3>Attributes<a class="headerlink" href="#attributes" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pulpo.utils.scaling.SCALED_BOUND_CAP" title="pulpo.utils.scaling.SCALED_BOUND_CAP"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SCALED_BOUND_CAP</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pulpo.utils.scaling.GUROBI_OPTIONS_SCALED" title="pulpo.utils.scaling.GUROBI_OPTIONS_SCALED"><code class="xref py py-obj docutils literal notranslate"><span class="pre">GUROBI_OPTIONS_SCALED</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<dl class="py data">
+<dt class="sig sig-object py" id="pulpo.utils.scaling.SCALED_BOUND_CAP">
+<span class="sig-prename descclassname"><span class="pre">pulpo.utils.scaling.</span></span><span class="sig-name descname"><span class="pre">SCALED_BOUND_CAP</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1000000000000000.0</span></em><a class="reference internal" href="../../../../../_modules/pulpo/utils/scaling.html#SCALED_BOUND_CAP"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.scaling.SCALED_BOUND_CAP" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="pulpo.utils.scaling.GUROBI_OPTIONS_SCALED">
+<span class="sig-prename descclassname"><span class="pre">pulpo.utils.scaling.</span></span><span class="sig-name descname"><span class="pre">GUROBI_OPTIONS_SCALED</span></span><a class="reference internal" href="../../../../../_modules/pulpo/utils/scaling.html#GUROBI_OPTIONS_SCALED"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.scaling.GUROBI_OPTIONS_SCALED" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pulpo.utils.scaling.geometric_scaling">
+<span class="sig-prename descclassname"><span class="pre">pulpo.utils.scaling.</span></span><span class="sig-name descname"><span class="pre">geometric_scaling</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">A</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">iters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stat_cut</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-11</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/pulpo/utils/scaling.html#geometric_scaling"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.scaling.geometric_scaling" title="Link to this definition">#</a></dt>
+<dd><p>Alternating geometric-mean row/column scaling of a sparse matrix.</p>
+<p>Returns <code class="docutils literal notranslate"><span class="pre">(r,</span> <span class="pre">s)</span></code> such that every row and column of <code class="docutils literal notranslate"><span class="pre">diag(r)</span> <span class="pre">&#64;</span> <span class="pre">A</span> <span class="pre">&#64;</span>
+<span class="pre">diag(s)</span></code> is centred at 1 (<code class="docutils literal notranslate"><span class="pre">max</span> <span class="pre">*</span> <span class="pre">min</span> <span class="pre">==</span> <span class="pre">1</span></code> over its nonzeros). The
+factors are rounded to powers of two, so applying them is exact.</p>
+<p>Entries below <code class="docutils literal notranslate"><span class="pre">stat_cut</span></code> are ignored when computing the factors (they
+are still scaled): ecoinvent contains coefficients down to 1e-45 that are
+numerically irrelevant – dropping everything below 1e-9 does not move the
+optimum – and letting them drive the factors produces 1e22 row scales.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pulpo.utils.scaling.ruiz_scaling">
+<span class="sig-prename descclassname"><span class="pre">pulpo.utils.scaling.</span></span><span class="sig-name descname"><span class="pre">ruiz_scaling</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">M</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">iters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/pulpo/utils/scaling.html#ruiz_scaling"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.scaling.ruiz_scaling" title="Link to this definition">#</a></dt>
+<dd><p>Power-of-two row and column factors that bring every row and column of
+<code class="docutils literal notranslate"><span class="pre">diag(r)</span> <span class="pre">M</span> <span class="pre">diag(d)</span></code> to a largest entry of about 1 (Ruiz equilibration).</p>
+<p>This is the scaling of the reduced LP (<code class="docutils literal notranslate"><span class="pre">pulpo.utils.reduced</span></code>), whose rows
+are dense and mix the unit LCA score of each alternative with cross terms
+many orders smaller. Equilibrating by the largest entry keeps the leading
+coefficients at O(1); <a class="reference internal" href="#pulpo.utils.scaling.geometric_scaling" title="pulpo.utils.scaling.geometric_scaling"><code class="xref py py-func docutils literal notranslate"><span class="pre">geometric_scaling()</span></code></a>’s <code class="docutils literal notranslate"><span class="pre">max</span> <span class="pre">*</span> <span class="pre">min</span> <span class="pre">==</span> <span class="pre">1</span></code>
+would lift them by half the row’s dynamic range, and its absolute
+<code class="docutils literal notranslate"><span class="pre">stat_cut</span></code> is tuned to the units of the technosphere, not to those of a
+projection. Empty rows and columns keep 1.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pulpo.utils.scaling._cap_bound">
+<span class="sig-prename descclassname"><span class="pre">pulpo.utils.scaling.</span></span><span class="sig-name descname"><span class="pre">_cap_bound</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_capped</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/pulpo/utils/scaling.html#_cap_bound"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.scaling._cap_bound" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pulpo.utils.scaling.equilibrate_model_data">
+<span class="sig-prename descclassname"><span class="pre">pulpo.utils.scaling.</span></span><span class="sig-name descname"><span class="pre">equilibrate_model_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">iters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stat_cut</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-11</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">row_shift</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1024.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/pulpo/utils/scaling.html#equilibrate_model_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.scaling.equilibrate_model_data" title="Link to this definition">#</a></dt>
+<dd><p>Scale the <code class="docutils literal notranslate"><span class="pre">combine_inputs</span></code> / <code class="docutils literal notranslate"><span class="pre">combine_inputs_time</span></code> data in place.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">TECH_MATRIX[i,</span> <span class="pre">j]</span> <span class="pre">*=</span> <span class="pre">r_i</span> <span class="pre">*</span> <span class="pre">s_j</span></code> and <code class="docutils literal notranslate"><span class="pre">FINAL_DEMAND[i]</span> <span class="pre">*=</span> <span class="pre">r_i</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ENV_COST_MATRIX[j,</span> <span class="pre">h]</span> <span class="pre">*=</span> <span class="pre">s_j</span></code> and <code class="docutils literal notranslate"><span class="pre">INV_MATRIX[g,</span> <span class="pre">j]</span> <span class="pre">*=</span> <span class="pre">s_j</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">LOWER_LIMIT[j]</span> <span class="pre">/=</span> <span class="pre">s_j</span></code> and <code class="docutils literal notranslate"><span class="pre">UPPER_LIMIT[j]</span> <span class="pre">/=</span> <span class="pre">s_j</span></code> (bounds beyond
+<a class="reference internal" href="#pulpo.utils.scaling.SCALED_BOUND_CAP" title="pulpo.utils.scaling.SCALED_BOUND_CAP"><code class="xref py py-data docutils literal notranslate"><span class="pre">SCALED_BOUND_CAP</span></code></a> become infinite, with a warning)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">LEFT_WEIGHTS</span> <span class="pre">/</span> <span class="pre">RIGHT_WEIGHTS[c,</span> <span class="pre">j]</span> <span class="pre">*=</span> <span class="pre">s_j</span></code></p></li>
+<li><p>time-indexed data: the same per product / process for every timestep,
+and the carry-over matrix <code class="docutils literal notranslate"><span class="pre">K[i,</span> <span class="pre">i2]</span> <span class="pre">*=</span> <span class="pre">r_i</span> <span class="pre">/</span> <span class="pre">r_i2</span></code> so that the
+carried term <code class="docutils literal notranslate"><span class="pre">K[i,</span> <span class="pre">i2]</span> <span class="pre">*</span> <span class="pre">A[i2,</span> <span class="pre">j]</span></code> ends up scaled by <code class="docutils literal notranslate"><span class="pre">r_i</span></code>.</p></li>
+</ul>
+<p><code class="docutils literal notranslate"><span class="pre">row_shift</span></code> multiplies all row factors (keep it a power of two): it
+lifts the smallest scaled coefficients further above Gurobi’s 1e-13 input
+cutoff and tightens the solver’s absolute row tolerance in original units.</p>
+<p>Stores and returns <code class="docutils literal notranslate"><span class="pre">(row_scale,</span> <span class="pre">col_scale)</span></code>, dicts keyed by product and
+process id, also placed under <code class="docutils literal notranslate"><span class="pre">model_data[None]['ROW_SCALE']</span></code> /
+<code class="docutils literal notranslate"><span class="pre">['COL_SCALE']</span></code> for the instantiators to pick up.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pulpo.utils.scaling.relax_default_bounds">
+<span class="sig-prename descclassname"><span class="pre">pulpo.utils.scaling.</span></span><span class="sig-name descname"><span class="pre">relax_default_bounds</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lower_limit_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upper_limit_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">explicit_lower</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">explicit_upper</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/pulpo/utils/scaling.html#relax_default_bounds"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.scaling.relax_default_bounds" title="Link to this definition">#</a></dt>
+<dd><p>Set every process bound that is <em>not</em> an explicit limit to +-inf, in place.</p>
+<p><code class="docutils literal notranslate"><span class="pre">combine_inputs</span></code> initialises all process bounds from <code class="docutils literal notranslate"><span class="pre">default_limits</span></code>
+and overwrites the explicit ones (choice capacities, <code class="docutils literal notranslate"><span class="pre">lower_limit</span></code> /
+<code class="docutils literal notranslate"><span class="pre">upper_limit</span></code>). A finite default such as <code class="docutils literal notranslate"><span class="pre">upper_bound=1e9</span></code> is not a
+modelling decision – it never binds – but divided by a column scale of
+1e-11 it becomes a finite 1e20 that Gurobi’s simplex handles badly (row
+residuals of O(1) on the scaled model, or “infeasible or unbounded”), and
+capping only the largest ones does not help. Under scaling, unspecified
+bounds are therefore made truly infinite, as PULPO’s own defaults are.</p>
+<p><code class="docutils literal notranslate"><span class="pre">explicit_lower</span></code> / <code class="docutils literal notranslate"><span class="pre">explicit_upper</span></code> hold the dict keys whose bounds
+were set explicitly. Returns how many finite defaults were replaced; the
+user is told by the warning on finite <code class="docutils literal notranslate"><span class="pre">default_limits</span></code>
+(<code class="docutils literal notranslate"><span class="pre">converter.warn_finite_default_limits</span></code>).</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pulpo.utils.scaling.attach_scale">
+<span class="sig-prename descclassname"><span class="pre">pulpo.utils.scaling.</span></span><span class="sig-name descname"><span class="pre">attach_scale</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/pulpo/utils/scaling.html#attach_scale"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.scaling.attach_scale" title="Link to this definition">#</a></dt>
+<dd><p>Store the factors from <code class="docutils literal notranslate"><span class="pre">data</span></code> (a <code class="docutils literal notranslate"><span class="pre">model_data[None]</span></code> dict) on <code class="docutils literal notranslate"><span class="pre">model</span></code>.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pulpo.utils.scaling.is_scaled">
+<span class="sig-prename descclassname"><span class="pre">pulpo.utils.scaling.</span></span><span class="sig-name descname"><span class="pre">is_scaled</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/pulpo/utils/scaling.html#is_scaled"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.scaling.is_scaled" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pulpo.utils.scaling.col_factor">
+<span class="sig-prename descclassname"><span class="pre">pulpo.utils.scaling.</span></span><span class="sig-name descname"><span class="pre">col_factor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">j</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/pulpo/utils/scaling.html#col_factor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.scaling.col_factor" title="Link to this definition">#</a></dt>
+<dd><p>Column factor <code class="docutils literal notranslate"><span class="pre">s_j</span></code> of process <code class="docutils literal notranslate"><span class="pre">j</span></code> (<code class="docutils literal notranslate"><span class="pre">x_j</span> <span class="pre">=</span> <span class="pre">s_j</span> <span class="pre">*</span> <span class="pre">y_j</span></code>); 1.0 if unscaled.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pulpo.utils.scaling.to_scaled_coefficient">
+<span class="sig-prename descclassname"><span class="pre">pulpo.utils.scaling.</span></span><span class="sig-name descname"><span class="pre">to_scaled_coefficient</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">j</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coefficient</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/pulpo/utils/scaling.html#to_scaled_coefficient"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.scaling.to_scaled_coefficient" title="Link to this definition">#</a></dt>
+<dd><p>Coefficient of <code class="docutils literal notranslate"><span class="pre">scaling_vector[j]</span></code> for a term <code class="docutils literal notranslate"><span class="pre">coefficient</span> <span class="pre">*</span> <span class="pre">x_j</span></code>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">c</span> <span class="pre">*</span> <span class="pre">x_j</span> <span class="pre">==</span> <span class="pre">(c</span> <span class="pre">*</span> <span class="pre">s_j)</span> <span class="pre">*</span> <span class="pre">y_j</span></code>, so a row written in original units goes
+onto the model multiplied by the column factor. Identity when unscaled.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pulpo.utils.scaling.to_scaled_process_bound">
+<span class="sig-prename descclassname"><span class="pre">pulpo.utils.scaling.</span></span><span class="sig-name descname"><span class="pre">to_scaled_process_bound</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">j</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bound</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/pulpo/utils/scaling.html#to_scaled_process_bound"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.scaling.to_scaled_process_bound" title="Link to this definition">#</a></dt>
+<dd><p>Value to store in <code class="docutils literal notranslate"><span class="pre">LOWER_LIMIT[j]</span></code> / <code class="docutils literal notranslate"><span class="pre">UPPER_LIMIT[j]</span></code> for <code class="docutils literal notranslate"><span class="pre">x_j</span> <span class="pre">&lt;&gt;</span> <span class="pre">bound</span></code>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">x_j</span> <span class="pre">&lt;=</span> <span class="pre">b</span></code> is <code class="docutils literal notranslate"><span class="pre">y_j</span> <span class="pre">&lt;=</span> <span class="pre">b</span> <span class="pre">/</span> <span class="pre">s_j</span></code>. A finite scaled bound beyond
+<a class="reference internal" href="#pulpo.utils.scaling.SCALED_BOUND_CAP" title="pulpo.utils.scaling.SCALED_BOUND_CAP"><code class="xref py py-data docutils literal notranslate"><span class="pre">SCALED_BOUND_CAP</span></code></a> becomes infinite, as <code class="docutils literal notranslate"><span class="pre">equilibrate_model_data</span></code>
+does at build time, with the same warning. Identity when unscaled.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pulpo.utils.scaling.from_scaled_process_bound">
+<span class="sig-prename descclassname"><span class="pre">pulpo.utils.scaling.</span></span><span class="sig-name descname"><span class="pre">from_scaled_process_bound</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">j</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/pulpo/utils/scaling.html#from_scaled_process_bound"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.scaling.from_scaled_process_bound" title="Link to this definition">#</a></dt>
+<dd><p>Read a <code class="docutils literal notranslate"><span class="pre">LOWER_LIMIT[j]</span></code> / <code class="docutils literal notranslate"><span class="pre">UPPER_LIMIT[j]</span></code> value back in original units.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pulpo.utils.scaling._apply">
+<span class="sig-prename descclassname"><span class="pre">pulpo.utils.scaling.</span></span><span class="sig-name descname"><span class="pre">_apply</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unscale</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/pulpo/utils/scaling.html#_apply"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.scaling._apply" title="Link to this definition">#</a></dt>
+<dd><p>Multiply (unscale) or divide (rescale) the solution by the factors.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pulpo.utils.scaling.unscale_solution">
+<span class="sig-prename descclassname"><span class="pre">pulpo.utils.scaling.</span></span><span class="sig-name descname"><span class="pre">unscale_solution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/pulpo/utils/scaling.html#unscale_solution"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.scaling.unscale_solution" title="Link to this definition">#</a></dt>
+<dd><p>Bring <code class="docutils literal notranslate"><span class="pre">scaling_vector</span></code> / <code class="docutils literal notranslate"><span class="pre">slack</span></code> to original units (no-op if already).</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pulpo.utils.scaling.rescale_solution">
+<span class="sig-prename descclassname"><span class="pre">pulpo.utils.scaling.</span></span><span class="sig-name descname"><span class="pre">rescale_solution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/pulpo/utils/scaling.html#rescale_solution"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.scaling.rescale_solution" title="Link to this definition">#</a></dt>
+<dd><p>Bring <code class="docutils literal notranslate"><span class="pre">scaling_vector</span></code> / <code class="docutils literal notranslate"><span class="pre">slack</span></code> back to scaled units before a solve.</p>
+</dd></dl>
+
+</section>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="../saver/index.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.saver</span></code></p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="../time_extension/index.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.time_extension</span></code></p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#why">Why</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what">What</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-contents">Module Contents</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#functions">Functions</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#attributes">Attributes</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.scaling.SCALED_BOUND_CAP"><code class="docutils literal notranslate"><span class="pre">SCALED_BOUND_CAP</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.scaling.GUROBI_OPTIONS_SCALED"><code class="docutils literal notranslate"><span class="pre">GUROBI_OPTIONS_SCALED</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.scaling.geometric_scaling"><code class="docutils literal notranslate"><span class="pre">geometric_scaling()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.scaling.ruiz_scaling"><code class="docutils literal notranslate"><span class="pre">ruiz_scaling()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.scaling._cap_bound"><code class="docutils literal notranslate"><span class="pre">_cap_bound()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.scaling.equilibrate_model_data"><code class="docutils literal notranslate"><span class="pre">equilibrate_model_data()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.scaling.relax_default_bounds"><code class="docutils literal notranslate"><span class="pre">relax_default_bounds()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.scaling.attach_scale"><code class="docutils literal notranslate"><span class="pre">attach_scale()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.scaling.is_scaled"><code class="docutils literal notranslate"><span class="pre">is_scaled()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.scaling.col_factor"><code class="docutils literal notranslate"><span class="pre">col_factor()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.scaling.to_scaled_coefficient"><code class="docutils literal notranslate"><span class="pre">to_scaled_coefficient()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.scaling.to_scaled_process_bound"><code class="docutils literal notranslate"><span class="pre">to_scaled_process_bound()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.scaling.from_scaled_process_bound"><code class="docutils literal notranslate"><span class="pre">from_scaled_process_bound()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.scaling._apply"><code class="docutils literal notranslate"><span class="pre">_apply()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.scaling.unscale_solution"><code class="docutils literal notranslate"><span class="pre">unscale_solution()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.scaling.rescale_solution"><code class="docutils literal notranslate"><span class="pre">rescale_solution()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  
+  <div class="tocsection editthispage">
+    <a href="https://github.com/flechtenberg/pulpo/edit/master/docs/content/api/pulpo/utils/scaling/index.rst">
+      <i class="fa-solid fa-pencil"></i>
+      
+      
+        
+          Edit on GitHub
+        
+      
+    </a>
+  </div>
+</div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="../../../../../_sources/content/api/pulpo/utils/scaling/index.rst.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../../../../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341"></script>
+<script src="../../../../../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2026 pulpo developers.
+      <br/>
+    
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item"><p>🌿🐛 Found a bug? Something not working? Frustrated? <a href=" latest/../../../../../../content/contributing.html">Please report it!</a></p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

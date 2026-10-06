@@ -1,0 +1,77 @@
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" xmlns:ns1="http://www.w3.org/1999/xlink" width="175pt" height="116pt" viewBox="0.00 0.00 175.00 116.39">
+<ns0:g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 112.39)">
+<ns0:title>inheritance9e820c8fa9</ns0:title>
+
+<ns0:g id="node1" class="node">
+<ns0:title>LCIDataDict</ns0:title>
+<ns0:g id="a_node1"><ns0:a ns1:href="..\content\api\pulpo\utils\bw_parser\index.html#pulpo.utils.bw_parser.LCIDataDict" ns1:title="The LCI data of a worker (``worker.lci_data``): matrices, maps and uncertainty parameters." target="_top">
+<ns0:polygon fill="white" stroke="black" stroke-width="0.5" points="167,-64.2 96.25,-64.2 96.25,-44.2 167,-44.2 167,-64.2" />
+<ns0:text text-anchor="middle" x="131.62" y="-50.7" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">LCIDataDict</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="node2" class="node">
+<ns0:title>TypedDict</ns0:title>
+<ns0:g id="a_node2"><ns0:a ns1:href="https://docs.python.org/3/library/typing.html#typing.TypedDict" ns1:title="TypedDict" target="_top">
+<ns0:polygon fill="white" stroke="black" stroke-width="0.5" points="60.25,-64.2 0,-64.2 0,-44.2 60.25,-44.2 60.25,-64.2" />
+<ns0:text text-anchor="middle" x="30.12" y="-50.7" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">TypedDict</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge1" class="edge">
+<ns0:title>TypedDict-&gt;LCIDataDict</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M31.87,-43.79C40.17,12.22 115.49,14.26 128.66,-37.68" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="127.07,-38.62 129.75,-43.18 130.5,-37.94 127.07,-38.62" />
+</ns0:g>
+
+<ns0:g id="edge2" class="edge">
+<ns0:title>TypedDict-&gt;LCIDataDict</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M32.46,-43.88C42.83,-5.71 110.78,-3.74 127.1,-37.97" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="125.62,-38.98 129,-43.06 128.9,-37.76 125.62,-38.98" />
+</ns0:g>
+
+<ns0:g id="edge3" class="edge">
+<ns0:title>TypedDict-&gt;LCIDataDict</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M34.21,-44.01C47.82,-23.42 102.67,-21.74 123,-38.98" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="122.2,-40.7 126.86,-43.21 124.78,-38.34 122.2,-40.7" />
+</ns0:g>
+
+<ns0:g id="edge4" class="edge">
+<ns0:title>TypedDict-&gt;LCIDataDict</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M48,-43.76C64.3,-40.13 89.11,-39.72 107.29,-42.56" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="107.68,-44.41 112.92,-43.61 108.33,-40.97 107.68,-44.41" />
+</ns0:g>
+
+<ns0:g id="edge5" class="edge">
+<ns0:title>TypedDict-&gt;LCIDataDict</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M60.71,-54.2C69.83,-54.2 80.03,-54.2 89.76,-54.2" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="90.32,-55.95 95.32,-54.2 90.32,-52.45 90.32,-55.95" />
+</ns0:g>
+
+<ns0:g id="edge6" class="edge">
+<ns0:title>TypedDict-&gt;LCIDataDict</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M48,-64.63C64.3,-68.27 89.11,-68.67 107.29,-65.84" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="108.33,-67.43 112.92,-64.79 107.68,-63.99 108.33,-67.43" />
+</ns0:g>
+
+<ns0:g id="edge7" class="edge">
+<ns0:title>TypedDict-&gt;LCIDataDict</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M34.21,-64.39C47.82,-84.97 102.67,-86.65 123,-69.42" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="124.78,-70.06 126.86,-65.19 122.2,-67.7 124.78,-70.06" />
+</ns0:g>
+
+<ns0:g id="edge8" class="edge">
+<ns0:title>TypedDict-&gt;LCIDataDict</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M32.46,-64.51C42.83,-102.68 110.78,-104.65 127.1,-70.43" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="128.9,-70.63 129,-65.33 125.62,-69.41 128.9,-70.63" />
+</ns0:g>
+
+<ns0:g id="edge9" class="edge">
+<ns0:title>TypedDict-&gt;LCIDataDict</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M31.87,-64.61C40.17,-120.61 115.49,-122.65 128.66,-70.71" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="130.5,-70.46 129.75,-65.21 127.07,-69.77 130.5,-70.46" />
+</ns0:g>
+</ns0:g>
+</ns0:svg>

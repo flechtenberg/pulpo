@@ -1,0 +1,29 @@
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" xmlns:ns1="http://www.w3.org/1999/xlink" width="231pt" height="28pt" viewBox="0.00 0.00 231.25 28.00">
+<ns0:g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 24)">
+<ns0:title>inheritancecb52cea01c</ns0:title>
+
+<ns0:g id="node1" class="node">
+<ns0:title>PulpoOptimizer</ns0:title>
+<ns0:g id="a_node1"><ns0:a ns1:href="..\content\api\pulpo\pulpo\index.html#pulpo.pulpo.PulpoOptimizer" ns1:title="PulpoOptimizer" target="_top">
+<ns0:polygon fill="white" stroke="black" stroke-width="0.5" points="82.75,-20 0,-20 0,0 82.75,0 82.75,-20" />
+<ns0:text text-anchor="middle" x="41.38" y="-6.5" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">PulpoOptimizer</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="node2" class="node">
+<ns0:title>PulpoOptimizerTime</ns0:title>
+<ns0:g id="a_node2"><ns0:a ns1:href="..\content\api\pulpo\pulpo_time\index.html#pulpo.pulpo_time.PulpoOptimizerTime" ns1:title="PulpoOptimizer + time-indexed formulation with optional storage carry-over." target="_top">
+<ns0:polygon fill="white" stroke="black" stroke-width="0.5" points="223.25,-20 118.75,-20 118.75,0 223.25,0 223.25,-20" />
+<ns0:text text-anchor="middle" x="171" y="-6.5" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">PulpoOptimizerTime</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge1" class="edge">
+<ns0:title>PulpoOptimizer-&gt;PulpoOptimizerTime</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M83.11,-10C92.32,-10 102.28,-10 112.05,-10" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="112.68,-11.75 117.68,-10 112.68,-8.25 112.68,-11.75" />
+</ns0:g>
+</ns0:g>
+</ns0:svg>

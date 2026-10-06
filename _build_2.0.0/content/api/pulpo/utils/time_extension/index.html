@@ -1,0 +1,810 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="../../../../../_static/favicon.svg" type="image/svg+xml">
+    <link rel="icon" sizes="144x144" href="../../../../../_static/favicon-144.png" type="image/png">
+    <link rel="mask-icon" href="../../../../../_static/favicon_mask-icon.svg" color="#222832" type="image/svg+xml">
+    <link rel="apple-touch-icon" sizes="500x500" href="../../../../../_static/favicon-500.png" type="image/png">
+    <title>pulpo.utils.time_extension &#8212; pulpo 2.0.0 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../../../_static/styles/theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+<link href="../../../../../_static/styles/bootstrap.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+<link href="../../../../../_static/styles/pydata-sphinx-theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+
+  
+  <link href="../../../../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/custom.css?v=913d6465" />
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../../../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341" />
+<link rel="preload" as="script" href="../../../../../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341" />
+  <script src="../../../../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=3ee479438cf8b5e0d341"></script>
+
+    <script src="../../../../../_static/documentation_options.js?v=79f5c508"></script>
+    <script src="../../../../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../../../../_static/design-tabs.js?v=36754332"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'content/api/pulpo/utils/time_extension/index';</script>
+    <link rel="index" title="Index" href="../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../search.html" />
+    <link rel="next" title="pulpo.utils.utils" href="../utils/index.html" />
+    <link rel="prev" title="pulpo.utils.scaling" href="../scaling/index.html" />
+<meta name="google-site-verification" content="Fb3YVU81AToFlPNhlaQf6LLq1SMrHPbY-RtFsgZkw9Q" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+
+<a class="navbar-brand logo" href="../../../../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../../../../_static/pulpo_logo_big.svg" class="logo__image only-light" alt="pulpo 2.0.0 documentation - Home"/>
+    <script>document.write(`<img src="../../../../../_static/pulpo_logo_big.svg" class="logo__image only-dark" alt="pulpo 2.0.0 documentation - Home"/>`);</script>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav class="navbar-nav">
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../getting_started/index.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../theory.html">
+    Theory
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../uncertainty.html">
+    Uncertainty
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../examples/index.html">
+    Examples
+  </a>
+</li>
+
+            <li class="nav-item dropdown pst-header-nav-item">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class="nav-item  current active">
+  <a class="nav-link dropdown-item nav-internal" href="../../../index.html">
+    API
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../codeofconduct.html">
+    Code of Conduct
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../license.html">
+    License
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../changelog.html">
+    Changelog
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  </button>
+`);
+</script></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links navbar-nav"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/flechtenberg/pulpo" title="Open this Repo on GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fab fa-brands fa-github fa-lg" aria-hidden="true"></i></span>
+            <span class="sr-only">Open this Repo on GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+    </div>
+  
+
+  
+    <button class="sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav class="navbar-nav">
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../getting_started/index.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../theory.html">
+    Theory
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../uncertainty.html">
+    Uncertainty
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../examples/index.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item current active">
+  <a class="nav-link nav-internal" href="../../../index.html">
+    API
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../codeofconduct.html">
+    Code of Conduct
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../license.html">
+    License
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../changelog.html">
+    Changelog
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  </button>
+`);
+</script></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links navbar-nav"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/flechtenberg/pulpo" title="Open this Repo on GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fab fa-brands fa-github fa-lg" aria-hidden="true"></i></span>
+            <span class="sr-only">Open this Repo on GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="../../index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo</span></code></a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../../datasets/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.datasets</span></code></a></li>
+<li class="toctree-l2 current active has-children"><a class="reference internal" href="../index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils</span></code></a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="../uncertainty/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.uncertainty</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../bw_parser/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.bw_parser</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../converter/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.converter</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../monte_carlo/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.monte_carlo</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../optimizer/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.optimizer</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reduced/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.reduced</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../saver/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.saver</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../scaling/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.scaling</span></code></a></li>
+<li class="toctree-l3 current active"><a class="current reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.time_extension</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../utils/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.utils</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../warning/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.warning</span></code></a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pulpo/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.pulpo</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pulpo_time/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.pulpo_time</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pulpo_unc/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.pulpo_unc</span></code></a></li>
+</ul>
+</details></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../../index.html" class="nav-link">API Reference</a></li>
+    
+    
+    <li class="breadcrumb-item"><i class="fa-solid fa-ellipsis"></i></li>
+    
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils</span></code></a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><code...</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="module-pulpo.utils.time_extension">
+<span id="pulpo-utils-time-extension"></span><h1><a class="reference internal" href="#module-pulpo.utils.time_extension" title="pulpo.utils.time_extension"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.time_extension</span></code></a><a class="headerlink" href="#module-pulpo.utils.time_extension" title="Link to this heading">#</a></h1>
+<p>Time-dependent extension for PULPO (feat/time-dependent).</p>
+<p>This module provides a parallel data-preparation and pyomo-model pipeline that
+adds a <code class="docutils literal notranslate"><span class="pre">TIME</span></code> dimension to PULPO without modifying the existing single-step
+implementation in <a class="reference internal" href="../converter/index.html#module-pulpo.utils.converter" title="pulpo.utils.converter"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.converter</span></code></a> and <a class="reference internal" href="../optimizer/index.html#module-pulpo.utils.optimizer" title="pulpo.utils.optimizer"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.optimizer</span></code></a>.</p>
+<dl class="simple">
+<dt>Public API:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="#pulpo.utils.time_extension.combine_inputs_time" title="pulpo.utils.time_extension.combine_inputs_time"><code class="xref py py-func docutils literal notranslate"><span class="pre">combine_inputs_time()</span></code></a> – build a time-indexed pyomo data dict.</p></li>
+<li><p><a class="reference internal" href="#pulpo.utils.time_extension.instantiate_time" title="pulpo.utils.time_extension.instantiate_time"><code class="xref py py-func docutils literal notranslate"><span class="pre">instantiate_time()</span></code></a>    – build the concrete time-indexed model.</p></li>
+</ul>
+</dd>
+</dl>
+<section id="storage-carry-over">
+<h2>Storage / carry-over<a class="headerlink" href="#storage-carry-over" title="Link to this heading">#</a></h2>
+<p>The time-coupling mechanism is expressed via an optional <code class="docutils literal notranslate"><span class="pre">storage</span></code> argument
+of <a class="reference internal" href="#pulpo.utils.time_extension.combine_inputs_time" title="pulpo.utils.time_extension.combine_inputs_time"><code class="xref py py-func docutils literal notranslate"><span class="pre">combine_inputs_time()</span></code></a>, given as a list of triples:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">storage</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">(</span><span class="n">target_product</span><span class="p">,</span> <span class="n">source_product</span><span class="p">,</span> <span class="n">factor</span><span class="p">),</span>
+    <span class="o">...</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<p>Each triple says: <em>the net production of ``source_product`` at time t-1
+contributes ``factor`` units to the balance of ``target_product`` at time t.</em>
+Formally it sets <code class="docutils literal notranslate"><span class="pre">K[target_product,</span> <span class="pre">source_product]</span> <span class="pre">=</span> <span class="pre">factor</span></code> in a
+product-by-product carry-over matrix; the demand balance at t becomes</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>A_i · s[t]  +  Σ_{i2} K[i, i2] · ( A_{i2} · s[t-1] )  ≥ / =  d[t, i].
+</pre></div>
+</div>
+<p>Products that appear as <code class="docutils literal notranslate"><span class="pre">target_product</span></code> (and <code class="docutils literal notranslate"><span class="pre">source_product</span></code>) in any
+storage triple are added to the set <code class="docutils literal notranslate"><span class="pre">PRODUCT_STOR</span></code> and use a <code class="docutils literal notranslate"><span class="pre">&gt;=</span></code>
+balance instead of <code class="docutils literal notranslate"><span class="pre">==</span></code>, allowing within-step over-production (the
+classical battery slack: charge[t] need not be discharged at t).</p>
+<p>This matches the four-activity (CHARGE / HOLD / HOLD t-1 / DISCHARGE)
+pattern used by larger ESM integrations: there the <code class="docutils literal notranslate"><span class="pre">source</span></code> is
+<em>“Charge product”</em> (or “Hold-t-1 product”), and <code class="docutils literal notranslate"><span class="pre">K</span></code> is the round-trip
+efficiency / self-discharge factor.</p>
+</section>
+<section id="aggregated-impact-bounds">
+<h2>Aggregated impact bounds<a class="headerlink" href="#aggregated-impact-bounds" title="Link to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">upper_imp_agg_limit</span></code> constrains the <em>sum</em> of an indicator’s impacts across
+all timesteps – e.g. an annual CO2 budget independent of per-step bounds.</p>
+</section>
+<section id="backwards-compatibility">
+<h2>Backwards compatibility<a class="headerlink" href="#backwards-compatibility" title="Link to this heading">#</a></h2>
+<p>The static, single-timestep API is unchanged. To opt into the time-dependent
+formulation, pass <code class="docutils literal notranslate"><span class="pre">time_steps=[...]</span></code> to
+<a class="reference internal" href="../../pulpo/index.html#pulpo.pulpo.PulpoOptimizer.instantiate" title="pulpo.pulpo.PulpoOptimizer.instantiate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">pulpo.pulpo.PulpoOptimizer.instantiate()</span></code></a>.</p>
+</section>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading">#</a></h2>
+<section id="functions">
+<h3>Functions<a class="headerlink" href="#functions" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pulpo.utils.time_extension.combine_inputs_time" title="pulpo.utils.time_extension.combine_inputs_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">combine_inputs_time</span></code></a>(lci_data, demand, choices, ...[, ...])</p></td>
+<td><p>Build the time-indexed pyomo data dictionary.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pulpo.utils.time_extension.instantiate_time" title="pulpo.utils.time_extension.instantiate_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">instantiate_time</span></code></a>(model_data[, objective])</p></td>
+<td><p>Build a concrete instance of the time-indexed model.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<dl class="py function">
+<dt class="sig sig-object py" id="pulpo.utils.time_extension.combine_inputs_time">
+<span class="sig-prename descclassname"><span class="pre">pulpo.utils.time_extension.</span></span><span class="sig-name descname"><span class="pre">combine_inputs_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lci_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">demand</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">choices</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upper_limit</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lower_limit</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upper_inv_limit</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upper_imp_limit</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lower_inv_limit</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lower_imp_limit</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">methods</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_steps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">storage</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upper_imp_agg_limit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_limits</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">imp_goals</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/pulpo/utils/time_extension.html#combine_inputs_time"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.time_extension.combine_inputs_time" title="Link to this definition">#</a></dt>
+<dd><p>Build the time-indexed pyomo data dictionary.</p>
+<p>Mirrors <a class="reference internal" href="../converter/index.html#pulpo.utils.converter.combine_inputs" title="pulpo.utils.converter.combine_inputs"><code class="xref py py-func docutils literal notranslate"><span class="pre">pulpo.utils.converter.combine_inputs()</span></code></a> and adds three
+time-related arguments:</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>time_steps</strong> – Ordered list of timestep labels. Must be non-empty.</p></li>
+<li><p><strong>storage</strong> – Optional list of triples <code class="docutils literal notranslate"><span class="pre">(target_product,</span> <span class="pre">source_product,</span>
+<span class="pre">factor)</span></code>. Each triple sets <code class="docutils literal notranslate"><span class="pre">K[target,</span> <span class="pre">source]</span> <span class="pre">=</span> <span class="pre">factor</span></code> in a
+product×product carry-over matrix and adds both products to
+<code class="docutils literal notranslate"><span class="pre">PRODUCT_STOR</span></code> (relaxes their balance from <code class="docutils literal notranslate"><span class="pre">==</span></code> to <code class="docutils literal notranslate"><span class="pre">&gt;=</span></code>).
+Activity arguments are accepted and resolved to their self-product
+via <code class="docutils literal notranslate"><span class="pre">process_map</span></code>.</p></li>
+<li><p><strong>upper_imp_agg_limit</strong> – Optional <code class="docutils literal notranslate"><span class="pre">{indicator:</span> <span class="pre">bound}</span></code> constraining the
+<em>sum</em> of an indicator’s impact across all timesteps.</p></li>
+<li><p><strong>imp_goals</strong> – Optional <code class="docutils literal notranslate"><span class="pre">{indicator:</span> <span class="pre">limit}</span></code> goal-programming soft limits
+on the impacts aggregated over all timesteps (e.g. a yearly
+budget); used with the ‘goal’ objective of
+<a class="reference internal" href="#pulpo.utils.time_extension.instantiate_time" title="pulpo.utils.time_extension.instantiate_time"><code class="xref py py-func docutils literal notranslate"><span class="pre">instantiate_time()</span></code></a>. Only categories listed here receive a
+transgression slack.</p></li>
+<li><p><strong>scale</strong> – Equilibrate the LP (see <a class="reference internal" href="../scaling/index.html#module-pulpo.utils.scaling" title="pulpo.utils.scaling"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.scaling</span></code></a>); the
+per-process / per-product factors are shared by all timesteps
+and the carry-over matrix <code class="docutils literal notranslate"><span class="pre">K</span></code> is scaled consistently. Default
+False.</p></li>
+<li><p><strong>default_limits</strong> – Optional custom default limits. If None, uses
+standard values. Required keys: ‘lower_bound’, ‘upper_bound’,
+‘upper_inv_bound’, ‘lower_inv_bound’, ‘lower_imp_bound’,
+‘upper_imp_bound’, ‘upper_imp_agg_bound’ (the last one not
+present in <a class="reference internal" href="../converter/index.html#pulpo.utils.converter.combine_inputs" title="pulpo.utils.converter.combine_inputs"><code class="xref py py-func docutils literal notranslate"><span class="pre">pulpo.utils.converter.combine_inputs()</span></code></a>’s
+6-key set). Categories listed in <code class="docutils literal notranslate"><span class="pre">imp_goals</span></code> ignore
+‘lower_imp_bound’/’upper_imp_bound’/’upper_imp_agg_bound’ (the
+goal is a soft limit, not a hard Var bound) unless also given an
+explicit upper_imp_limit/lower_imp_limit/upper_imp_agg_limit.
+Finite ‘lower_bound’ / ‘upper_bound’ bound every activity and
+raise a FutureWarning; default_limits may be deprecated in a
+near-future release.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Each of <code class="docutils literal notranslate"><span class="pre">demand</span></code>, <code class="docutils literal notranslate"><span class="pre">choices</span></code>, <code class="docutils literal notranslate"><span class="pre">upper_limit</span></code>, <code class="docutils literal notranslate"><span class="pre">lower_limit</span></code>,
+<code class="docutils literal notranslate"><span class="pre">upper_inv_limit</span></code>, <code class="docutils literal notranslate"><span class="pre">upper_imp_limit</span></code>, <code class="docutils literal notranslate"><span class="pre">lower_inv_limit</span></code>,
+<code class="docutils literal notranslate"><span class="pre">lower_imp_limit</span></code> may be a static dict (broadcast across timesteps)
+or already in <code class="docutils literal notranslate"><span class="pre">{t:</span> <span class="pre">dict}</span></code> form.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pulpo.utils.time_extension.instantiate_time">
+<span class="sig-prename descclassname"><span class="pre">pulpo.utils.time_extension.</span></span><span class="sig-name descname"><span class="pre">instantiate_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">objective</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'weighted_sum'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/pulpo/utils/time_extension.html#instantiate_time"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.time_extension.instantiate_time" title="Link to this definition">#</a></dt>
+<dd><p>Build a concrete instance of the time-indexed model.</p>
+<p>With <code class="docutils literal notranslate"><span class="pre">objective='goal'</span></code> the model minimizes the average transgression
+level of the <em>time-aggregated</em> impacts,</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="n">K</span><span class="p">)</span> <span class="o">*</span> <span class="n">sum_h</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">sum_t</span> <span class="n">impacts</span><span class="p">[</span><span class="n">t</span><span class="p">,</span> <span class="n">h</span><span class="p">]</span> <span class="o">/</span> <span class="n">IMP_GOALS</span><span class="p">[</span><span class="n">h</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">),</span>
+</pre></div>
+</div>
+<p>over the K categories in <code class="docutils literal notranslate"><span class="pre">GOAL_INDICATOR</span></code> – i.e. each goal is a total
+(e.g. yearly) budget across the whole horizon, not a per-timestep limit.</p>
+<p>Mirrors <a class="reference internal" href="../optimizer/index.html#pulpo.utils.optimizer.instantiate" title="pulpo.utils.optimizer.instantiate"><code class="xref py py-func docutils literal notranslate"><span class="pre">pulpo.utils.optimizer.instantiate()</span></code></a>: the model is assembled as
+a ConcreteModel directly from the data dictionary. The time-invariant
+technology matrix, intervention matrix, and carry-over matrix K are embedded
+as plain float coefficients in LinearExpression constraint rows rather than
+as Pyomo Params, which makes instantiation several times faster on
+ecoinvent-scale data. This includes the environmental cost matrix: its
+dense dictionary is kept on the model as <code class="docutils literal notranslate"><span class="pre">model._env_cost</span></code>, and code
+that needs different coefficients rebuilds the impact constraints via
+<a class="reference internal" href="../optimizer/index.html#pulpo.utils.optimizer.update_env_cost" title="pulpo.utils.optimizer.update_env_cost"><code class="xref py py-func docutils literal notranslate"><span class="pre">pulpo.utils.optimizer.update_env_cost()</span></code></a>. Only the per-timestep
+parameters that may be updated in place between solves remain
+mutable Params. Production capacities as well as intervention-flow and
+impact limits enter as variable bounds; the bounds reference the mutable
+limit Params, so they are re-evaluated whenever the model is passed to a
+solver again. Slack variables exist only for the
+(t, product) pairs where a supply is specified (SUPPLY == 1); changing the
+supply pattern requires re-instantiating the model.</p>
+</dd></dl>
+
+</section>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="../scaling/index.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.scaling</span></code></p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="../utils/index.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.utils</span></code></p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#storage-carry-over">Storage / carry-over</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#aggregated-impact-bounds">Aggregated impact bounds</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#backwards-compatibility">Backwards compatibility</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-contents">Module Contents</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#functions">Functions</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.time_extension.combine_inputs_time"><code class="docutils literal notranslate"><span class="pre">combine_inputs_time()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.time_extension.instantiate_time"><code class="docutils literal notranslate"><span class="pre">instantiate_time()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  
+  <div class="tocsection editthispage">
+    <a href="https://github.com/flechtenberg/pulpo/edit/master/docs/content/api/pulpo/utils/time_extension/index.rst">
+      <i class="fa-solid fa-pencil"></i>
+      
+      
+        
+          Edit on GitHub
+        
+      
+    </a>
+  </div>
+</div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="../../../../../_sources/content/api/pulpo/utils/time_extension/index.rst.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../../../../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341"></script>
+<script src="../../../../../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2026 pulpo developers.
+      <br/>
+    
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item"><p>🌿🐛 Found a bug? Something not working? Frustrated? <a href=" latest/../../../../../../content/contributing.html">Please report it!</a></p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

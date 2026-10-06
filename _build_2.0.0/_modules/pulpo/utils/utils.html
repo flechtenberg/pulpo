@@ -1,0 +1,853 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pulpo.utils.utils &#8212; pulpo 2.0.0 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+<link href="../../../_static/styles/bootstrap.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+
+  
+  <link href="../../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=913d6465" />
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341" />
+  <script src="../../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=3ee479438cf8b5e0d341"></script>
+
+    <script src="../../../_static/documentation_options.js?v=79f5c508"></script>
+    <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../../_static/design-tabs.js?v=36754332"></script>
+    <script src="https://unpkg.com/mermaid@10.2.0/dist/mermaid.min.js"></script>
+    <script>
+    function initializeMermaidBasedOnTheme() {
+        const theme = document.documentElement.dataset.theme;
+
+        if (theme === 'dark') {
+            mermaid.initialize({
+                startOnLoad: true,
+                theme: 'base',
+                themeVariables: {
+                    edgeLabelBackground: 'transparent',
+                    defaultLinkColor: '#ced6dd',
+                    titleColor: '#ced6dd',
+                    nodeTextColor: '#ced6dd',
+                    lineColor: '#ced6dd',
+                }
+            });
+        } else {
+            mermaid.initialize({
+                startOnLoad: true,
+                theme: 'base',
+                themeVariables: {
+                    edgeLabelBackground: 'transparent',
+                    defaultLinkColor: '#222832',
+                    titleColor: '#222832',
+                    nodeTextColor: '#222832',
+                    lineColor: '#222832',
+                }
+            });
+        }
+
+        // Re-render all Mermaid diagrams
+        mermaid.contentLoaded();
+    }
+
+    // Observer to detect changes to the data-theme attribute
+    const themeObserver = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            if (mutation.type === 'attributes' && mutation.attributeName === 'data-theme') {
+            initializeMermaidBasedOnTheme();
+            }
+        });
+    });
+
+    themeObserver.observe(document.documentElement, { attributes: true });
+
+    initializeMermaidBasedOnTheme();
+</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/pulpo/utils/utils';</script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+<meta name="google-site-verification" content="Fb3YVU81AToFlPNhlaQf6LLq1SMrHPbY-RtFsgZkw9Q" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+
+<a class="navbar-brand logo" href="../../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../../_static/pulpo_logo_big.svg" class="logo__image only-light" alt="pulpo 2.0.0 documentation - Home"/>
+    <script>document.write(`<img src="../../../_static/pulpo_logo_big.svg" class="logo__image only-dark" alt="pulpo 2.0.0 documentation - Home"/>`);</script>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav class="navbar-nav">
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/getting_started/index.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/theory.html">
+    Theory
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/uncertainty.html">
+    Uncertainty
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/examples/index.html">
+    Examples
+  </a>
+</li>
+
+            <li class="nav-item dropdown pst-header-nav-item">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../content/api/index.html">
+    API
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../content/contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../content/codeofconduct.html">
+    Code of Conduct
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../content/license.html">
+    License
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../content/changelog.html">
+    Changelog
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  </button>
+`);
+</script></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links navbar-nav"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/flechtenberg/pulpo" title="Open this Repo on GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fab fa-brands fa-github fa-lg" aria-hidden="true"></i></span>
+            <span class="sr-only">Open this Repo on GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <div class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav class="navbar-nav">
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/getting_started/index.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/theory.html">
+    Theory
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/uncertainty.html">
+    Uncertainty
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/examples/index.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/api/index.html">
+    API
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/codeofconduct.html">
+    Code of Conduct
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/license.html">
+    License
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/changelog.html">
+    Changelog
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  </button>
+`);
+</script></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links navbar-nav"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/flechtenberg/pulpo" title="Open this Repo on GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fab fa-brands fa-github fa-lg" aria-hidden="true"></i></span>
+            <span class="sr-only">Open this Repo on GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">Module code</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="../../pulpo.html" class="nav-link">pulpo</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page">pulpo.utils.utils</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for pulpo.utils.utils</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">inspect</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">bw2data</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">bd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">bw2calc</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">bc</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">packaging</span><span class="w"> </span><span class="kn">import</span> <span class="n">version</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<div class="viewcode-block" id="is_bw25">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/utils/index.html#pulpo.utils.utils.is_bw25">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">is_bw25</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">"""Check if the installed Brightway packages adhere to bw25 versions."""</span>
+    <span class="c1"># Define version thresholds</span>
+    <span class="n">THRESHOLDS</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">"bw2calc"</span><span class="p">:</span> <span class="s2">"2.0.dev5"</span><span class="p">,</span>
+        <span class="s2">"bw2data"</span><span class="p">:</span> <span class="s2">"4.0.dev11"</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">pkg</span><span class="p">,</span> <span class="n">threshold</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">"bw2calc"</span><span class="p">:</span> <span class="n">bc</span><span class="p">,</span> <span class="s2">"bw2data"</span><span class="p">:</span> <span class="n">bd</span><span class="p">}</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">pkg_version</span> <span class="o">=</span> <span class="s2">"."</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">threshold</span><span class="o">.</span><span class="n">__version__</span><span class="p">))</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">threshold</span><span class="o">.</span><span class="n">__version__</span><span class="p">,</span>
+                                                                                  <span class="nb">tuple</span><span class="p">)</span> <span class="k">else</span> <span class="nb">str</span><span class="p">(</span>
+                <span class="n">threshold</span><span class="o">.</span><span class="n">__version__</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">version</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">pkg_version</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">version</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">THRESHOLDS</span><span class="p">[</span><span class="n">pkg</span><span class="p">]):</span>
+                <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="kc">True</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Error checking Brightway versions: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span></div>
+
+    
+<div class="viewcode-block" id="get_bw_version">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/utils/index.html#pulpo.utils.utils.get_bw_version">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_bw_version</span><span class="p">():</span>
+    <span class="k">if</span> <span class="n">is_bw25</span><span class="p">():</span>
+        <span class="k">return</span> <span class="s2">"bw25"</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">"bw2"</span></div>
+
+
+
+<span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="c1"># Time-indexed input helpers</span>
+<span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="c1"># Shared by pulpo.utils.time_extension (data prep) and pulpo.utils.saver</span>
+<span class="c1"># (result extraction) so that both agree on what "time-indexed" means for a</span>
+<span class="c1"># user-supplied dict without duplicating the detection/broadcast logic.</span>
+
+<div class="viewcode-block" id="is_time_indexed">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/utils/index.html#pulpo.utils.utils.is_time_indexed">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">is_time_indexed</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">time_steps</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Return True if dict ``d`` is keyed by the supplied timestep labels."""</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">d</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">return</span> <span class="nb">set</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">==</span> <span class="nb">set</span><span class="p">(</span><span class="n">time_steps</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="none_to_bound">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/utils/index.html#pulpo.utils.utils.none_to_bound">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">none_to_bound</span><span class="p">(</span><span class="n">limits</span><span class="p">,</span> <span class="n">bound</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""A copy of a limit dict in which ``None`` (no limit) reads as ``bound``,</span>
+<span class="sd">    i.e. +inf for an upper and -inf for a lower limit."""</span>
+    <span class="k">return</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="p">(</span><span class="n">bound</span> <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">value</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="p">(</span><span class="n">limits</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span></div>
+
+
+
+<div class="viewcode-block" id="none_capacities">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/utils/index.html#pulpo.utils.utils.none_capacities">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">none_capacities</span><span class="p">(</span><span class="n">choices</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""A copy of ``choices`` as ``{label: {activity: capacity}}``, in which a</span>
+<span class="sd">    ``None`` capacity and a list of activities (no capacities) read as unlimited."""</span>
+    <span class="n">inf</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="s1">'inf'</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">{</span><span class="n">label</span><span class="p">:</span> <span class="p">(</span><span class="n">none_to_bound</span><span class="p">(</span><span class="n">alternatives</span><span class="p">,</span> <span class="n">inf</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">alternatives</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span>
+                    <span class="k">else</span> <span class="p">{</span><span class="n">activity</span><span class="p">:</span> <span class="n">inf</span> <span class="k">for</span> <span class="n">activity</span> <span class="ow">in</span> <span class="n">alternatives</span><span class="p">})</span>
+            <span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">alternatives</span> <span class="ow">in</span> <span class="p">(</span><span class="n">choices</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span></div>
+
+
+
+<div class="viewcode-block" id="broadcast_over_time">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/utils/index.html#pulpo.utils.utils.broadcast_over_time">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">broadcast_over_time</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">time_steps</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Convert a (possibly static) input dict into ``{t: dict}`` form."""</span>
+    <span class="k">if</span> <span class="n">d</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Expected a dict, got </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">d</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">is_time_indexed</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">time_steps</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">t</span><span class="p">,</span> <span class="n">sub</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sub</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"Time-indexed input must map each timestep to a dict; "</span>
+                    <span class="sa">f</span><span class="s2">"got </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">sub</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> for t=</span><span class="si">{</span><span class="n">t</span><span class="si">!r}</span><span class="s2">"</span>
+                <span class="p">)</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">t</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="n">t</span><span class="p">])</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">time_steps</span><span class="p">}</span>
+    <span class="n">covered</span> <span class="o">=</span> <span class="p">[</span><span class="n">t</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">time_steps</span> <span class="k">if</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">d</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">covered</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">covered</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">d</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">sub</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="k">for</span> <span class="n">sub</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
+        <span class="n">missing</span> <span class="o">=</span> <span class="p">[</span><span class="n">t</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">time_steps</span> <span class="k">if</span> <span class="n">t</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">d</span><span class="p">]</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"This input is keyed by the time steps </span><span class="si">{</span><span class="n">covered</span><span class="si">}</span><span class="s2"> but not by </span><span class="si">{</span><span class="n">missing</span><span class="si">}</span><span class="s2">; a "</span>
+            <span class="sa">f</span><span class="s2">"time-indexed input needs every time step (an empty dict for a step without entries)."</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="p">{</span><span class="n">t</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span><span class="n">d</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">time_steps</span><span class="p">}</span></div>
+
+
+
+<span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="c1"># Monte Carlo re-instantiation helper</span>
+<span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="c1"># Used by pulpo.utils.monte_carlo, which re-instantiates the same worker once</span>
+<span class="c1"># per sample with fresh LCI data, and must forward every kwarg the original instantiate() call used -- including</span>
+<span class="c1"># subclass-only ones (PulpoOptimizerTime's time_steps/storage/</span>
+<span class="c1"># upper_imp_agg_limit) -- or a time-indexed worker silently gets rebuilt as a</span>
+<span class="c1"># static model (demand/limits are still in {t: {...}} form, which the static</span>
+<span class="c1"># path then rejects or misreads). Both PulpoOptimizer.instantiate() and</span>
+<span class="c1"># PulpoOptimizerTime.instantiate() already mirror every parameter onto</span>
+<span class="c1"># self.&lt;name&gt;, so reading them back via the worker's own (possibly overridden)</span>
+<span class="c1"># instantiate() signature keeps this in sync automatically as new parameters</span>
+<span class="c1"># are added, instead of a hand-maintained kwarg list that drifts out of sync</span>
+<span class="c1"># with the class it forwards to.</span>
+
+<div class="viewcode-block" id="reinstantiate_kwargs">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/utils/index.html#pulpo.utils.utils.reinstantiate_kwargs">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">reinstantiate_kwargs</span><span class="p">(</span><span class="n">pulpo_optimizer</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Return keyword arguments for re-instantiating the optimizer."""</span>
+    <span class="n">sig</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">signature</span><span class="p">(</span><span class="n">pulpo_optimizer</span><span class="o">.</span><span class="n">instantiate</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">pulpo_optimizer</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">sig</span><span class="o">.</span><span class="n">parameters</span><span class="p">}</span></div>
+
+
+
+<span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="c1"># BW25 Uncertainty Parameter Handling</span>
+<span class="c1"># ---------------------------------------------------------------------------</span>
+
+<span class="c1"># Combined uncertainty-parameter dtype for the bw25 path. Mirrors the fields of</span>
+<span class="c1"># the bw2 ``bio_params`` / ``cf_params`` structured arrays that the uncertainty</span>
+<span class="c1"># preparer consumes (it indexes on ``row``/``col`` and reads ``amount`` plus the</span>
+<span class="c1"># stats_arrays distribution fields).</span>
+<div class="viewcode-block" id="BW25_PARAM_DTYPE">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/utils/index.html#pulpo.utils.utils.BW25_PARAM_DTYPE">[docs]</a>
+<span class="n">BW25_PARAM_DTYPE</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">([</span>
+    <span class="p">(</span><span class="s1">'row'</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">'col'</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">'amount'</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">'uncertainty_type'</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">'loc'</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">'scale'</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">'shape'</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">'minimum'</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">'maximum'</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">'negative'</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">bool_</span><span class="p">),</span>
+<span class="p">])</span></div>
+
+
+<div class="viewcode-block" id="BW25_DISTRIBUTION_FIELDS">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/utils/index.html#pulpo.utils.utils.BW25_DISTRIBUTION_FIELDS">[docs]</a>
+<span class="n">BW25_DISTRIBUTION_FIELDS</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="s1">'uncertainty_type'</span><span class="p">,</span> <span class="s1">'loc'</span><span class="p">,</span> <span class="s1">'scale'</span><span class="p">,</span> <span class="s1">'shape'</span><span class="p">,</span> <span class="s1">'minimum'</span><span class="p">,</span> <span class="s1">'maximum'</span><span class="p">,</span> <span class="s1">'negative'</span><span class="p">,</span>
+<span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="build_bw25_params">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/utils/index.html#pulpo.utils.utils.build_bw25_params">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">build_bw25_params</span><span class="p">(</span><span class="n">data_objs</span><span class="p">,</span> <span class="n">matrix_name</span><span class="p">,</span> <span class="n">row_mapping</span><span class="p">,</span> <span class="n">col_mapping</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Assemble a combined uncertainty-parameter array for a bw25 matrix.</span>
+
+<span class="sd">    Rather than relying on hard-coded resource positions, this scans the</span>
+<span class="sd">    ``datapackage`` objects for the resources belonging to ``matrix_name`` and</span>
+<span class="sd">    combines the ``indices``, ``data`` and ``distributions`` resources into a</span>
+<span class="sd">    single structured array. The original ids stored in the ``indices`` resource</span>
+<span class="sd">    are mapped to matrix positions via ``row_mapping`` (and ``col_mapping`` when</span>
+<span class="sd">    provided) so the result is indexed identically to the optimisation problem.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        data_objs: The datapackages returned by ``bd.prepare_lca_inputs``.</span>
+<span class="sd">        matrix_name (str): Target matrix, e.g. ``'biosphere_matrix'`` or</span>
+<span class="sd">            ``'characterization_matrix'``.</span>
+<span class="sd">        row_mapping (dict): Maps original row ids to matrix row positions.</span>
+<span class="sd">        col_mapping (dict, optional): Maps original column ids to matrix column</span>
+<span class="sd">            positions. If ``None`` the raw column ids from the datapackage are</span>
+<span class="sd">            kept (used for the characterization matrix where the column is a</span>
+<span class="sd">            dummy value).</span>
+
+<span class="sd">    A datapackage that declares no distribution at all carries no</span>
+<span class="sd">    ``distributions`` resource; its entries are deterministic and are listed</span>
+<span class="sd">    with ``uncertainty_type`` 0, as in bw2's parameter arrays.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Tuple[Optional[np.ndarray], bool]: The combined parameter array (or</span>
+<span class="sd">        ``None`` when the matrix has no entries or a datapackage is</span>
+<span class="sd">        inconsistent) and a flag set when some datapackage declared no</span>
+<span class="sd">        distributions.</span>
+<span class="sd">    """</span>
+    <span class="n">parts</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">incomplete</span> <span class="o">=</span> <span class="n">undeclared</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">data_objs</span><span class="p">:</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="n">dat</span> <span class="o">=</span> <span class="n">dist</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">for</span> <span class="n">res</span><span class="p">,</span> <span class="n">arr</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">resources</span><span class="p">,</span> <span class="n">obj</span><span class="o">.</span><span class="n">data</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">res</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'matrix'</span><span class="p">)</span> <span class="o">!=</span> <span class="n">matrix_name</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">kind</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'kind'</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s1">'indices'</span><span class="p">:</span>
+                <span class="n">idx</span> <span class="o">=</span> <span class="n">arr</span>
+            <span class="k">elif</span> <span class="n">kind</span> <span class="o">==</span> <span class="s1">'data'</span><span class="p">:</span>
+                <span class="n">dat</span> <span class="o">=</span> <span class="n">arr</span>
+            <span class="k">elif</span> <span class="n">kind</span> <span class="o">==</span> <span class="s1">'distributions'</span><span class="p">:</span>
+                <span class="n">dist</span> <span class="o">=</span> <span class="n">arr</span>
+        <span class="c1"># Skip datapackages that do not contribute entries to this matrix.</span>
+        <span class="k">if</span> <span class="n">dat</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">dat</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="n">idx</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="p">(</span><span class="n">dist</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">dist</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">dat</span><span class="p">)):</span>
+            <span class="n">incomplete</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="n">dist</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">dist</span> <span class="o">=</span> <span class="n">_undeclared_distributions</span><span class="p">(</span><span class="n">dat</span><span class="p">)</span>
+            <span class="n">undeclared</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">idx</span><span class="p">,</span> <span class="n">dat</span><span class="p">,</span> <span class="n">dist</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="n">incomplete</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">parts</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="n">undeclared</span>
+
+    <span class="n">total</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dat</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">dat</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">parts</span><span class="p">)</span>
+    <span class="n">combined</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">total</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">BW25_PARAM_DTYPE</span><span class="p">)</span>
+    <span class="n">pos</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">dat</span><span class="p">,</span> <span class="n">dist</span> <span class="ow">in</span> <span class="n">parts</span><span class="p">:</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">dat</span><span class="p">)</span>
+        <span class="n">sl</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="n">pos</span><span class="p">,</span> <span class="n">pos</span> <span class="o">+</span> <span class="n">n</span><span class="p">)</span>
+        <span class="n">combined</span><span class="p">[</span><span class="s1">'row'</span><span class="p">][</span><span class="n">sl</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">row_mapping</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">r</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">r</span><span class="p">))</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">idx</span><span class="p">[</span><span class="s1">'row'</span><span class="p">]]</span>
+        <span class="k">if</span> <span class="n">col_mapping</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">combined</span><span class="p">[</span><span class="s1">'col'</span><span class="p">][</span><span class="n">sl</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">col_mapping</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">c</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">c</span><span class="p">))</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">idx</span><span class="p">[</span><span class="s1">'col'</span><span class="p">]]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">combined</span><span class="p">[</span><span class="s1">'col'</span><span class="p">][</span><span class="n">sl</span><span class="p">]</span> <span class="o">=</span> <span class="n">idx</span><span class="p">[</span><span class="s1">'col'</span><span class="p">]</span>
+        <span class="n">combined</span><span class="p">[</span><span class="s1">'amount'</span><span class="p">][</span><span class="n">sl</span><span class="p">]</span> <span class="o">=</span> <span class="n">dat</span>
+        <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">BW25_DISTRIBUTION_FIELDS</span><span class="p">:</span>
+            <span class="n">combined</span><span class="p">[</span><span class="n">field</span><span class="p">][</span><span class="n">sl</span><span class="p">]</span> <span class="o">=</span> <span class="n">dist</span><span class="p">[</span><span class="n">field</span><span class="p">]</span>
+        <span class="n">pos</span> <span class="o">+=</span> <span class="n">n</span>
+
+    <span class="k">return</span> <span class="n">combined</span><span class="p">,</span> <span class="n">undeclared</span></div>
+
+
+
+<div class="viewcode-block" id="_undeclared_distributions">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/utils/index.html#pulpo.utils.utils._undeclared_distributions">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">_undeclared_distributions</span><span class="p">(</span><span class="n">amounts</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Distribution records for deterministic entries: ``uncertainty_type`` 0,</span>
+<span class="sd">    ``loc`` the amount and the other parameters NaN, as bw2 stores them."""</span>
+    <span class="n">amounts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">amounts</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="n">dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">amounts</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="p">[(</span><span class="n">f</span><span class="p">,</span> <span class="n">BW25_PARAM_DTYPE</span><span class="p">[</span><span class="n">f</span><span class="p">])</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">BW25_DISTRIBUTION_FIELDS</span><span class="p">])</span>
+    <span class="n">dist</span><span class="p">[</span><span class="s1">'uncertainty_type'</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">dist</span><span class="p">[</span><span class="s1">'loc'</span><span class="p">]</span> <span class="o">=</span> <span class="n">amounts</span>
+    <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">'scale'</span><span class="p">,</span> <span class="s1">'shape'</span><span class="p">,</span> <span class="s1">'minimum'</span><span class="p">,</span> <span class="s1">'maximum'</span><span class="p">):</span>
+        <span class="n">dist</span><span class="p">[</span><span class="n">field</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+    <span class="n">dist</span><span class="p">[</span><span class="s1">'negative'</span><span class="p">]</span> <span class="o">=</span> <span class="n">amounts</span> <span class="o">&lt;</span> <span class="mi">0</span>
+    <span class="k">return</span> <span class="n">dist</span></div>
+
+</pre></div>
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341"></script>
+<script src="../../../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2026 pulpo developers.
+      <br/>
+    
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item"><p>🌿🐛 Found a bug? Something not working? Frustrated? <a href=" latest/../../../../content/contributing.html">Please report it!</a></p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

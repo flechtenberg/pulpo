@@ -1,0 +1,54 @@
+:py:mod:`pulpo.utils.uncertainty.processor`
+===========================================
+
+.. py:module:: pulpo.utils.uncertainty.processor
+
+.. autoapi-nested-parse::
+
+   processor.py
+
+   The sampler that draws one realization of every declared parameter.
+
+
+
+Module Contents
+---------------
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   pulpo.utils.uncertainty.processor._merge_defined_blocks
+   pulpo.utils.uncertainty.processor._sample_one_spec
+   pulpo.utils.uncertainty.processor.draw_uncertainty_sample
+
+
+
+.. py:function:: _merge_defined_blocks(unc_data: dict, top_key: str) -> Dict[Union[Tuple[int, int], int], dict]
+
+   Collect & merge all 'declared' blocks under unc_data[top_key].
+
+
+.. py:function:: _sample_one_spec(spec: dict, rng: numpy.random.Generator) -> float
+
+   Sample a single uncertainty spec. An exact value (type 1) returns its
+   amount, a normal is drawn with numpy, every other family by stats_arrays.
+
+   ``rng`` must reach *both* branches. stats_arrays' ``random_variables``
+   falls back to the legacy global ``np.random`` when ``seeded_random`` is
+   omitted, so leaving it out made ``draw_uncertainty_sample(seed=...)``
+   reproducible for Normal parameters only -- every lognormal, triangular and
+   uniform parameter silently ignored the seed and consumed the global stream
+   instead. Each of the four families stats_arrays dispatches to calls only
+   ``normal``/``lognormal``/``triangular``/``uniform``, all of which exist on
+   a ``Generator``, so the same object serves both branches.
+
+
+.. py:function:: draw_uncertainty_sample(uncertainty_data: dict, method: str, seed: int | None = None) -> dict
+
+   One draw of every declared parameter: ``{'If': {(e, j): value}, 'Cf': {e: value}}``.
+   Undeclared parameters keep their amounts and are not part of the draw.
+
+

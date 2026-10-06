@@ -1,0 +1,1096 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pulpo.utils.uncertainty.decomposition &#8212; pulpo 2.0.0 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../../_static/styles/theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+<link href="../../../../_static/styles/bootstrap.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+<link href="../../../../_static/styles/pydata-sphinx-theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+
+  
+  <link href="../../../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/custom.css?v=913d6465" />
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341" />
+<link rel="preload" as="script" href="../../../../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341" />
+  <script src="../../../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=3ee479438cf8b5e0d341"></script>
+
+    <script src="../../../../_static/documentation_options.js?v=79f5c508"></script>
+    <script src="../../../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../../../_static/design-tabs.js?v=36754332"></script>
+    <script src="https://unpkg.com/mermaid@10.2.0/dist/mermaid.min.js"></script>
+    <script>
+    function initializeMermaidBasedOnTheme() {
+        const theme = document.documentElement.dataset.theme;
+
+        if (theme === 'dark') {
+            mermaid.initialize({
+                startOnLoad: true,
+                theme: 'base',
+                themeVariables: {
+                    edgeLabelBackground: 'transparent',
+                    defaultLinkColor: '#ced6dd',
+                    titleColor: '#ced6dd',
+                    nodeTextColor: '#ced6dd',
+                    lineColor: '#ced6dd',
+                }
+            });
+        } else {
+            mermaid.initialize({
+                startOnLoad: true,
+                theme: 'base',
+                themeVariables: {
+                    edgeLabelBackground: 'transparent',
+                    defaultLinkColor: '#222832',
+                    titleColor: '#222832',
+                    nodeTextColor: '#222832',
+                    lineColor: '#222832',
+                }
+            });
+        }
+
+        // Re-render all Mermaid diagrams
+        mermaid.contentLoaded();
+    }
+
+    // Observer to detect changes to the data-theme attribute
+    const themeObserver = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            if (mutation.type === 'attributes' && mutation.attributeName === 'data-theme') {
+            initializeMermaidBasedOnTheme();
+            }
+        });
+    });
+
+    themeObserver.observe(document.documentElement, { attributes: true });
+
+    initializeMermaidBasedOnTheme();
+</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/pulpo/utils/uncertainty/decomposition';</script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+<meta name="google-site-verification" content="Fb3YVU81AToFlPNhlaQf6LLq1SMrHPbY-RtFsgZkw9Q" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+
+<a class="navbar-brand logo" href="../../../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../../../_static/pulpo_logo_big.svg" class="logo__image only-light" alt="pulpo 2.0.0 documentation - Home"/>
+    <script>document.write(`<img src="../../../../_static/pulpo_logo_big.svg" class="logo__image only-dark" alt="pulpo 2.0.0 documentation - Home"/>`);</script>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav class="navbar-nav">
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../content/installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../content/getting_started/index.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../content/theory.html">
+    Theory
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../content/uncertainty.html">
+    Uncertainty
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../content/examples/index.html">
+    Examples
+  </a>
+</li>
+
+            <li class="nav-item dropdown pst-header-nav-item">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../content/api/index.html">
+    API
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../content/contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../content/codeofconduct.html">
+    Code of Conduct
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../content/license.html">
+    License
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../content/changelog.html">
+    Changelog
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  </button>
+`);
+</script></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links navbar-nav"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/flechtenberg/pulpo" title="Open this Repo on GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fab fa-brands fa-github fa-lg" aria-hidden="true"></i></span>
+            <span class="sr-only">Open this Repo on GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <div class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav class="navbar-nav">
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../content/installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../content/getting_started/index.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../content/theory.html">
+    Theory
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../content/uncertainty.html">
+    Uncertainty
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../content/examples/index.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../content/api/index.html">
+    API
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../content/contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../content/codeofconduct.html">
+    Code of Conduct
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../content/license.html">
+    License
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../content/changelog.html">
+    Changelog
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  </button>
+`);
+</script></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links navbar-nav"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/flechtenberg/pulpo" title="Open this Repo on GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fab fa-brands fa-github fa-lg" aria-hidden="true"></i></span>
+            <span class="sr-only">Open this Repo on GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../../index.html" class="nav-link">Module code</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="../../../pulpo.html" class="nav-link">pulpo</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page">pulpo.utils....</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for pulpo.utils.uncertainty.decomposition</h1><div class="highlight"><pre>
+<span></span><span class="sd">"""Exact variance decomposition at a fixed decision, screening of undeclared</span>
+<span class="sd">parameters, and post-hoc diagnostics of a solved front.</span>
+
+<span class="sd">Why</span>
+<span class="sd">---</span>
+<span class="sd">``X(s) = sum_e q_e sum_j b_ej s_j`` is a sum of products of independent</span>
+<span class="sd">inputs (A1), so its ANOVA decomposition stops at second order. With</span>
+<span class="sd">``V = Var X(s)`` and ``y_e = sum_j E[b_ej] s_j``, ::</span>
+
+<span class="sd">    S1(q_e)        = w_e y_e^2 / V</span>
+<span class="sd">    S1(b_ej)       = E[q_e]^2 Var(b_ej) s_j^2 / V</span>
+<span class="sd">    S2(q_e, b_ej)  = w_e Var(b_ej) s_j^2 / V</span>
+<span class="sd">    ST(q_e)        = w_e (y_e^2 + sum_j Var(b_ej) s_j^2) / V</span>
+<span class="sd">    ST(b_ej)       = (E[q_e]^2 + w_e) Var(b_ej) s_j^2 / V</span>
+
+<span class="sd">and ``sum S1 + sum S2 = 1`` with no higher-order terms. The Sobol' indices</span>
+<span class="sd">are therefore computed, not estimated: no sampling and no confidence</span>
+<span class="sd">intervals. Parameters of one kind (B entries among themselves, CFs among</span>
+<span class="sd">themselves) never interact, so the first-order and total-order indices of a</span>
+<span class="sd">family of B entries, or of CFs, are the sums over its members. The uncertain</span>
+<span class="sd">process bounds are not inputs of ``X`` at a fixed ``s``; they shape ``s``.</span>
+
+<span class="sd">Undeclared parameters are deterministic (A3). :func:`screen_undeclared`</span>
+<span class="sd">tests that assumption: every undeclared parameter gets the same coefficient of</span>
+<span class="sd">variation ``r`` with its mean unchanged (:func:`widen`), and the indices show</span>
+<span class="sd">which of them would carry variance. The caller names the CFs that are exact</span>
+<span class="sd">by definition (``exact_cfs``; for a global warming potential the CO2 flows,</span>
+<span class="sd">since CO2 is its reference gas), and those never receive a width. No B entry is</span>
+<span class="sd">exact by definition, so every undeclared one is widened: holding one exact</span>
+<span class="sd">could only lower the figures, and only the few at the top of the ranking need</span>
+<span class="sd">an expert's judgement. The distribution family of a widened parameter does not matter to</span>
+<span class="sd">the moments; :func:`widen` uses a lognormal (mirrored for a negative amount),</span>
+<span class="sd">so the same data also serve for validation draws and for a re-solved front.</span>
+<span class="sd">"""</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">copy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">stats_arrays</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">pulpo.utils.uncertainty.moments</span><span class="w"> </span><span class="kn">import</span> <span class="n">Moments</span><span class="p">,</span> <span class="n">compute_moments</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pulpo.utils.uncertainty.preparer</span><span class="w"> </span><span class="kn">import</span> <span class="n">UncertaintyData</span>
+
+
+<div class="viewcode-block" id="_lci">
+<a class="viewcode-back" href="../../../../content/api/pulpo/utils/uncertainty/decomposition/index.html#pulpo.utils.uncertainty.decomposition._lci">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">_lci</span><span class="p">(</span><span class="n">lci_data</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">lci_data</span><span class="o">.</span><span class="n">lci_data</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">lci_data</span><span class="p">,</span> <span class="s1">'lci_data'</span><span class="p">)</span> <span class="k">else</span> <span class="n">lci_data</span></div>
+
+
+
+<div class="viewcode-block" id="_decision">
+<a class="viewcode-back" href="../../../../content/api/pulpo/utils/uncertainty/decomposition/index.html#pulpo.utils.uncertainty.decomposition._decision">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">_decision</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""``(s, kappa)`` from a solved point, or ``(s, None)`` from an array."""</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="s1">'s'</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="s1">'kappa'</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">s</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">kappa</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">),</span> <span class="kc">None</span></div>
+
+
+
+<div class="viewcode-block" id="co2_flows">
+<a class="viewcode-back" href="../../../../content/api/pulpo/utils/uncertainty/decomposition/index.html#pulpo.utils.uncertainty.decomposition.co2_flows">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">co2_flows</span><span class="p">(</span><span class="n">lci_data</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Rows of the intervention matrix whose flow name begins with "Carbon dioxide".</span>
+
+<span class="sd">    Fossil, non-fossil, uptake from air, from or to soil: in a global warming</span>
+<span class="sd">    potential each has the factor +-1 by definition, so this is the usual</span>
+<span class="sd">    ``exact_cfs`` of :func:`screen_undeclared`, :func:`width_sensitivity` and</span>
+<span class="sd">    :func:`widen` for such a method. Flows are matched by the name in</span>
+<span class="sd">    ``intervention_map_metadata`` (ecoinvent's naming); check the result on</span>
+<span class="sd">    another biosphere.</span>
+<span class="sd">    """</span>
+    <span class="n">lci</span> <span class="o">=</span> <span class="n">_lci</span><span class="p">(</span><span class="n">lci_data</span><span class="p">)</span>
+    <span class="n">meta</span> <span class="o">=</span> <span class="n">lci</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'intervention_map_metadata'</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">meta</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+                           <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">'Carbon dioxide'</span><span class="p">)),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="families_by_database">
+<a class="viewcode-back" href="../../../../content/api/pulpo/utils/uncertainty/decomposition/index.html#pulpo.utils.uncertainty.decomposition.families_by_database">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">families_by_database</span><span class="p">(</span><span class="n">lci_data</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""A ``families`` function for :func:`decompose`: each B entry belongs to</span>
+<span class="sd">    the database of its process."""</span>
+    <span class="n">lci</span> <span class="o">=</span> <span class="n">_lci</span><span class="p">(</span><span class="n">lci_data</span><span class="p">)</span>
+    <span class="n">database</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">lci</span><span class="p">[</span><span class="s1">'process_map'</span><span class="p">]),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">object</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">lci</span><span class="p">[</span><span class="s1">'process_map'</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">database</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">key</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">families</span><span class="p">(</span><span class="n">flows</span><span class="p">,</span> <span class="n">processes</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">database</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">processes</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)]</span>
+    <span class="k">return</span> <span class="n">families</span></div>
+
+
+
+<span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="c1"># Decomposition</span>
+<span class="c1"># ---------------------------------------------------------------------------</span>
+
+<span class="nd">@dataclass</span>
+<div class="viewcode-block" id="Decomposition">
+<a class="viewcode-back" href="../../../../content/api/pulpo/utils/uncertainty/decomposition/index.html#pulpo.utils.uncertainty.decomposition.Decomposition">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Decomposition</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Sobol' indices of ``X`` at one decision (see the module docstring).</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        variance (float): ``V = Var X(s)``.</span>
+<span class="sd">        parameters (DataFrame): one row per parameter that carries variance,</span>
+<span class="sd">            by decreasing ``ST``: ``group`` (``'If'`` or ``'Cf'``), ``flow``,</span>
+<span class="sd">            ``process`` (-1 for a CF), ``family``, ``S1``, ``ST``.</span>
+<span class="sd">        interactions (DataFrame): ``S2(q_e, b_ej)`` for each B entry whose CF</span>
+<span class="sd">            is uncertain, by ``flow`` and ``process``.</span>
+<span class="sd">    """</span>
+<div class="viewcode-block" id="Decomposition.variance">
+<a class="viewcode-back" href="../../../../content/api/pulpo/utils/uncertainty/decomposition/index.html#pulpo.utils.uncertainty.decomposition.Decomposition.variance">[docs]</a>
+    <span class="n">variance</span><span class="p">:</span> <span class="nb">float</span></div>
+
+<div class="viewcode-block" id="Decomposition.parameters">
+<a class="viewcode-back" href="../../../../content/api/pulpo/utils/uncertainty/decomposition/index.html#pulpo.utils.uncertainty.decomposition.Decomposition.parameters">[docs]</a>
+    <span class="n">parameters</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span></div>
+
+<div class="viewcode-block" id="Decomposition.interactions">
+<a class="viewcode-back" href="../../../../content/api/pulpo/utils/uncertainty/decomposition/index.html#pulpo.utils.uncertainty.decomposition.Decomposition.interactions">[docs]</a>
+    <span class="n">interactions</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span></div>
+
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Decomposition.std">
+<a class="viewcode-back" href="../../../../content/api/pulpo/utils/uncertainty/decomposition/index.html#pulpo.utils.uncertainty.decomposition.Decomposition.std">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">std</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">variance</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="Decomposition.families">
+<a class="viewcode-back" href="../../../../content/api/pulpo/utils/uncertainty/decomposition/index.html#pulpo.utils.uncertainty.decomposition.Decomposition.families">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">families</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""``S1`` and ``ST`` of each family: the sums over its members, exact</span>
+<span class="sd">        because a family holds either B entries or CFs."""</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">'family'</span><span class="p">)[[</span><span class="s1">'S1'</span><span class="p">,</span> <span class="s1">'ST'</span><span class="p">]]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+                <span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s1">'ST'</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="Decomposition.top">
+<a class="viewcode-back" href="../../../../content/api/pulpo/utils/uncertainty/decomposition/index.html#pulpo.utils.uncertainty.decomposition.Decomposition.top">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">top</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""The ``n`` parameters with the largest total-order index."""</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="n">n</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="decompose">
+<a class="viewcode-back" href="../../../../content/api/pulpo/utils/uncertainty/decomposition/index.html#pulpo.utils.uncertainty.decomposition.decompose">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">decompose</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">moments</span><span class="p">:</span> <span class="n">Moments</span><span class="p">,</span> <span class="n">families</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Decomposition</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Exact first-, second- and total-order Sobol' indices of ``X(s)``.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        s: a scaling vector in original units, or a solved</span>
+<span class="sd">            :class:`cc.Point`.</span>
+<span class="sd">        moments (Moments): from :func:`moments.compute_moments`.</span>
+<span class="sd">        families (callable, optional): ``families(flows, processes)`` returns</span>
+<span class="sd">            a label for each B entry (arrays of equal length), e.g.</span>
+<span class="sd">            :func:`families_by_database`. CFs always form the family ``'Cf'``;</span>
+<span class="sd">            without it every B entry is in family ``'If'``.</span>
+<span class="sd">    """</span>
+    <span class="n">s</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">_decision</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+    <span class="n">mom</span> <span class="o">=</span> <span class="n">moments</span>
+    <span class="n">V</span> <span class="o">=</span> <span class="n">mom</span><span class="o">.</span><span class="n">variance</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">V</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Var X(s) = 0: there is no variance to decompose."</span><span class="p">)</span>
+    <span class="n">B_var</span> <span class="o">=</span> <span class="n">mom</span><span class="o">.</span><span class="n">B_var</span><span class="o">.</span><span class="n">tocoo</span><span class="p">()</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">B_var</span><span class="o">.</span><span class="n">data</span> <span class="o">*</span> <span class="n">s</span><span class="p">[</span><span class="n">B_var</span><span class="o">.</span><span class="n">col</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span>                     <span class="c1"># Var(b_ej) s_j^2</span>
+    <span class="n">q2</span><span class="p">,</span> <span class="n">w</span> <span class="o">=</span> <span class="n">mom</span><span class="o">.</span><span class="n">q_mean</span> <span class="o">**</span> <span class="mi">2</span><span class="p">,</span> <span class="n">mom</span><span class="o">.</span><span class="n">q_var</span>
+    <span class="n">s1_b</span> <span class="o">=</span> <span class="n">q2</span><span class="p">[</span><span class="n">B_var</span><span class="o">.</span><span class="n">row</span><span class="p">]</span> <span class="o">*</span> <span class="n">t</span> <span class="o">/</span> <span class="n">V</span>
+    <span class="n">s2</span> <span class="o">=</span> <span class="n">w</span><span class="p">[</span><span class="n">B_var</span><span class="o">.</span><span class="n">row</span><span class="p">]</span> <span class="o">*</span> <span class="n">t</span> <span class="o">/</span> <span class="n">V</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">mom</span><span class="o">.</span><span class="n">B_mean</span> <span class="o">@</span> <span class="n">s</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+    <span class="n">G</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">bincount</span><span class="p">(</span><span class="n">B_var</span><span class="o">.</span><span class="n">row</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="n">t</span><span class="p">,</span> <span class="n">minlength</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">q2</span><span class="p">))</span>
+    <span class="n">e</span> <span class="o">=</span> <span class="n">mom</span><span class="o">.</span><span class="n">cf_rows</span>
+    <span class="n">s1_q</span> <span class="o">=</span> <span class="n">mom</span><span class="o">.</span><span class="n">w</span> <span class="o">*</span> <span class="n">y</span><span class="p">[</span><span class="n">e</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">/</span> <span class="n">V</span>
+    <span class="n">st_q</span> <span class="o">=</span> <span class="n">mom</span><span class="o">.</span><span class="n">w</span> <span class="o">*</span> <span class="p">(</span><span class="n">y</span><span class="p">[</span><span class="n">e</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">G</span><span class="p">[</span><span class="n">e</span><span class="p">])</span> <span class="o">/</span> <span class="n">V</span>
+
+    <span class="n">keep</span> <span class="o">=</span> <span class="p">(</span><span class="n">s1_b</span> <span class="o">+</span> <span class="n">s2</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
+    <span class="n">rows</span><span class="p">,</span> <span class="n">cols</span> <span class="o">=</span> <span class="n">B_var</span><span class="o">.</span><span class="n">row</span><span class="p">[</span><span class="n">keep</span><span class="p">],</span> <span class="n">B_var</span><span class="o">.</span><span class="n">col</span><span class="p">[</span><span class="n">keep</span><span class="p">]</span>
+    <span class="n">labels</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">rows</span><span class="p">),</span> <span class="s1">'If'</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">object</span><span class="p">)</span> <span class="k">if</span> <span class="n">families</span> <span class="ow">is</span> <span class="kc">None</span>
+              <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">families</span><span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">cols</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">object</span><span class="p">))</span>
+    <span class="n">b_frame</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">'group'</span><span class="p">:</span> <span class="s1">'If'</span><span class="p">,</span> <span class="s1">'flow'</span><span class="p">:</span> <span class="n">rows</span><span class="p">,</span> <span class="s1">'process'</span><span class="p">:</span> <span class="n">cols</span><span class="p">,</span> <span class="s1">'family'</span><span class="p">:</span> <span class="n">labels</span><span class="p">,</span>
+                            <span class="s1">'S1'</span><span class="p">:</span> <span class="n">s1_b</span><span class="p">[</span><span class="n">keep</span><span class="p">],</span> <span class="s1">'ST'</span><span class="p">:</span> <span class="n">s1_b</span><span class="p">[</span><span class="n">keep</span><span class="p">]</span> <span class="o">+</span> <span class="n">s2</span><span class="p">[</span><span class="n">keep</span><span class="p">]})</span>
+    <span class="n">keep_q</span> <span class="o">=</span> <span class="n">st_q</span> <span class="o">&gt;</span> <span class="mi">0</span>
+    <span class="n">q_frame</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">'group'</span><span class="p">:</span> <span class="s1">'Cf'</span><span class="p">,</span> <span class="s1">'flow'</span><span class="p">:</span> <span class="n">e</span><span class="p">[</span><span class="n">keep_q</span><span class="p">],</span> <span class="s1">'process'</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="s1">'family'</span><span class="p">:</span> <span class="s1">'Cf'</span><span class="p">,</span>
+                            <span class="s1">'S1'</span><span class="p">:</span> <span class="n">s1_q</span><span class="p">[</span><span class="n">keep_q</span><span class="p">],</span> <span class="s1">'ST'</span><span class="p">:</span> <span class="n">st_q</span><span class="p">[</span><span class="n">keep_q</span><span class="p">]})</span>
+    <span class="n">parameters</span> <span class="o">=</span> <span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">b_frame</span><span class="p">,</span> <span class="n">q_frame</span><span class="p">],</span> <span class="n">ignore_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                  <span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s1">'ST'</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">'stable'</span><span class="p">)</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+    <span class="n">interacting</span> <span class="o">=</span> <span class="n">s2</span> <span class="o">&gt;</span> <span class="mi">0</span>
+    <span class="n">interactions</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">'flow'</span><span class="p">:</span> <span class="n">B_var</span><span class="o">.</span><span class="n">row</span><span class="p">[</span><span class="n">interacting</span><span class="p">],</span> <span class="s1">'process'</span><span class="p">:</span> <span class="n">B_var</span><span class="o">.</span><span class="n">col</span><span class="p">[</span><span class="n">interacting</span><span class="p">],</span>
+                                 <span class="s1">'S2'</span><span class="p">:</span> <span class="n">s2</span><span class="p">[</span><span class="n">interacting</span><span class="p">]})</span>
+    <span class="k">return</span> <span class="n">Decomposition</span><span class="p">(</span><span class="n">variance</span><span class="o">=</span><span class="n">V</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="n">parameters</span><span class="p">,</span> <span class="n">interactions</span><span class="o">=</span><span class="n">interactions</span><span class="p">)</span></div>
+
+
+
+<span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="c1"># Undeclared parameters</span>
+<span class="c1"># ---------------------------------------------------------------------------</span>
+
+<div class="viewcode-block" id="lognormal_with_cv">
+<a class="viewcode-back" href="../../../../content/api/pulpo/utils/uncertainty/decomposition/index.html#pulpo.utils.uncertainty.decomposition.lognormal_with_cv">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">lognormal_with_cv</span><span class="p">(</span><span class="n">amount</span><span class="p">,</span> <span class="n">r</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""A lognormal spec with mean ``amount`` and coefficient of variation ``r``,</span>
+<span class="sd">    mirrored for a negative amount (``Var = r^2 amount^2`` either way)."""</span>
+    <span class="n">scale</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log1p</span><span class="p">(</span><span class="n">r</span> <span class="o">*</span> <span class="n">r</span><span class="p">)))</span>
+    <span class="k">return</span> <span class="p">{</span><span class="s1">'uncertainty_type'</span><span class="p">:</span> <span class="n">stats_arrays</span><span class="o">.</span><span class="n">LognormalUncertainty</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="s1">'amount'</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">amount</span><span class="p">),</span>
+            <span class="s1">'loc'</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">amount</span><span class="p">))</span> <span class="o">-</span> <span class="n">scale</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">),</span> <span class="s1">'scale'</span><span class="p">:</span> <span class="n">scale</span><span class="p">,</span>
+            <span class="s1">'shape'</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="s1">'minimum'</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="s1">'maximum'</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="s1">'negative'</span><span class="p">:</span> <span class="nb">bool</span><span class="p">(</span><span class="n">amount</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)}</span></div>
+
+
+
+<div class="viewcode-block" id="_width">
+<a class="viewcode-back" href="../../../../content/api/pulpo/utils/uncertainty/decomposition/index.html#pulpo.utils.uncertainty.decomposition._width">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">_width</span><span class="p">(</span><span class="n">widths</span><span class="p">,</span> <span class="n">group</span><span class="p">,</span> <span class="n">subgroup</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isscalar</span><span class="p">(</span><span class="n">widths</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">widths</span><span class="p">)</span>
+    <span class="n">key</span> <span class="o">=</span> <span class="s1">'Cf'</span> <span class="k">if</span> <span class="n">group</span> <span class="o">==</span> <span class="s1">'Cf'</span> <span class="k">else</span> <span class="n">subgroup</span>
+    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">widths</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">widths</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">subgroup</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)))</span></div>
+
+
+
+<div class="viewcode-block" id="_check_widths">
+<a class="viewcode-back" href="../../../../content/api/pulpo/utils/uncertainty/decomposition/index.html#pulpo.utils.uncertainty.decomposition._check_widths">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">_check_widths</span><span class="p">(</span><span class="n">widths</span><span class="p">,</span> <span class="n">uncertainty_data</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""A key that names no subgroup would leave a group deterministic unnoticed."""</span>
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isscalar</span><span class="p">(</span><span class="n">widths</span><span class="p">):</span>
+        <span class="k">return</span>
+    <span class="n">known</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">uncertainty_data</span><span class="p">[</span><span class="s1">'If'</span><span class="p">])</span> <span class="o">|</span> <span class="nb">set</span><span class="p">(</span><span class="n">uncertainty_data</span><span class="p">[</span><span class="s1">'Cf'</span><span class="p">])</span> <span class="o">|</span> <span class="p">{</span><span class="s1">'Cf'</span><span class="p">}</span>
+    <span class="n">unknown</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">widths</span><span class="p">)</span> <span class="o">-</span> <span class="n">known</span>
+    <span class="k">if</span> <span class="n">unknown</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Widths for </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span><span class="w"> </span><span class="n">unknown</span><span class="p">))</span><span class="si">}</span><span class="s2">, which are not subgroups of the data; "</span>
+                       <span class="sa">f</span><span class="s2">"name a database of </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">uncertainty_data</span><span class="p">[</span><span class="s1">'If'</span><span class="p">])</span><span class="si">}</span><span class="s2"> or 'Cf'."</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="widen">
+<a class="viewcode-back" href="../../../../content/api/pulpo/utils/uncertainty/decomposition/index.html#pulpo.utils.uncertainty.decomposition.widen">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">widen</span><span class="p">(</span><span class="n">uncertainty_data</span><span class="p">:</span> <span class="n">UncertaintyData</span><span class="p">,</span> <span class="n">widths</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">exact_cfs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">UncertaintyData</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""A copy of the data in which every undeclared parameter has a width.</span>
+
+<span class="sd">    Each gets :func:`lognormal_with_cv` of its amount: its mean is unchanged</span>
+<span class="sd">    and its variance is ``r^2 amount^2``. Parameters with a zero amount carry</span>
+<span class="sd">    nothing and stay undeclared; declared parameters are not touched.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        uncertainty_data: from :func:`preparer.import_declared`.</span>
+<span class="sd">        widths: one coefficient of variation ``r`` for every undeclared</span>
+<span class="sd">            parameter, or ``{subgroup: r}`` with a database name for its B</span>
+<span class="sd">            entries and ``'Cf'`` for the CFs; a subgroup not named keeps its</span>
+<span class="sd">            undeclared parameters deterministic.</span>
+<span class="sd">        exact_cfs: flow rows whose CF never receives a width, normally the</span>
+<span class="sd">            CO2 flows, ``co2_flows(worker)``; ``()`` holds none exact.</span>
+<span class="sd">    """</span>
+    <span class="n">_check_widths</span><span class="p">(</span><span class="n">widths</span><span class="p">,</span> <span class="n">uncertainty_data</span><span class="p">)</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">uncertainty_data</span><span class="p">)</span>
+    <span class="n">exact</span> <span class="o">=</span> <span class="p">{</span><span class="nb">int</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">exact_cfs</span><span class="p">}</span>
+    <span class="k">for</span> <span class="n">group</span><span class="p">,</span> <span class="n">blocks</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">subgroup</span><span class="p">,</span> <span class="n">block</span> <span class="ow">in</span> <span class="n">blocks</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">r</span> <span class="o">=</span> <span class="n">_width</span><span class="p">(</span><span class="n">widths</span><span class="p">,</span> <span class="n">group</span><span class="p">,</span> <span class="n">subgroup</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">r</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">spec</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">block</span><span class="p">[</span><span class="s1">'undeclared'</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">group</span> <span class="o">==</span> <span class="s1">'Cf'</span> <span class="ow">and</span> <span class="nb">int</span><span class="p">(</span><span class="n">index</span><span class="p">)</span> <span class="ow">in</span> <span class="n">exact</span><span class="p">)</span> <span class="ow">or</span> <span class="n">spec</span><span class="p">[</span><span class="s1">'amount'</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="n">block</span><span class="p">[</span><span class="s1">'declared'</span><span class="p">][</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">lognormal_with_cv</span><span class="p">(</span><span class="n">spec</span><span class="p">[</span><span class="s1">'amount'</span><span class="p">],</span> <span class="n">r</span><span class="p">)</span>
+                <span class="k">del</span> <span class="n">block</span><span class="p">[</span><span class="s1">'undeclared'</span><span class="p">][</span><span class="n">index</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">data</span></div>
+
+
+
+<div class="viewcode-block" id="_exact_cfs">
+<a class="viewcode-back" href="../../../../content/api/pulpo/utils/uncertainty/decomposition/index.html#pulpo.utils.uncertainty.decomposition._exact_cfs">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">_exact_cfs</span><span class="p">(</span><span class="n">exact_cfs</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">exact_cfs</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span></div>
+
+
+
+<span class="nd">@dataclass</span>
+<div class="viewcode-block" id="Screening">
+<a class="viewcode-back" href="../../../../content/api/pulpo/utils/uncertainty/decomposition/index.html#pulpo.utils.uncertainty.decomposition.Screening">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Screening</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Outcome of :func:`screen_undeclared`.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        sigma (DataFrame): per width ``r``: ``sigma``, ``ratio`` to the</span>
+<span class="sd">            declared sigma, and the undeclared parameters' share of ``sum ST``.</span>
+<span class="sd">        ranking (DataFrame): the undeclared parameters that receive a width,</span>
+<span class="sd">            by decreasing ``|contribution|``, their deterministic contribution</span>
+<span class="sd">            ``E[q_e] b_ej s_j`` (``E[q_e] y_e`` for a CF) to ``E[X]``. This is</span>
+<span class="sd">            the ranking: it does not depend on ``r``. Columns ``ST r=...``</span>
+<span class="sd">            hold each parameter's total-order index at each width.</span>
+<span class="sd">        top (dict): ``{r: DataFrame}``, the ``n`` parameters, declared or not,</span>
+<span class="sd">            with the largest total-order index at width ``r``, with their</span>
+<span class="sd">            ``share`` of ``sum ST``.</span>
+<span class="sd">        exact_cfs (ndarray): the flows whose CF was held exact.</span>
+<span class="sd">    """</span>
+<div class="viewcode-block" id="Screening.sigma">
+<a class="viewcode-back" href="../../../../content/api/pulpo/utils/uncertainty/decomposition/index.html#pulpo.utils.uncertainty.decomposition.Screening.sigma">[docs]</a>
+    <span class="n">sigma</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span></div>
+
+<div class="viewcode-block" id="Screening.ranking">
+<a class="viewcode-back" href="../../../../content/api/pulpo/utils/uncertainty/decomposition/index.html#pulpo.utils.uncertainty.decomposition.Screening.ranking">[docs]</a>
+    <span class="n">ranking</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span></div>
+
+<div class="viewcode-block" id="Screening.top">
+<a class="viewcode-back" href="../../../../content/api/pulpo/utils/uncertainty/decomposition/index.html#pulpo.utils.uncertainty.decomposition.Screening.top">[docs]</a>
+    <span class="n">top</span><span class="p">:</span> <span class="nb">dict</span></div>
+
+<div class="viewcode-block" id="Screening.exact_cfs">
+<a class="viewcode-back" href="../../../../content/api/pulpo/utils/uncertainty/decomposition/index.html#pulpo.utils.uncertainty.decomposition.Screening.exact_cfs">[docs]</a>
+    <span class="n">exact_cfs</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">))</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="screen_undeclared">
+<a class="viewcode-back" href="../../../../content/api/pulpo/utils/uncertainty/decomposition/index.html#pulpo.utils.uncertainty.decomposition.screen_undeclared">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">screen_undeclared</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">uncertainty_data</span><span class="p">:</span> <span class="n">UncertaintyData</span><span class="p">,</span> <span class="n">lci_data</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">exact_cfs</span><span class="p">,</span> <span class="n">widths</span><span class="o">=</span><span class="p">(</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">),</span> <span class="n">n</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+                      <span class="n">families</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Screening</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Which undeclared parameters would matter if they were uncertain.</span>
+
+<span class="sd">    Every undeclared parameter gets each coefficient of variation ``r`` in ``widths`` (see</span>
+<span class="sd">    :func:`widen`), the CFs in ``exact_cfs`` excepted, and the exact indices of</span>
+<span class="sd">    :func:`decompose` are evaluated at the fixed decision ``s``. For an</span>
+<span class="sd">    undeclared B entry ``ST`` is ``(E[q_e]^2 + w_e) r^2 b_ej^2 s_j^2 / V``:</span>
+<span class="sd">    up to its CF's factor ``1 + w_e / E[q_e]^2`` it is proportional to</span>
+<span class="sd">    ``(E[q_e] b_ej s_j)^2``, the same at every ``r``. The ``ranking`` uses</span>
+<span class="sd">    that deterministic contribution, so it does not depend on ``r``; the</span>
+<span class="sd">    indices at each ``r`` sit beside it.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        s: a scaling vector (original units) or a solved :class:`cc.Point`,</span>
+<span class="sd">            typically the decision of the declared configuration.</span>
+<span class="sd">        uncertainty_data: the declared configuration.</span>
+<span class="sd">        lci_data: the LCI data, or a worker holding it.</span>
+<span class="sd">        widths: the coefficients of variation ``r`` to evaluate, each given to</span>
+<span class="sd">            every undeclared parameter.</span>
+<span class="sd">        n: rows of each ``top`` table.</span>
+<span class="sd">        exact_cfs: flow rows whose CF is exact by definition and never</span>
+<span class="sd">            receives a width, e.g. ``co2_flows(worker)`` for a GWP method.</span>
+<span class="sd">            Undeclared B entries are all widened: none is exact by definition,</span>
+<span class="sd">            and holding one exact could only lower the figures.</span>
+<span class="sd">        families: as in :func:`decompose`.</span>
+<span class="sd">    """</span>
+    <span class="n">s</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">_decision</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+    <span class="n">lci</span> <span class="o">=</span> <span class="n">_lci</span><span class="p">(</span><span class="n">lci_data</span><span class="p">)</span>
+    <span class="n">exact</span> <span class="o">=</span> <span class="n">_exact_cfs</span><span class="p">(</span><span class="n">exact_cfs</span><span class="p">)</span>
+    <span class="n">exact_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">exact</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
+    <span class="n">declared</span> <span class="o">=</span> <span class="n">compute_moments</span><span class="p">(</span><span class="n">uncertainty_data</span><span class="p">,</span> <span class="n">lci</span><span class="p">)</span>
+    <span class="n">sigma0</span> <span class="o">=</span> <span class="n">declared</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">declared</span><span class="o">.</span><span class="n">B_mean</span> <span class="o">@</span> <span class="n">s</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+
+    <span class="c1"># The parameters that receive a width, with their r-independent contribution.</span>
+    <span class="n">entries</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">group</span><span class="p">,</span> <span class="n">blocks</span> <span class="ow">in</span> <span class="n">uncertainty_data</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">subgroup</span><span class="p">,</span> <span class="n">block</span> <span class="ow">in</span> <span class="n">blocks</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">spec</span> <span class="ow">in</span> <span class="n">block</span><span class="p">[</span><span class="s1">'undeclared'</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">spec</span><span class="p">[</span><span class="s1">'amount'</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="p">(</span><span class="n">group</span> <span class="o">==</span> <span class="s1">'Cf'</span> <span class="ow">and</span> <span class="nb">int</span><span class="p">(</span><span class="n">index</span><span class="p">)</span> <span class="ow">in</span> <span class="n">exact_set</span><span class="p">):</span>
+                    <span class="k">continue</span>
+                <span class="k">if</span> <span class="n">group</span> <span class="o">==</span> <span class="s1">'If'</span><span class="p">:</span>
+                    <span class="n">e</span><span class="p">,</span> <span class="n">j</span> <span class="o">=</span> <span class="n">index</span>
+                    <span class="n">contribution</span> <span class="o">=</span> <span class="n">declared</span><span class="o">.</span><span class="n">q_mean</span><span class="p">[</span><span class="n">e</span><span class="p">]</span> <span class="o">*</span> <span class="n">spec</span><span class="p">[</span><span class="s1">'amount'</span><span class="p">]</span> <span class="o">*</span> <span class="n">s</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">e</span><span class="p">,</span> <span class="n">j</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">index</span><span class="p">),</span> <span class="o">-</span><span class="mi">1</span>
+                    <span class="n">contribution</span> <span class="o">=</span> <span class="n">declared</span><span class="o">.</span><span class="n">q_mean</span><span class="p">[</span><span class="n">e</span><span class="p">]</span> <span class="o">*</span> <span class="n">y</span><span class="p">[</span><span class="n">e</span><span class="p">]</span>
+                <span class="n">entries</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s1">'group'</span><span class="p">:</span> <span class="n">group</span><span class="p">,</span> <span class="s1">'subgroup'</span><span class="p">:</span> <span class="n">subgroup</span><span class="p">,</span> <span class="s1">'flow'</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">e</span><span class="p">),</span> <span class="s1">'process'</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">j</span><span class="p">),</span>
+                                <span class="s1">'amount'</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">spec</span><span class="p">[</span><span class="s1">'amount'</span><span class="p">]),</span> <span class="s1">'contribution'</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">contribution</span><span class="p">)})</span>
+    <span class="n">ranking</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">entries</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">'group'</span><span class="p">,</span> <span class="s1">'subgroup'</span><span class="p">,</span> <span class="s1">'flow'</span><span class="p">,</span> <span class="s1">'process'</span><span class="p">,</span> <span class="s1">'amount'</span><span class="p">,</span> <span class="s1">'contribution'</span><span class="p">])</span>
+    <span class="n">ranking</span> <span class="o">=</span> <span class="p">(</span><span class="n">ranking</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">_key</span><span class="o">=</span><span class="n">ranking</span><span class="p">[</span><span class="s1">'contribution'</span><span class="p">]</span><span class="o">.</span><span class="n">abs</span><span class="p">())</span>
+               <span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s1">'_key'</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">'stable'</span><span class="p">)</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="s1">'_key'</span><span class="p">)</span>
+               <span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+    <span class="n">undeclared_keys</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">ranking</span><span class="p">[</span><span class="s1">'group'</span><span class="p">],</span> <span class="n">ranking</span><span class="p">[</span><span class="s1">'flow'</span><span class="p">],</span> <span class="n">ranking</span><span class="p">[</span><span class="s1">'process'</span><span class="p">]))</span>
+
+    <span class="n">sigma_rows</span><span class="p">,</span> <span class="n">top</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">width</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="n">widths</span><span class="p">):</span>
+        <span class="n">width</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">width</span><span class="p">)</span>
+        <span class="n">mom</span> <span class="o">=</span> <span class="n">compute_moments</span><span class="p">(</span><span class="n">widen</span><span class="p">(</span><span class="n">uncertainty_data</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">exact_cfs</span><span class="o">=</span><span class="n">exact</span><span class="p">),</span> <span class="n">lci</span><span class="p">)</span>
+        <span class="n">dec</span> <span class="o">=</span> <span class="n">decompose</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">mom</span><span class="p">,</span> <span class="n">families</span><span class="p">)</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="n">dec</span><span class="o">.</span><span class="n">parameters</span>
+        <span class="n">total</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="s1">'ST'</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+        <span class="n">keys</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="s1">'group'</span><span class="p">],</span> <span class="n">params</span><span class="p">[</span><span class="s1">'flow'</span><span class="p">],</span> <span class="n">params</span><span class="p">[</span><span class="s1">'process'</span><span class="p">]))</span>
+        <span class="n">is_undeclared</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">k</span> <span class="ow">in</span> <span class="n">undeclared_keys</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+        <span class="n">st</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">keys</span><span class="p">,</span> <span class="n">params</span><span class="p">[</span><span class="s1">'ST'</span><span class="p">]))</span>
+        <span class="n">ranking</span><span class="p">[</span><span class="sa">f</span><span class="s1">'ST r=</span><span class="si">{</span><span class="n">width</span><span class="si">:</span><span class="s1">g</span><span class="si">}</span><span class="s1">'</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">st</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">ranking</span><span class="p">[</span><span class="s1">'group'</span><span class="p">],</span> <span class="n">ranking</span><span class="p">[</span><span class="s1">'flow'</span><span class="p">],</span>
+                                                                 <span class="n">ranking</span><span class="p">[</span><span class="s1">'process'</span><span class="p">])]</span>
+        <span class="n">head</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="n">n</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">head</span><span class="p">[</span><span class="s1">'share'</span><span class="p">]</span> <span class="o">=</span> <span class="n">head</span><span class="p">[</span><span class="s1">'ST'</span><span class="p">]</span> <span class="o">/</span> <span class="n">total</span>
+        <span class="n">head</span><span class="p">[</span><span class="s1">'undeclared'</span><span class="p">]</span> <span class="o">=</span> <span class="n">is_undeclared</span><span class="p">[:</span><span class="nb">len</span><span class="p">(</span><span class="n">head</span><span class="p">)]</span>
+        <span class="n">top</span><span class="p">[</span><span class="n">width</span><span class="p">]</span> <span class="o">=</span> <span class="n">head</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">sigma_rows</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s1">'r'</span><span class="p">:</span> <span class="n">width</span><span class="p">,</span> <span class="s1">'sigma'</span><span class="p">:</span> <span class="n">dec</span><span class="o">.</span><span class="n">std</span><span class="p">,</span> <span class="s1">'ratio'</span><span class="p">:</span> <span class="n">dec</span><span class="o">.</span><span class="n">std</span> <span class="o">/</span> <span class="n">sigma0</span> <span class="k">if</span> <span class="n">sigma0</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span>
+                           <span class="s1">'undeclared_share'</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="s1">'ST'</span><span class="p">][</span><span class="n">is_undeclared</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">/</span> <span class="n">total</span><span class="p">)})</span>
+    <span class="c1"># A parameter that moves neither the mean nor the variance at s is no part</span>
+    <span class="c1"># of the result. One with no contribution to the mean can still carry</span>
+    <span class="c1"># variance: a CF whose flow nets to zero over processes with uncertain entries.</span>
+    <span class="n">st_columns</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">ranking</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">'ST r='</span><span class="p">)]</span>
+    <span class="n">ranking</span> <span class="o">=</span> <span class="n">ranking</span><span class="p">[(</span><span class="n">ranking</span><span class="p">[</span><span class="s1">'contribution'</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">ranking</span><span class="p">[</span><span class="n">st_columns</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)]</span>
+    <span class="n">ranking</span> <span class="o">=</span> <span class="n">ranking</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">Screening</span><span class="p">(</span><span class="n">sigma</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">sigma_rows</span><span class="p">)</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s1">'r'</span><span class="p">),</span> <span class="n">ranking</span><span class="o">=</span><span class="n">ranking</span><span class="p">,</span> <span class="n">top</span><span class="o">=</span><span class="n">top</span><span class="p">,</span>
+                     <span class="n">exact_cfs</span><span class="o">=</span><span class="n">exact</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="width_sensitivity">
+<a class="viewcode-back" href="../../../../content/api/pulpo/utils/uncertainty/decomposition/index.html#pulpo.utils.uncertainty.decomposition.width_sensitivity">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">width_sensitivity</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">uncertainty_data</span><span class="p">:</span> <span class="n">UncertaintyData</span><span class="p">,</span> <span class="n">lci_data</span><span class="p">,</span> <span class="n">widths</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">exact_cfs</span><span class="p">,</span>
+                      <span class="n">kappa</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""``sigma(s)`` with the undeclared parameters at each of ``widths``.</span>
+
+<span class="sd">    The mean does not change with the widths, so at a fixed decision the</span>
+<span class="sd">    chance-constrained impact rises by ``kappa * (sigma - sigma_declared)``.</span>
+<span class="sd">    Re-optimizing at the wider setting can only do better, so that is an</span>
+<span class="sd">    upper bound on the rise of the optimal adjusted impact (and the rise is</span>
+<span class="sd">    not negative, since no variance decreases).</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        s: a scaling vector, or a solved :class:`cc.Point` (whose ``kappa``</span>
+<span class="sd">            is used unless ``kappa`` is given).</span>
+<span class="sd">        uncertainty_data: the configuration the decision was solved for.</span>
+<span class="sd">        lci_data: the LCI data, or a worker holding it.</span>
+<span class="sd">        widths: a list of settings, each a coefficient of variation for every</span>
+<span class="sd">            undeclared parameter or ``{subgroup: r}`` (see :func:`widen`), e.g.</span>
+<span class="sd">            ``{'ecoinvent-3.10-cutoff': 0.1, 'my_foreground_db': 0.3, 'Cf': 0.1}``</span>
+<span class="sd">            with the names of the worker's databases.</span>
+<span class="sd">        exact_cfs: flow rows whose CF never receives a width (see</span>
+<span class="sd">            :func:`screen_undeclared`).</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        DataFrame: per setting, the width of each subgroup (``r[...]``),</span>
+<span class="sd">        ``sigma``, ``ratio`` to the declared sigma, ``delta_sigma`` and, with</span>
+<span class="sd">        a ``kappa``, ``bound`` (``kappa * delta_sigma``).</span>
+<span class="sd">    """</span>
+    <span class="n">s</span><span class="p">,</span> <span class="n">point_kappa</span> <span class="o">=</span> <span class="n">_decision</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+    <span class="n">kappa</span> <span class="o">=</span> <span class="n">point_kappa</span> <span class="k">if</span> <span class="n">kappa</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">kappa</span>
+    <span class="n">lci</span> <span class="o">=</span> <span class="n">_lci</span><span class="p">(</span><span class="n">lci_data</span><span class="p">)</span>
+    <span class="n">exact</span> <span class="o">=</span> <span class="n">_exact_cfs</span><span class="p">(</span><span class="n">exact_cfs</span><span class="p">)</span>
+    <span class="n">sigma0</span> <span class="o">=</span> <span class="n">compute_moments</span><span class="p">(</span><span class="n">uncertainty_data</span><span class="p">,</span> <span class="n">lci</span><span class="p">)</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+    <span class="n">subgroups</span> <span class="o">=</span> <span class="p">[(</span><span class="s1">'If'</span><span class="p">,</span> <span class="n">sub</span><span class="p">)</span> <span class="k">for</span> <span class="n">sub</span> <span class="ow">in</span> <span class="n">uncertainty_data</span><span class="p">[</span><span class="s1">'If'</span><span class="p">]]</span> <span class="o">+</span> <span class="p">[(</span><span class="s1">'Cf'</span><span class="p">,</span> <span class="s1">'Cf'</span><span class="p">)]</span>
+    <span class="n">rows</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">setting</span> <span class="ow">in</span> <span class="n">widths</span><span class="p">:</span>
+        <span class="n">sigma</span> <span class="o">=</span> <span class="n">compute_moments</span><span class="p">(</span><span class="n">widen</span><span class="p">(</span><span class="n">uncertainty_data</span><span class="p">,</span> <span class="n">setting</span><span class="p">,</span> <span class="n">exact_cfs</span><span class="o">=</span><span class="n">exact</span><span class="p">),</span> <span class="n">lci</span><span class="p">)</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="n">row</span> <span class="o">=</span> <span class="p">{</span><span class="sa">f</span><span class="s1">'r[</span><span class="si">{</span><span class="n">sub</span><span class="si">}</span><span class="s1">]'</span><span class="p">:</span> <span class="n">_width</span><span class="p">(</span><span class="n">setting</span><span class="p">,</span> <span class="n">group</span><span class="p">,</span> <span class="n">sub</span><span class="p">)</span> <span class="k">for</span> <span class="n">group</span><span class="p">,</span> <span class="n">sub</span> <span class="ow">in</span> <span class="n">subgroups</span><span class="p">}</span>
+        <span class="n">row</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">'sigma'</span><span class="p">:</span> <span class="n">sigma</span><span class="p">,</span> <span class="s1">'ratio'</span><span class="p">:</span> <span class="n">sigma</span> <span class="o">/</span> <span class="n">sigma0</span> <span class="k">if</span> <span class="n">sigma0</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span>
+                    <span class="s1">'delta_sigma'</span><span class="p">:</span> <span class="n">sigma</span> <span class="o">-</span> <span class="n">sigma0</span><span class="p">})</span>
+        <span class="k">if</span> <span class="n">kappa</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">row</span><span class="p">[</span><span class="s1">'bound'</span><span class="p">]</span> <span class="o">=</span> <span class="n">kappa</span> <span class="o">*</span> <span class="p">(</span><span class="n">sigma</span> <span class="o">-</span> <span class="n">sigma0</span><span class="p">)</span>
+        <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span></div>
+
+
+
+<span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="c1"># Diagnostics of a solved front</span>
+<span class="c1"># ---------------------------------------------------------------------------</span>
+
+<div class="viewcode-block" id="diagnostics">
+<a class="viewcode-back" href="../../../../content/api/pulpo/utils/uncertainty/decomposition/index.html#pulpo.utils.uncertainty.decomposition.diagnostics">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">diagnostics</span><span class="p">(</span><span class="n">front</span><span class="p">,</span> <span class="n">moments</span><span class="p">:</span> <span class="n">Moments</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Post-hoc figures of each solved point, all evaluated at its ``s``.</span>
+
+<span class="sd">    - ``sigma_indep``: the standard deviation with the covariance through</span>
+<span class="sd">      shared CFs dropped, and ``sigma / sigma_indep``;</span>
+<span class="sd">    - ``cf_share``: the CFs' share of ``Var X`` (the sum of their total-order</span>
+<span class="sd">      indices: the variance that goes away when every CF is exact);</span>
+<span class="sd">    - the bound imposed on each uncertain process (``bound &lt;kind&gt;:&lt;process&gt;``);</span>
+<span class="sd">    - the size of the reduced problem and the solve times.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        front: a :class:`cc.Front` or an iterable of :class:`cc.Point`.</span>
+<span class="sd">        moments (Moments): the moments the front was solved with.</span>
+<span class="sd">    """</span>
+    <span class="n">points</span> <span class="o">=</span> <span class="n">front</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">front</span><span class="p">,</span> <span class="s1">'values'</span><span class="p">)</span> <span class="k">else</span> <span class="n">front</span>
+    <span class="n">q2</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">q_mean</span> <span class="o">**</span> <span class="mi">2</span>
+    <span class="n">rows</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">point</span> <span class="ow">in</span> <span class="n">points</span><span class="p">:</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">point</span><span class="o">.</span><span class="n">s</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="n">V</span> <span class="o">=</span> <span class="n">moments</span><span class="o">.</span><span class="n">variance</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="n">sigma</span><span class="p">,</span> <span class="n">sigma_indep</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">V</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">))),</span> <span class="n">moments</span><span class="o">.</span><span class="n">std_independent</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="n">no_cf</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">q2</span> <span class="o">@</span> <span class="p">(</span><span class="n">moments</span><span class="o">.</span><span class="n">B_var</span> <span class="o">@</span> <span class="p">(</span><span class="n">s</span> <span class="o">*</span> <span class="n">s</span><span class="p">)))</span>       <span class="c1"># Var X with every CF exact</span>
+        <span class="n">row</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'lambda'</span><span class="p">:</span> <span class="n">point</span><span class="o">.</span><span class="n">lambda_level</span><span class="p">,</span> <span class="s1">'lambda_impact'</span><span class="p">:</span> <span class="n">point</span><span class="o">.</span><span class="n">lambda_impact</span><span class="p">,</span> <span class="s1">'kappa'</span><span class="p">:</span> <span class="n">point</span><span class="o">.</span><span class="n">kappa</span><span class="p">,</span>
+               <span class="s1">'mean'</span><span class="p">:</span> <span class="n">point</span><span class="o">.</span><span class="n">mean</span><span class="p">,</span> <span class="s1">'sigma'</span><span class="p">:</span> <span class="n">sigma</span><span class="p">,</span> <span class="s1">'adjusted'</span><span class="p">:</span> <span class="n">point</span><span class="o">.</span><span class="n">adjusted</span><span class="p">,</span>
+               <span class="s1">'sigma_indep'</span><span class="p">:</span> <span class="n">sigma_indep</span><span class="p">,</span>
+               <span class="s1">'sigma_over_indep'</span><span class="p">:</span> <span class="n">sigma</span> <span class="o">/</span> <span class="n">sigma_indep</span> <span class="k">if</span> <span class="n">sigma_indep</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span>
+               <span class="s1">'cf_share'</span><span class="p">:</span> <span class="p">(</span><span class="n">V</span> <span class="o">-</span> <span class="n">no_cf</span><span class="p">)</span> <span class="o">/</span> <span class="n">V</span> <span class="k">if</span> <span class="n">V</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">}</span>
+        <span class="n">row</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="sa">f</span><span class="s1">'bound </span><span class="si">{</span><span class="n">kind</span><span class="si">}</span><span class="s1">:</span><span class="si">{</span><span class="n">j</span><span class="si">}</span><span class="s1">'</span><span class="p">:</span> <span class="n">value</span> <span class="k">for</span> <span class="p">(</span><span class="n">kind</span><span class="p">,</span> <span class="n">j</span><span class="p">),</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">point</span><span class="o">.</span><span class="n">bounds</span><span class="o">.</span><span class="n">items</span><span class="p">()})</span>
+        <span class="n">row</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="sa">f</span><span class="s1">'n_</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s1">'</span><span class="p">:</span> <span class="n">value</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="p">(</span><span class="n">point</span><span class="o">.</span><span class="n">size</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">items</span><span class="p">()})</span>
+        <span class="n">row</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="sa">f</span><span class="s1">'seconds_</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s1">'</span><span class="p">:</span> <span class="n">value</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">point</span><span class="o">.</span><span class="n">seconds</span><span class="o">.</span><span class="n">items</span><span class="p">()})</span>
+        <span class="n">row</span><span class="p">[</span><span class="s1">'rounds'</span><span class="p">]</span> <span class="o">=</span> <span class="n">point</span><span class="o">.</span><span class="n">rounds</span>
+        <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s1">'lambda'</span><span class="p">)</span></div>
+
+</pre></div>
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../../../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341"></script>
+<script src="../../../../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2026 pulpo developers.
+      <br/>
+    
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item"><p>🌿🐛 Found a bug? Something not working? Frustrated? <a href=" latest/../../../../../content/contributing.html">Please report it!</a></p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

@@ -1,0 +1,785 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pulpo.datasets.rice_database &#8212; pulpo 2.0.0 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+<link href="../../../_static/styles/bootstrap.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+
+  
+  <link href="../../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=913d6465" />
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341" />
+  <script src="../../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=3ee479438cf8b5e0d341"></script>
+
+    <script src="../../../_static/documentation_options.js?v=79f5c508"></script>
+    <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../../_static/design-tabs.js?v=36754332"></script>
+    <script src="https://unpkg.com/mermaid@10.2.0/dist/mermaid.min.js"></script>
+    <script>
+    function initializeMermaidBasedOnTheme() {
+        const theme = document.documentElement.dataset.theme;
+
+        if (theme === 'dark') {
+            mermaid.initialize({
+                startOnLoad: true,
+                theme: 'base',
+                themeVariables: {
+                    edgeLabelBackground: 'transparent',
+                    defaultLinkColor: '#ced6dd',
+                    titleColor: '#ced6dd',
+                    nodeTextColor: '#ced6dd',
+                    lineColor: '#ced6dd',
+                }
+            });
+        } else {
+            mermaid.initialize({
+                startOnLoad: true,
+                theme: 'base',
+                themeVariables: {
+                    edgeLabelBackground: 'transparent',
+                    defaultLinkColor: '#222832',
+                    titleColor: '#222832',
+                    nodeTextColor: '#222832',
+                    lineColor: '#222832',
+                }
+            });
+        }
+
+        // Re-render all Mermaid diagrams
+        mermaid.contentLoaded();
+    }
+
+    // Observer to detect changes to the data-theme attribute
+    const themeObserver = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            if (mutation.type === 'attributes' && mutation.attributeName === 'data-theme') {
+            initializeMermaidBasedOnTheme();
+            }
+        });
+    });
+
+    themeObserver.observe(document.documentElement, { attributes: true });
+
+    initializeMermaidBasedOnTheme();
+</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/pulpo/datasets/rice_database';</script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+<meta name="google-site-verification" content="Fb3YVU81AToFlPNhlaQf6LLq1SMrHPbY-RtFsgZkw9Q" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+
+<a class="navbar-brand logo" href="../../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../../_static/pulpo_logo_big.svg" class="logo__image only-light" alt="pulpo 2.0.0 documentation - Home"/>
+    <script>document.write(`<img src="../../../_static/pulpo_logo_big.svg" class="logo__image only-dark" alt="pulpo 2.0.0 documentation - Home"/>`);</script>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav class="navbar-nav">
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/getting_started/index.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/theory.html">
+    Theory
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/uncertainty.html">
+    Uncertainty
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/examples/index.html">
+    Examples
+  </a>
+</li>
+
+            <li class="nav-item dropdown pst-header-nav-item">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../content/api/index.html">
+    API
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../content/contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../content/codeofconduct.html">
+    Code of Conduct
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../content/license.html">
+    License
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../content/changelog.html">
+    Changelog
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  </button>
+`);
+</script></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links navbar-nav"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/flechtenberg/pulpo" title="Open this Repo on GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fab fa-brands fa-github fa-lg" aria-hidden="true"></i></span>
+            <span class="sr-only">Open this Repo on GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <div class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav class="navbar-nav">
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/getting_started/index.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/theory.html">
+    Theory
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/uncertainty.html">
+    Uncertainty
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/examples/index.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/api/index.html">
+    API
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/codeofconduct.html">
+    Code of Conduct
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/license.html">
+    License
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/changelog.html">
+    Changelog
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  </button>
+`);
+</script></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links navbar-nav"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/flechtenberg/pulpo" title="Open this Repo on GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fab fa-brands fa-github fa-lg" aria-hidden="true"></i></span>
+            <span class="sr-only">Open this Repo on GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">Module code</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="../../pulpo.html" class="nav-link">pulpo</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page">pulpo.datase...</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for pulpo.datasets.rice_database</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">copy</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">bw2data</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">bd</span>
+
+<div class="viewcode-block" id="setup_rice_husk_db">
+<a class="viewcode-back" href="../../../content/api/pulpo/datasets/rice_database/index.html#pulpo.datasets.rice_database.setup_rice_husk_db">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">setup_rice_husk_db</span><span class="p">():</span>
+    <span class="c1"># Set the current project to "rice_husk_example"</span>
+    <span class="n">bd</span><span class="o">.</span><span class="n">projects</span><span class="o">.</span><span class="n">set_current</span><span class="p">(</span><span class="s2">"rice_husk_example"</span><span class="p">)</span>
+
+    <span class="c1"># Biosphere keys</span>
+    <span class="n">co2_key</span> <span class="o">=</span> <span class="p">(</span><span class="s1">'biosphere3'</span><span class="p">,</span> <span class="s1">'CO2'</span><span class="p">)</span>
+    <span class="n">ch4_key</span> <span class="o">=</span> <span class="p">(</span><span class="s1">'biosphere3'</span><span class="p">,</span> <span class="s1">'CH4'</span><span class="p">)</span>
+    <span class="n">ef_key</span> <span class="o">=</span> <span class="p">(</span><span class="s1">'biosphere3'</span><span class="p">,</span> <span class="s1">'EF'</span><span class="p">)</span>
+
+    <span class="c1"># Define biosphere flows and create the 'biosphere3' database if it doesn't exist</span>
+    <span class="k">if</span> <span class="s1">'biosphere3'</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">bd</span><span class="o">.</span><span class="n">databases</span><span class="p">:</span>
+        <span class="n">biosphere_db</span> <span class="o">=</span> <span class="n">bd</span><span class="o">.</span><span class="n">Database</span><span class="p">(</span><span class="s1">'biosphere3'</span><span class="p">)</span>
+        <span class="n">biosphere_data</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="p">(</span><span class="s1">'biosphere3'</span><span class="p">,</span> <span class="s1">'CO2'</span><span class="p">):</span> <span class="p">{</span>
+                <span class="s1">'name'</span><span class="p">:</span> <span class="s1">'Carbon dioxide, fossil'</span><span class="p">,</span>
+                <span class="s1">'categories'</span><span class="p">:</span> <span class="p">(</span><span class="s1">'climate change'</span><span class="p">,</span> <span class="s1">'GWP 100a'</span><span class="p">),</span>
+                <span class="s1">'type'</span><span class="p">:</span> <span class="s1">'emission'</span><span class="p">,</span>
+                <span class="s1">'unit'</span><span class="p">:</span> <span class="s1">'Mt'</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="p">(</span><span class="s1">'biosphere3'</span><span class="p">,</span> <span class="s1">'CH4'</span><span class="p">):</span> <span class="p">{</span>
+                <span class="s1">'name'</span><span class="p">:</span> <span class="s1">'Methane, agricultural'</span><span class="p">,</span>
+                <span class="s1">'categories'</span><span class="p">:</span> <span class="p">(</span><span class="s1">'climate change'</span><span class="p">,</span> <span class="s1">'GWP 100a'</span><span class="p">),</span>
+                <span class="s1">'type'</span><span class="p">:</span> <span class="s1">'emission'</span><span class="p">,</span>
+                <span class="s1">'unit'</span><span class="p">:</span> <span class="s1">'Mt'</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="p">(</span><span class="s1">'biosphere3'</span><span class="p">,</span> <span class="s1">'EF'</span><span class="p">):</span> <span class="p">{</span>
+                <span class="s1">'name'</span><span class="p">:</span> <span class="s1">'Economic Flow'</span><span class="p">,</span>
+                <span class="s1">'categories'</span><span class="p">:</span> <span class="p">(</span><span class="s1">'economic flow'</span><span class="p">,</span> <span class="s1">'dollar'</span><span class="p">),</span>
+                <span class="s1">'type'</span><span class="p">:</span> <span class="s1">'emission'</span><span class="p">,</span>
+                <span class="s1">'unit'</span><span class="p">:</span> <span class="s1">'million dollar'</span><span class="p">,</span>
+            <span class="p">},</span>
+        <span class="p">}</span>
+        <span class="n">biosphere_db</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">biosphere_data</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s1">'Elementary flow database created'</span><span class="p">)</span>
+
+    <span class="c1"># Technosphere keys</span>
+    <span class="n">rice_factory_key</span> <span class="o">=</span> <span class="p">(</span><span class="s1">'rice_husk_example_db'</span><span class="p">,</span> <span class="s1">'Rice factory'</span><span class="p">)</span>
+    <span class="n">rice_farming_key</span> <span class="o">=</span> <span class="p">(</span><span class="s1">'rice_husk_example_db'</span><span class="p">,</span> <span class="s1">'Rice farming'</span><span class="p">)</span>
+    <span class="n">rice_husk_boiler_key</span> <span class="o">=</span> <span class="p">(</span><span class="s1">'rice_husk_example_db'</span><span class="p">,</span> <span class="s1">'Rice husk boiler'</span><span class="p">)</span>
+    <span class="n">natural_gas_boiler_key</span> <span class="o">=</span> <span class="p">(</span><span class="s1">'rice_husk_example_db'</span><span class="p">,</span> <span class="s1">'Natural gas boiler'</span><span class="p">)</span>
+    <span class="n">wood_pellet_boiler_key</span> <span class="o">=</span> <span class="p">(</span><span class="s1">'rice_husk_example_db'</span><span class="p">,</span> <span class="s1">'Wood pellet boiler'</span><span class="p">)</span>
+    <span class="n">rice_husk_market_key</span> <span class="o">=</span> <span class="p">(</span><span class="s1">'rice_husk_example_db'</span><span class="p">,</span> <span class="s1">'Rice husk market'</span><span class="p">)</span>
+    <span class="n">rice_husk_collection1_key</span> <span class="o">=</span> <span class="p">(</span><span class="s1">'rice_husk_example_db'</span><span class="p">,</span> <span class="s1">'Rice husk collection 1'</span><span class="p">)</span>
+    <span class="n">rice_husk_collection2_key</span> <span class="o">=</span> <span class="p">(</span><span class="s1">'rice_husk_example_db'</span><span class="p">,</span> <span class="s1">'Rice husk collection 2'</span><span class="p">)</span>
+    <span class="n">rice_husk_collection3_key</span> <span class="o">=</span> <span class="p">(</span><span class="s1">'rice_husk_example_db'</span><span class="p">,</span> <span class="s1">'Rice husk collection 3'</span><span class="p">)</span>
+    <span class="n">rice_husk_collection4_key</span> <span class="o">=</span> <span class="p">(</span><span class="s1">'rice_husk_example_db'</span><span class="p">,</span> <span class="s1">'Rice husk collection 4'</span><span class="p">)</span>
+    <span class="n">rice_husk_collection5_key</span> <span class="o">=</span> <span class="p">(</span><span class="s1">'rice_husk_example_db'</span><span class="p">,</span> <span class="s1">'Rice husk collection 5'</span><span class="p">)</span>
+    <span class="n">natural_gas_supply_key</span> <span class="o">=</span> <span class="p">(</span><span class="s1">'rice_husk_example_db'</span><span class="p">,</span> <span class="s1">'Natural gas supply'</span><span class="p">)</span>
+    <span class="n">wood_pellet_supply_key</span> <span class="o">=</span> <span class="p">(</span><span class="s1">'rice_husk_example_db'</span><span class="p">,</span> <span class="s1">'Wood pellet supply'</span><span class="p">)</span>
+    <span class="n">burning_rice_husk_key</span> <span class="o">=</span> <span class="p">(</span><span class="s1">'rice_husk_example_db'</span><span class="p">,</span> <span class="s1">'Burning of rice husk'</span><span class="p">)</span>
+    <span class="n">power_plant_key</span> <span class="o">=</span> <span class="p">(</span><span class="s1">'rice_husk_example_db'</span><span class="p">,</span> <span class="s1">'Power plant'</span><span class="p">)</span>
+    <span class="n">transportation_key</span> <span class="o">=</span> <span class="p">(</span><span class="s1">'rice_husk_example_db'</span><span class="p">,</span> <span class="s1">'Transportation by truck'</span><span class="p">)</span>
+
+    <span class="c1"># Create the "rice_husk_example_db" database if it doesn't exist</span>
+    <span class="k">if</span> <span class="s1">'rice_husk_example_db'</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">bd</span><span class="o">.</span><span class="n">databases</span><span class="p">:</span>
+        <span class="n">rice_husk_db</span> <span class="o">=</span> <span class="n">bd</span><span class="o">.</span><span class="n">Database</span><span class="p">(</span><span class="s1">'rice_husk_example_db'</span><span class="p">)</span>
+        <span class="n">rice_husk_db</span><span class="o">.</span><span class="n">write</span><span class="p">({})</span>
+
+        <span class="n">process_data</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">(</span><span class="s1">'Rice factory'</span><span class="p">,</span> <span class="s1">'Mt'</span><span class="p">,</span> <span class="s1">'GLO'</span><span class="p">,</span> <span class="s1">'Processed rice (in Mt)'</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">'Rice farming'</span><span class="p">,</span> <span class="s1">'Mt'</span><span class="p">,</span> <span class="s1">'GLO'</span><span class="p">,</span> <span class="s1">'Unprocessed rice (in Mt)'</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">'Rice husk boiler'</span><span class="p">,</span> <span class="s1">'TWh'</span><span class="p">,</span> <span class="s1">'GLO'</span><span class="p">,</span> <span class="s1">'Thermal energy from husk boiler (in TWh)'</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">'Natural gas boiler'</span><span class="p">,</span> <span class="s1">'TWh'</span><span class="p">,</span> <span class="s1">'GLO'</span><span class="p">,</span> <span class="s1">'Thermal energy from natural gas boiler (in TWh)'</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">'Wood pellet boiler'</span><span class="p">,</span> <span class="s1">'TWh'</span><span class="p">,</span> <span class="s1">'GLO'</span><span class="p">,</span> <span class="s1">'Thermal energy from wood pellet boiler (in TWh)'</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">'Rice husk market'</span><span class="p">,</span> <span class="s1">'Mt'</span><span class="p">,</span> <span class="s1">'GLO'</span><span class="p">,</span> <span class="s1">'Rice husk at farm (Mt)'</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">'Rice husk collection 1'</span><span class="p">,</span> <span class="s1">'Mt'</span><span class="p">,</span> <span class="s1">'GLO'</span><span class="p">,</span> <span class="s1">'Rice husk from region 1 (in Mt)'</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">'Rice husk collection 2'</span><span class="p">,</span> <span class="s1">'Mt'</span><span class="p">,</span> <span class="s1">'GLO'</span><span class="p">,</span> <span class="s1">'Rice husk from region 2 (in Mt)'</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">'Rice husk collection 3'</span><span class="p">,</span> <span class="s1">'Mt'</span><span class="p">,</span> <span class="s1">'GLO'</span><span class="p">,</span> <span class="s1">'Rice husk from region 3 (in Mt)'</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">'Rice husk collection 4'</span><span class="p">,</span> <span class="s1">'Mt'</span><span class="p">,</span> <span class="s1">'GLO'</span><span class="p">,</span> <span class="s1">'Rice husk from region 4 (in Mt)'</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">'Rice husk collection 5'</span><span class="p">,</span> <span class="s1">'Mt'</span><span class="p">,</span> <span class="s1">'GLO'</span><span class="p">,</span> <span class="s1">'Rice husk from region 5 (in Mt)'</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">'Natural gas supply'</span><span class="p">,</span> <span class="s1">'TWh'</span><span class="p">,</span> <span class="s1">'GLO'</span><span class="p">,</span> <span class="s1">'Natural gas (in TWh)'</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">'Wood pellet supply'</span><span class="p">,</span> <span class="s1">'Mt'</span><span class="p">,</span> <span class="s1">'GLO'</span><span class="p">,</span> <span class="s1">'Wood pellets (in Mt)'</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">'Burning of rice husk'</span><span class="p">,</span> <span class="s1">'Mt'</span><span class="p">,</span> <span class="s1">'GLO'</span><span class="p">,</span> <span class="s1">'Burned rice husk (in Mt)'</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">'Power plant'</span><span class="p">,</span> <span class="s1">'TWh'</span><span class="p">,</span> <span class="s1">'GLO'</span><span class="p">,</span> <span class="s1">'Electricity (in TWh)'</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">'Transportation by truck'</span><span class="p">,</span> <span class="s1">'Gt*km'</span><span class="p">,</span> <span class="s1">'GLO'</span><span class="p">,</span> <span class="s1">'Transportation (in Gt*km)'</span><span class="p">),</span>
+        <span class="p">]</span>
+
+        <span class="c1"># Register each process</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">unit</span><span class="p">,</span> <span class="n">location</span><span class="p">,</span> <span class="n">ref_product</span> <span class="ow">in</span> <span class="n">process_data</span><span class="p">:</span>
+            <span class="n">act</span> <span class="o">=</span> <span class="n">rice_husk_db</span><span class="o">.</span><span class="n">new_activity</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+            <span class="n">act</span><span class="p">[</span><span class="s1">'unit'</span><span class="p">]</span> <span class="o">=</span> <span class="n">unit</span>
+            <span class="n">act</span><span class="p">[</span><span class="s1">'location'</span><span class="p">]</span> <span class="o">=</span> <span class="n">location</span>
+            <span class="n">act</span><span class="p">[</span><span class="s1">'name'</span><span class="p">]</span> <span class="o">=</span> <span class="n">name</span>
+            <span class="n">act</span><span class="p">[</span><span class="s1">'reference product'</span><span class="p">]</span> <span class="o">=</span> <span class="n">ref_product</span>
+            <span class="n">act</span><span class="o">.</span><span class="n">new_exchange</span><span class="p">(</span><span class="n">amount</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="nb">input</span><span class="o">=</span><span class="n">act</span><span class="o">.</span><span class="n">key</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s1">'production'</span><span class="p">)</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+            <span class="n">act</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+
+        <span class="c1"># Define the technosphere exchanges</span>
+        <span class="n">exchange_data</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="c1"># Format: [input_key, target_key, amount, exchange_type]</span>
+            <span class="p">[</span><span class="n">rice_farming_key</span><span class="p">,</span> <span class="n">rice_factory_key</span><span class="p">,</span> <span class="mf">1.15</span><span class="p">,</span> <span class="s1">'technosphere'</span><span class="p">],</span>
+            <span class="p">[</span><span class="n">natural_gas_boiler_key</span><span class="p">,</span> <span class="n">rice_factory_key</span><span class="p">,</span> <span class="mf">2.2</span><span class="p">,</span> <span class="s1">'technosphere'</span><span class="p">],</span>
+            <span class="p">[</span><span class="n">power_plant_key</span><span class="p">,</span> <span class="n">rice_factory_key</span><span class="p">,</span> <span class="mf">0.08</span><span class="p">,</span> <span class="s1">'technosphere'</span><span class="p">],</span>
+            <span class="p">[</span><span class="n">transportation_key</span><span class="p">,</span> <span class="n">rice_factory_key</span><span class="p">,</span> <span class="mf">0.35</span><span class="p">,</span> <span class="s1">'technosphere'</span><span class="p">],</span>
+            <span class="p">[</span><span class="n">rice_husk_market_key</span><span class="p">,</span> <span class="n">rice_farming_key</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.6</span><span class="p">,</span> <span class="s1">'technosphere'</span><span class="p">],</span>
+            <span class="p">[</span><span class="n">rice_husk_collection1_key</span><span class="p">,</span> <span class="n">rice_husk_boiler_key</span><span class="p">,</span> <span class="mf">0.23</span><span class="p">,</span> <span class="s1">'technosphere'</span><span class="p">],</span>
+            <span class="p">[</span><span class="n">natural_gas_supply_key</span><span class="p">,</span> <span class="n">natural_gas_boiler_key</span><span class="p">,</span> <span class="mf">1.1</span><span class="p">,</span> <span class="s1">'technosphere'</span><span class="p">],</span>
+            <span class="p">[</span><span class="n">wood_pellet_supply_key</span><span class="p">,</span> <span class="n">wood_pellet_boiler_key</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">,</span> <span class="s1">'technosphere'</span><span class="p">],</span>
+            <span class="p">[</span><span class="n">rice_husk_market_key</span><span class="p">,</span> <span class="n">rice_husk_collection1_key</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">'technosphere'</span><span class="p">],</span>
+            <span class="p">[</span><span class="n">rice_husk_market_key</span><span class="p">,</span> <span class="n">rice_husk_collection2_key</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">'technosphere'</span><span class="p">],</span>
+            <span class="p">[</span><span class="n">rice_husk_market_key</span><span class="p">,</span> <span class="n">rice_husk_collection3_key</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">'technosphere'</span><span class="p">],</span>
+            <span class="p">[</span><span class="n">rice_husk_market_key</span><span class="p">,</span> <span class="n">rice_husk_collection4_key</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">'technosphere'</span><span class="p">],</span>
+            <span class="p">[</span><span class="n">rice_husk_market_key</span><span class="p">,</span> <span class="n">rice_husk_collection5_key</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">'technosphere'</span><span class="p">],</span>
+            <span class="p">[</span><span class="n">transportation_key</span><span class="p">,</span> <span class="n">rice_husk_collection1_key</span><span class="p">,</span> <span class="mf">0.12</span><span class="p">,</span> <span class="s1">'technosphere'</span><span class="p">],</span>
+            <span class="p">[</span><span class="n">transportation_key</span><span class="p">,</span> <span class="n">rice_husk_collection2_key</span><span class="p">,</span> <span class="mf">0.24</span><span class="p">,</span> <span class="s1">'technosphere'</span><span class="p">],</span>
+            <span class="p">[</span><span class="n">transportation_key</span><span class="p">,</span> <span class="n">rice_husk_collection3_key</span><span class="p">,</span> <span class="mf">0.36</span><span class="p">,</span> <span class="s1">'technosphere'</span><span class="p">],</span>
+            <span class="p">[</span><span class="n">transportation_key</span><span class="p">,</span> <span class="n">rice_husk_collection4_key</span><span class="p">,</span> <span class="mf">0.48</span><span class="p">,</span> <span class="s1">'technosphere'</span><span class="p">],</span>
+            <span class="p">[</span><span class="n">transportation_key</span><span class="p">,</span> <span class="n">rice_husk_collection5_key</span><span class="p">,</span> <span class="mf">0.60</span><span class="p">,</span> <span class="s1">'technosphere'</span><span class="p">],</span>
+            <span class="p">[</span><span class="n">rice_husk_market_key</span><span class="p">,</span> <span class="n">burning_rice_husk_key</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="s1">'technosphere'</span><span class="p">],</span>
+            <span class="p">[</span><span class="n">burning_rice_husk_key</span><span class="p">,</span> <span class="n">rice_husk_market_key</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">'technosphere'</span><span class="p">],</span>
+            <span class="p">[</span><span class="n">co2_key</span><span class="p">,</span> <span class="n">rice_farming_key</span><span class="p">,</span> <span class="mf">6.14e-1</span><span class="p">,</span> <span class="s1">'biosphere'</span><span class="p">],</span>
+            <span class="p">[</span><span class="n">ch4_key</span><span class="p">,</span> <span class="n">rice_farming_key</span><span class="p">,</span> <span class="mf">1.33e-3</span><span class="p">,</span> <span class="s1">'biosphere'</span><span class="p">],</span>
+            <span class="p">[</span><span class="n">co2_key</span><span class="p">,</span> <span class="n">natural_gas_boiler_key</span><span class="p">,</span> <span class="mf">2.27e-1</span><span class="p">,</span> <span class="s1">'biosphere'</span><span class="p">],</span>
+            <span class="p">[</span><span class="n">ch4_key</span><span class="p">,</span> <span class="n">natural_gas_boiler_key</span><span class="p">,</span> <span class="mf">1.47e-3</span><span class="p">,</span> <span class="s1">'biosphere'</span><span class="p">],</span>
+            <span class="p">[</span><span class="n">co2_key</span><span class="p">,</span> <span class="n">natural_gas_supply_key</span><span class="p">,</span> <span class="mf">3.21e-2</span><span class="p">,</span> <span class="s1">'biosphere'</span><span class="p">],</span>
+            <span class="p">[</span><span class="n">ch4_key</span><span class="p">,</span> <span class="n">natural_gas_supply_key</span><span class="p">,</span> <span class="mf">1.50e-3</span><span class="p">,</span> <span class="s1">'biosphere'</span><span class="p">],</span>
+            <span class="p">[</span><span class="n">co2_key</span><span class="p">,</span> <span class="n">wood_pellet_supply_key</span><span class="p">,</span> <span class="mf">1.50e-1</span><span class="p">,</span> <span class="s1">'biosphere'</span><span class="p">],</span>
+            <span class="p">[</span><span class="n">ch4_key</span><span class="p">,</span> <span class="n">wood_pellet_supply_key</span><span class="p">,</span> <span class="mf">2.56e-4</span><span class="p">,</span> <span class="s1">'biosphere'</span><span class="p">],</span>
+            <span class="p">[</span><span class="n">co2_key</span><span class="p">,</span> <span class="n">power_plant_key</span><span class="p">,</span> <span class="mf">1.10e-0</span><span class="p">,</span> <span class="s1">'biosphere'</span><span class="p">],</span>
+            <span class="p">[</span><span class="n">ch4_key</span><span class="p">,</span> <span class="n">power_plant_key</span><span class="p">,</span> <span class="mf">9.15e-4</span><span class="p">,</span> <span class="s1">'biosphere'</span><span class="p">],</span>
+            <span class="p">[</span><span class="n">co2_key</span><span class="p">,</span> <span class="n">transportation_key</span><span class="p">,</span> <span class="mf">5.76e-2</span><span class="p">,</span> <span class="s1">'biosphere'</span><span class="p">],</span>
+            <span class="p">[</span><span class="n">ch4_key</span><span class="p">,</span> <span class="n">transportation_key</span><span class="p">,</span> <span class="mf">6.97e-5</span><span class="p">,</span> <span class="s1">'biosphere'</span><span class="p">],</span>
+            <span class="p">[</span><span class="n">ef_key</span><span class="p">,</span> <span class="n">rice_factory_key</span><span class="p">,</span> <span class="mf">5.00e1</span><span class="p">,</span> <span class="s1">'biosphere'</span><span class="p">],</span>
+            <span class="p">[</span><span class="n">ef_key</span><span class="p">,</span> <span class="n">rice_farming_key</span><span class="p">,</span> <span class="mf">3.60e2</span><span class="p">,</span> <span class="s1">'biosphere'</span><span class="p">],</span>
+            <span class="p">[</span><span class="n">ef_key</span><span class="p">,</span> <span class="n">natural_gas_supply_key</span><span class="p">,</span> <span class="mf">1.3e1</span><span class="p">,</span> <span class="s1">'biosphere'</span><span class="p">],</span>
+            <span class="p">[</span><span class="n">ef_key</span><span class="p">,</span> <span class="n">wood_pellet_supply_key</span><span class="p">,</span> <span class="mf">7.20e1</span><span class="p">,</span> <span class="s1">'biosphere'</span><span class="p">],</span>
+            <span class="p">[</span><span class="n">ef_key</span><span class="p">,</span> <span class="n">rice_husk_collection1_key</span><span class="p">,</span> <span class="mf">4.50e1</span><span class="p">,</span> <span class="s1">'biosphere'</span><span class="p">],</span>
+            <span class="p">[</span><span class="n">ef_key</span><span class="p">,</span> <span class="n">rice_husk_collection2_key</span><span class="p">,</span> <span class="mf">3.60e1</span><span class="p">,</span> <span class="s1">'biosphere'</span><span class="p">],</span>
+            <span class="p">[</span><span class="n">ef_key</span><span class="p">,</span> <span class="n">rice_husk_collection3_key</span><span class="p">,</span> <span class="mf">2.90e1</span><span class="p">,</span> <span class="s1">'biosphere'</span><span class="p">],</span>
+            <span class="p">[</span><span class="n">ef_key</span><span class="p">,</span> <span class="n">rice_husk_collection4_key</span><span class="p">,</span> <span class="mf">2.30e1</span><span class="p">,</span> <span class="s1">'biosphere'</span><span class="p">],</span>
+            <span class="p">[</span><span class="n">ef_key</span><span class="p">,</span> <span class="n">rice_husk_collection5_key</span><span class="p">,</span> <span class="mf">1.80e1</span><span class="p">,</span> <span class="s1">'biosphere'</span><span class="p">],</span>
+            <span class="p">[</span><span class="n">ef_key</span><span class="p">,</span> <span class="n">power_plant_key</span><span class="p">,</span> <span class="mf">6.50e1</span><span class="p">,</span> <span class="s1">'biosphere'</span><span class="p">],</span>
+            <span class="p">[</span><span class="n">ef_key</span><span class="p">,</span> <span class="n">transportation_key</span><span class="p">,</span> <span class="mf">1.70e2</span><span class="p">,</span> <span class="s1">'biosphere'</span><span class="p">],</span>
+        <span class="p">]</span>
+
+        <span class="c1"># Add the exchanges to the activities</span>
+        <span class="k">for</span> <span class="n">input_key</span><span class="p">,</span> <span class="n">target_key</span><span class="p">,</span> <span class="n">amount</span><span class="p">,</span> <span class="n">exchange_type</span> <span class="ow">in</span> <span class="n">exchange_data</span><span class="p">:</span>
+            <span class="n">act</span> <span class="o">=</span> <span class="p">[</span><span class="n">act</span> <span class="k">for</span> <span class="n">act</span> <span class="ow">in</span> <span class="n">rice_husk_db</span> <span class="k">if</span> <span class="n">act</span><span class="o">.</span><span class="n">key</span> <span class="o">==</span> <span class="n">target_key</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">act</span><span class="o">.</span><span class="n">new_exchange</span><span class="p">(</span><span class="n">amount</span><span class="o">=</span><span class="n">amount</span><span class="p">,</span> <span class="nb">input</span><span class="o">=</span><span class="n">input_key</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">exchange_type</span><span class="p">)</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+            <span class="n">act</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s1">'Process database created'</span><span class="p">)</span>
+
+        <span class="c1"># Loop through the list of methods and deregister each one</span>
+        <span class="c1"># Create a copy of the methods list</span>
+        <span class="n">methods_copy</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">bd</span><span class="o">.</span><span class="n">methods</span><span class="p">)</span>
+        <span class="c1"># Loop through the copy of methods and deregister each one</span>
+        <span class="k">for</span> <span class="n">method</span> <span class="ow">in</span> <span class="n">methods_copy</span><span class="p">:</span>
+            <span class="n">bd</span><span class="o">.</span><span class="n">Method</span><span class="p">(</span><span class="n">method</span><span class="p">)</span><span class="o">.</span><span class="n">deregister</span><span class="p">()</span>
+
+        <span class="c1"># Define LCIA methods and CFs</span>
+        <span class="n">methods_data</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">(</span><span class="s1">'climate change'</span><span class="p">,</span> <span class="s1">'Mt CO2eq'</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="s1">'cc'</span><span class="p">,</span> <span class="s1">'climate change CFs'</span><span class="p">,</span> <span class="s1">'climate_change'</span><span class="p">,</span> <span class="s1">'CO2'</span><span class="p">,</span>
+             <span class="p">[(</span><span class="n">co2_key</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="n">ch4_key</span><span class="p">,</span> <span class="mi">25</span><span class="p">)]),</span>
+            <span class="p">(</span><span class="s1">'air quality'</span><span class="p">,</span> <span class="s1">'ppm'</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">'aq'</span><span class="p">,</span> <span class="s1">'air quality CFs'</span><span class="p">,</span> <span class="s1">'air_quality'</span><span class="p">,</span> <span class="s1">'PM'</span><span class="p">,</span> <span class="p">[(</span><span class="n">ch4_key</span><span class="p">,</span> <span class="mi">25</span><span class="p">)]),</span>
+            <span class="p">(</span><span class="s1">'economic flow'</span><span class="p">,</span> <span class="s1">'million dollar'</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">'ef'</span><span class="p">,</span> <span class="s1">'economic flow CFs'</span><span class="p">,</span> <span class="s1">'economic_flow'</span><span class="p">,</span> <span class="s1">'million dollar'</span><span class="p">,</span> <span class="p">[(</span><span class="n">ef_key</span><span class="p">,</span> <span class="mi">1</span><span class="p">)]),</span>
+        <span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">method_name</span><span class="p">,</span> <span class="n">unit</span><span class="p">,</span> <span class="n">num_cfs</span><span class="p">,</span> <span class="n">abbreviation</span><span class="p">,</span> <span class="n">description</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">flow_code</span><span class="p">,</span> <span class="n">flow_list</span> <span class="ow">in</span> <span class="n">methods_data</span><span class="p">:</span>
+            <span class="n">method</span> <span class="o">=</span> <span class="n">bd</span><span class="o">.</span><span class="n">Method</span><span class="p">((</span><span class="s1">'my project'</span><span class="p">,</span> <span class="n">method_name</span><span class="p">))</span>
+            <span class="n">method</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="o">**</span><span class="p">{</span>
+                <span class="s1">'unit'</span><span class="p">:</span> <span class="n">unit</span><span class="p">,</span>
+                <span class="s1">'num_cfs'</span><span class="p">:</span> <span class="n">num_cfs</span><span class="p">,</span>
+                <span class="s1">'abbreviation'</span><span class="p">:</span> <span class="n">abbreviation</span><span class="p">,</span>
+                <span class="s1">'description'</span><span class="p">:</span> <span class="n">description</span><span class="p">,</span>
+                <span class="s1">'filename'</span><span class="p">:</span> <span class="n">filename</span><span class="p">,</span>
+            <span class="p">})</span>
+            <span class="n">method</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">flow_list</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s1">'LCIA methods and CFs defined'</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="main">
+<a class="viewcode-back" href="../../../content/api/pulpo/datasets/rice_database/index.html#pulpo.datasets.rice_database.main">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
+    <span class="n">setup_rice_husk_db</span><span class="p">()</span></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">'__main__'</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341"></script>
+<script src="../../../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2026 pulpo developers.
+      <br/>
+    
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item"><p>🌿🐛 Found a bug? Something not working? Frustrated? <a href=" latest/../../../../content/contributing.html">Please report it!</a></p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

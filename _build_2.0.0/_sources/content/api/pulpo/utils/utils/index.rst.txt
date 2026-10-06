@@ -1,0 +1,120 @@
+:py:mod:`pulpo.utils.utils`
+===========================
+
+.. py:module:: pulpo.utils.utils
+
+
+Module Contents
+---------------
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   pulpo.utils.utils.is_bw25
+   pulpo.utils.utils.get_bw_version
+   pulpo.utils.utils.is_time_indexed
+   pulpo.utils.utils.none_to_bound
+   pulpo.utils.utils.none_capacities
+   pulpo.utils.utils.broadcast_over_time
+   pulpo.utils.utils.reinstantiate_kwargs
+   pulpo.utils.utils.build_bw25_params
+   pulpo.utils.utils._undeclared_distributions
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   pulpo.utils.utils.BW25_PARAM_DTYPE
+   pulpo.utils.utils.BW25_DISTRIBUTION_FIELDS
+
+
+.. py:function:: is_bw25()
+
+   Check if the installed Brightway packages adhere to bw25 versions.
+
+
+.. py:function:: get_bw_version()
+
+
+.. py:function:: is_time_indexed(d, time_steps)
+
+   Return True if dict ``d`` is keyed by the supplied timestep labels.
+
+
+.. py:function:: none_to_bound(limits, bound)
+
+   A copy of a limit dict in which ``None`` (no limit) reads as ``bound``,
+   i.e. +inf for an upper and -inf for a lower limit.
+
+
+.. py:function:: none_capacities(choices)
+
+   A copy of ``choices`` as ``{label: {activity: capacity}}``, in which a
+   ``None`` capacity and a list of activities (no capacities) read as unlimited.
+
+
+.. py:function:: broadcast_over_time(d, time_steps)
+
+   Convert a (possibly static) input dict into ``{t: dict}`` form.
+
+
+.. py:function:: reinstantiate_kwargs(pulpo_optimizer)
+
+   Return keyword arguments for re-instantiating the optimizer.
+
+
+.. py:data:: BW25_PARAM_DTYPE
+
+   
+
+.. py:data:: BW25_DISTRIBUTION_FIELDS
+   :value: ('uncertainty_type', 'loc', 'scale', 'shape', 'minimum', 'maximum', 'negative')
+
+   
+
+.. py:function:: build_bw25_params(data_objs, matrix_name, row_mapping, col_mapping=None)
+
+   Assemble a combined uncertainty-parameter array for a bw25 matrix.
+
+   Rather than relying on hard-coded resource positions, this scans the
+   ``datapackage`` objects for the resources belonging to ``matrix_name`` and
+   combines the ``indices``, ``data`` and ``distributions`` resources into a
+   single structured array. The original ids stored in the ``indices`` resource
+   are mapped to matrix positions via ``row_mapping`` (and ``col_mapping`` when
+   provided) so the result is indexed identically to the optimisation problem.
+
+   :param data_objs: The datapackages returned by ``bd.prepare_lca_inputs``.
+   :param matrix_name: Target matrix, e.g. ``'biosphere_matrix'`` or
+                       ``'characterization_matrix'``.
+   :type matrix_name: str
+   :param row_mapping: Maps original row ids to matrix row positions.
+   :type row_mapping: dict
+   :param col_mapping: Maps original column ids to matrix column
+                       positions. If ``None`` the raw column ids from the datapackage are
+                       kept (used for the characterization matrix where the column is a
+                       dummy value).
+   :type col_mapping: dict, optional
+
+   A datapackage that declares no distribution at all carries no
+   ``distributions`` resource; its entries are deterministic and are listed
+   with ``uncertainty_type`` 0, as in bw2's parameter arrays.
+
+   :returns: The combined parameter array (or
+             ``None`` when the matrix has no entries or a datapackage is
+             inconsistent) and a flag set when some datapackage declared no
+             distributions.
+   :rtype: Tuple[Optional[np.ndarray], bool]
+
+
+.. py:function:: _undeclared_distributions(amounts)
+
+   Distribution records for deterministic entries: ``uncertainty_type`` 0,
+   ``loc`` the amount and the other parameters NaN, as bw2 stores them.
+
+

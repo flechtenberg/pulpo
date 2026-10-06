@@ -1,0 +1,189 @@
+:py:mod:`pulpo.utils.saver`
+===========================
+
+.. py:module:: pulpo.utils.saver
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   pulpo.utils.saver.ResultDataDict
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   pulpo.utils.saver.extract_flows
+   pulpo.utils.saver.extract_slack
+   pulpo.utils.saver.extract_impacts
+   pulpo.utils.saver.extract_transgressions
+   pulpo.utils.saver.extract_choices
+   pulpo.utils.saver.extract_demand
+   pulpo.utils.saver.extract_constraints
+   pulpo.utils.saver.extract_params
+   pulpo.utils.saver.extract_results
+   pulpo.utils.saver.save_results
+   pulpo.utils.saver.summarize_results
+
+
+
+.. py:class:: ResultDataDict
+
+
+   Bases: :py:obj:`TypedDict`
+
+   .. autoapi-inheritance-diagram:: pulpo.utils.saver.ResultDataDict
+      :parts: 1
+      :private-bases:
+
+   The results of :func:`extract_results`, one entry per sheet of :func:`save_results`.
+
+   Initialize self.  See help(type(self)) for accurate signature.
+
+   .. py:attribute:: Scaling_Vector
+      :type: pandas.DataFrame
+
+      
+
+   .. py:attribute:: Intervention_Vector
+      :type: pandas.DataFrame
+
+      
+
+   .. py:attribute:: Slack
+      :type: pandas.DataFrame
+
+      
+
+   .. py:attribute:: Impacts
+      :type: pandas.DataFrame
+
+      
+
+   .. py:attribute:: Transgressions
+      :type: pandas.DataFrame
+
+      
+
+   .. py:attribute:: Demand
+      :type: pandas.DataFrame
+
+      
+
+   .. py:attribute:: Choices
+      :type: Dict[str, pandas.DataFrame]
+
+      
+
+   .. py:attribute:: Constraints_Upper
+      :type: pandas.DataFrame
+
+      
+
+   .. py:attribute:: Constraints_Lower
+      :type: pandas.DataFrame
+
+      
+
+   .. py:attribute:: Constraints_Upper_Elem
+      :type: pandas.DataFrame
+
+      
+
+
+.. py:function:: extract_flows(instance: pyomo.environ.ConcreteModel, mapping: Dict[str, str], metadata: Dict[str, str], flow_type: str) -> pandas.DataFrame
+
+   Extracts scaling factors or inventory flows from a Pyomo model instance.
+
+   Transparently handles time-indexed instances: when the underlying Var is
+   indexed by (t, id) tuples instead of a plain id, the result gains a 'Time'
+   column/index level instead of the static single-'ID' shape.
+
+
+.. py:function:: extract_slack(instance: pyomo.environ.ConcreteModel) -> pandas.DataFrame
+
+   Extracts and sorts slack values from a Pyomo model.
+
+   Slack variables only exist for products with a specified supply
+   (identical lower and upper limit), so the result contains one row per
+   supply product and is empty when no supply is specified.
+
+
+.. py:function:: extract_impacts(instance: pyomo.environ.ConcreteModel) -> pandas.DataFrame
+
+   Extracts impact values and corresponding weights from the Pyomo instance.
+
+   Transparently handles time-indexed instances: WEIGHTS is never time-indexed,
+   so the indicator component is looked up on its own even when instance.impacts
+   is keyed by (t, indicator) tuples; the result gains a 'Time' column/index
+   level in that case instead of the static single-'Method' shape.
+
+
+.. py:function:: extract_transgressions(instance: pyomo.environ.ConcreteModel) -> pandas.DataFrame
+
+   Extracts the goal-programming results: per goal category the impact, the goal
+   (soft limit), the transgression level TL = Impact/Goal, and the transgression
+   slack max(0, TL - 1). On time-indexed instances the goals apply to the impact
+   aggregated over all timesteps, so 'Impact' is the sum over t. When the instance
+   has no goal categories (weighted-sum objective), returns a zero-row DataFrame
+   with the same 'Method'-indexed schema as the populated case, so callers can
+   treat both uniformly (e.g. concatenate results across goal and non-goal runs).
+
+
+.. py:function:: extract_choices(instance: pyomo.environ.ConcreteModel, choices: Dict[str, Dict[Any, float]], process_map: Dict[str, str], process_map_metadata: Dict[str, str], time_steps: Optional[List] = None) -> Dict[str, pandas.DataFrame]
+
+   Extracts choice results from a Pyomo model and structures them into DataFrames.
+
+   When `time_steps` is given, `choices` may be static (broadcast across all
+   timesteps) or already in `{t: {...}}` form; the result gains a 'Time' index level.
+
+
+.. py:function:: extract_demand(demand: Dict[Any, float], time_steps: Optional[List] = None) -> pandas.DataFrame
+
+   Converts demand data into a structured DataFrame.
+   Supports both Brightway Activities and string keys.
+
+   When `time_steps` is given, `demand` may be static (broadcast across all
+   timesteps) or already in `{t: {...}}` form; the result gains a 'Time' index level.
+
+
+.. py:function:: extract_constraints(instance: pyomo.environ.ConcreteModel, constraints: Dict[Any, float], mapping: Dict[str, str], metadata: Dict[str, str], constraint_type: str, time_steps: Optional[List] = None) -> pandas.DataFrame
+
+   Extracts scaling factors or inventory flows associated with constraints from a Pyomo model instance.
+
+   When `time_steps` is given, `constraints` may be static (broadcast across all
+   timesteps) or already in `{t: {...}}` form; the result gains a 'Time' index level.
+
+
+.. py:function:: extract_params(instance: pyomo.environ.ConcreteModel) -> Dict[str, pandas.DataFrame]
+
+   Extracts the Parameter values from the optimization model
+
+
+.. py:function:: extract_results(worker: Any, extractparams: bool = False) -> ResultDataDict
+
+   Extracts results from the Pyomo model instance and organizes them into a structured format. Calls all other extract functions.
+
+
+.. py:function:: save_results(worker: Any, file_name: Union[str, os.PathLike]) -> None
+
+   Saves worker/result data to an Excel file with multiple sheets.
+
+   ``file_name`` is a path relative to the working directory or an absolute
+   one; missing folders on it are created.
+
+
+.. py:function:: summarize_results(worker: Any, zeroes: bool = False) -> None
+
+   Displays a summary of worker data in the console/Jupyter.
+   Only the total impacts, the choices made, and the constraints (if any) are shown.
+
+

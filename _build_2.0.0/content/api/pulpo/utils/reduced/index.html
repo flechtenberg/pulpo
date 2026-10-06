@@ -1,0 +1,1464 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="../../../../../_static/favicon.svg" type="image/svg+xml">
+    <link rel="icon" sizes="144x144" href="../../../../../_static/favicon-144.png" type="image/png">
+    <link rel="mask-icon" href="../../../../../_static/favicon_mask-icon.svg" color="#222832" type="image/svg+xml">
+    <link rel="apple-touch-icon" sizes="500x500" href="../../../../../_static/favicon-500.png" type="image/png">
+    <title>pulpo.utils.reduced &#8212; pulpo 2.0.0 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../../../_static/styles/theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+<link href="../../../../../_static/styles/bootstrap.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+<link href="../../../../../_static/styles/pydata-sphinx-theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+
+  
+  <link href="../../../../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/custom.css?v=913d6465" />
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../../../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341" />
+<link rel="preload" as="script" href="../../../../../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341" />
+  <script src="../../../../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=3ee479438cf8b5e0d341"></script>
+
+    <script src="../../../../../_static/documentation_options.js?v=79f5c508"></script>
+    <script src="../../../../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../../../../_static/design-tabs.js?v=36754332"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'content/api/pulpo/utils/reduced/index';</script>
+    <link rel="index" title="Index" href="../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../search.html" />
+    <link rel="next" title="pulpo.utils.saver" href="../saver/index.html" />
+    <link rel="prev" title="pulpo.utils.optimizer" href="../optimizer/index.html" />
+<meta name="google-site-verification" content="Fb3YVU81AToFlPNhlaQf6LLq1SMrHPbY-RtFsgZkw9Q" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+
+<a class="navbar-brand logo" href="../../../../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../../../../_static/pulpo_logo_big.svg" class="logo__image only-light" alt="pulpo 2.0.0 documentation - Home"/>
+    <script>document.write(`<img src="../../../../../_static/pulpo_logo_big.svg" class="logo__image only-dark" alt="pulpo 2.0.0 documentation - Home"/>`);</script>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav class="navbar-nav">
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../getting_started/index.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../theory.html">
+    Theory
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../uncertainty.html">
+    Uncertainty
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../examples/index.html">
+    Examples
+  </a>
+</li>
+
+            <li class="nav-item dropdown pst-header-nav-item">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class="nav-item  current active">
+  <a class="nav-link dropdown-item nav-internal" href="../../../index.html">
+    API
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../codeofconduct.html">
+    Code of Conduct
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../license.html">
+    License
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../changelog.html">
+    Changelog
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  </button>
+`);
+</script></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links navbar-nav"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/flechtenberg/pulpo" title="Open this Repo on GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fab fa-brands fa-github fa-lg" aria-hidden="true"></i></span>
+            <span class="sr-only">Open this Repo on GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+    </div>
+  
+
+  
+    <button class="sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav class="navbar-nav">
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../getting_started/index.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../theory.html">
+    Theory
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../uncertainty.html">
+    Uncertainty
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../examples/index.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item current active">
+  <a class="nav-link nav-internal" href="../../../index.html">
+    API
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../codeofconduct.html">
+    Code of Conduct
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../license.html">
+    License
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../../changelog.html">
+    Changelog
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  </button>
+`);
+</script></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links navbar-nav"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/flechtenberg/pulpo" title="Open this Repo on GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fab fa-brands fa-github fa-lg" aria-hidden="true"></i></span>
+            <span class="sr-only">Open this Repo on GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="../../index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo</span></code></a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../../datasets/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.datasets</span></code></a></li>
+<li class="toctree-l2 current active has-children"><a class="reference internal" href="../index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils</span></code></a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="../uncertainty/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.uncertainty</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../bw_parser/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.bw_parser</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../converter/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.converter</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../monte_carlo/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.monte_carlo</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../optimizer/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.optimizer</span></code></a></li>
+<li class="toctree-l3 current active"><a class="current reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.reduced</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../saver/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.saver</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../scaling/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.scaling</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../time_extension/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.time_extension</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../utils/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.utils</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../warning/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.warning</span></code></a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pulpo/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.pulpo</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pulpo_time/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.pulpo_time</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../pulpo_unc/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.pulpo_unc</span></code></a></li>
+</ul>
+</details></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../../index.html" class="nav-link">API Reference</a></li>
+    
+    
+    <li class="breadcrumb-item"><i class="fa-solid fa-ellipsis"></i></li>
+    
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils</span></code></a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><code...</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="module-pulpo.utils.reduced">
+<span id="pulpo-utils-reduced"></span><h1><a class="reference internal" href="#module-pulpo.utils.reduced" title="pulpo.utils.reduced"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.reduced</span></code></a><a class="headerlink" href="#module-pulpo.utils.reduced" title="Link to this heading">#</a></h1>
+<p>Reduced-space solution of PULPO’s static LP: <code class="docutils literal notranslate"><span class="pre">solve(formulation='reduced')</span></code>.</p>
+<section id="why">
+<h2>Why<a class="headerlink" href="#why" title="Link to this heading">#</a></h2>
+<p>PULPO’s LP has one variable per process and one balance row per product. The
+choices free only a few directions: one per alternative, minus one per
+category (16 on a 23,569-process ecoinvent model). With the technosphere
+matrix <code class="docutils literal notranslate"><span class="pre">A</span></code> square and invertible, every scaling vector that satisfies the
+merged balances is</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">s</span> <span class="o">=</span> <span class="n">s0</span> <span class="o">+</span> <span class="n">S</span> <span class="n">v</span><span class="p">,</span>        <span class="n">s0</span> <span class="o">=</span> <span class="n">A</span><span class="o">^-</span><span class="mi">1</span> <span class="n">f</span><span class="o">~</span><span class="p">,</span>        <span class="n">S</span> <span class="o">=</span> <span class="n">A</span><span class="o">^-</span><span class="mi">1</span> <span class="n">E</span>
+</pre></div>
+</div>
+<p>where <code class="docutils literal notranslate"><span class="pre">v_k</span></code> is the net output on alternative <code class="docutils literal notranslate"><span class="pre">k</span></code>’s own product row (plus
+the slack of every supply product), <code class="docutils literal notranslate"><span class="pre">E</span></code> places <code class="docutils literal notranslate"><span class="pre">v</span></code> on those rows, and
+<code class="docutils literal notranslate"><span class="pre">f~</span></code> is the demand on all other rows. Conversely every <code class="docutils literal notranslate"><span class="pre">v</span></code> gives a
+balanced <code class="docutils literal notranslate"><span class="pre">s</span></code>. The LP over <code class="docutils literal notranslate"><span class="pre">s</span></code> and the LP over <code class="docutils literal notranslate"><span class="pre">v</span></code> are therefore the same
+problem: the reduction is exact, and it holds for every static PULPO
+constraint because each of them is linear in <code class="docutils literal notranslate"><span class="pre">s</span></code>.</p>
+<p>The reduced LP has one column per alternative and one row per constraint
+that is not a balance, so it is small and dense. It is solved directly; the
+full scaling vector is recovered with one forward solve, and all balances
+hold to the precision of the factorization rather than to the LP solver’s
+feasibility tolerance.</p>
+</section>
+<section id="what">
+<h2>What<a class="headerlink" href="#what" title="Link to this heading">#</a></h2>
+<p>Every constraint of the instance becomes one row in <code class="docutils literal notranslate"><span class="pre">v</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">category</span> <span class="n">c</span>            <span class="n">sum_</span><span class="p">{</span><span class="n">k</span> <span class="ow">in</span> <span class="n">c</span><span class="p">}</span> <span class="n">v_k</span> <span class="o">=</span> <span class="n">f_c</span>
+<span class="n">bound</span> <span class="n">on</span> <span class="n">process</span> <span class="n">j</span>    <span class="n">l_j</span> <span class="o">-</span> <span class="n">s0_j</span>  <span class="o">&lt;=</span>  <span class="n">S</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="p">:]</span> <span class="n">v</span>  <span class="o">&lt;=</span>  <span class="n">u_j</span> <span class="o">-</span> <span class="n">s0_j</span>
+<span class="n">impact</span> <span class="n">h</span>              <span class="n">S</span><span class="s1">' c_h  (objective, impact limits, goals)</span>
+<span class="n">flow</span> <span class="n">limit</span> <span class="n">g</span>          <span class="n">S</span><span class="s1">' B_g'</span>
+<span class="n">dependent</span> <span class="n">constraint</span>  <span class="n">S</span><span class="s1">' (L_d - R_d)  &lt;=  -(L_d - R_d)'</span> <span class="n">s0</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">S</span></code> is never formed: on a large database it is a dense n x K matrix (2.6 GB
+for 216,467 processes and 1,500 alternatives). A row <code class="docutils literal notranslate"><span class="pre">m'</span> <span class="pre">S</span></code> needs only the
+adjoint solve <code class="docutils literal notranslate"><span class="pre">A'</span> <span class="pre">x</span> <span class="pre">=</span> <span class="pre">m</span></code>, after which <code class="docutils literal notranslate"><span class="pre">(m'</span> <span class="pre">S)_k</span> <span class="pre">=</span> <span class="pre">x[p_k]</span></code>; a block of
+bound rows <code class="docutils literal notranslate"><span class="pre">S[J,</span> <span class="pre">:]</span></code> can instead be read off K forward solves, keeping only
+the rows <code class="docutils literal notranslate"><span class="pre">J</span></code>. <a class="reference internal" href="#pulpo.utils.reduced.ReducedSystem.project" title="pulpo.utils.reduced.ReducedSystem.project"><code class="xref py py-meth docutils literal notranslate"><span class="pre">ReducedSystem.project()</span></code></a> picks whichever needs fewer
+solves. One factorization of <code class="docutils literal notranslate"><span class="pre">A</span></code> serves both directions and every solve
+after it: across objective weights, limits, demand and repeated solves.
+Every finite process bound is a row <code class="docutils literal notranslate"><span class="pre">S[j,</span> <span class="pre">:]</span></code>, so the LP stays small only
+while few processes are bounded, which is PULPO’s default (bounds are +-inf
+unless set). Finite <code class="docutils literal notranslate"><span class="pre">default_limits</span></code> on every process put the whole of
+<code class="docutils literal notranslate"><span class="pre">S</span></code> into the LP (see <code class="docutils literal notranslate"><span class="pre">PulpoOptimizer.instantiate</span></code>).</p>
+<p>Reading a solved instance: unchanged. <a class="reference internal" href="#pulpo.utils.reduced.ReducedModel.solve" title="pulpo.utils.reduced.ReducedModel.solve"><code class="xref py py-meth docutils literal notranslate"><span class="pre">ReducedModel.solve()</span></code></a> writes the
+recovered scaling vector, the impacts, the flows, the supply slacks and the
+transgressions onto the Pyomo instance in original units, exactly where a
+full solve leaves them, so <code class="docutils literal notranslate"><span class="pre">extract_results</span></code> / <code class="docutils literal notranslate"><span class="pre">summarize_results</span></code> and
+the post-processing in <code class="docutils literal notranslate"><span class="pre">PulpoOptimizer.solve</span></code> work as before.</p>
+<p>Requirements, checked when the model is built: <code class="docutils literal notranslate"><span class="pre">A</span></code> square and non-singular;
+a static instance (the time-dependent model raises <code class="docutils literal notranslate"><span class="pre">NotImplementedError</span></code>);
+no constraints, variables or objectives beyond those <code class="docutils literal notranslate"><span class="pre">optimizer.instantiate</span></code>
+creates. Changes made on the instance itself are honoured: limit Params,
+variable bounds, fixed variables, deactivated optional rows.</p>
+</section>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading">#</a></h2>
+<section id="classes">
+<h3>Classes<a class="headerlink" href="#classes" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pulpo.utils.reduced.Factorization" title="pulpo.utils.reduced.Factorization"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Factorization</span></code></a></p></td>
+<td><p>One sparse LU of the technosphere matrix, for <code class="docutils literal notranslate"><span class="pre">A</span> <span class="pre">x</span> <span class="pre">=</span> <span class="pre">b</span></code> and <code class="docutils literal notranslate"><span class="pre">A'</span> <span class="pre">x</span> <span class="pre">=</span> <span class="pre">b</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pulpo.utils.reduced.ReducedSystem" title="pulpo.utils.reduced.ReducedSystem"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ReducedSystem</span></code></a></p></td>
+<td><p>The affine map <code class="docutils literal notranslate"><span class="pre">v</span> <span class="pre">-&gt;</span> <span class="pre">s</span> <span class="pre">=</span> <span class="pre">A^-1</span> <span class="pre">(f~</span> <span class="pre">+</span> <span class="pre">E</span> <span class="pre">v)</span></code> for a fixed set of free rows.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pulpo.utils.reduced.ReducedLP" title="pulpo.utils.reduced.ReducedLP"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ReducedLP</span></code></a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">min</span> <span class="pre">c'x</span> <span class="pre">+</span> <span class="pre">c0</span>&#160; <span class="pre">s.t.</span>&#160; <span class="pre">row_lower</span> <span class="pre">&lt;=</span> <span class="pre">matrix</span> <span class="pre">x</span> <span class="pre">&lt;=</span> <span class="pre">row_upper,</span>&#160; <span class="pre">col_lower</span> <span class="pre">&lt;=</span> <span class="pre">x</span> <span class="pre">&lt;=</span> <span class="pre">col_upper</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pulpo.utils.reduced.LPSolution" title="pulpo.utils.reduced.LPSolution"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LPSolution</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pulpo.utils.reduced.ReducedResults" title="pulpo.utils.reduced.ReducedResults"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ReducedResults</span></code></a></p></td>
+<td><p>Outcome of <a class="reference internal" href="#pulpo.utils.reduced.ReducedModel.solve" title="pulpo.utils.reduced.ReducedModel.solve"><code class="xref py py-meth docutils literal notranslate"><span class="pre">ReducedModel.solve()</span></code></a>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pulpo.utils.reduced.ReducedModel" title="pulpo.utils.reduced.ReducedModel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ReducedModel</span></code></a></p></td>
+<td><p>The reduced formulation of one instantiated (static) PULPO model.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="functions">
+<h3>Functions<a class="headerlink" href="#functions" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pulpo.utils.reduced.backward_error" title="pulpo.utils.reduced.backward_error"><code class="xref py py-obj docutils literal notranslate"><span class="pre">backward_error</span></code></a>(residual, size)</p></td>
+<td><p>Largest <code class="docutils literal notranslate"><span class="pre">|r_i|</span> <span class="pre">/</span> <span class="pre">size_i</span></code>: each residual relative to the size of its</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pulpo.utils.reduced._resolve_backend" title="pulpo.utils.reduced._resolve_backend"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_resolve_backend</span></code></a>(backend)</p></td>
+<td><p>The backend to use: the requested one, or for <code class="docutils literal notranslate"><span class="pre">'auto'</span></code> the first</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pulpo.utils.reduced.matrix_digest" title="pulpo.utils.reduced.matrix_digest"><code class="xref py py-obj docutils literal notranslate"><span class="pre">matrix_digest</span></code></a>(A)</p></td>
+<td><p>Content hash of a sparse matrix (shape, pattern and values).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pulpo.utils.reduced._vector_key" title="pulpo.utils.reduced._vector_key"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_vector_key</span></code></a>(m)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pulpo.utils.reduced.solve_lp" title="pulpo.utils.reduced.solve_lp"><code class="xref py py-obj docutils literal notranslate"><span class="pre">solve_lp</span></code></a>(lp[, solver_name, options])</p></td>
+<td><p>Equilibrate and solve a <a class="reference internal" href="#pulpo.utils.reduced.ReducedLP" title="pulpo.utils.reduced.ReducedLP"><code class="xref py py-class docutils literal notranslate"><span class="pre">ReducedLP</span></code></a> with HiGHS (default) or Gurobi.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pulpo.utils.reduced._solve_highs" title="pulpo.utils.reduced._solve_highs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_solve_highs</span></code></a>(c, matrix, row_lower, row_upper, ...)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pulpo.utils.reduced._solve_gurobi" title="pulpo.utils.reduced._solve_gurobi"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_solve_gurobi</span></code></a>(c, matrix, row_lower, row_upper, ...)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pulpo.utils.reduced._finite" title="pulpo.utils.reduced._finite"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_finite</span></code></a>(value, default)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pulpo.utils.reduced._var_bounds" title="pulpo.utils.reduced._var_bounds"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_var_bounds</span></code></a>(var[, factor, unscaled])</p></td>
+<td><p>Bounds of a Pyomo variable in original units; a fixed variable is pinned</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pulpo.utils.reduced._check_instance" title="pulpo.utils.reduced._check_instance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_check_instance</span></code></a>(inst)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pulpo.utils.reduced._free_rows" title="pulpo.utils.reduced._free_rows"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_free_rows</span></code></a>(instance, lci_data, choices)</p></td>
+<td><p>The alternatives (in the order of <code class="docutils literal notranslate"><span class="pre">choices</span></code>), their categories, and the</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pulpo.utils.reduced.build" title="pulpo.utils.reduced.build"><code class="xref py py-obj docutils literal notranslate"><span class="pre">build</span></code></a>(worker[, backend])</p></td>
+<td><p>The <a class="reference internal" href="#pulpo.utils.reduced.ReducedModel" title="pulpo.utils.reduced.ReducedModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">ReducedModel</span></code></a> of the worker's current instance.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="attributes">
+<h3>Attributes<a class="headerlink" href="#attributes" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pulpo.utils.reduced.CHUNK_ENTRIES" title="pulpo.utils.reduced.CHUNK_ENTRIES"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CHUNK_ENTRIES</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pulpo.utils.reduced.REFINEMENT_STEPS" title="pulpo.utils.reduced.REFINEMENT_STEPS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">REFINEMENT_STEPS</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pulpo.utils.reduced.REFINEMENT_TOL" title="pulpo.utils.reduced.REFINEMENT_TOL"><code class="xref py py-obj docutils literal notranslate"><span class="pre">REFINEMENT_TOL</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pulpo.utils.reduced.RESIDUAL_LIMIT" title="pulpo.utils.reduced.RESIDUAL_LIMIT"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RESIDUAL_LIMIT</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pulpo.utils.reduced.HIGHS_OPTIONS" title="pulpo.utils.reduced.HIGHS_OPTIONS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HIGHS_OPTIONS</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pulpo.utils.reduced.GUROBI_OPTIONS" title="pulpo.utils.reduced.GUROBI_OPTIONS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">GUROBI_OPTIONS</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pulpo.utils.reduced._KNOWN_VARS" title="pulpo.utils.reduced._KNOWN_VARS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_KNOWN_VARS</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pulpo.utils.reduced._KNOWN_CONSTRAINTS" title="pulpo.utils.reduced._KNOWN_CONSTRAINTS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_KNOWN_CONSTRAINTS</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pulpo.utils.reduced._CACHES" title="pulpo.utils.reduced._CACHES"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_CACHES</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<dl class="py data">
+<dt class="sig sig-object py" id="pulpo.utils.reduced.CHUNK_ENTRIES">
+<span class="sig-prename descclassname"><span class="pre">pulpo.utils.reduced.</span></span><span class="sig-name descname"><span class="pre">CHUNK_ENTRIES</span></span><a class="reference internal" href="../../../../../_modules/pulpo/utils/reduced.html#CHUNK_ENTRIES"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.reduced.CHUNK_ENTRIES" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="pulpo.utils.reduced.REFINEMENT_STEPS">
+<span class="sig-prename descclassname"><span class="pre">pulpo.utils.reduced.</span></span><span class="sig-name descname"><span class="pre">REFINEMENT_STEPS</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></em><a class="reference internal" href="../../../../../_modules/pulpo/utils/reduced.html#REFINEMENT_STEPS"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.reduced.REFINEMENT_STEPS" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="pulpo.utils.reduced.REFINEMENT_TOL">
+<span class="sig-prename descclassname"><span class="pre">pulpo.utils.reduced.</span></span><span class="sig-name descname"><span class="pre">REFINEMENT_TOL</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1e-14</span></em><a class="reference internal" href="../../../../../_modules/pulpo/utils/reduced.html#REFINEMENT_TOL"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.reduced.REFINEMENT_TOL" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="pulpo.utils.reduced.RESIDUAL_LIMIT">
+<span class="sig-prename descclassname"><span class="pre">pulpo.utils.reduced.</span></span><span class="sig-name descname"><span class="pre">RESIDUAL_LIMIT</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1e-08</span></em><a class="reference internal" href="../../../../../_modules/pulpo/utils/reduced.html#RESIDUAL_LIMIT"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.reduced.RESIDUAL_LIMIT" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="pulpo.utils.reduced.HIGHS_OPTIONS">
+<span class="sig-prename descclassname"><span class="pre">pulpo.utils.reduced.</span></span><span class="sig-name descname"><span class="pre">HIGHS_OPTIONS</span></span><a class="reference internal" href="../../../../../_modules/pulpo/utils/reduced.html#HIGHS_OPTIONS"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.reduced.HIGHS_OPTIONS" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="pulpo.utils.reduced.GUROBI_OPTIONS">
+<span class="sig-prename descclassname"><span class="pre">pulpo.utils.reduced.</span></span><span class="sig-name descname"><span class="pre">GUROBI_OPTIONS</span></span><a class="reference internal" href="../../../../../_modules/pulpo/utils/reduced.html#GUROBI_OPTIONS"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.reduced.GUROBI_OPTIONS" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="pulpo.utils.reduced._KNOWN_VARS">
+<span class="sig-prename descclassname"><span class="pre">pulpo.utils.reduced.</span></span><span class="sig-name descname"><span class="pre">_KNOWN_VARS</span></span><a class="reference internal" href="../../../../../_modules/pulpo/utils/reduced.html#_KNOWN_VARS"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.reduced._KNOWN_VARS" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="pulpo.utils.reduced._KNOWN_CONSTRAINTS">
+<span class="sig-prename descclassname"><span class="pre">pulpo.utils.reduced.</span></span><span class="sig-name descname"><span class="pre">_KNOWN_CONSTRAINTS</span></span><a class="reference internal" href="../../../../../_modules/pulpo/utils/reduced.html#_KNOWN_CONSTRAINTS"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.reduced._KNOWN_CONSTRAINTS" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pulpo.utils.reduced.Factorization">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pulpo.utils.reduced.</span></span><span class="sig-name descname"><span class="pre">Factorization</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">A</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">backend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auto'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/pulpo/utils/reduced.html#Factorization"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.reduced.Factorization" title="Link to this definition">#</a></dt>
+<dd><p>One sparse LU of the technosphere matrix, for <code class="docutils literal notranslate"><span class="pre">A</span> <span class="pre">x</span> <span class="pre">=</span> <span class="pre">b</span></code> and <code class="docutils literal notranslate"><span class="pre">A'</span> <span class="pre">x</span> <span class="pre">=</span> <span class="pre">b</span></code>.</p>
+<p>PARDISO (<code class="docutils literal notranslate"><span class="pre">pypardiso</span></code>, a PULPO dependency on x86-64 Windows and Linux)
+factorizes an ecoinvent-sized matrix in about a second. Where MKL is
+unavailable (macOS, ARM), UMFPACK (<code class="docutils literal notranslate"><span class="pre">scikit-umfpack</span></code>, optional; install it
+from conda-forge) is the next choice, several times slower than PARDISO but
+an order of magnitude faster than SciPy’s SuperLU, the last resort, which
+takes tens of seconds with the <code class="docutils literal notranslate"><span class="pre">MMD_AT_PLUS_A</span></code> ordering and minutes with
+its default.</p>
+<p><code class="docutils literal notranslate"><span class="pre">pypardiso</span></code> keeps a single solver instance per process, which bw2calc
+uses as well. A factorization that was replaced in between (by an LCA
+calculation, say) is detected before each solve and redone. The factors
+themselves are native objects and are not pickled: a copied or unpickled
+factorization refactorizes on its first solve.</p>
+<p>A singular <code class="docutils literal notranslate"><span class="pre">A</span></code> is refused: the reduction parametrizes the balanced
+scaling vectors only when <code class="docutils literal notranslate"><span class="pre">A</span></code> is invertible. SuperLU and UMFPACK stop at
+an exact zero pivot; PARDISO instead perturbs pivots below <code class="docutils literal notranslate"><span class="pre">1e-13</span> <span class="pre">*</span> <span class="pre">|A|</span></code>
+and returns the solution of a nearby matrix, so any perturbed pivot
+(<code class="docutils literal notranslate"><span class="pre">iparm(14)</span></code>) counts as singular.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>A</strong> – square sparse matrix.</p></li>
+<li><p><strong>backend</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – <code class="docutils literal notranslate"><span class="pre">'auto'</span></code> (the first available of PARDISO, UMFPACK and
+SciPy), <code class="docutils literal notranslate"><span class="pre">'pardiso'</span></code>, <code class="docutils literal notranslate"><span class="pre">'umfpack'</span></code> or <code class="docutils literal notranslate"><span class="pre">'scipy'</span></code>.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pulpo.utils.reduced.Factorization._factorize">
+<span class="sig-name descname"><span class="pre">_factorize</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/pulpo/utils/reduced.html#Factorization._factorize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.reduced.Factorization._factorize" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pulpo.utils.reduced.Factorization.solve">
+<span class="sig-name descname"><span class="pre">solve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">b</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transpose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/pulpo/utils/reduced.html#Factorization.solve"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.reduced.Factorization.solve" title="Link to this definition">#</a></dt>
+<dd><p>Solve <code class="docutils literal notranslate"><span class="pre">A</span> <span class="pre">x</span> <span class="pre">=</span> <span class="pre">b</span></code> (or <code class="docutils literal notranslate"><span class="pre">A'</span> <span class="pre">x</span> <span class="pre">=</span> <span class="pre">b</span></code>) for a vector or a dense block <code class="docutils literal notranslate"><span class="pre">b</span></code>.</p>
+<p>A plain solve can leave a componentwise backward error far above
+roundoff on an ecoinvent technosphere (entries 1e-13 .. 1e11): up to
+1e-5 with SuperLU, 4e-8 with PARDISO on a 216,467-process system.
+Iterative refinement with the same factors brings it to roundoff; it
+runs only while <a class="reference internal" href="#pulpo.utils.reduced.backward_error" title="pulpo.utils.reduced.backward_error"><code class="xref py py-func docutils literal notranslate"><span class="pre">backward_error()</span></code></a> exceeds <code class="docutils literal notranslate"><span class="pre">REFINEMENT_TOL</span></code>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pulpo.utils.reduced.Factorization._raw_solve">
+<span class="sig-name descname"><span class="pre">_raw_solve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">b</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transpose</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/pulpo/utils/reduced.html#Factorization._raw_solve"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.reduced.Factorization._raw_solve" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pulpo.utils.reduced.backward_error">
+<span class="sig-prename descclassname"><span class="pre">pulpo.utils.reduced.</span></span><span class="sig-name descname"><span class="pre">backward_error</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">residual</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/pulpo/utils/reduced.html#backward_error"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.reduced.backward_error" title="Link to this definition">#</a></dt>
+<dd><p>Largest <code class="docutils literal notranslate"><span class="pre">|r_i|</span> <span class="pre">/</span> <span class="pre">size_i</span></code>: each residual relative to the size of its
+row’s terms (<code class="docutils literal notranslate"><span class="pre">|A|</span> <span class="pre">|x|</span> <span class="pre">+</span> <span class="pre">|b|</span></code>), zero where the row is empty.</p>
+<p>The size is floored at machine epsilon times the largest one: a row whose
+terms are smaller than that (activities of 1e-40 next to 1e10, say) holds
+only the rounding of the larger terms, which no solve can remove.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pulpo.utils.reduced._resolve_backend">
+<span class="sig-prename descclassname"><span class="pre">pulpo.utils.reduced.</span></span><span class="sig-name descname"><span class="pre">_resolve_backend</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">backend</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/pulpo/utils/reduced.html#_resolve_backend"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.reduced._resolve_backend" title="Link to this definition">#</a></dt>
+<dd><p>The backend to use: the requested one, or for <code class="docutils literal notranslate"><span class="pre">'auto'</span></code> the first
+available of PARDISO, UMFPACK and SciPy. A requested backend that is not
+installed raises its ImportError.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pulpo.utils.reduced.matrix_digest">
+<span class="sig-prename descclassname"><span class="pre">pulpo.utils.reduced.</span></span><span class="sig-name descname"><span class="pre">matrix_digest</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">A</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/pulpo/utils/reduced.html#matrix_digest"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.reduced.matrix_digest" title="Link to this definition">#</a></dt>
+<dd><p>Content hash of a sparse matrix (shape, pattern and values).</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pulpo.utils.reduced.ReducedSystem">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pulpo.utils.reduced.</span></span><span class="sig-name descname"><span class="pre">ReducedSystem</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">factorization</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">columns</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/pulpo/utils/reduced.html#ReducedSystem"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.reduced.ReducedSystem" title="Link to this definition">#</a></dt>
+<dd><p>The affine map <code class="docutils literal notranslate"><span class="pre">v</span> <span class="pre">-&gt;</span> <span class="pre">s</span> <span class="pre">=</span> <span class="pre">A^-1</span> <span class="pre">(f~</span> <span class="pre">+</span> <span class="pre">E</span> <span class="pre">v)</span></code> for a fixed set of free rows.</p>
+<p><code class="docutils literal notranslate"><span class="pre">columns[k]</span></code> is the product row whose net output is <code class="docutils literal notranslate"><span class="pre">v_k</span></code>. This is the
+public building block for formulations on top of PULPO’s reduced space:
+<a class="reference internal" href="#pulpo.utils.reduced.ReducedSystem.project" title="pulpo.utils.reduced.ReducedSystem.project"><code class="xref py py-meth docutils literal notranslate"><span class="pre">project()</span></code></a> gives <code class="docutils literal notranslate"><span class="pre">M</span> <span class="pre">S</span></code> for any linear functional <code class="docutils literal notranslate"><span class="pre">M</span></code> of the
+scaling vector (impact rows, flow rows, rows of <code class="docutils literal notranslate"><span class="pre">S</span></code> itself) and
+<a class="reference internal" href="#pulpo.utils.reduced.ReducedSystem.base" title="pulpo.utils.reduced.ReducedSystem.base"><code class="xref py py-meth docutils literal notranslate"><span class="pre">base()</span></code></a> gives <code class="docutils literal notranslate"><span class="pre">s0</span></code>, so that <code class="docutils literal notranslate"><span class="pre">M</span> <span class="pre">s</span> <span class="pre">=</span> <span class="pre">M</span> <span class="pre">s0</span> <span class="pre">+</span> <span class="pre">(M</span> <span class="pre">S)</span> <span class="pre">v</span></code>.</p>
+<p>Projections of process rows are cached per process, so the bound rows
+are computed once for every solve that keeps <code class="docutils literal notranslate"><span class="pre">A</span></code> and the columns.</p>
+<dl class="py property">
+<dt class="sig sig-object py" id="pulpo.utils.reduced.ReducedSystem.n_free">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">n_free</span></span><a class="reference internal" href="../../../../../_modules/pulpo/utils/reduced.html#ReducedSystem.n_free"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.reduced.ReducedSystem.n_free" title="Link to this definition">#</a></dt>
+<dd><p>Number of reduced variables <code class="docutils literal notranslate"><span class="pre">v</span></code>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pulpo.utils.reduced.ReducedSystem.base">
+<span class="sig-name descname"><span class="pre">base</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f_tilde</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/pulpo/utils/reduced.html#ReducedSystem.base"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.reduced.ReducedSystem.base" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">s0</span> <span class="pre">=</span> <span class="pre">A^-1</span> <span class="pre">f~</span></code>: the scaling vector at <code class="docutils literal notranslate"><span class="pre">v</span> <span class="pre">=</span> <span class="pre">0</span></code>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pulpo.utils.reduced.ReducedSystem.recover">
+<span class="sig-name descname"><span class="pre">recover</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f_tilde</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/pulpo/utils/reduced.html#ReducedSystem.recover"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.reduced.ReducedSystem.recover" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">s</span> <span class="pre">=</span> <span class="pre">A^-1</span> <span class="pre">(f~</span> <span class="pre">+</span> <span class="pre">E</span> <span class="pre">v)</span></code>: the full scaling vector of a reduced point.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pulpo.utils.reduced.ReducedSystem.project">
+<span class="sig-name descname"><span class="pre">project</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">M</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/pulpo/utils/reduced.html#ReducedSystem.project"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.reduced.ReducedSystem.project" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">M</span> <span class="pre">S</span></code> for a sparse <code class="docutils literal notranslate"><span class="pre">(r,</span> <span class="pre">n)</span></code> matrix <code class="docutils literal notranslate"><span class="pre">M</span></code>, without forming <code class="docutils literal notranslate"><span class="pre">S</span></code>.</p>
+<p>Uses <code class="docutils literal notranslate"><span class="pre">r</span></code> adjoint solves or <code class="docutils literal notranslate"><span class="pre">n_free</span></code> forward solves, whichever is
+fewer, in chunks of <a class="reference internal" href="#pulpo.utils.reduced.CHUNK_ENTRIES" title="pulpo.utils.reduced.CHUNK_ENTRIES"><code class="xref py py-data docutils literal notranslate"><span class="pre">CHUNK_ENTRIES</span></code></a>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pulpo.utils.reduced.ReducedSystem.rows">
+<span class="sig-name descname"><span class="pre">rows</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">processes</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/pulpo/utils/reduced.html#ReducedSystem.rows"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.reduced.ReducedSystem.rows" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">S[J,</span> <span class="pre">:]</span></code> for the processes <code class="docutils literal notranslate"><span class="pre">J</span></code> (cached per process).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pulpo.utils.reduced.ReducedSystem.project_vectors">
+<span class="sig-name descname"><span class="pre">project_vectors</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vectors</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/pulpo/utils/reduced.html#ReducedSystem.project_vectors"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.reduced.ReducedSystem.project_vectors" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">m'</span> <span class="pre">S</span></code> for each dense or sparse vector <code class="docutils literal notranslate"><span class="pre">m</span></code> (cached by content).</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pulpo.utils.reduced._vector_key">
+<span class="sig-prename descclassname"><span class="pre">pulpo.utils.reduced.</span></span><span class="sig-name descname"><span class="pre">_vector_key</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/pulpo/utils/reduced.html#_vector_key"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.reduced._vector_key" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pulpo.utils.reduced.ReducedLP">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pulpo.utils.reduced.</span></span><span class="sig-name descname"><span class="pre">ReducedLP</span></span><a class="reference internal" href="../../../../../_modules/pulpo/utils/reduced.html#ReducedLP"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.reduced.ReducedLP" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">min</span> <span class="pre">c'x</span> <span class="pre">+</span> <span class="pre">c0</span>&#160; <span class="pre">s.t.</span>&#160; <span class="pre">row_lower</span> <span class="pre">&lt;=</span> <span class="pre">matrix</span> <span class="pre">x</span> <span class="pre">&lt;=</span> <span class="pre">row_upper,</span>&#160; <span class="pre">col_lower</span> <span class="pre">&lt;=</span> <span class="pre">x</span> <span class="pre">&lt;=</span> <span class="pre">col_upper</span></code>.</p>
+<p>The variables are <code class="docutils literal notranslate"><span class="pre">v</span></code> (in original units), followed by any auxiliary
+columns of the formulation (the transgressions of a goal objective).
+<code class="docutils literal notranslate"><span class="pre">row_labels</span></code> / <code class="docutils literal notranslate"><span class="pre">col_labels</span></code> name what each row and column is.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pulpo.utils.reduced.ReducedLP.c">
+<span class="sig-name descname"><span class="pre">c</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></em><a class="reference internal" href="../../../../../_modules/pulpo/utils/reduced.html#ReducedLP.c"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.reduced.ReducedLP.c" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pulpo.utils.reduced.ReducedLP.c0">
+<span class="sig-name descname"><span class="pre">c0</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></em><a class="reference internal" href="../../../../../_modules/pulpo/utils/reduced.html#ReducedLP.c0"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.reduced.ReducedLP.c0" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pulpo.utils.reduced.ReducedLP.matrix">
+<span class="sig-name descname"><span class="pre">matrix</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.csr_matrix.html#scipy.sparse.csr_matrix" title="(in SciPy v1.18.0)"><span class="pre">scipy.sparse.csr_matrix</span></a></em><a class="reference internal" href="../../../../../_modules/pulpo/utils/reduced.html#ReducedLP.matrix"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.reduced.ReducedLP.matrix" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pulpo.utils.reduced.ReducedLP.row_lower">
+<span class="sig-name descname"><span class="pre">row_lower</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></em><a class="reference internal" href="../../../../../_modules/pulpo/utils/reduced.html#ReducedLP.row_lower"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.reduced.ReducedLP.row_lower" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pulpo.utils.reduced.ReducedLP.row_upper">
+<span class="sig-name descname"><span class="pre">row_upper</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></em><a class="reference internal" href="../../../../../_modules/pulpo/utils/reduced.html#ReducedLP.row_upper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.reduced.ReducedLP.row_upper" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pulpo.utils.reduced.ReducedLP.col_lower">
+<span class="sig-name descname"><span class="pre">col_lower</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></em><a class="reference internal" href="../../../../../_modules/pulpo/utils/reduced.html#ReducedLP.col_lower"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.reduced.ReducedLP.col_lower" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pulpo.utils.reduced.ReducedLP.col_upper">
+<span class="sig-name descname"><span class="pre">col_upper</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></em><a class="reference internal" href="../../../../../_modules/pulpo/utils/reduced.html#ReducedLP.col_upper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.reduced.ReducedLP.col_upper" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pulpo.utils.reduced.ReducedLP.row_labels">
+<span class="sig-name descname"><span class="pre">row_labels</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a></em><a class="reference internal" href="../../../../../_modules/pulpo/utils/reduced.html#ReducedLP.row_labels"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.reduced.ReducedLP.row_labels" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pulpo.utils.reduced.ReducedLP.col_labels">
+<span class="sig-name descname"><span class="pre">col_labels</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a></em><a class="reference internal" href="../../../../../_modules/pulpo/utils/reduced.html#ReducedLP.col_labels"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.reduced.ReducedLP.col_labels" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pulpo.utils.reduced.LPSolution">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pulpo.utils.reduced.</span></span><span class="sig-name descname"><span class="pre">LPSolution</span></span><a class="reference internal" href="../../../../../_modules/pulpo/utils/reduced.html#LPSolution"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.reduced.LPSolution" title="Link to this definition">#</a></dt>
+<dd><dl class="py attribute">
+<dt class="sig sig-object py" id="pulpo.utils.reduced.LPSolution.termination_condition">
+<span class="sig-name descname"><span class="pre">termination_condition</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">pyomo.opt.TerminationCondition</span></em><a class="reference internal" href="../../../../../_modules/pulpo/utils/reduced.html#LPSolution.termination_condition"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.reduced.LPSolution.termination_condition" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pulpo.utils.reduced.LPSolution.x">
+<span class="sig-name descname"><span class="pre">x</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></em><a class="reference internal" href="../../../../../_modules/pulpo/utils/reduced.html#LPSolution.x"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.reduced.LPSolution.x" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pulpo.utils.reduced.LPSolution.objective">
+<span class="sig-name descname"><span class="pre">objective</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></em><a class="reference internal" href="../../../../../_modules/pulpo/utils/reduced.html#LPSolution.objective"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.reduced.LPSolution.objective" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pulpo.utils.reduced.LPSolution.seconds">
+<span class="sig-name descname"><span class="pre">seconds</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.0</span></em><a class="reference internal" href="../../../../../_modules/pulpo/utils/reduced.html#LPSolution.seconds"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.reduced.LPSolution.seconds" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pulpo.utils.reduced.solve_lp">
+<span class="sig-prename descclassname"><span class="pre">pulpo.utils.reduced.</span></span><span class="sig-name descname"><span class="pre">solve_lp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solver_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/pulpo/utils/reduced.html#solve_lp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.reduced.solve_lp" title="Link to this definition">#</a></dt>
+<dd><p>Equilibrate and solve a <a class="reference internal" href="#pulpo.utils.reduced.ReducedLP" title="pulpo.utils.reduced.ReducedLP"><code class="xref py py-class docutils literal notranslate"><span class="pre">ReducedLP</span></code></a> with HiGHS (default) or Gurobi.</p>
+<p><code class="docutils literal notranslate"><span class="pre">options</span></code> are passed to the solver after <a class="reference internal" href="#pulpo.utils.reduced.HIGHS_OPTIONS" title="pulpo.utils.reduced.HIGHS_OPTIONS"><code class="xref py py-data docutils literal notranslate"><span class="pre">HIGHS_OPTIONS</span></code></a> /
+<a class="reference internal" href="#pulpo.utils.reduced.GUROBI_OPTIONS" title="pulpo.utils.reduced.GUROBI_OPTIONS"><code class="xref py py-data docutils literal notranslate"><span class="pre">GUROBI_OPTIONS</span></code></a>, so they win; the key <code class="docutils literal notranslate"><span class="pre">'tee'</span></code> shows the solver log.
+The returned <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">objective</span></code> are in the units of <code class="docutils literal notranslate"><span class="pre">lp</span></code>.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pulpo.utils.reduced._solve_highs">
+<span class="sig-prename descclassname"><span class="pre">pulpo.utils.reduced.</span></span><span class="sig-name descname"><span class="pre">_solve_highs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">c</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">matrix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">row_lower</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">row_upper</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">col_lower</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">col_upper</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tee</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/pulpo/utils/reduced.html#_solve_highs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.reduced._solve_highs" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pulpo.utils.reduced._solve_gurobi">
+<span class="sig-prename descclassname"><span class="pre">pulpo.utils.reduced.</span></span><span class="sig-name descname"><span class="pre">_solve_gurobi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">c</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">matrix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">row_lower</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">row_upper</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">col_lower</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">col_upper</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tee</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/pulpo/utils/reduced.html#_solve_gurobi"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.reduced._solve_gurobi" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pulpo.utils.reduced.ReducedResults">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pulpo.utils.reduced.</span></span><span class="sig-name descname"><span class="pre">ReducedResults</span></span><a class="reference internal" href="../../../../../_modules/pulpo/utils/reduced.html#ReducedResults"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.reduced.ReducedResults" title="Link to this definition">#</a></dt>
+<dd><p>Outcome of <a class="reference internal" href="#pulpo.utils.reduced.ReducedModel.solve" title="pulpo.utils.reduced.ReducedModel.solve"><code class="xref py py-meth docutils literal notranslate"><span class="pre">ReducedModel.solve()</span></code></a>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">termination_condition</span></code> is Pyomo’s enum, as in the results of a full
+solve with Gurobi. <code class="docutils literal notranslate"><span class="pre">v</span></code> and <code class="docutils literal notranslate"><span class="pre">s</span></code> are in original units; <code class="docutils literal notranslate"><span class="pre">seconds</span></code>
+splits the time into assembling the LP (projections included), solving
+it and recovering <code class="docutils literal notranslate"><span class="pre">s</span></code>. <code class="docutils literal notranslate"><span class="pre">balance_residual</span></code> is the largest
+<code class="docutils literal notranslate"><span class="pre">|A</span> <span class="pre">s</span> <span class="pre">-</span> <span class="pre">f~</span> <span class="pre">-</span> <span class="pre">E</span> <span class="pre">v|</span></code> of a balance relative to the size of its terms,
+<code class="docutils literal notranslate"><span class="pre">|A|</span> <span class="pre">|s|</span> <span class="pre">+</span> <span class="pre">|f~</span> <span class="pre">+</span> <span class="pre">E</span> <span class="pre">v|</span></code>.
+<code class="docutils literal notranslate"><span class="pre">rounds</span></code> counts the LP solves: more than one only when a remote bound
+side or limit (see <a class="reference internal" href="#pulpo.utils.reduced.ReducedModel.REMOTE_BOUND" title="pulpo.utils.reduced.ReducedModel.REMOTE_BOUND"><code class="xref py py-attr docutils literal notranslate"><span class="pre">ReducedModel.REMOTE_BOUND</span></code></a>) was withheld and the
+solution violated it, or the problem was unbounded without it.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pulpo.utils.reduced.ReducedResults.termination_condition">
+<span class="sig-name descname"><span class="pre">termination_condition</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">pyomo.opt.TerminationCondition</span></em><a class="reference internal" href="../../../../../_modules/pulpo/utils/reduced.html#ReducedResults.termination_condition"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.reduced.ReducedResults.termination_condition" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pulpo.utils.reduced.ReducedResults.objective">
+<span class="sig-name descname"><span class="pre">objective</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></em><a class="reference internal" href="../../../../../_modules/pulpo/utils/reduced.html#ReducedResults.objective"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.reduced.ReducedResults.objective" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pulpo.utils.reduced.ReducedResults.solver">
+<span class="sig-name descname"><span class="pre">solver</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></em><a class="reference internal" href="../../../../../_modules/pulpo/utils/reduced.html#ReducedResults.solver"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.reduced.ReducedResults.solver" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pulpo.utils.reduced.ReducedResults.v">
+<span class="sig-name descname"><span class="pre">v</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></em><a class="reference internal" href="../../../../../_modules/pulpo/utils/reduced.html#ReducedResults.v"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.reduced.ReducedResults.v" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pulpo.utils.reduced.ReducedResults.s">
+<span class="sig-name descname"><span class="pre">s</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">numpy.ndarray</span></a></em><a class="reference internal" href="../../../../../_modules/pulpo/utils/reduced.html#ReducedResults.s"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.reduced.ReducedResults.s" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pulpo.utils.reduced.ReducedResults.seconds">
+<span class="sig-name descname"><span class="pre">seconds</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a></em><a class="reference internal" href="../../../../../_modules/pulpo/utils/reduced.html#ReducedResults.seconds"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.reduced.ReducedResults.seconds" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pulpo.utils.reduced.ReducedResults.n_variables">
+<span class="sig-name descname"><span class="pre">n_variables</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="reference internal" href="../../../../../_modules/pulpo/utils/reduced.html#ReducedResults.n_variables"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.reduced.ReducedResults.n_variables" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pulpo.utils.reduced.ReducedResults.n_rows">
+<span class="sig-name descname"><span class="pre">n_rows</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="reference internal" href="../../../../../_modules/pulpo/utils/reduced.html#ReducedResults.n_rows"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.reduced.ReducedResults.n_rows" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pulpo.utils.reduced.ReducedResults.balance_residual">
+<span class="sig-name descname"><span class="pre">balance_residual</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></em><a class="reference internal" href="../../../../../_modules/pulpo/utils/reduced.html#ReducedResults.balance_residual"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.reduced.ReducedResults.balance_residual" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pulpo.utils.reduced.ReducedResults.rounds">
+<span class="sig-name descname"><span class="pre">rounds</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="reference internal" href="../../../../../_modules/pulpo/utils/reduced.html#ReducedResults.rounds"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.reduced.ReducedResults.rounds" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="pulpo.utils.reduced.ReducedSolveError">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pulpo.utils.reduced.</span></span><span class="sig-name descname"><span class="pre">ReducedSolveError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/pulpo/utils/reduced.html#ReducedSolveError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.reduced.ReducedSolveError" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="../optimizer/index.html#pulpo.utils.optimizer.SolveError" title="pulpo.utils.optimizer.SolveError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pulpo.utils.optimizer.SolveError</span></code></a></p>
+<div class="graphviz"><object data="../../../../../_images/inheritance-25eba9c1ad001537a0d88b58fdca98addd247fdf.svg" type="image/svg+xml" class="inheritance graphviz">
+<p class="warning">Inheritance diagram of pulpo.utils.reduced.ReducedSolveError</p></object></div>
+<p>The reduced LP did not end optimal. <code class="docutils literal notranslate"><span class="pre">results</span></code> (a <a class="reference internal" href="#pulpo.utils.reduced.ReducedResults" title="pulpo.utils.reduced.ReducedResults"><code class="xref py py-class docutils literal notranslate"><span class="pre">ReducedResults</span></code></a>)
+holds the termination condition, the size of the LP and the times.</p>
+<p>Initialize self.  See help(type(self)) for accurate signature.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pulpo.utils.reduced._finite">
+<span class="sig-prename descclassname"><span class="pre">pulpo.utils.reduced.</span></span><span class="sig-name descname"><span class="pre">_finite</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/pulpo/utils/reduced.html#_finite"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.reduced._finite" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pulpo.utils.reduced._var_bounds">
+<span class="sig-prename descclassname"><span class="pre">pulpo.utils.reduced.</span></span><span class="sig-name descname"><span class="pre">_var_bounds</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">var</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unscaled</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/pulpo/utils/reduced.html#_var_bounds"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.reduced._var_bounds" title="Link to this definition">#</a></dt>
+<dd><p>Bounds of a Pyomo variable in original units; a fixed variable is pinned
+at its value. <code class="docutils literal notranslate"><span class="pre">factor</span></code> converts the model’s units to original units;
+<code class="docutils literal notranslate"><span class="pre">unscaled</span></code> says whether the stored <em>value</em> is already in original units
+(it is after every solve, see <code class="docutils literal notranslate"><span class="pre">scaling.unscale_solution</span></code>).</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pulpo.utils.reduced.ReducedModel">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pulpo.utils.reduced.</span></span><span class="sig-name descname"><span class="pre">ReducedModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">instance</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lci_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">choices</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">system</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/pulpo/utils/reduced.html#ReducedModel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.reduced.ReducedModel" title="Link to this definition">#</a></dt>
+<dd><p>The reduced formulation of one instantiated (static) PULPO model.</p>
+<p>Built by <a class="reference internal" href="#pulpo.utils.reduced.build" title="pulpo.utils.reduced.build"><code class="xref py py-func docutils literal notranslate"><span class="pre">build()</span></code></a>. Every call to <a class="reference internal" href="#pulpo.utils.reduced.ReducedModel.linear_program" title="pulpo.utils.reduced.ReducedModel.linear_program"><code class="xref py py-meth docutils literal notranslate"><span class="pre">linear_program()</span></code></a> /
+<a class="reference internal" href="#pulpo.utils.reduced.ReducedModel.solve" title="pulpo.utils.reduced.ReducedModel.solve"><code class="xref py py-meth docutils literal notranslate"><span class="pre">solve()</span></code></a> reads the instance’s current limits, demand, weights, goals,
+dependent-constraint weights, variable bounds and fixed variables, so
+changes made in place between solves (an epsilon-constraint sweep on
+<code class="docutils literal notranslate"><span class="pre">UPPER_IMP_LIMIT</span></code>, say) are honoured, while the projections, which depend
+only on <code class="docutils literal notranslate"><span class="pre">A</span></code>, the choices and the coefficient vectors, are reused.</p>
+<p>Every finite process bound is a row of the LP. A bound side far beyond
+every activity of the problem, such as a capacity of 1e10 meaning
+“unlimited”, is the exception: its right-hand side would only degrade the
+conditioning of a solve (of the chance-constrained cone above all), so it
+is withheld and imposed only if a solution violates it (<a class="reference internal" href="#pulpo.utils.reduced.ReducedModel.optimize" title="pulpo.utils.reduced.ReducedModel.optimize"><code class="xref py py-meth docutils literal notranslate"><span class="pre">optimize()</span></code></a>
+re-solves then, which is exact). Impact and flow limits are treated alike.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Variables<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>system</strong> (<a class="reference internal" href="#pulpo.utils.reduced.ReducedSystem" title="pulpo.utils.reduced.ReducedSystem"><em>ReducedSystem</em></a>) – the map <code class="docutils literal notranslate"><span class="pre">v</span> <span class="pre">-&gt;</span> <span class="pre">s</span></code>.</p></li>
+<li><p><strong>column_labels</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><em>list</em></a>) – per reduced variable, <code class="docutils literal notranslate"><span class="pre">('alternative',</span> <span class="pre">category,</span>
+<span class="pre">process)</span></code> or <code class="docutils literal notranslate"><span class="pre">('slack',</span> <span class="pre">product)</span></code>.</p></li>
+<li><p><strong>categories</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a>) – category -&gt; indices of its alternatives in <code class="docutils literal notranslate"><span class="pre">v</span></code>.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pulpo.utils.reduced.ReducedModel.BOUND_TOL">
+<span class="sig-name descname"><span class="pre">BOUND_TOL</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1e-09</span></em><a class="reference internal" href="../../../../../_modules/pulpo/utils/reduced.html#ReducedModel.BOUND_TOL"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.reduced.ReducedModel.BOUND_TOL" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pulpo.utils.reduced.ReducedModel.REMOTE_BOUND">
+<span class="sig-name descname"><span class="pre">REMOTE_BOUND</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1000000.0</span></em><a class="reference internal" href="../../../../../_modules/pulpo/utils/reduced.html#ReducedModel.REMOTE_BOUND"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.reduced.ReducedModel.REMOTE_BOUND" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pulpo.utils.reduced.ReducedModel._unscaled">
+<span class="sig-name descname"><span class="pre">_unscaled</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/pulpo/utils/reduced.html#ReducedModel._unscaled"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.reduced.ReducedModel._unscaled" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pulpo.utils.reduced.ReducedModel.process_bounds">
+<span class="sig-name descname"><span class="pre">process_bounds</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/pulpo/utils/reduced.html#ReducedModel.process_bounds"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.reduced.ReducedModel.process_bounds" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">(lower,</span> <span class="pre">upper)</span></code>: every process bound in original units, a fixed
+<code class="docutils literal notranslate"><span class="pre">scaling_vector</span></code> entry pinned at its value.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pulpo.utils.reduced.ReducedModel.demand">
+<span class="sig-name descname"><span class="pre">demand</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/pulpo/utils/reduced.html#ReducedModel.demand"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.reduced.ReducedModel.demand" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">f~</span></code> (demand on every non-category row) and the category demands.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pulpo.utils.reduced.ReducedModel.impact_vectors">
+<span class="sig-name descname"><span class="pre">impact_vectors</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/pulpo/utils/reduced.html#ReducedModel.impact_vectors"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.reduced.ReducedModel.impact_vectors" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">{h:</span> <span class="pre">c_h}</span></code>: the dense environmental cost vector of each indicator, in
+original units (per unit of activity), as the impact rows hold it now.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pulpo.utils.reduced.ReducedModel._dependent_vectors">
+<span class="sig-name descname"><span class="pre">_dependent_vectors</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/pulpo/utils/reduced.html#ReducedModel._dependent_vectors"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.reduced.ReducedModel._dependent_vectors" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pulpo.utils.reduced.ReducedModel._slack_bounds">
+<span class="sig-name descname"><span class="pre">_slack_bounds</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/pulpo/utils/reduced.html#ReducedModel._slack_bounds"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.reduced.ReducedModel._slack_bounds" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pulpo.utils.reduced.ReducedModel.linear_program">
+<span class="sig-name descname"><span class="pre">linear_program</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">processes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bounds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/pulpo/utils/reduced.html#ReducedModel.linear_program"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.reduced.ReducedModel.linear_program" title="Link to this definition">#</a></dt>
+<dd><p>Assemble the reduced LP for the instance’s current data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>processes</strong> – process ids whose bounds become rows; <code class="docutils literal notranslate"><span class="pre">None</span></code> (as
+<a class="reference internal" href="#pulpo.utils.reduced.ReducedModel.optimize" title="pulpo.utils.reduced.ReducedModel.optimize"><code class="xref py py-meth docutils literal notranslate"><span class="pre">optimize()</span></code></a> uses it) adds a row for every bounded process.</p></li>
+<li><p><strong>bounds</strong> – <code class="docutils literal notranslate"><span class="pre">(lower,</span> <span class="pre">upper)</span></code> from <a class="reference internal" href="#pulpo.utils.reduced.ReducedModel.process_bounds" title="pulpo.utils.reduced.ReducedModel.process_bounds"><code class="xref py py-meth docutils literal notranslate"><span class="pre">process_bounds()</span></code></a>, if already read.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Returns <code class="docutils literal notranslate"><span class="pre">(lp,</span> <span class="pre">f_tilde)</span></code>; the first <code class="docutils literal notranslate"><span class="pre">system.n_free</span></code> columns of
+<code class="docutils literal notranslate"><span class="pre">lp</span></code> are <code class="docutils literal notranslate"><span class="pre">v</span></code>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pulpo.utils.reduced.ReducedModel.optimize">
+<span class="sig-name descname"><span class="pre">optimize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">solve</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bounds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transform</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/pulpo/utils/reduced.html#ReducedModel.optimize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.reduced.ReducedModel.optimize" title="Link to this definition">#</a></dt>
+<dd><p>Solve with every process bound as a row, remote sides withheld.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>solve</strong> – <code class="docutils literal notranslate"><span class="pre">solve(lp,</span> <span class="pre">f_tilde)</span> <span class="pre">-&gt;</span> <span class="pre">LPSolution</span></code> for an LP from
+<a class="reference internal" href="#pulpo.utils.reduced.ReducedModel.linear_program" title="pulpo.utils.reduced.ReducedModel.linear_program"><code class="xref py py-meth docutils literal notranslate"><span class="pre">linear_program()</span></code></a> (whose first <code class="docutils literal notranslate"><span class="pre">system.n_free</span></code> columns are
+<code class="docutils literal notranslate"><span class="pre">v</span></code>); the chance-constrained problem passes its cone solve here.</p></li>
+<li><p><strong>bounds</strong> – <code class="docutils literal notranslate"><span class="pre">(lower,</span> <span class="pre">upper)</span></code> process bounds in original units; defaults
+to <a class="reference internal" href="#pulpo.utils.reduced.ReducedModel.process_bounds" title="pulpo.utils.reduced.ReducedModel.process_bounds"><code class="xref py py-meth docutils literal notranslate"><span class="pre">process_bounds()</span></code></a>.</p></li>
+<li><p><strong>transform</strong> – <code class="docutils literal notranslate"><span class="pre">transform(lp,</span> <span class="pre">f_tilde)</span></code>, applied to every LP before it
+is solved (the chance-constrained problem replaces the objective).</p></li>
+</ul>
+</dd>
+</dl>
+<p>Bound sides and impact or flow limits beyond <a class="reference internal" href="#pulpo.utils.reduced.ReducedModel.REMOTE_BOUND" title="pulpo.utils.reduced.ReducedModel.REMOTE_BOUND"><code class="xref py py-attr docutils literal notranslate"><span class="pre">REMOTE_BOUND</span></code></a> times
+the problem’s scale are withheld from the solve and checked against its
+solution; one that is violated, or one without which the problem is
+unbounded, is imposed and the LP solved again.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>a <a class="reference internal" href="#pulpo.utils.reduced.ReducedResults" title="pulpo.utils.reduced.ReducedResults"><code class="xref py py-class docutils literal notranslate"><span class="pre">ReducedResults</span></code></a> (<code class="docutils literal notranslate"><span class="pre">v</span></code>, <code class="docutils literal notranslate"><span class="pre">objective</span></code>,
+<code class="docutils literal notranslate"><span class="pre">balance_residual</span></code> set when optimal) and the full scaling vector.
+Nothing is written onto the instance, and nothing is raised: the
+caller checks <code class="docutils literal notranslate"><span class="pre">results.termination_condition</span></code>.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">(results,</span> <span class="pre">s)</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pulpo.utils.reduced.ReducedModel._warn_remote">
+<span class="sig-name descname"><span class="pre">_warn_remote</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">far_lo</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">far_up</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lower</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upper</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limits</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/pulpo/utils/reduced.html#ReducedModel._warn_remote"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.reduced.ReducedModel._warn_remote" title="Link to this definition">#</a></dt>
+<dd><p>Tell the user about bounds that stand for “no limit” (see <a class="reference internal" href="#pulpo.utils.reduced.ReducedModel.optimize" title="pulpo.utils.reduced.ReducedModel.optimize"><code class="xref py py-meth docutils literal notranslate"><span class="pre">optimize()</span></code></a>).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pulpo.utils.reduced.ReducedModel.solve">
+<span class="sig-name descname"><span class="pre">solve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">solver_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/pulpo/utils/reduced.html#ReducedModel.solve"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.reduced.ReducedModel.solve" title="Link to this definition">#</a></dt>
+<dd><p>Solve the reduced LP and write the solution onto the instance.</p>
+<p>Raises <a class="reference internal" href="#pulpo.utils.reduced.ReducedSolveError" title="pulpo.utils.reduced.ReducedSolveError"><code class="xref py py-class docutils literal notranslate"><span class="pre">ReducedSolveError</span></code></a> when the LP does not end optimal (or
+the recovered scaling vector does not satisfy the balances); the
+instance then keeps its previous values.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pulpo.utils.reduced.ReducedModel.write_solution">
+<span class="sig-name descname"><span class="pre">write_solution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/pulpo/utils/reduced.html#ReducedModel.write_solution"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.reduced.ReducedModel.write_solution" title="Link to this definition">#</a></dt>
+<dd><p>Write a full scaling vector (and the slacks in <code class="docutils literal notranslate"><span class="pre">v</span></code>) onto the instance.</p>
+<p>Impacts, flows and transgressions are evaluated from <code class="docutils literal notranslate"><span class="pre">s</span></code> as the
+constraints of the full model define them. Values are in original
+units; on an equilibrated instance this is the state <code class="docutils literal notranslate"><span class="pre">solve_model</span></code>
+leaves after a solve. Fixed variables keep their value, converted to
+original units as <code class="docutils literal notranslate"><span class="pre">scaling.unscale_solution</span></code> does.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pulpo.utils.reduced._check_instance">
+<span class="sig-prename descclassname"><span class="pre">pulpo.utils.reduced.</span></span><span class="sig-name descname"><span class="pre">_check_instance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inst</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/pulpo/utils/reduced.html#_check_instance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.reduced._check_instance" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pulpo.utils.reduced._free_rows">
+<span class="sig-prename descclassname"><span class="pre">pulpo.utils.reduced.</span></span><span class="sig-name descname"><span class="pre">_free_rows</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">instance</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lci_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">choices</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/pulpo/utils/reduced.html#_free_rows"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.reduced._free_rows" title="Link to this definition">#</a></dt>
+<dd><p>The alternatives (in the order of <code class="docutils literal notranslate"><span class="pre">choices</span></code>), their categories, and the
+supply products: the product rows whose net output is free in the LP.</p>
+<p>Mirrors <code class="docutils literal notranslate"><span class="pre">converter.combine_inputs</span></code>: an alternative’s product row is the
+row of its process, and an activity listed in two categories is pooled in
+the last one.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="pulpo.utils.reduced._CACHES">
+<span class="sig-prename descclassname"><span class="pre">pulpo.utils.reduced.</span></span><span class="sig-name descname"><span class="pre">_CACHES</span></span><a class="reference internal" href="../../../../../_modules/pulpo/utils/reduced.html#_CACHES"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.reduced._CACHES" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pulpo.utils.reduced.build">
+<span class="sig-prename descclassname"><span class="pre">pulpo.utils.reduced.</span></span><span class="sig-name descname"><span class="pre">build</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">worker</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">backend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auto'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/pulpo/utils/reduced.html#build"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pulpo.utils.reduced.build" title="Link to this definition">#</a></dt>
+<dd><p>The <a class="reference internal" href="#pulpo.utils.reduced.ReducedModel" title="pulpo.utils.reduced.ReducedModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">ReducedModel</span></code></a> of the worker’s current instance.</p>
+<p>The factorization of <code class="docutils literal notranslate"><span class="pre">A</span></code> and the projections are cached per worker and
+reused by every later call while the technosphere matrix keeps its content
+(and, for the projections, the alternatives and supply products), across
+re-instantiations with other limits, weights or demand.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>worker</strong> (<a class="reference internal" href="../../pulpo/index.html#pulpo.pulpo.PulpoOptimizer" title="pulpo.pulpo.PulpoOptimizer"><em>PulpoOptimizer</em></a>) – an instantiated optimizer.</p></li>
+<li><p><strong>backend</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – factorization backend, see <a class="reference internal" href="#pulpo.utils.reduced.Factorization" title="pulpo.utils.reduced.Factorization"><code class="xref py py-class docutils literal notranslate"><span class="pre">Factorization</span></code></a>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="../optimizer/index.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.optimizer</span></code></p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="../saver/index.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pulpo.utils.saver</span></code></p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#why">Why</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what">What</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-contents">Module Contents</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#classes">Classes</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#functions">Functions</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#attributes">Attributes</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.reduced.CHUNK_ENTRIES"><code class="docutils literal notranslate"><span class="pre">CHUNK_ENTRIES</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.reduced.REFINEMENT_STEPS"><code class="docutils literal notranslate"><span class="pre">REFINEMENT_STEPS</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.reduced.REFINEMENT_TOL"><code class="docutils literal notranslate"><span class="pre">REFINEMENT_TOL</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.reduced.RESIDUAL_LIMIT"><code class="docutils literal notranslate"><span class="pre">RESIDUAL_LIMIT</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.reduced.HIGHS_OPTIONS"><code class="docutils literal notranslate"><span class="pre">HIGHS_OPTIONS</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.reduced.GUROBI_OPTIONS"><code class="docutils literal notranslate"><span class="pre">GUROBI_OPTIONS</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.reduced._KNOWN_VARS"><code class="docutils literal notranslate"><span class="pre">_KNOWN_VARS</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.reduced._KNOWN_CONSTRAINTS"><code class="docutils literal notranslate"><span class="pre">_KNOWN_CONSTRAINTS</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.reduced.Factorization"><code class="docutils literal notranslate"><span class="pre">Factorization</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.reduced.Factorization._factorize"><code class="docutils literal notranslate"><span class="pre">Factorization._factorize()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.reduced.Factorization.solve"><code class="docutils literal notranslate"><span class="pre">Factorization.solve()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.reduced.Factorization._raw_solve"><code class="docutils literal notranslate"><span class="pre">Factorization._raw_solve()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.reduced.backward_error"><code class="docutils literal notranslate"><span class="pre">backward_error()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.reduced._resolve_backend"><code class="docutils literal notranslate"><span class="pre">_resolve_backend()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.reduced.matrix_digest"><code class="docutils literal notranslate"><span class="pre">matrix_digest()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.reduced.ReducedSystem"><code class="docutils literal notranslate"><span class="pre">ReducedSystem</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.reduced.ReducedSystem.n_free"><code class="docutils literal notranslate"><span class="pre">ReducedSystem.n_free</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.reduced.ReducedSystem.base"><code class="docutils literal notranslate"><span class="pre">ReducedSystem.base()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.reduced.ReducedSystem.recover"><code class="docutils literal notranslate"><span class="pre">ReducedSystem.recover()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.reduced.ReducedSystem.project"><code class="docutils literal notranslate"><span class="pre">ReducedSystem.project()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.reduced.ReducedSystem.rows"><code class="docutils literal notranslate"><span class="pre">ReducedSystem.rows()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.reduced.ReducedSystem.project_vectors"><code class="docutils literal notranslate"><span class="pre">ReducedSystem.project_vectors()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.reduced._vector_key"><code class="docutils literal notranslate"><span class="pre">_vector_key()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.reduced.ReducedLP"><code class="docutils literal notranslate"><span class="pre">ReducedLP</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.reduced.ReducedLP.c"><code class="docutils literal notranslate"><span class="pre">ReducedLP.c</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.reduced.ReducedLP.c0"><code class="docutils literal notranslate"><span class="pre">ReducedLP.c0</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.reduced.ReducedLP.matrix"><code class="docutils literal notranslate"><span class="pre">ReducedLP.matrix</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.reduced.ReducedLP.row_lower"><code class="docutils literal notranslate"><span class="pre">ReducedLP.row_lower</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.reduced.ReducedLP.row_upper"><code class="docutils literal notranslate"><span class="pre">ReducedLP.row_upper</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.reduced.ReducedLP.col_lower"><code class="docutils literal notranslate"><span class="pre">ReducedLP.col_lower</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.reduced.ReducedLP.col_upper"><code class="docutils literal notranslate"><span class="pre">ReducedLP.col_upper</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.reduced.ReducedLP.row_labels"><code class="docutils literal notranslate"><span class="pre">ReducedLP.row_labels</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.reduced.ReducedLP.col_labels"><code class="docutils literal notranslate"><span class="pre">ReducedLP.col_labels</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.reduced.LPSolution"><code class="docutils literal notranslate"><span class="pre">LPSolution</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.reduced.LPSolution.termination_condition"><code class="docutils literal notranslate"><span class="pre">LPSolution.termination_condition</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.reduced.LPSolution.x"><code class="docutils literal notranslate"><span class="pre">LPSolution.x</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.reduced.LPSolution.objective"><code class="docutils literal notranslate"><span class="pre">LPSolution.objective</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.reduced.LPSolution.seconds"><code class="docutils literal notranslate"><span class="pre">LPSolution.seconds</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.reduced.solve_lp"><code class="docutils literal notranslate"><span class="pre">solve_lp()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.reduced._solve_highs"><code class="docutils literal notranslate"><span class="pre">_solve_highs()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.reduced._solve_gurobi"><code class="docutils literal notranslate"><span class="pre">_solve_gurobi()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.reduced.ReducedResults"><code class="docutils literal notranslate"><span class="pre">ReducedResults</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.reduced.ReducedResults.termination_condition"><code class="docutils literal notranslate"><span class="pre">ReducedResults.termination_condition</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.reduced.ReducedResults.objective"><code class="docutils literal notranslate"><span class="pre">ReducedResults.objective</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.reduced.ReducedResults.solver"><code class="docutils literal notranslate"><span class="pre">ReducedResults.solver</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.reduced.ReducedResults.v"><code class="docutils literal notranslate"><span class="pre">ReducedResults.v</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.reduced.ReducedResults.s"><code class="docutils literal notranslate"><span class="pre">ReducedResults.s</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.reduced.ReducedResults.seconds"><code class="docutils literal notranslate"><span class="pre">ReducedResults.seconds</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.reduced.ReducedResults.n_variables"><code class="docutils literal notranslate"><span class="pre">ReducedResults.n_variables</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.reduced.ReducedResults.n_rows"><code class="docutils literal notranslate"><span class="pre">ReducedResults.n_rows</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.reduced.ReducedResults.balance_residual"><code class="docutils literal notranslate"><span class="pre">ReducedResults.balance_residual</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.reduced.ReducedResults.rounds"><code class="docutils literal notranslate"><span class="pre">ReducedResults.rounds</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.reduced.ReducedSolveError"><code class="docutils literal notranslate"><span class="pre">ReducedSolveError</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.reduced._finite"><code class="docutils literal notranslate"><span class="pre">_finite()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.reduced._var_bounds"><code class="docutils literal notranslate"><span class="pre">_var_bounds()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.reduced.ReducedModel"><code class="docutils literal notranslate"><span class="pre">ReducedModel</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.reduced.ReducedModel.BOUND_TOL"><code class="docutils literal notranslate"><span class="pre">ReducedModel.BOUND_TOL</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.reduced.ReducedModel.REMOTE_BOUND"><code class="docutils literal notranslate"><span class="pre">ReducedModel.REMOTE_BOUND</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.reduced.ReducedModel._unscaled"><code class="docutils literal notranslate"><span class="pre">ReducedModel._unscaled()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.reduced.ReducedModel.process_bounds"><code class="docutils literal notranslate"><span class="pre">ReducedModel.process_bounds()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.reduced.ReducedModel.demand"><code class="docutils literal notranslate"><span class="pre">ReducedModel.demand()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.reduced.ReducedModel.impact_vectors"><code class="docutils literal notranslate"><span class="pre">ReducedModel.impact_vectors()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.reduced.ReducedModel._dependent_vectors"><code class="docutils literal notranslate"><span class="pre">ReducedModel._dependent_vectors()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.reduced.ReducedModel._slack_bounds"><code class="docutils literal notranslate"><span class="pre">ReducedModel._slack_bounds()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.reduced.ReducedModel.linear_program"><code class="docutils literal notranslate"><span class="pre">ReducedModel.linear_program()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.reduced.ReducedModel.optimize"><code class="docutils literal notranslate"><span class="pre">ReducedModel.optimize()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.reduced.ReducedModel._warn_remote"><code class="docutils literal notranslate"><span class="pre">ReducedModel._warn_remote()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.reduced.ReducedModel.solve"><code class="docutils literal notranslate"><span class="pre">ReducedModel.solve()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.reduced.ReducedModel.write_solution"><code class="docutils literal notranslate"><span class="pre">ReducedModel.write_solution()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.reduced._check_instance"><code class="docutils literal notranslate"><span class="pre">_check_instance()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.reduced._free_rows"><code class="docutils literal notranslate"><span class="pre">_free_rows()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.reduced._CACHES"><code class="docutils literal notranslate"><span class="pre">_CACHES</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pulpo.utils.reduced.build"><code class="docutils literal notranslate"><span class="pre">build()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  
+  <div class="tocsection editthispage">
+    <a href="https://github.com/flechtenberg/pulpo/edit/master/docs/content/api/pulpo/utils/reduced/index.rst">
+      <i class="fa-solid fa-pencil"></i>
+      
+      
+        
+          Edit on GitHub
+        
+      
+    </a>
+  </div>
+</div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="../../../../../_sources/content/api/pulpo/utils/reduced/index.rst.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../../../../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341"></script>
+<script src="../../../../../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2026 pulpo developers.
+      <br/>
+    
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item"><p>🌿🐛 Found a bug? Something not working? Frustrated? <a href=" latest/../../../../../../content/contributing.html">Please report it!</a></p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

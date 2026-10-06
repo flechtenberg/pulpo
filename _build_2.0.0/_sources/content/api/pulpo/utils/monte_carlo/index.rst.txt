@@ -1,0 +1,40 @@
+:py:mod:`pulpo.utils.monte_carlo`
+=================================
+
+.. py:module:: pulpo.utils.monte_carlo
+
+.. autoapi-nested-parse::
+
+   monte_carlo.py (base)
+
+   Monte Carlo re-optimization by Brightway resampling (``PulpoOptimizer.solve_MC``).
+   Independent of the uncertainty sub-package.
+
+
+
+Module Contents
+---------------
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   pulpo.utils.monte_carlo.pre_sample_lci_matrices
+   pulpo.utils.monte_carlo.solve_model_MC_pre_sampled
+
+
+
+.. py:function:: pre_sample_lci_matrices(project, databases, method, intervention_matrix_name, n_samples=100, resample=('A', 'B', 'Q'), seed=None)
+
+   Sequentially sample randomized LCI data for Monte Carlo.
+   Runs Brightway only once (thread-safe).
+   Returns list of dicts with randomized A, B, Q matrices.
+
+
+.. py:function:: solve_model_MC_pre_sampled(pulpo_optimizer, samples, GAMS_PATH=False, solver_name=None, options=None, n_jobs=-1)
+
+   Parallel Monte Carlo solve using pre-sampled LCI data (no Brightway).
+
+

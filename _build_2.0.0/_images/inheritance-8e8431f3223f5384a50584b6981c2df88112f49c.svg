@@ -1,0 +1,14 @@
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" xmlns:ns1="http://www.w3.org/1999/xlink" width="62pt" height="28pt" viewBox="0.00 0.00 62.00 28.00">
+<ns0:g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 24)">
+<ns0:title>inheritance96c7c6f4da</ns0:title>
+
+<ns0:g id="node1" class="node">
+<ns0:title>Front</ns0:title>
+<ns0:g id="a_node1"><ns0:a ns1:href="..\content\api\pulpo\utils\uncertainty\cc\index.html#pulpo.utils.uncertainty.cc.Front" ns1:title="``{lambda: Point}`` with a tabular view." target="_top">
+<ns0:polygon fill="white" stroke="black" stroke-width="0.5" points="54,-20 0,-20 0,0 54,0 54,-20" />
+<ns0:text text-anchor="middle" x="27" y="-6.5" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">Front</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+</ns0:g>
+</ns0:svg>

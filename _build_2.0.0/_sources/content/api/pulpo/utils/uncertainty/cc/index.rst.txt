@@ -1,0 +1,451 @@
+:py:mod:`pulpo.utils.uncertainty.cc`
+====================================
+
+.. py:module:: pulpo.utils.uncertainty.cc
+
+.. autoapi-nested-parse::
+
+   Chance-constrained optimization in reduced space.
+
+   Why
+   ---
+   With a joint reliability level ``lambda`` over ``K`` events (the impact row
+   and one per uncertain bound) and Boole's inequality, each event may fail with
+   probability ``eps_k = w_k (1 - lambda)`` (equal weights by default). Then ::
+
+       impact row:  P(X <= z) >= lambda_z = 1 - eps_0
+                    =>  mu' s + kappa sigma(s) <= z,   kappa = Phi^-1(lambda_z)   (X normal, A2)
+       bound j:     P(s_j <= U_j) >= 1 - eps_k   =>  s_j <= F_Uj^-1(eps_k)        (exact quantile)
+
+   and minimizing ``z`` gives ``min mu' s + kappa sigma(s)`` subject to PULPO's
+   constraints with the uncertain bounds at their quantiles. In reduced space
+   (``pulpo.utils.reduced``) ``s = s0 + S v`` and ::
+
+       sigma(s) = || R [1; v] ||,     R' R = G' G,     G = Q^(1/2) [s0, S]
+
+   with ``Q = diag(d) + B_u' diag(w) B_u`` from :mod:`moments`. The problem is a
+   second-order cone program with one column per alternative, solved directly by
+   Clarabel (open source, the default) or Gurobi. ``kappa >= 0`` (``lambda_z >=
+   1/2``) keeps it convex; lower levels are refused.
+
+   ``allocation='individual'`` imposes every event at ``lambda`` on its own (a
+   comparison only: it controls no joint probability).
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   pulpo.utils.uncertainty.cc.RiskBudget
+   pulpo.utils.uncertainty.cc.Point
+   pulpo.utils.uncertainty.cc.Projections
+   pulpo.utils.uncertainty.cc.Front
+   pulpo.utils.uncertainty.cc.ChanceConstrained
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   pulpo.utils.uncertainty.cc.bonferroni_budget
+   pulpo.utils.uncertainty.cc.declared_quantile
+   pulpo.utils.uncertainty.cc.solve_socp
+   pulpo.utils.uncertainty.cc._linear_rows
+   pulpo.utils.uncertainty.cc._solve_clarabel
+   pulpo.utils.uncertainty.cc._solve_gurobi_cone
+   pulpo.utils.uncertainty.cc.apply_CC_formulation
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   pulpo.utils.uncertainty.cc.QR_ENTRIES
+   pulpo.utils.uncertainty.cc.CLARABEL_OPTIONS
+   pulpo.utils.uncertainty.cc.GUROBI_CONE_OPTIONS
+
+
+.. py:data:: QR_ENTRIES
+
+   
+
+.. py:data:: CLARABEL_OPTIONS
+
+   
+
+.. py:data:: GUROBI_CONE_OPTIONS
+
+   
+
+.. py:class:: RiskBudget
+
+
+   A total failure budget ``eps = 1 - lambda`` split across ``K`` events.
+
+   Imposing each chance constraint at ``lambda`` individually controls no joint
+   probability: with ``K`` rows each allowed to fail with probability ``eps``,
+   the chance that at least one fails reaches ``K * eps``. Boole's inequality
+   repairs this - allocate ``eps_k = w_k * eps`` with ``sum(w_k) = 1`` and the
+   union of the failures is bounded by ``eps``, so every row holds *together*
+   with probability at least ``lambda``. It needs only marginals, so no
+   correlation between the events has to be estimated.
+
+   ``weights[0]`` is the impact target; ``weights[1:]`` are the uncertain
+   bounds in the order of :attr:`ChanceConstrained.events` (lower bounds
+   first, then upper bounds, each by process index). The weights are
+   fixed before the solve - choosing them after seeing a solution would make
+   the budget a function of the decision it certifies.
+
+   .. py:property:: epsilon
+      :type: float
+
+      The total failure budget being divided.
+
+   .. py:property:: lambda_impact
+      :type: float
+
+      ``1 - w_0 * eps``, replacing ``lambda``.
+
+      :type: Level for the impact target
+
+   .. py:attribute:: lambda_level
+      :type: float
+
+      
+
+   .. py:attribute:: K
+      :type: int
+
+      
+
+   .. py:attribute:: weights
+      :type: Tuple[float, Ellipsis]
+
+      
+
+   .. py:method:: epsilon_at(position: int) -> float
+
+      The share of the budget allocated to the event at ``position``.
+
+
+
+.. py:function:: bonferroni_budget(lambda_level: float, K: int, weights=None) -> RiskBudget
+
+   Split ``1 - lambda_level`` across ``K`` events, equally unless told otherwise.
+
+   An equal split is the default because it is neutral: it needs no
+   justification and cannot be read as tuned to produce a result. Unequal
+   weights are valid - Boole's inequality only requires them to sum to one -
+   but each must be positive: a weight of zero demands its event with
+   certainty, which no distribution with unbounded support can meet.
+
+
+.. py:function:: declared_quantile(spec: pulpo.utils.uncertainty.preparer.UncertaintySpec, probability: float) -> float
+
+   The exact ``probability``-quantile of a parameter's declared family.
+
+   A right-hand-side-only chance constraint ``P(s <= xi) >= 1 - eps`` is
+   ``s <= F^-1(eps)`` with ``F`` the declared distribution, so it needs no
+   Gaussian representation. For a triangular distribution the inverse CDF is
+   elementary and never leaves the support, which a moment-matched normal does
+   at high reliability.
+
+
+.. py:function:: solve_socp(lp, R, kappa, solver_name=None, options=None)
+
+   ``min c'x + c0 + kappa ||R [1; x_v]||`` over the rows and bounds of ``lp``.
+
+   ``x_v`` are the first ``R.shape[1] - 1`` columns of ``lp``. Rows, columns
+   and the objective are equilibrated as in :func:`reduced.solve_lp`. Returns
+   a :class:`reduced.LPSolution`; ``objective`` includes the cone term.
+
+
+.. py:function:: _linear_rows(M, lo, up, clo, cup)
+
+   Split ``lo <= M x <= up`` and the column bounds into equalities and ``<=`` rows.
+
+
+.. py:function:: _solve_clarabel(c, kappa, M, lo, up, clo, cup, R0, R1, options, tee)
+
+
+.. py:function:: _solve_gurobi_cone(c, kappa, M, lo, up, clo, cup, R0, R1, options, tee)
+
+
+.. py:class:: Point
+
+
+   One solved reliability level.
+
+   ``adjusted`` is the chance-constrained impact ``z = mean + kappa * sigma``;
+   ``mean`` and ``sigma`` are evaluated exactly at ``s`` (not read off the
+   cone). ``bounds`` holds the bound imposed on each uncertain process and
+   ``epsilon`` the failure probability allocated to it, both keyed by the event
+   ``(kind, process)``, e.g. ``('upper', 4)``; ``size`` is the
+   number of processes and the columns and rows of the reduced problem.
+
+   .. py:attribute:: lambda_level
+      :type: float
+
+      
+
+   .. py:attribute:: lambda_impact
+      :type: float
+
+      
+
+   .. py:attribute:: kappa
+      :type: float
+
+      
+
+   .. py:attribute:: mean
+      :type: float
+
+      
+
+   .. py:attribute:: sigma
+      :type: float
+
+      
+
+   .. py:attribute:: adjusted
+      :type: float
+
+      
+
+   .. py:attribute:: s
+      :type: numpy.ndarray
+
+      
+
+   .. py:attribute:: v
+      :type: numpy.ndarray
+
+      
+
+   .. py:attribute:: bounds
+      :type: Dict[Tuple[str, int], float]
+
+      
+
+   .. py:attribute:: epsilon
+      :type: Dict[Tuple[str, int], float]
+
+      
+
+   .. py:attribute:: seconds
+      :type: dict
+
+      
+
+   .. py:attribute:: rounds
+      :type: int
+      :value: 1
+
+      
+
+   .. py:attribute:: balance_residual
+      :type: float
+
+      
+
+   .. py:attribute:: size
+      :type: dict
+
+      
+
+
+.. py:class:: Projections
+
+
+   The impact's moments on the reduced space ``s = s0 + S v``.
+
+   With these and :meth:`reduced.ReducedModel.linear_program` a formulation
+   over ``v`` needs no further solves::
+
+       E[X]  = m0 + m' v
+       Var X = sum_{j in J} d_j (s0_J + S_J v)_j^2 + sum_e w_e (B_unc_s0 + B_unc_S v)_e^2
+
+   ``J`` are the processes that carry variance (``d_j > 0``), ``S_J`` their
+   rows of ``S``, and ``B_unc_S = E[B_u] S`` the mean flows of the uncertain
+   CFs per unit of ``v``. A sampled impact of the base and of one unit of each
+   alternative follows from the same arrays (see :mod:`validation`).
+
+   .. py:attribute:: s0
+      :type: numpy.ndarray
+
+      
+
+   .. py:attribute:: m0
+      :type: float
+
+      
+
+   .. py:attribute:: m
+      :type: numpy.ndarray
+
+      
+
+   .. py:attribute:: J
+      :type: numpy.ndarray
+
+      
+
+   .. py:attribute:: S_J
+      :type: numpy.ndarray
+
+      
+
+   .. py:attribute:: B_unc_s0
+      :type: numpy.ndarray
+
+      
+
+   .. py:attribute:: B_unc_S
+      :type: numpy.ndarray
+
+      
+
+
+.. py:class:: Front
+
+
+   Bases: :py:obj:`dict`
+
+   .. autoapi-inheritance-diagram:: pulpo.utils.uncertainty.cc.Front
+      :parts: 1
+      :private-bases:
+
+   ``{lambda: Point}`` with a tabular view.
+
+   Initialize self.  See help(type(self)) for accurate signature.
+
+   .. py:method:: table() -> pandas.DataFrame
+
+
+
+.. py:exception:: ChanceConstrainedError(message, results)
+
+
+   Bases: :py:obj:`pulpo.utils.optimizer.SolveError`
+
+   .. autoapi-inheritance-diagram:: pulpo.utils.uncertainty.cc.ChanceConstrainedError
+      :parts: 1
+      :private-bases:
+
+   A reliability level did not solve to optimality; ``results`` holds its
+   :class:`reduced.ReducedResults`.
+
+   Initialize self.  See help(type(self)) for accurate signature.
+
+
+.. py:class:: ChanceConstrained(model, moments: pulpo.utils.uncertainty.moments.Moments, upper_bounds=None, lower_bounds=None, allocation='bonferroni', weights=None)
+
+
+   ``min mu' s + kappa sigma(s)`` at a reliability level, in reduced space.
+
+   :param model: a :class:`reduced.ReducedModel`, or an instantiated worker (whose
+                 reduced model is built). Every deterministic constraint of the
+                 instance applies; its objective is replaced by the chance-constrained
+                 impact of ``moments.method``. A limit on that impact itself applies to
+                 its mean ``mu' s`` (it is not chance-constrained).
+   :param moments: from :func:`moments.compute_moments`.
+   :type moments: Moments
+   :param upper_bounds: uncertain process bounds,
+                        ``{process: spec}`` with ``process`` an activity, a key or a process
+                        index and ``spec`` a declared distribution (normal, lognormal,
+                        uniform, triangular). They replace the instance's bounds on those
+                        processes. Each one is an event of the risk budget.
+   :type upper_bounds: dict
+   :param lower_bounds: uncertain process bounds,
+                        ``{process: spec}`` with ``process`` an activity, a key or a process
+                        index and ``spec`` a declared distribution (normal, lognormal,
+                        uniform, triangular). They replace the instance's bounds on those
+                        processes. Each one is an event of the risk budget.
+   :type lower_bounds: dict
+   :param allocation: ``'bonferroni'`` (joint, the default) or ``'individual'``.
+   :type allocation: str
+   :param weights: Bonferroni weights, the first for the
+                   impact row, then one per event in the order of :attr:`events`.
+   :type weights: sequence, optional
+
+   .. py:property:: K
+
+      the impact row and every uncertain bound.
+
+      :type: Number of events
+
+   .. py:property:: bound_specs
+
+      the declared distribution of each uncertain bound.
+
+      :type: ``{(kind, process): spec}``
+
+   .. py:method:: _model(model=None)
+
+      The reduced model of the worker's current instance (rebuilt after a
+      re-instantiation), checked for what the problem supports.
+
+
+   .. py:method:: _process_index(process)
+
+
+   .. py:method:: levels(lambda_level)
+
+      ``(lambda_impact, {event: epsilon})`` at a joint level.
+
+
+   .. py:method:: bounds(lambda_level)
+
+      ``{event: bound}``: the exact quantile imposed on each uncertain bound.
+
+
+   .. py:method:: projections() -> Projections
+
+      The moments of the impact on the current instance's reduced space.
+
+
+   .. py:method:: _factor(f_tilde)
+
+      ``R`` with ``R' R = G' G`` for the current demand (``s0`` depends on it).
+
+
+   .. py:method:: solve_point(lambda_level, solver_name=None, options=None) -> Point
+
+      Solve one reliability level; raises :class:`ChanceConstrainedError` unless optimal.
+
+
+   .. py:method:: solve(lambdas, solver_name=None, options=None) -> Front
+
+      Solve every level of ``lambdas`` (one factorization serves them all).
+
+
+   .. py:method:: write(point: Point)
+
+      Write a solved point onto the instance, as a solve would leave it, so
+      ``extract_results()`` and the rest read it. The impacts there are the
+      instance's deterministic ones; the point carries the chance-constrained ones.
+
+
+
+.. py:function:: apply_CC_formulation(model_instance, risk_budget: RiskBudget, upper_bounds=None, lower_bounds=None)
+
+   Write the exact-quantile bounds of a risk budget onto a Pyomo instance.
+
+   For a full-space solve of a problem whose only uncertain rows are process
+   bounds. ``upper_bounds`` / ``lower_bounds`` map process indices to declared
+   distributions and take the budget's positions ``1, 2, ...``: lower bounds
+   first, then upper bounds, each by process index, as in
+   :class:`ChanceConstrained`. Values are
+   stored in the instance's units (see :mod:`pulpo.utils.scaling`).
+
+

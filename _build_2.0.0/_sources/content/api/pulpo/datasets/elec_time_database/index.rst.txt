@@ -1,0 +1,161 @@
+:py:mod:`pulpo.datasets.elec_time_database`
+===========================================
+
+.. py:module:: pulpo.datasets.elec_time_database
+
+.. autoapi-nested-parse::
+
+   Minimal toy database for the time-dependent PULPO formulation.
+
+   Five-step electricity dispatch with a battery, modelled in the four-activity
+   *ESM-style* pattern (CHARGE / HOLD / HOLD t-1 / DISCHARGE) so that the
+   storage logic is energy-conserving under PULPO's product×product carry-over
+   matrix ``K`` (see :mod:`pulpo.utils.time_extension`).
+
+   Activities (each is its own product)::
+
+       solar              -- produces 1 kWh; no emissions
+       coal               -- produces 1 kWh; 1 kg CO2/kWh
+       battery_charge     -- CHARGE: consumes 1 kWh electricity, produces
+                             1 unit of "charge_product" (its self-product)
+       battery_hold       -- HOLD: produces 1 unit of "charge_product" at t,
+                             consuming 1 unit of "holdtm1_product" at t (the
+                             carried storage state; see K below)
+       battery_discharge  -- DISCHARGE: consumes 1 unit of "charge_product",
+                             produces 1 kWh of electricity
+       battery_holdtm1    -- HOLD t-1 phantom: ref product is
+                             "holdtm1_product"; locked at scaling 0 by
+                             the upper-bound. Exists only so that the
+                             technosphere matrix has a producer for the
+                             storage-state product; the real injection
+                             comes from the K matrix.
+
+   Choices group {solar, coal, battery_discharge} into a virtual
+   "electricity" product (where the demand is placed), and group
+   {battery_charge, battery_hold} into a virtual "charge_product" so that
+   DISCHARGE can draw from either fresh charge or held-over carry.
+
+   Storage triple: ``("holdtm1_product", "charge_product", K)`` sets
+   ``K[holdtm1_product, charge_product] = K``. The carry term in the
+   Pyomo demand_constraint becomes::
+
+       carry_t = K * net_production_of_charge_product_at_{t-1}
+               = K * (CHARGE[t-1] + HOLD[t-1] - DISCHARGE[t-1])
+
+   which is exactly the running storage level after one step of K decay.
+   The constraint on holdtm1_product (PRODUCT_STOR, >=) then bounds
+   ``HOLD[t] <= K * net_production_of_charge_product[t-1]``, while the
+   constraint on charge_product (also >=) bounds
+   ``DISCHARGE[t] <= CHARGE[t] + HOLD[t]``. Together this is an
+   energy-conserving battery with round-trip efficiency K per held step.
+
+
+
+Module Contents
+---------------
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   pulpo.datasets.elec_time_database._setup_biosphere
+   pulpo.datasets.elec_time_database._setup_technosphere
+   pulpo.datasets.elec_time_database._setup_lcia_method
+   pulpo.datasets.elec_time_database.setup_elec_time_db
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   pulpo.datasets.elec_time_database.PROJECT_NAME
+   pulpo.datasets.elec_time_database.DB_NAME
+   pulpo.datasets.elec_time_database.BIOSPHERE_NAME
+   pulpo.datasets.elec_time_database.CO2_KEY
+   pulpo.datasets.elec_time_database.SOLAR_KEY
+   pulpo.datasets.elec_time_database.COAL_KEY
+   pulpo.datasets.elec_time_database.BATTERY_CHARGE_KEY
+   pulpo.datasets.elec_time_database.BATTERY_HOLD_KEY
+   pulpo.datasets.elec_time_database.BATTERY_DISCHARGE_KEY
+   pulpo.datasets.elec_time_database.BATTERY_HOLDTM1_KEY
+   pulpo.datasets.elec_time_database.CHARGE_PRODUCT_CHOICE
+   pulpo.datasets.elec_time_database.ELECTRICITY_CHOICE
+
+
+.. py:data:: PROJECT_NAME
+
+   
+
+.. py:data:: DB_NAME
+   :value: 'elec_time_toy_db'
+
+   
+
+.. py:data:: BIOSPHERE_NAME
+   :value: 'biosphere3'
+
+   
+
+.. py:data:: CO2_KEY
+   :value: ()
+
+   
+
+.. py:data:: SOLAR_KEY
+   :value: ()
+
+   
+
+.. py:data:: COAL_KEY
+   :value: ()
+
+   
+
+.. py:data:: BATTERY_CHARGE_KEY
+   :value: ()
+
+   
+
+.. py:data:: BATTERY_HOLD_KEY
+   :value: ()
+
+   
+
+.. py:data:: BATTERY_DISCHARGE_KEY
+   :value: ()
+
+   
+
+.. py:data:: BATTERY_HOLDTM1_KEY
+   :value: ()
+
+   
+
+.. py:data:: CHARGE_PRODUCT_CHOICE
+   :value: 'charge_product'
+
+   
+
+.. py:data:: ELECTRICITY_CHOICE
+   :value: 'electricity'
+
+   
+
+.. py:function:: _setup_biosphere()
+
+
+.. py:function:: _setup_technosphere()
+
+
+.. py:function:: _setup_lcia_method()
+
+
+.. py:function:: setup_elec_time_db()
+
+   Set up the project, biosphere, technosphere, and a single LCIA method.
+
+

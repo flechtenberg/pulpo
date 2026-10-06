@@ -1,0 +1,809 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pulpo.datasets.elec_time_database &#8212; pulpo 2.0.0 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+<link href="../../../_static/styles/bootstrap.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+
+  
+  <link href="../../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=913d6465" />
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341" />
+  <script src="../../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=3ee479438cf8b5e0d341"></script>
+
+    <script src="../../../_static/documentation_options.js?v=79f5c508"></script>
+    <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../../_static/design-tabs.js?v=36754332"></script>
+    <script src="https://unpkg.com/mermaid@10.2.0/dist/mermaid.min.js"></script>
+    <script>
+    function initializeMermaidBasedOnTheme() {
+        const theme = document.documentElement.dataset.theme;
+
+        if (theme === 'dark') {
+            mermaid.initialize({
+                startOnLoad: true,
+                theme: 'base',
+                themeVariables: {
+                    edgeLabelBackground: 'transparent',
+                    defaultLinkColor: '#ced6dd',
+                    titleColor: '#ced6dd',
+                    nodeTextColor: '#ced6dd',
+                    lineColor: '#ced6dd',
+                }
+            });
+        } else {
+            mermaid.initialize({
+                startOnLoad: true,
+                theme: 'base',
+                themeVariables: {
+                    edgeLabelBackground: 'transparent',
+                    defaultLinkColor: '#222832',
+                    titleColor: '#222832',
+                    nodeTextColor: '#222832',
+                    lineColor: '#222832',
+                }
+            });
+        }
+
+        // Re-render all Mermaid diagrams
+        mermaid.contentLoaded();
+    }
+
+    // Observer to detect changes to the data-theme attribute
+    const themeObserver = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            if (mutation.type === 'attributes' && mutation.attributeName === 'data-theme') {
+            initializeMermaidBasedOnTheme();
+            }
+        });
+    });
+
+    themeObserver.observe(document.documentElement, { attributes: true });
+
+    initializeMermaidBasedOnTheme();
+</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/pulpo/datasets/elec_time_database';</script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+<meta name="google-site-verification" content="Fb3YVU81AToFlPNhlaQf6LLq1SMrHPbY-RtFsgZkw9Q" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+
+<a class="navbar-brand logo" href="../../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../../_static/pulpo_logo_big.svg" class="logo__image only-light" alt="pulpo 2.0.0 documentation - Home"/>
+    <script>document.write(`<img src="../../../_static/pulpo_logo_big.svg" class="logo__image only-dark" alt="pulpo 2.0.0 documentation - Home"/>`);</script>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav class="navbar-nav">
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/getting_started/index.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/theory.html">
+    Theory
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/uncertainty.html">
+    Uncertainty
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/examples/index.html">
+    Examples
+  </a>
+</li>
+
+            <li class="nav-item dropdown pst-header-nav-item">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../content/api/index.html">
+    API
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../content/contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../content/codeofconduct.html">
+    Code of Conduct
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../content/license.html">
+    License
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../content/changelog.html">
+    Changelog
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  </button>
+`);
+</script></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links navbar-nav"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/flechtenberg/pulpo" title="Open this Repo on GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fab fa-brands fa-github fa-lg" aria-hidden="true"></i></span>
+            <span class="sr-only">Open this Repo on GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <div class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav class="navbar-nav">
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/getting_started/index.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/theory.html">
+    Theory
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/uncertainty.html">
+    Uncertainty
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/examples/index.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/api/index.html">
+    API
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/codeofconduct.html">
+    Code of Conduct
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/license.html">
+    License
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/changelog.html">
+    Changelog
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  </button>
+`);
+</script></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links navbar-nav"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/flechtenberg/pulpo" title="Open this Repo on GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fab fa-brands fa-github fa-lg" aria-hidden="true"></i></span>
+            <span class="sr-only">Open this Repo on GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">Module code</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="../../pulpo.html" class="nav-link">pulpo</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page">pulpo.datase...</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for pulpo.datasets.elec_time_database</h1><div class="highlight"><pre>
+<span></span><span class="sd">"""Minimal toy database for the time-dependent PULPO formulation.</span>
+
+<span class="sd">Five-step electricity dispatch with a battery, modelled in the four-activity</span>
+<span class="sd">*ESM-style* pattern (CHARGE / HOLD / HOLD t-1 / DISCHARGE) so that the</span>
+<span class="sd">storage logic is energy-conserving under PULPO's product×product carry-over</span>
+<span class="sd">matrix ``K`` (see :mod:`pulpo.utils.time_extension`).</span>
+
+<span class="sd">Activities (each is its own product)::</span>
+
+<span class="sd">    solar              -- produces 1 kWh; no emissions</span>
+<span class="sd">    coal               -- produces 1 kWh; 1 kg CO2/kWh</span>
+<span class="sd">    battery_charge     -- CHARGE: consumes 1 kWh electricity, produces</span>
+<span class="sd">                          1 unit of "charge_product" (its self-product)</span>
+<span class="sd">    battery_hold       -- HOLD: produces 1 unit of "charge_product" at t,</span>
+<span class="sd">                          consuming 1 unit of "holdtm1_product" at t (the</span>
+<span class="sd">                          carried storage state; see K below)</span>
+<span class="sd">    battery_discharge  -- DISCHARGE: consumes 1 unit of "charge_product",</span>
+<span class="sd">                          produces 1 kWh of electricity</span>
+<span class="sd">    battery_holdtm1    -- HOLD t-1 phantom: ref product is</span>
+<span class="sd">                          "holdtm1_product"; locked at scaling 0 by</span>
+<span class="sd">                          the upper-bound. Exists only so that the</span>
+<span class="sd">                          technosphere matrix has a producer for the</span>
+<span class="sd">                          storage-state product; the real injection</span>
+<span class="sd">                          comes from the K matrix.</span>
+
+<span class="sd">Choices group {solar, coal, battery_discharge} into a virtual</span>
+<span class="sd">"electricity" product (where the demand is placed), and group</span>
+<span class="sd">{battery_charge, battery_hold} into a virtual "charge_product" so that</span>
+<span class="sd">DISCHARGE can draw from either fresh charge or held-over carry.</span>
+
+<span class="sd">Storage triple: ``("holdtm1_product", "charge_product", K)`` sets</span>
+<span class="sd">``K[holdtm1_product, charge_product] = K``. The carry term in the</span>
+<span class="sd">Pyomo demand_constraint becomes::</span>
+
+<span class="sd">    carry_t = K * net_production_of_charge_product_at_{t-1}</span>
+<span class="sd">            = K * (CHARGE[t-1] + HOLD[t-1] - DISCHARGE[t-1])</span>
+
+<span class="sd">which is exactly the running storage level after one step of K decay.</span>
+<span class="sd">The constraint on holdtm1_product (PRODUCT_STOR, &gt;=) then bounds</span>
+<span class="sd">``HOLD[t] &lt;= K * net_production_of_charge_product[t-1]``, while the</span>
+<span class="sd">constraint on charge_product (also &gt;=) bounds</span>
+<span class="sd">``DISCHARGE[t] &lt;= CHARGE[t] + HOLD[t]``. Together this is an</span>
+<span class="sd">energy-conserving battery with round-trip efficiency K per held step.</span>
+<span class="sd">"""</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">bw2data</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">bd</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">pulpo.utils.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">is_bw25</span>
+
+<div class="viewcode-block" id="PROJECT_NAME">
+<a class="viewcode-back" href="../../../content/api/pulpo/datasets/elec_time_database/index.html#pulpo.datasets.elec_time_database.PROJECT_NAME">[docs]</a>
+<span class="n">PROJECT_NAME</span> <span class="o">=</span> <span class="s2">"elec_time_toy_bw25"</span> <span class="k">if</span> <span class="n">is_bw25</span><span class="p">()</span> <span class="k">else</span> <span class="s2">"elec_time_toy"</span></div>
+
+<div class="viewcode-block" id="DB_NAME">
+<a class="viewcode-back" href="../../../content/api/pulpo/datasets/elec_time_database/index.html#pulpo.datasets.elec_time_database.DB_NAME">[docs]</a>
+<span class="n">DB_NAME</span> <span class="o">=</span> <span class="s2">"elec_time_toy_db"</span></div>
+
+<div class="viewcode-block" id="BIOSPHERE_NAME">
+<a class="viewcode-back" href="../../../content/api/pulpo/datasets/elec_time_database/index.html#pulpo.datasets.elec_time_database.BIOSPHERE_NAME">[docs]</a>
+<span class="n">BIOSPHERE_NAME</span> <span class="o">=</span> <span class="s2">"biosphere3"</span></div>
+
+
+<span class="c1"># Public keys (importable so the notebook can build choices/storage by key).</span>
+<div class="viewcode-block" id="CO2_KEY">
+<a class="viewcode-back" href="../../../content/api/pulpo/datasets/elec_time_database/index.html#pulpo.datasets.elec_time_database.CO2_KEY">[docs]</a>
+<span class="n">CO2_KEY</span> <span class="o">=</span> <span class="p">(</span><span class="n">BIOSPHERE_NAME</span><span class="p">,</span> <span class="s2">"CO2"</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SOLAR_KEY">
+<a class="viewcode-back" href="../../../content/api/pulpo/datasets/elec_time_database/index.html#pulpo.datasets.elec_time_database.SOLAR_KEY">[docs]</a>
+<span class="n">SOLAR_KEY</span> <span class="o">=</span> <span class="p">(</span><span class="n">DB_NAME</span><span class="p">,</span> <span class="s2">"solar"</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="COAL_KEY">
+<a class="viewcode-back" href="../../../content/api/pulpo/datasets/elec_time_database/index.html#pulpo.datasets.elec_time_database.COAL_KEY">[docs]</a>
+<span class="n">COAL_KEY</span> <span class="o">=</span> <span class="p">(</span><span class="n">DB_NAME</span><span class="p">,</span> <span class="s2">"coal"</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="BATTERY_CHARGE_KEY">
+<a class="viewcode-back" href="../../../content/api/pulpo/datasets/elec_time_database/index.html#pulpo.datasets.elec_time_database.BATTERY_CHARGE_KEY">[docs]</a>
+<span class="n">BATTERY_CHARGE_KEY</span> <span class="o">=</span> <span class="p">(</span><span class="n">DB_NAME</span><span class="p">,</span> <span class="s2">"battery_charge"</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="BATTERY_HOLD_KEY">
+<a class="viewcode-back" href="../../../content/api/pulpo/datasets/elec_time_database/index.html#pulpo.datasets.elec_time_database.BATTERY_HOLD_KEY">[docs]</a>
+<span class="n">BATTERY_HOLD_KEY</span> <span class="o">=</span> <span class="p">(</span><span class="n">DB_NAME</span><span class="p">,</span> <span class="s2">"battery_hold"</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="BATTERY_DISCHARGE_KEY">
+<a class="viewcode-back" href="../../../content/api/pulpo/datasets/elec_time_database/index.html#pulpo.datasets.elec_time_database.BATTERY_DISCHARGE_KEY">[docs]</a>
+<span class="n">BATTERY_DISCHARGE_KEY</span> <span class="o">=</span> <span class="p">(</span><span class="n">DB_NAME</span><span class="p">,</span> <span class="s2">"battery_discharge"</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="BATTERY_HOLDTM1_KEY">
+<a class="viewcode-back" href="../../../content/api/pulpo/datasets/elec_time_database/index.html#pulpo.datasets.elec_time_database.BATTERY_HOLDTM1_KEY">[docs]</a>
+<span class="n">BATTERY_HOLDTM1_KEY</span> <span class="o">=</span> <span class="p">(</span><span class="n">DB_NAME</span><span class="p">,</span> <span class="s2">"battery_holdtm1"</span><span class="p">)</span></div>
+
+
+<span class="c1"># PULPO choice labels exposed for the storage spec (the K matrix references</span>
+<span class="c1"># the 'charge_product' choice, not any individual activity).</span>
+<div class="viewcode-block" id="CHARGE_PRODUCT_CHOICE">
+<a class="viewcode-back" href="../../../content/api/pulpo/datasets/elec_time_database/index.html#pulpo.datasets.elec_time_database.CHARGE_PRODUCT_CHOICE">[docs]</a>
+<span class="n">CHARGE_PRODUCT_CHOICE</span> <span class="o">=</span> <span class="s2">"charge_product"</span></div>
+
+<div class="viewcode-block" id="ELECTRICITY_CHOICE">
+<a class="viewcode-back" href="../../../content/api/pulpo/datasets/elec_time_database/index.html#pulpo.datasets.elec_time_database.ELECTRICITY_CHOICE">[docs]</a>
+<span class="n">ELECTRICITY_CHOICE</span> <span class="o">=</span> <span class="s2">"electricity"</span></div>
+
+
+
+<div class="viewcode-block" id="_setup_biosphere">
+<a class="viewcode-back" href="../../../content/api/pulpo/datasets/elec_time_database/index.html#pulpo.datasets.elec_time_database._setup_biosphere">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">_setup_biosphere</span><span class="p">():</span>
+    <span class="k">if</span> <span class="n">BIOSPHERE_NAME</span> <span class="ow">in</span> <span class="n">bd</span><span class="o">.</span><span class="n">databases</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="n">biosphere_db</span> <span class="o">=</span> <span class="n">bd</span><span class="o">.</span><span class="n">Database</span><span class="p">(</span><span class="n">BIOSPHERE_NAME</span><span class="p">)</span>
+    <span class="n">biosphere_db</span><span class="o">.</span><span class="n">write</span><span class="p">({</span>
+        <span class="n">CO2_KEY</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">"name"</span><span class="p">:</span> <span class="s2">"Carbon dioxide, fossil"</span><span class="p">,</span>
+            <span class="s2">"categories"</span><span class="p">:</span> <span class="p">(</span><span class="s2">"climate change"</span><span class="p">,</span> <span class="s2">"GWP 100a"</span><span class="p">),</span>
+            <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"emission"</span><span class="p">,</span>
+            <span class="s2">"unit"</span><span class="p">:</span> <span class="s2">"kg"</span><span class="p">,</span>
+        <span class="p">},</span>
+    <span class="p">})</span></div>
+
+
+
+<div class="viewcode-block" id="_setup_technosphere">
+<a class="viewcode-back" href="../../../content/api/pulpo/datasets/elec_time_database/index.html#pulpo.datasets.elec_time_database._setup_technosphere">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">_setup_technosphere</span><span class="p">():</span>
+    <span class="k">if</span> <span class="n">DB_NAME</span> <span class="ow">in</span> <span class="n">bd</span><span class="o">.</span><span class="n">databases</span><span class="p">:</span>
+        <span class="k">del</span> <span class="n">bd</span><span class="o">.</span><span class="n">databases</span><span class="p">[</span><span class="n">DB_NAME</span><span class="p">]</span>
+    <span class="n">db</span> <span class="o">=</span> <span class="n">bd</span><span class="o">.</span><span class="n">Database</span><span class="p">(</span><span class="n">DB_NAME</span><span class="p">)</span>
+
+    <span class="n">process_data</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="s2">"solar"</span><span class="p">,</span>             <span class="s2">"kWh"</span><span class="p">,</span> <span class="s2">"GLO"</span><span class="p">,</span> <span class="s2">"electricity, solar"</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">"coal"</span><span class="p">,</span>              <span class="s2">"kWh"</span><span class="p">,</span> <span class="s2">"GLO"</span><span class="p">,</span> <span class="s2">"electricity, coal"</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">"battery_charge"</span><span class="p">,</span>    <span class="s2">"kWh"</span><span class="p">,</span> <span class="s2">"GLO"</span><span class="p">,</span> <span class="s2">"charge_product"</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">"battery_hold"</span><span class="p">,</span>      <span class="s2">"kWh"</span><span class="p">,</span> <span class="s2">"GLO"</span><span class="p">,</span> <span class="s2">"charge_product"</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">"battery_discharge"</span><span class="p">,</span> <span class="s2">"kWh"</span><span class="p">,</span> <span class="s2">"GLO"</span><span class="p">,</span> <span class="s2">"electricity, battery"</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">"battery_holdtm1"</span><span class="p">,</span>   <span class="s2">"kWh"</span><span class="p">,</span> <span class="s2">"GLO"</span><span class="p">,</span> <span class="s2">"holdtm1_product"</span><span class="p">),</span>
+    <span class="p">]</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">unit</span><span class="p">,</span> <span class="n">location</span><span class="p">,</span> <span class="n">ref_product</span> <span class="ow">in</span> <span class="n">process_data</span><span class="p">:</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="p">(</span><span class="n">DB_NAME</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+        <span class="n">data</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">"name"</span><span class="p">:</span> <span class="n">name</span><span class="p">,</span>
+            <span class="s2">"unit"</span><span class="p">:</span> <span class="n">unit</span><span class="p">,</span>
+            <span class="s2">"location"</span><span class="p">:</span> <span class="n">location</span><span class="p">,</span>
+            <span class="s2">"reference product"</span><span class="p">:</span> <span class="n">ref_product</span><span class="p">,</span>
+            <span class="s2">"exchanges"</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span><span class="s2">"input"</span><span class="p">:</span> <span class="n">key</span><span class="p">,</span> <span class="s2">"amount"</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span> <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"production"</span><span class="p">},</span>
+            <span class="p">],</span>
+        <span class="p">}</span>
+
+    <span class="c1"># Technosphere/biosphere exchanges.</span>
+    <span class="c1"># Convention: (input, target, amount, type) means the *target* activity</span>
+    <span class="c1"># has an exchange of `amount` units of `input`. With type='technosphere'</span>
+    <span class="c1"># this is a consumption (the matrix entry is -amount).</span>
+    <span class="n">exchange_data</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="c1"># battery_charge consumes 1 kWh of solar electricity. After the</span>
+        <span class="c1"># 'electricity' choice rewires {solar, coal, discharge} -&gt; 'electricity',</span>
+        <span class="c1"># this becomes a generic draw from the electricity pool.</span>
+        <span class="p">[</span><span class="n">SOLAR_KEY</span><span class="p">,</span>           <span class="n">BATTERY_CHARGE_KEY</span><span class="p">,</span>    <span class="mf">1.0</span><span class="p">,</span> <span class="s2">"technosphere"</span><span class="p">],</span>
+        <span class="c1"># battery_hold consumes 1 unit of holdtm1_product (the carried state).</span>
+        <span class="c1"># holdtm1_product is supplied at runtime via the K-matrix injection,</span>
+        <span class="c1"># not by the static phantom activity (which is locked at 0).</span>
+        <span class="p">[</span><span class="n">BATTERY_HOLDTM1_KEY</span><span class="p">,</span> <span class="n">BATTERY_HOLD_KEY</span><span class="p">,</span>      <span class="mf">1.0</span><span class="p">,</span> <span class="s2">"technosphere"</span><span class="p">],</span>
+        <span class="c1"># battery_discharge consumes 1 unit of charge_product. Pre-rewiring</span>
+        <span class="c1"># this is wired to battery_charge's product; the 'charge_product'</span>
+        <span class="c1"># choice then redirects it to the {charge, hold} virtual product.</span>
+        <span class="p">[</span><span class="n">BATTERY_CHARGE_KEY</span><span class="p">,</span>  <span class="n">BATTERY_DISCHARGE_KEY</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="s2">"technosphere"</span><span class="p">],</span>
+        <span class="c1"># Emissions: only coal emits.</span>
+        <span class="p">[</span><span class="n">CO2_KEY</span><span class="p">,</span>             <span class="n">COAL_KEY</span><span class="p">,</span>              <span class="mf">1.0</span><span class="p">,</span> <span class="s2">"biosphere"</span><span class="p">],</span>
+    <span class="p">]</span>
+    <span class="k">for</span> <span class="n">input_</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">amount</span><span class="p">,</span> <span class="n">ex_type</span> <span class="ow">in</span> <span class="n">exchange_data</span><span class="p">:</span>
+        <span class="n">data</span><span class="p">[</span><span class="n">target</span><span class="p">][</span><span class="s2">"exchanges"</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="p">{</span><span class="s2">"input"</span><span class="p">:</span> <span class="n">input_</span><span class="p">,</span> <span class="s2">"amount"</span><span class="p">:</span> <span class="n">amount</span><span class="p">,</span> <span class="s2">"type"</span><span class="p">:</span> <span class="n">ex_type</span><span class="p">}</span>
+        <span class="p">)</span>
+
+    <span class="n">db</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="_setup_lcia_method">
+<a class="viewcode-back" href="../../../content/api/pulpo/datasets/elec_time_database/index.html#pulpo.datasets.elec_time_database._setup_lcia_method">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">_setup_lcia_method</span><span class="p">():</span>
+    <span class="n">method_key</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"GWP"</span><span class="p">,</span> <span class="s2">"100a"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">method_key</span> <span class="ow">in</span> <span class="n">bd</span><span class="o">.</span><span class="n">methods</span><span class="p">:</span>
+        <span class="n">bd</span><span class="o">.</span><span class="n">Method</span><span class="p">(</span><span class="n">method_key</span><span class="p">)</span><span class="o">.</span><span class="n">deregister</span><span class="p">()</span>
+    <span class="n">method</span> <span class="o">=</span> <span class="n">bd</span><span class="o">.</span><span class="n">Method</span><span class="p">(</span><span class="n">method_key</span><span class="p">)</span>
+    <span class="n">method</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">unit</span><span class="o">=</span><span class="s2">"kg CO2-eq"</span><span class="p">,</span> <span class="n">num_cfs</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">abbreviation</span><span class="o">=</span><span class="s2">"gwp"</span><span class="p">,</span>
+                    <span class="n">description</span><span class="o">=</span><span class="s2">"GWP100"</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s2">"gwp100"</span><span class="p">)</span>
+    <span class="n">method</span><span class="o">.</span><span class="n">write</span><span class="p">([(</span><span class="n">CO2_KEY</span><span class="p">,</span> <span class="p">{</span><span class="s2">"amount"</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">})])</span></div>
+
+
+
+<div class="viewcode-block" id="setup_elec_time_db">
+<a class="viewcode-back" href="../../../content/api/pulpo/datasets/elec_time_database/index.html#pulpo.datasets.elec_time_database.setup_elec_time_db">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">setup_elec_time_db</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">"""Set up the project, biosphere, technosphere, and a single LCIA method."""</span>
+    <span class="n">bd</span><span class="o">.</span><span class="n">projects</span><span class="o">.</span><span class="n">set_current</span><span class="p">(</span><span class="n">PROJECT_NAME</span><span class="p">)</span>
+    <span class="n">_setup_biosphere</span><span class="p">()</span>
+    <span class="n">_setup_technosphere</span><span class="p">()</span>
+    <span class="n">_setup_lcia_method</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">"[elec_time_toy] project=</span><span class="si">{</span><span class="n">PROJECT_NAME</span><span class="si">!r}</span><span class="s2">, db=</span><span class="si">{</span><span class="n">DB_NAME</span><span class="si">!r}</span><span class="s2">, "</span>
+        <span class="sa">f</span><span class="s2">"activities=</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">bd</span><span class="o">.</span><span class="n">Database</span><span class="p">(</span><span class="n">DB_NAME</span><span class="p">))</span><span class="si">}</span><span class="s2">, methods=</span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="n">bd</span><span class="o">.</span><span class="n">methods</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
+    <span class="p">)</span></div>
+
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">"__main__"</span><span class="p">:</span>
+    <span class="n">setup_elec_time_db</span><span class="p">()</span>
+</pre></div>
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341"></script>
+<script src="../../../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2026 pulpo developers.
+      <br/>
+    
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item"><p>🌿🐛 Found a bug? Something not working? Frustrated? <a href=" latest/../../../../content/contributing.html">Please report it!</a></p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

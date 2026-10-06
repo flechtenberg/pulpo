@@ -1,0 +1,122 @@
+:py:mod:`pulpo.utils.converter`
+===============================
+
+.. py:module:: pulpo.utils.converter
+
+
+Module Contents
+---------------
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   pulpo.utils.converter.warn_finite_default_limits
+   pulpo.utils.converter.capacity_conflicts
+   pulpo.utils.converter.warn_capacity_overridden
+   pulpo.utils.converter.combine_inputs
+   pulpo.utils.converter.convert_to_dict
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   pulpo.utils.converter.DEFAULT_LIMITS_NOTE
+
+
+.. py:data:: DEFAULT_LIMITS_NOTE
+   :value: "Finite default_limits['lower_bound'] / ['upper_bound'] put a bound on every activity. Such..."
+
+   
+
+.. py:function:: warn_finite_default_limits(default_limits, scale)
+
+   One FutureWarning when ``default_limits`` bounds every activity.
+
+   With ``scale=True`` the same message says that those defaults are replaced
+   by +-inf (:func:`scaling.relax_default_bounds`), so the user gets one
+   warning, not two.
+
+
+.. py:function:: capacity_conflicts(choices, upper_limit, process_map)
+
+   The alternatives with a finite choice capacity that an ``upper_limit``
+   replaces, as ``(activity, capacity, limit)``.
+
+   ``choices`` and ``upper_limit`` are already normalised (no ``None``, no lists).
+
+
+.. py:function:: warn_capacity_overridden(conflicts)
+
+   One UserWarning when an ``upper_limit`` replaces choice capacities.
+
+
+.. py:function:: combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, upper_inv_limit, upper_imp_limit, lower_inv_limit, lower_imp_limit, methods, dependent_constraints=None, default_limits=None, imp_goals=None, scale=False)
+
+   Combines all the inputs into a dictionary as an input for the optimization model.
+
+   :param lci_data: LCI data containing matrices and mappings.
+   :type lci_data: dict
+   :param demand: Demand data.
+   :type demand: dict
+   :param choices: Choices for the model.
+   :type choices: dict
+   :param upper_limit: Upper limit constraints.
+   :type upper_limit: dict
+   :param lower_limit: Lower limit constraints.
+   :type lower_limit: dict
+   :param upper_inv_limit: Upper intervention limit constraints.
+   :type upper_inv_limit: dict
+   :param upper_imp_limit: Upper impact limit constraints.
+   :type upper_imp_limit: dict
+   :param lower_inv_limit: Lower intervention limit constraints.
+   :type lower_inv_limit: dict
+   :param lower_imp_limit: Lower impact limit constraints.
+   :type lower_imp_limit: dict
+   :param methods: Methods for environmental impact assessment.
+   :type methods: dict
+   :param dependent_constraints: Dependent constraints between scaling vectors.
+                                 Format: {constraint_name: {'left': {activity: weight}, 'right': {activity: weight}}}
+   :type dependent_constraints: dict, optional
+   :param default_limits: Custom default limits. If None, uses standard values.
+                          Required keys: 'lower_bound', 'upper_bound', 'upper_inv_bound',
+                          'lower_inv_bound', 'lower_imp_bound', 'upper_imp_bound'. Categories
+                          listed in imp_goals ignore 'lower_imp_bound'/'upper_imp_bound' (the
+                          goal is a soft limit, not a hard Var bound) unless also given an
+                          explicit lower_imp_limit/upper_imp_limit. Finite 'lower_bound' /
+                          'upper_bound' bound every activity and raise a FutureWarning (see
+                          :func:`warn_finite_default_limits`); default_limits may be
+                          deprecated in a near-future release.
+   :type default_limits: dict, optional
+   :param imp_goals: Goal-programming soft limits {method_string: limit}. Only
+                     categories listed here receive a transgression slack.
+   :type imp_goals: dict, optional
+   :param scale: Equilibrate the LP (row/column scaling of the technosphere,
+                 see :mod:`pulpo.utils.scaling`) so that solvers apply their
+                 tolerances to well-scaled rows. Default False. The factors are
+                 stored under 'ROW_SCALE' / 'COL_SCALE' and the solution is
+                 unscaled again by ``solve_model``.
+   :type scale: bool, optional
+
+   :returns: Combined data dictionary for the optimization model.
+   :rtype: dict
+
+
+.. py:function:: convert_to_dict(input_data)
+
+   Checks if the passed method is in the correct format and converts it accordingly.
+
+   :param input_data: Input data to be converted.
+   :type input_data: Union[str, list, dict]
+
+   :returns: Converted dictionary with methods and their weights.
+   :rtype: dict
+
+   :raises ValueError: If the input data is not in the expected format.
+
+

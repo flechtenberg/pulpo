@@ -1,0 +1,985 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pulpo.utils.scaling &#8212; pulpo 2.0.0 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+<link href="../../../_static/styles/bootstrap.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+
+  
+  <link href="../../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=913d6465" />
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341" />
+  <script src="../../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=3ee479438cf8b5e0d341"></script>
+
+    <script src="../../../_static/documentation_options.js?v=79f5c508"></script>
+    <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../../_static/design-tabs.js?v=36754332"></script>
+    <script src="https://unpkg.com/mermaid@10.2.0/dist/mermaid.min.js"></script>
+    <script>
+    function initializeMermaidBasedOnTheme() {
+        const theme = document.documentElement.dataset.theme;
+
+        if (theme === 'dark') {
+            mermaid.initialize({
+                startOnLoad: true,
+                theme: 'base',
+                themeVariables: {
+                    edgeLabelBackground: 'transparent',
+                    defaultLinkColor: '#ced6dd',
+                    titleColor: '#ced6dd',
+                    nodeTextColor: '#ced6dd',
+                    lineColor: '#ced6dd',
+                }
+            });
+        } else {
+            mermaid.initialize({
+                startOnLoad: true,
+                theme: 'base',
+                themeVariables: {
+                    edgeLabelBackground: 'transparent',
+                    defaultLinkColor: '#222832',
+                    titleColor: '#222832',
+                    nodeTextColor: '#222832',
+                    lineColor: '#222832',
+                }
+            });
+        }
+
+        // Re-render all Mermaid diagrams
+        mermaid.contentLoaded();
+    }
+
+    // Observer to detect changes to the data-theme attribute
+    const themeObserver = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            if (mutation.type === 'attributes' && mutation.attributeName === 'data-theme') {
+            initializeMermaidBasedOnTheme();
+            }
+        });
+    });
+
+    themeObserver.observe(document.documentElement, { attributes: true });
+
+    initializeMermaidBasedOnTheme();
+</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/pulpo/utils/scaling';</script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+<meta name="google-site-verification" content="Fb3YVU81AToFlPNhlaQf6LLq1SMrHPbY-RtFsgZkw9Q" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+
+<a class="navbar-brand logo" href="../../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../../_static/pulpo_logo_big.svg" class="logo__image only-light" alt="pulpo 2.0.0 documentation - Home"/>
+    <script>document.write(`<img src="../../../_static/pulpo_logo_big.svg" class="logo__image only-dark" alt="pulpo 2.0.0 documentation - Home"/>`);</script>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav class="navbar-nav">
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/getting_started/index.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/theory.html">
+    Theory
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/uncertainty.html">
+    Uncertainty
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/examples/index.html">
+    Examples
+  </a>
+</li>
+
+            <li class="nav-item dropdown pst-header-nav-item">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../content/api/index.html">
+    API
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../content/contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../content/codeofconduct.html">
+    Code of Conduct
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../content/license.html">
+    License
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../content/changelog.html">
+    Changelog
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  </button>
+`);
+</script></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links navbar-nav"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/flechtenberg/pulpo" title="Open this Repo on GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fab fa-brands fa-github fa-lg" aria-hidden="true"></i></span>
+            <span class="sr-only">Open this Repo on GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <div class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav class="navbar-nav">
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/getting_started/index.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/theory.html">
+    Theory
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/uncertainty.html">
+    Uncertainty
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/examples/index.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/api/index.html">
+    API
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/codeofconduct.html">
+    Code of Conduct
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/license.html">
+    License
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/changelog.html">
+    Changelog
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  </button>
+`);
+</script></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links navbar-nav"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/flechtenberg/pulpo" title="Open this Repo on GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fab fa-brands fa-github fa-lg" aria-hidden="true"></i></span>
+            <span class="sr-only">Open this Repo on GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">Module code</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="../../pulpo.html" class="nav-link">pulpo</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page">pulpo.utils.scaling</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for pulpo.utils.scaling</h1><div class="highlight"><pre>
+<span></span><span class="sd">"""LP equilibration for PULPO's optimization model.</span>
+
+<span class="sd">Why</span>
+<span class="sd">---</span>
+<span class="sd">An ecoinvent technosphere spans roughly 1e-13 .. 2e+11. Infrastructure</span>
+<span class="sd">processes have a functional unit of one whole facility -- a port consumes</span>
+<span class="sd">2.3e11 kWh, a hydropower plant 1.7e11 kg of gravel -- while their activity</span>
+<span class="sd">level in any solution is ~1e-10 facilities. Every LP solver scales each row by</span>
+<span class="sd">its largest coefficient and applies its feasibility tolerance (1e-7 .. 1e-6) in</span>
+<span class="sd">that scaled space, so the balance row of a facility product counts as satisfied</span>
+<span class="sd">even when the facility is short-supplied by 1e-7 units: more than its whole</span>
+<span class="sd">activity level, and enough to obtain 2e11 * 1e-7 kWh of electricity for free.</span>
+<span class="sd">On a 52k-process model this leak was worth 0.9% of the GWP optimum; HiGHS,</span>
+<span class="sd">Gurobi and their numeric-focus / tolerance options all returned points that</span>
+<span class="sd">were only feasible under that tolerance, and disagreed with each other.</span>
+
+<span class="sd">What</span>
+<span class="sd">----</span>
+<span class="sd">:func:`equilibrate_model_data` rewrites the data dictionary produced by</span>
+<span class="sd">``combine_inputs`` / ``combine_inputs_time`` in place, substituting ::</span>
+
+<span class="sd">    x_j = s_j * y_j          (column scaling of the scaling vector)</span>
+<span class="sd">    row_i * r_i              (row scaling of every product balance)</span>
+
+<span class="sd">with ``r`` and ``s`` chosen by alternating geometric-mean equilibration so that</span>
+<span class="sd">all meaningful coefficients of ``diag(r) A diag(s)`` are O(1e-4 .. 1e4). The</span>
+<span class="sd">factors are powers of two, hence the scaled LP is bit-for-bit equivalent to the</span>
+<span class="sd">original one. The impact variables, their limits and the objective weights are</span>
+<span class="sd">untouched, so ``instance.impacts`` reads exactly as before; after the solve,</span>
+<span class="sd">:func:`unscale_solution` multiplies the scaling vector back.</span>
+
+<span class="sd">Reading a solved instance: ``scaling_vector`` and ``slack`` hold *unscaled*</span>
+<span class="sd">values as soon as ``solve_model`` returns. The constraint rows of the instance,</span>
+<span class="sd">``model._env_cost`` and the limit Params stay in scaled units; the factors are</span>
+<span class="sd">available as ``model._row_scale`` (per product) and ``model._col_scale`` (per</span>
+<span class="sd">process).</span>
+
+<span class="sd">Writing onto a scaled instance: anything that adds a term ``c * x_j`` to a</span>
+<span class="sd">constraint or a bound ``x_j &lt;= b`` after ``instantiate`` must express it in the</span>
+<span class="sd">model's units, i.e. ``(c * s_j) * scaling_vector[j]`` and ``b / s_j`` in</span>
+<span class="sd">``LOWER_LIMIT`` / ``UPPER_LIMIT``. :func:`to_scaled_coefficient`,</span>
+<span class="sd">:func:`to_scaled_process_bound` and :func:`from_scaled_process_bound` do</span>
+<span class="sd">that and are the identity on an unscaled model. Impact and inventory</span>
+<span class="sd">quantities are never scaled and need no conversion.</span>
+
+<span class="sd">The reduced backend (``solve(formulation='reduced')``) solves a different, small</span>
+<span class="sd">and dense LP and equilibrates it with :func:`ruiz_scaling` on every solve,</span>
+<span class="sd">whatever ``scale`` is; it reads the instance back in original units, so</span>
+<span class="sd">``scale=True`` does not change the problem it solves.</span>
+<span class="sd">"""</span>
+
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">scipy.sparse</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">sps</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pulpo.utils.warning</span><span class="w"> </span><span class="kn">import</span> <span class="n">warn</span>
+
+<span class="c1">#: Scaled variable bounds beyond this magnitude are treated as infinite. A</span>
+<span class="c1">#: bound of 1e9 on a facility whose column is scaled by 1e-11 becomes 1e20,</span>
+<span class="c1">#: which HiGHS already treats as infinity and which makes Gurobi's simplex</span>
+<span class="c1">#: return O(1) row residuals on the scaled model.</span>
+<div class="viewcode-block" id="SCALED_BOUND_CAP">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/scaling/index.html#pulpo.utils.scaling.SCALED_BOUND_CAP">[docs]</a>
+<span class="n">SCALED_BOUND_CAP</span> <span class="o">=</span> <span class="mf">1e15</span></div>
+
+
+<span class="c1">#: Gurobi options for an equilibrated model, applied by ``solve_gurobi`` unless</span>
+<span class="c1">#: the caller overrides them. Gurobi's own scaling is switched off (it would</span>
+<span class="c1">#: re-introduce the problem); the tightened tolerances and NumericFocus=1 keep</span>
+<span class="c1">#: the residuals measured on the *unscaled* model at ~1e-8 without measurable</span>
+<span class="c1">#: cost in time. Add ``"Method": 1`` (dual simplex) for bit-identical repeated</span>
+<span class="c1">#: LP solves: the default concurrent method races primal, dual and barrier and</span>
+<span class="c1">#: the winner depends on machine load.</span>
+<div class="viewcode-block" id="GUROBI_OPTIONS_SCALED">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/scaling/index.html#pulpo.utils.scaling.GUROBI_OPTIONS_SCALED">[docs]</a>
+<span class="n">GUROBI_OPTIONS_SCALED</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">"ScaleFlag"</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="s2">"FeasibilityTol"</span><span class="p">:</span> <span class="mf">1e-9</span><span class="p">,</span>
+    <span class="s2">"OptimalityTol"</span><span class="p">:</span> <span class="mf">1e-9</span><span class="p">,</span>
+    <span class="s2">"NumericFocus"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+<span class="p">}</span></div>
+
+
+
+<div class="viewcode-block" id="geometric_scaling">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/scaling/index.html#pulpo.utils.scaling.geometric_scaling">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">geometric_scaling</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">iters</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">stat_cut</span><span class="o">=</span><span class="mf">1e-11</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Alternating geometric-mean row/column scaling of a sparse matrix.</span>
+
+<span class="sd">    Returns ``(r, s)`` such that every row and column of ``diag(r) @ A @</span>
+<span class="sd">    diag(s)`` is centred at 1 (``max * min == 1`` over its nonzeros). The</span>
+<span class="sd">    factors are rounded to powers of two, so applying them is exact.</span>
+
+<span class="sd">    Entries below ``stat_cut`` are ignored when computing the factors (they</span>
+<span class="sd">    are still scaled): ecoinvent contains coefficients down to 1e-45 that are</span>
+<span class="sd">    numerically irrelevant -- dropping everything below 1e-9 does not move the</span>
+<span class="sd">    optimum -- and letting them drive the factors produces 1e22 row scales.</span>
+<span class="sd">    """</span>
+    <span class="n">A</span> <span class="o">=</span> <span class="n">sps</span><span class="o">.</span><span class="n">csr_matrix</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">m</span><span class="p">,</span> <span class="n">n</span> <span class="o">=</span> <span class="n">A</span><span class="o">.</span><span class="n">shape</span>
+    <span class="n">absA</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">A</span><span class="p">)</span>
+    <span class="n">absA</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">absA</span><span class="o">.</span><span class="n">data</span> <span class="o">&lt;</span> <span class="n">stat_cut</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="n">absA</span><span class="o">.</span><span class="n">eliminate_zeros</span><span class="p">()</span>
+    <span class="n">r</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">absA</span><span class="o">.</span><span class="n">nnz</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">r</span><span class="p">,</span> <span class="n">s</span>
+    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">iters</span><span class="p">):</span>
+        <span class="n">B</span> <span class="o">=</span> <span class="p">(</span><span class="n">sps</span><span class="o">.</span><span class="n">diags</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="o">@</span> <span class="n">absA</span> <span class="o">@</span> <span class="n">sps</span><span class="o">.</span><span class="n">diags</span><span class="p">(</span><span class="n">s</span><span class="p">))</span><span class="o">.</span><span class="n">tocoo</span><span class="p">()</span>
+        <span class="n">rmax</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+        <span class="n">rmin</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">)</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="o">.</span><span class="n">at</span><span class="p">(</span><span class="n">rmax</span><span class="p">,</span> <span class="n">B</span><span class="o">.</span><span class="n">row</span><span class="p">,</span> <span class="n">B</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="o">.</span><span class="n">at</span><span class="p">(</span><span class="n">rmin</span><span class="p">,</span> <span class="n">B</span><span class="o">.</span><span class="n">row</span><span class="p">,</span> <span class="n">B</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">ok</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">rmin</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">rmax</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">rf</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+        <span class="n">rf</span><span class="p">[</span><span class="n">ok</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">rmax</span><span class="p">[</span><span class="n">ok</span><span class="p">]</span> <span class="o">*</span> <span class="n">rmin</span><span class="p">[</span><span class="n">ok</span><span class="p">])</span>
+        <span class="n">r</span> <span class="o">*=</span> <span class="mf">2.0</span> <span class="o">**</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log2</span><span class="p">(</span><span class="n">rf</span><span class="p">))</span>
+        <span class="n">B</span> <span class="o">=</span> <span class="p">(</span><span class="n">sps</span><span class="o">.</span><span class="n">diags</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="o">@</span> <span class="n">absA</span> <span class="o">@</span> <span class="n">sps</span><span class="o">.</span><span class="n">diags</span><span class="p">(</span><span class="n">s</span><span class="p">))</span><span class="o">.</span><span class="n">tocoo</span><span class="p">()</span>
+        <span class="n">cmax</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+        <span class="n">cmin</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">)</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="o">.</span><span class="n">at</span><span class="p">(</span><span class="n">cmax</span><span class="p">,</span> <span class="n">B</span><span class="o">.</span><span class="n">col</span><span class="p">,</span> <span class="n">B</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="o">.</span><span class="n">at</span><span class="p">(</span><span class="n">cmin</span><span class="p">,</span> <span class="n">B</span><span class="o">.</span><span class="n">col</span><span class="p">,</span> <span class="n">B</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">ok</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">cmin</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">cmax</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">cf</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+        <span class="n">cf</span><span class="p">[</span><span class="n">ok</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">cmax</span><span class="p">[</span><span class="n">ok</span><span class="p">]</span> <span class="o">*</span> <span class="n">cmin</span><span class="p">[</span><span class="n">ok</span><span class="p">])</span>
+        <span class="n">s</span> <span class="o">*=</span> <span class="mf">2.0</span> <span class="o">**</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log2</span><span class="p">(</span><span class="n">cf</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">r</span><span class="p">,</span> <span class="n">s</span></div>
+
+
+
+<div class="viewcode-block" id="ruiz_scaling">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/scaling/index.html#pulpo.utils.scaling.ruiz_scaling">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">ruiz_scaling</span><span class="p">(</span><span class="n">M</span><span class="p">,</span> <span class="n">iters</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Power-of-two row and column factors that bring every row and column of</span>
+<span class="sd">    ``diag(r) M diag(d)`` to a largest entry of about 1 (Ruiz equilibration).</span>
+
+<span class="sd">    This is the scaling of the reduced LP (``pulpo.utils.reduced``), whose rows</span>
+<span class="sd">    are dense and mix the unit LCA score of each alternative with cross terms</span>
+<span class="sd">    many orders smaller. Equilibrating by the largest entry keeps the leading</span>
+<span class="sd">    coefficients at O(1); :func:`geometric_scaling`'s ``max * min == 1``</span>
+<span class="sd">    would lift them by half the row's dynamic range, and its absolute</span>
+<span class="sd">    ``stat_cut`` is tuned to the units of the technosphere, not to those of a</span>
+<span class="sd">    projection. Empty rows and columns keep 1.</span>
+<span class="sd">    """</span>
+    <span class="n">M</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">sps</span><span class="o">.</span><span class="n">csr_matrix</span><span class="p">(</span><span class="n">M</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">))</span>
+    <span class="n">m</span><span class="p">,</span> <span class="n">n</span> <span class="o">=</span> <span class="n">M</span><span class="o">.</span><span class="n">shape</span>
+    <span class="n">r</span><span class="p">,</span> <span class="n">d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">m</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">M</span><span class="o">.</span><span class="n">nnz</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">r</span><span class="p">,</span> <span class="n">d</span>
+    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">iters</span><span class="p">):</span>
+        <span class="n">B</span> <span class="o">=</span> <span class="n">sps</span><span class="o">.</span><span class="n">diags</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="o">@</span> <span class="n">M</span> <span class="o">@</span> <span class="n">sps</span><span class="o">.</span><span class="n">diags</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+        <span class="n">rmax</span> <span class="o">=</span> <span class="n">B</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">toarray</span><span class="p">()</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+        <span class="n">cmax</span> <span class="o">=</span> <span class="n">B</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">toarray</span><span class="p">()</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+        <span class="n">rf</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">rmax</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">rmax</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="n">rmax</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)),</span> <span class="mf">1.0</span><span class="p">)</span>
+        <span class="n">cf</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">cmax</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">cmax</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="n">cmax</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)),</span> <span class="mf">1.0</span><span class="p">)</span>
+        <span class="n">r</span> <span class="o">*=</span> <span class="mf">2.0</span> <span class="o">**</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log2</span><span class="p">(</span><span class="n">rf</span><span class="p">))</span>
+        <span class="n">d</span> <span class="o">*=</span> <span class="mf">2.0</span> <span class="o">**</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log2</span><span class="p">(</span><span class="n">cf</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">r</span><span class="p">,</span> <span class="n">d</span></div>
+
+
+
+<div class="viewcode-block" id="_cap_bound">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/scaling/index.html#pulpo.utils.scaling._cap_bound">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">_cap_bound</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">n_capped</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">abs</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">SCALED_BOUND_CAP</span><span class="p">:</span>
+        <span class="n">n_capped</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="s1">'inf'</span><span class="p">)</span> <span class="k">if</span> <span class="n">value</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="o">-</span><span class="nb">float</span><span class="p">(</span><span class="s1">'inf'</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">value</span></div>
+
+
+
+<div class="viewcode-block" id="equilibrate_model_data">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/scaling/index.html#pulpo.utils.scaling.equilibrate_model_data">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">equilibrate_model_data</span><span class="p">(</span><span class="n">model_data</span><span class="p">,</span> <span class="n">iters</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">stat_cut</span><span class="o">=</span><span class="mf">1e-11</span><span class="p">,</span> <span class="n">row_shift</span><span class="o">=</span><span class="mf">1024.0</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Scale the ``combine_inputs`` / ``combine_inputs_time`` data in place.</span>
+
+<span class="sd">    * ``TECH_MATRIX[i, j] *= r_i * s_j`` and ``FINAL_DEMAND[i] *= r_i``</span>
+<span class="sd">    * ``ENV_COST_MATRIX[j, h] *= s_j`` and ``INV_MATRIX[g, j] *= s_j``</span>
+<span class="sd">    * ``LOWER_LIMIT[j] /= s_j`` and ``UPPER_LIMIT[j] /= s_j`` (bounds beyond</span>
+<span class="sd">      :data:`SCALED_BOUND_CAP` become infinite, with a warning)</span>
+<span class="sd">    * ``LEFT_WEIGHTS / RIGHT_WEIGHTS[c, j] *= s_j``</span>
+<span class="sd">    * time-indexed data: the same per product / process for every timestep,</span>
+<span class="sd">      and the carry-over matrix ``K[i, i2] *= r_i / r_i2`` so that the</span>
+<span class="sd">      carried term ``K[i, i2] * A[i2, j]`` ends up scaled by ``r_i``.</span>
+
+<span class="sd">    ``row_shift`` multiplies all row factors (keep it a power of two): it</span>
+<span class="sd">    lifts the smallest scaled coefficients further above Gurobi's 1e-13 input</span>
+<span class="sd">    cutoff and tightens the solver's absolute row tolerance in original units.</span>
+
+<span class="sd">    Stores and returns ``(row_scale, col_scale)``, dicts keyed by product and</span>
+<span class="sd">    process id, also placed under ``model_data[None]['ROW_SCALE']`` /</span>
+<span class="sd">    ``['COL_SCALE']`` for the instantiators to pick up.</span>
+<span class="sd">    """</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="n">model_data</span><span class="p">[</span><span class="kc">None</span><span class="p">]</span>
+    <span class="n">tech</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s1">'TECH_MATRIX'</span><span class="p">]</span>
+    <span class="n">products</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s1">'PRODUCT'</span><span class="p">][</span><span class="kc">None</span><span class="p">])</span>
+    <span class="n">processes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s1">'PROCESS'</span><span class="p">][</span><span class="kc">None</span><span class="p">])</span>
+    <span class="n">ridx</span> <span class="o">=</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="n">k</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">products</span><span class="p">)}</span>
+    <span class="n">cidx</span> <span class="o">=</span> <span class="p">{</span><span class="n">j</span><span class="p">:</span> <span class="n">k</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">processes</span><span class="p">)}</span>
+    <span class="n">time_indexed</span> <span class="o">=</span> <span class="s1">'TIME'</span> <span class="ow">in</span> <span class="n">d</span>
+
+    <span class="n">keys</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">tech</span><span class="p">)</span>
+    <span class="n">rows</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fromiter</span><span class="p">((</span><span class="n">ridx</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">,</span> <span class="n">count</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">keys</span><span class="p">))</span>
+    <span class="n">cols</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fromiter</span><span class="p">((</span><span class="n">cidx</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">,</span> <span class="n">count</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">keys</span><span class="p">))</span>
+    <span class="n">vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fromiter</span><span class="p">((</span><span class="n">tech</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span> <span class="n">count</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">keys</span><span class="p">))</span>
+    <span class="n">A</span> <span class="o">=</span> <span class="n">sps</span><span class="o">.</span><span class="n">csr_matrix</span><span class="p">((</span><span class="n">vals</span><span class="p">,</span> <span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">cols</span><span class="p">)),</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">products</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">processes</span><span class="p">)))</span>
+
+    <span class="n">r</span><span class="p">,</span> <span class="n">s</span> <span class="o">=</span> <span class="n">geometric_scaling</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">iters</span><span class="o">=</span><span class="n">iters</span><span class="p">,</span> <span class="n">stat_cut</span><span class="o">=</span><span class="n">stat_cut</span><span class="p">)</span>
+    <span class="n">r</span> <span class="o">=</span> <span class="n">r</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">row_shift</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">prod_of</span><span class="p">(</span><span class="n">key</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">key</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">time_indexed</span> <span class="k">else</span> <span class="n">key</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">proc_of</span><span class="p">(</span><span class="n">key</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">key</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">time_indexed</span> <span class="k">else</span> <span class="n">key</span>
+
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">keys</span><span class="p">,</span> <span class="n">vals</span> <span class="o">*</span> <span class="n">r</span><span class="p">[</span><span class="n">rows</span><span class="p">]</span> <span class="o">*</span> <span class="n">s</span><span class="p">[</span><span class="n">cols</span><span class="p">]):</span>
+        <span class="n">tech</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">d</span><span class="p">[</span><span class="s1">'FINAL_DEMAND'</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">d</span><span class="p">[</span><span class="s1">'FINAL_DEMAND'</span><span class="p">][</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span> <span class="o">*</span> <span class="n">r</span><span class="p">[</span><span class="n">ridx</span><span class="p">[</span><span class="n">prod_of</span><span class="p">(</span><span class="n">key</span><span class="p">)]]</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">h</span><span class="p">),</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">d</span><span class="p">[</span><span class="s1">'ENV_COST_MATRIX'</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">d</span><span class="p">[</span><span class="s1">'ENV_COST_MATRIX'</span><span class="p">][(</span><span class="n">j</span><span class="p">,</span> <span class="n">h</span><span class="p">)]</span> <span class="o">=</span> <span class="n">v</span> <span class="o">*</span> <span class="n">s</span><span class="p">[</span><span class="n">cidx</span><span class="p">[</span><span class="n">j</span><span class="p">]]</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">j</span><span class="p">),</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">d</span><span class="p">[</span><span class="s1">'INV_MATRIX'</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">d</span><span class="p">[</span><span class="s1">'INV_MATRIX'</span><span class="p">][(</span><span class="n">g</span><span class="p">,</span> <span class="n">j</span><span class="p">)]</span> <span class="o">=</span> <span class="n">v</span> <span class="o">*</span> <span class="n">s</span><span class="p">[</span><span class="n">cidx</span><span class="p">[</span><span class="n">j</span><span class="p">]]</span>
+    <span class="n">n_capped</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">'LOWER_LIMIT'</span><span class="p">,</span> <span class="s1">'UPPER_LIMIT'</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">d</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">d</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">_cap_bound</span><span class="p">(</span><span class="n">v</span> <span class="o">/</span> <span class="n">s</span><span class="p">[</span><span class="n">cidx</span><span class="p">[</span><span class="n">proc_of</span><span class="p">(</span><span class="n">key</span><span class="p">)]],</span> <span class="n">n_capped</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">'LEFT_WEIGHTS'</span><span class="p">,</span> <span class="s1">'RIGHT_WEIGHTS'</span><span class="p">):</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">j</span><span class="p">),</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">d</span><span class="p">[</span><span class="n">name</span><span class="p">][(</span><span class="n">c</span><span class="p">,</span> <span class="n">j</span><span class="p">)]</span> <span class="o">=</span> <span class="n">v</span> <span class="o">*</span> <span class="n">s</span><span class="p">[</span><span class="n">cidx</span><span class="p">[</span><span class="n">j</span><span class="p">]]</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">i2</span><span class="p">),</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'K'</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">d</span><span class="p">[</span><span class="s1">'K'</span><span class="p">][(</span><span class="n">i</span><span class="p">,</span> <span class="n">i2</span><span class="p">)]</span> <span class="o">=</span> <span class="n">v</span> <span class="o">*</span> <span class="n">r</span><span class="p">[</span><span class="n">ridx</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span> <span class="o">/</span> <span class="n">r</span><span class="p">[</span><span class="n">ridx</span><span class="p">[</span><span class="n">i2</span><span class="p">]]</span>
+
+    <span class="k">if</span> <span class="n">n_capped</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+        <span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">n_capped</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2"> choice capacities or lower_limit / upper_limit values exceeded "</span>
+             <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">SCALED_BOUND_CAP</span><span class="si">:</span><span class="s2">.0e</span><span class="si">}</span><span class="s2"> in magnitude after scaling and were treated as infinite, which "</span>
+             <span class="s2">"they cannot bind against. If they stand for 'no limit', use float('inf') or None."</span><span class="p">)</span>
+
+    <span class="n">row_scale</span> <span class="o">=</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="n">ridx</span><span class="p">[</span><span class="n">i</span><span class="p">]])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">products</span><span class="p">}</span>
+    <span class="n">col_scale</span> <span class="o">=</span> <span class="p">{</span><span class="n">j</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="n">cidx</span><span class="p">[</span><span class="n">j</span><span class="p">]])</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">processes</span><span class="p">}</span>
+    <span class="n">d</span><span class="p">[</span><span class="s1">'ROW_SCALE'</span><span class="p">]</span> <span class="o">=</span> <span class="n">row_scale</span>
+    <span class="n">d</span><span class="p">[</span><span class="s1">'COL_SCALE'</span><span class="p">]</span> <span class="o">=</span> <span class="n">col_scale</span>
+    <span class="k">return</span> <span class="n">row_scale</span><span class="p">,</span> <span class="n">col_scale</span></div>
+
+
+
+<div class="viewcode-block" id="relax_default_bounds">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/scaling/index.html#pulpo.utils.scaling.relax_default_bounds">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">relax_default_bounds</span><span class="p">(</span><span class="n">lower_limit_dict</span><span class="p">,</span> <span class="n">upper_limit_dict</span><span class="p">,</span> <span class="n">explicit_lower</span><span class="p">,</span> <span class="n">explicit_upper</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Set every process bound that is *not* an explicit limit to +-inf, in place.</span>
+
+<span class="sd">    ``combine_inputs`` initialises all process bounds from ``default_limits``</span>
+<span class="sd">    and overwrites the explicit ones (choice capacities, ``lower_limit`` /</span>
+<span class="sd">    ``upper_limit``). A finite default such as ``upper_bound=1e9`` is not a</span>
+<span class="sd">    modelling decision -- it never binds -- but divided by a column scale of</span>
+<span class="sd">    1e-11 it becomes a finite 1e20 that Gurobi's simplex handles badly (row</span>
+<span class="sd">    residuals of O(1) on the scaled model, or "infeasible or unbounded"), and</span>
+<span class="sd">    capping only the largest ones does not help. Under scaling, unspecified</span>
+<span class="sd">    bounds are therefore made truly infinite, as PULPO's own defaults are.</span>
+
+<span class="sd">    ``explicit_lower`` / ``explicit_upper`` hold the dict keys whose bounds</span>
+<span class="sd">    were set explicitly. Returns how many finite defaults were replaced; the</span>
+<span class="sd">    user is told by the warning on finite ``default_limits``</span>
+<span class="sd">    (``converter.warn_finite_default_limits``).</span>
+<span class="sd">    """</span>
+    <span class="n">replaced</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">lower_limit_dict</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">explicit_lower</span><span class="p">:</span>
+            <span class="n">replaced</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">lower_limit_dict</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
+            <span class="n">lower_limit_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="nb">float</span><span class="p">(</span><span class="s1">'inf'</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">upper_limit_dict</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">explicit_upper</span><span class="p">:</span>
+            <span class="n">replaced</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">upper_limit_dict</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
+            <span class="n">upper_limit_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="s1">'inf'</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">replaced</span></div>
+
+
+
+<div class="viewcode-block" id="attach_scale">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/scaling/index.html#pulpo.utils.scaling.attach_scale">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">attach_scale</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Store the factors from ``data`` (a ``model_data[None]`` dict) on ``model``."""</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">_row_scale</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'ROW_SCALE'</span><span class="p">,</span> <span class="p">{}))</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">_col_scale</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'COL_SCALE'</span><span class="p">,</span> <span class="p">{}))</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">_solution_unscaled</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="is_scaled">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/scaling/index.html#pulpo.utils.scaling.is_scaled">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">is_scaled</span><span class="p">(</span><span class="n">model</span><span class="p">):</span>
+    <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="s1">'_col_scale'</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="col_factor">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/scaling/index.html#pulpo.utils.scaling.col_factor">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">col_factor</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">j</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Column factor ``s_j`` of process ``j`` (``x_j = s_j * y_j``); 1.0 if unscaled."""</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">is_scaled</span><span class="p">(</span><span class="n">model</span><span class="p">):</span>
+        <span class="k">return</span> <span class="mf">1.0</span>
+    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">_col_scale</span><span class="p">[</span><span class="n">j</span><span class="p">])</span></div>
+
+
+
+<div class="viewcode-block" id="to_scaled_coefficient">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/scaling/index.html#pulpo.utils.scaling.to_scaled_coefficient">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">to_scaled_coefficient</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">coefficient</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Coefficient of ``scaling_vector[j]`` for a term ``coefficient * x_j``.</span>
+
+<span class="sd">    ``c * x_j == (c * s_j) * y_j``, so a row written in original units goes</span>
+<span class="sd">    onto the model multiplied by the column factor. Identity when unscaled.</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">coefficient</span><span class="p">)</span> <span class="o">*</span> <span class="n">col_factor</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="to_scaled_process_bound">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/scaling/index.html#pulpo.utils.scaling.to_scaled_process_bound">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">to_scaled_process_bound</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">bound</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Value to store in ``LOWER_LIMIT[j]`` / ``UPPER_LIMIT[j]`` for ``x_j &lt;&gt; bound``.</span>
+
+<span class="sd">    ``x_j &lt;= b`` is ``y_j &lt;= b / s_j``. A finite scaled bound beyond</span>
+<span class="sd">    :data:`SCALED_BOUND_CAP` becomes infinite, as ``equilibrate_model_data``</span>
+<span class="sd">    does at build time, with the same warning. Identity when unscaled.</span>
+<span class="sd">    """</span>
+    <span class="n">bound</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">bound</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">is_scaled</span><span class="p">(</span><span class="n">model</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">bound</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">bound</span>
+    <span class="n">n_capped</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">value</span> <span class="o">=</span> <span class="n">_cap_bound</span><span class="p">(</span><span class="n">bound</span> <span class="o">/</span> <span class="n">col_factor</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">j</span><span class="p">),</span> <span class="n">n_capped</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">n_capped</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+        <span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s2">"a process bound written onto the scaled model exceeded </span><span class="si">{</span><span class="n">SCALED_BOUND_CAP</span><span class="si">:</span><span class="s2">.0e</span><span class="si">}</span><span class="s2"> "</span>
+             <span class="s2">"in magnitude after scaling and was treated as infinite."</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">value</span></div>
+
+
+
+<div class="viewcode-block" id="from_scaled_process_bound">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/scaling/index.html#pulpo.utils.scaling.from_scaled_process_bound">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">from_scaled_process_bound</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Read a ``LOWER_LIMIT[j]`` / ``UPPER_LIMIT[j]`` value back in original units."""</span>
+    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">*</span> <span class="n">col_factor</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="_apply">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/scaling/index.html#pulpo.utils.scaling._apply">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">_apply</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">unscale</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Multiply (unscale) or divide (rescale) the solution by the factors."""</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">is_scaled</span><span class="p">(</span><span class="n">model</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="s1">'_solution_unscaled'</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span> <span class="o">==</span> <span class="n">unscale</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="n">col_scale</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">_col_scale</span>
+    <span class="n">row_scale</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">_row_scale</span>
+    <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">scaling_vector</span><span class="p">:</span>
+        <span class="n">j</span> <span class="o">=</span> <span class="n">idx</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span> <span class="k">else</span> <span class="n">idx</span>
+        <span class="n">var</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">scaling_vector</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">var</span><span class="o">.</span><span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">f</span> <span class="o">=</span> <span class="n">col_scale</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="k">if</span> <span class="n">unscale</span> <span class="k">else</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">col_scale</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+            <span class="c1"># The Var keeps its scaled bounds; skip_validation silences W1002.</span>
+            <span class="n">var</span><span class="o">.</span><span class="n">set_value</span><span class="p">(</span><span class="n">var</span><span class="o">.</span><span class="n">value</span> <span class="o">*</span> <span class="n">f</span><span class="p">,</span> <span class="n">skip_validation</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="s1">'slack'</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">slack</span><span class="p">:</span>
+            <span class="n">i</span> <span class="o">=</span> <span class="n">idx</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span> <span class="k">else</span> <span class="n">idx</span>
+            <span class="n">var</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">slack</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">var</span><span class="o">.</span><span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">f</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">row_scale</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">if</span> <span class="n">unscale</span> <span class="k">else</span> <span class="n">row_scale</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                <span class="n">var</span><span class="o">.</span><span class="n">set_value</span><span class="p">(</span><span class="n">var</span><span class="o">.</span><span class="n">value</span> <span class="o">*</span> <span class="n">f</span><span class="p">,</span> <span class="n">skip_validation</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">_solution_unscaled</span> <span class="o">=</span> <span class="n">unscale</span></div>
+
+
+
+<div class="viewcode-block" id="unscale_solution">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/scaling/index.html#pulpo.utils.scaling.unscale_solution">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">unscale_solution</span><span class="p">(</span><span class="n">model</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Bring ``scaling_vector`` / ``slack`` to original units (no-op if already)."""</span>
+    <span class="n">_apply</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">unscale</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="rescale_solution">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/scaling/index.html#pulpo.utils.scaling.rescale_solution">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">rescale_solution</span><span class="p">(</span><span class="n">model</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Bring ``scaling_vector`` / ``slack`` back to scaled units before a solve."""</span>
+    <span class="n">_apply</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">unscale</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+
+</pre></div>
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341"></script>
+<script src="../../../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2026 pulpo developers.
+      <br/>
+    
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item"><p>🌿🐛 Found a bug? Something not working? Frustrated? <a href=" latest/../../../../content/contributing.html">Please report it!</a></p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

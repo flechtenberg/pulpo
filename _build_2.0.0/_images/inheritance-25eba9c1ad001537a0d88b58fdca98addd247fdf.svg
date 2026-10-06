@@ -1,0 +1,29 @@
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" xmlns:ns1="http://www.w3.org/1999/xlink" width="207pt" height="28pt" viewBox="0.00 0.00 206.50 28.00">
+<ns0:g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 24)">
+<ns0:title>inheritance93ba8ce97a</ns0:title>
+
+<ns0:g id="node1" class="node">
+<ns0:title>ReducedSolveError</ns0:title>
+<ns0:g id="a_node1"><ns0:a ns1:href="..\content\api\pulpo\utils\reduced\index.html#pulpo.utils.reduced.ReducedSolveError" ns1:title="The reduced LP did not end optimal. ``results`` (a :class:`ReducedResults`)" target="_top">
+<ns0:polygon fill="white" stroke="black" stroke-width="0.5" points="198.5,-20 97.75,-20 97.75,0 198.5,0 198.5,-20" />
+<ns0:text text-anchor="middle" x="148.12" y="-6.5" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">ReducedSolveError</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="node2" class="node">
+<ns0:title>SolveError</ns0:title>
+<ns0:g id="a_node2"><ns0:a ns1:href="..\content\api\pulpo\utils\optimizer\index.html#pulpo.utils.optimizer.SolveError" ns1:title="The solver ended without an optimal solution; the instance keeps its" target="_top">
+<ns0:polygon fill="white" stroke="black" stroke-width="0.5" points="61.75,-20 0,-20 0,0 61.75,0 61.75,-20" />
+<ns0:text text-anchor="middle" x="30.88" y="-6.5" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">SolveError</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge1" class="edge">
+<ns0:title>SolveError-&gt;ReducedSolveError</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M62.16,-10C71.02,-10 81,-10 90.93,-10" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="91.68,-11.75 96.68,-10 91.68,-8.25 91.68,-11.75" />
+</ns0:g>
+</ns0:g>
+</ns0:svg>

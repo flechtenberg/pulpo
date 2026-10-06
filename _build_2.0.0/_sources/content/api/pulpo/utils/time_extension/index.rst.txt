@@ -1,0 +1,145 @@
+:py:mod:`pulpo.utils.time_extension`
+====================================
+
+.. py:module:: pulpo.utils.time_extension
+
+.. autoapi-nested-parse::
+
+   Time-dependent extension for PULPO (feat/time-dependent).
+
+   This module provides a parallel data-preparation and pyomo-model pipeline that
+   adds a ``TIME`` dimension to PULPO without modifying the existing single-step
+   implementation in :mod:`pulpo.utils.converter` and :mod:`pulpo.utils.optimizer`.
+
+   Public API:
+       - :func:`combine_inputs_time` -- build a time-indexed pyomo data dict.
+       - :func:`instantiate_time`    -- build the concrete time-indexed model.
+
+   Storage / carry-over
+   --------------------
+   The time-coupling mechanism is expressed via an optional ``storage`` argument
+   of :func:`combine_inputs_time`, given as a list of triples::
+
+       storage = [
+           (target_product, source_product, factor),
+           ...
+       ]
+
+   Each triple says: *the net production of ``source_product`` at time t-1
+   contributes ``factor`` units to the balance of ``target_product`` at time t.*
+   Formally it sets ``K[target_product, source_product] = factor`` in a
+   product-by-product carry-over matrix; the demand balance at t becomes ::
+
+       A_i · s[t]  +  Σ_{i2} K[i, i2] · ( A_{i2} · s[t-1] )  ≥ / =  d[t, i].
+
+   Products that appear as ``target_product`` (and ``source_product``) in any
+   storage triple are added to the set ``PRODUCT_STOR`` and use a ``>=``
+   balance instead of ``==``, allowing within-step over-production (the
+   classical battery slack: charge[t] need not be discharged at t).
+
+   This matches the four-activity (CHARGE / HOLD / HOLD t-1 / DISCHARGE)
+   pattern used by larger ESM integrations: there the ``source`` is
+   *"Charge product"* (or "Hold-t-1 product"), and ``K`` is the round-trip
+   efficiency / self-discharge factor.
+
+   Aggregated impact bounds
+   ------------------------
+   ``upper_imp_agg_limit`` constrains the *sum* of an indicator's impacts across
+   all timesteps -- e.g. an annual CO2 budget independent of per-step bounds.
+
+   Backwards compatibility
+   -----------------------
+   The static, single-timestep API is unchanged. To opt into the time-dependent
+   formulation, pass ``time_steps=[...]`` to
+   :meth:`pulpo.pulpo.PulpoOptimizer.instantiate`.
+
+
+
+Module Contents
+---------------
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   pulpo.utils.time_extension.combine_inputs_time
+   pulpo.utils.time_extension.instantiate_time
+
+
+
+.. py:function:: combine_inputs_time(lci_data, demand, choices, upper_limit, lower_limit, upper_inv_limit, upper_imp_limit, lower_inv_limit, lower_imp_limit, methods, time_steps, storage=None, upper_imp_agg_limit=None, default_limits=None, imp_goals=None, scale=False)
+
+   Build the time-indexed pyomo data dictionary.
+
+   Mirrors :func:`pulpo.utils.converter.combine_inputs` and adds three
+   time-related arguments:
+
+   :param time_steps: Ordered list of timestep labels. Must be non-empty.
+   :param storage: Optional list of triples ``(target_product, source_product,
+                   factor)``. Each triple sets ``K[target, source] = factor`` in a
+                   product×product carry-over matrix and adds both products to
+                   ``PRODUCT_STOR`` (relaxes their balance from ``==`` to ``>=``).
+                   Activity arguments are accepted and resolved to their self-product
+                   via ``process_map``.
+   :param upper_imp_agg_limit: Optional ``{indicator: bound}`` constraining the
+                               *sum* of an indicator's impact across all timesteps.
+   :param imp_goals: Optional ``{indicator: limit}`` goal-programming soft limits
+                     on the impacts aggregated over all timesteps (e.g. a yearly
+                     budget); used with the 'goal' objective of
+                     :func:`instantiate_time`. Only categories listed here receive a
+                     transgression slack.
+   :param scale: Equilibrate the LP (see :mod:`pulpo.utils.scaling`); the
+                 per-process / per-product factors are shared by all timesteps
+                 and the carry-over matrix ``K`` is scaled consistently. Default
+                 False.
+   :param default_limits: Optional custom default limits. If None, uses
+                          standard values. Required keys: 'lower_bound', 'upper_bound',
+                          'upper_inv_bound', 'lower_inv_bound', 'lower_imp_bound',
+                          'upper_imp_bound', 'upper_imp_agg_bound' (the last one not
+                          present in :func:`pulpo.utils.converter.combine_inputs`'s
+                          6-key set). Categories listed in ``imp_goals`` ignore
+                          'lower_imp_bound'/'upper_imp_bound'/'upper_imp_agg_bound' (the
+                          goal is a soft limit, not a hard Var bound) unless also given an
+                          explicit upper_imp_limit/lower_imp_limit/upper_imp_agg_limit.
+                          Finite 'lower_bound' / 'upper_bound' bound every activity and
+                          raise a FutureWarning; default_limits may be deprecated in a
+                          near-future release.
+
+   Each of ``demand``, ``choices``, ``upper_limit``, ``lower_limit``,
+   ``upper_inv_limit``, ``upper_imp_limit``, ``lower_inv_limit``,
+   ``lower_imp_limit`` may be a static dict (broadcast across timesteps)
+   or already in ``{t: dict}`` form.
+
+
+.. py:function:: instantiate_time(model_data, objective='weighted_sum')
+
+   Build a concrete instance of the time-indexed model.
+
+   With ``objective='goal'`` the model minimizes the average transgression
+   level of the *time-aggregated* impacts, ::
+
+       (1/K) * sum_h max(0, sum_t impacts[t, h] / IMP_GOALS[h] - 1),
+
+   over the K categories in ``GOAL_INDICATOR`` -- i.e. each goal is a total
+   (e.g. yearly) budget across the whole horizon, not a per-timestep limit.
+
+   Mirrors :func:`pulpo.utils.optimizer.instantiate`: the model is assembled as
+   a ConcreteModel directly from the data dictionary. The time-invariant
+   technology matrix, intervention matrix, and carry-over matrix K are embedded
+   as plain float coefficients in LinearExpression constraint rows rather than
+   as Pyomo Params, which makes instantiation several times faster on
+   ecoinvent-scale data. This includes the environmental cost matrix: its
+   dense dictionary is kept on the model as ``model._env_cost``, and code
+   that needs different coefficients rebuilds the impact constraints via
+   :func:`pulpo.utils.optimizer.update_env_cost`. Only the per-timestep
+   parameters that may be updated in place between solves remain
+   mutable Params. Production capacities as well as intervention-flow and
+   impact limits enter as variable bounds; the bounds reference the mutable
+   limit Params, so they are re-evaluated whenever the model is passed to a
+   solver again. Slack variables exist only for the
+   (t, product) pairs where a supply is specified (SUPPLY == 1); changing the
+   supply pattern requires re-instantiating the model.
+
+

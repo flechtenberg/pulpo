@@ -1,0 +1,334 @@
+:py:mod:`pulpo.utils.uncertainty.validation`
+============================================
+
+.. py:module:: pulpo.utils.uncertainty.validation
+
+.. autoapi-nested-parse::
+
+   Out-of-sample validation of chance-constrained decisions.
+
+   Why
+   ---
+   A solved point claims reliabilities that rest on the normality of ``X`` (A2)
+   and on Boole's inequality (A5). Both are checked here without either: at the
+   fixed decision ``s*`` and the recorded target ``z*``, every declared input is
+   drawn from its own family (not a fitted normal) and each event is counted, ::
+
+       impact row    X(s*) <= z*                 against lambda_z
+       bound j       s*_j <= U_j  (s*_j >= L_j)  against 1 - eps_j
+       joint         all of them at once         against lambda
+
+   with Wilson intervals. Every decision is priced on the same draws (common
+   random numbers), so the difference between two decisions is paired: the
+   regret of one against another is measured in the same world, not as the
+   difference of two independent Monte Carlo means.
+
+   Sampling
+   --------
+   ``X(s) = sum_e q_e sum_j b_ej s_j``. At fixed decisions only the B entries
+   that carry variance there matter. Each entry's contribution to ``Var X`` is
+   known exactly, ``(E[q_e]^2 + w_e) Var(b_ej) s_j^2`` (its total-order index
+   times ``V``, see :mod:`decomposition`), so :class:`ImpactSampler` holds the
+   smallest of them at their means, as long as together they stay below ``tol``
+   of every decision's variance, and reports the share drawn (``covered``).
+   Entries on processes the decisions do not use cost nothing. Declared CFs are
+   always drawn. Undeclared parameters are deterministic, as in the model; to
+   validate under widened ones, pass :func:`decomposition.widen` data.
+
+   Each parameter and each uncertain bound is drawn from its own stream, keyed
+   by the seed and by its position (its entry of ``B``, its flow, its process).
+   Its draws therefore depend on the seed alone, not on which other parameters or
+   decisions are drawn, nor on how the draws are blocked. :class:`Validation`
+   records the seed, and decisions validated in separate calls with the same seed
+   are paired too, up to the entries held at their means (``tol``).
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   pulpo.utils.uncertainty.validation._SpecArrays
+   pulpo.utils.uncertainty.validation.Draws
+   pulpo.utils.uncertainty.validation.ImpactSampler
+   pulpo.utils.uncertainty.validation.Validation
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   pulpo.utils.uncertainty.validation._number
+   pulpo.utils.uncertainty.validation._streams
+   pulpo.utils.uncertainty.validation.sample_specs
+   pulpo.utils.uncertainty.validation.declared_parameters
+   pulpo.utils.uncertainty.validation.draw_parameters
+   pulpo.utils.uncertainty.validation.wilson
+   pulpo.utils.uncertainty.validation._cvar
+   pulpo.utils.uncertainty.validation.validate
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   pulpo.utils.uncertainty.validation.CHUNK_ENTRIES
+   pulpo.utils.uncertainty.validation._NORMAL_BASED
+   pulpo.utils.uncertainty.validation._UNIFORM_BASED
+
+
+.. py:data:: CHUNK_ENTRIES
+
+   
+
+.. py:function:: _number(value)
+
+
+.. py:data:: _NORMAL_BASED
+   :value: ()
+
+   
+
+.. py:data:: _UNIFORM_BASED
+   :value: ()
+
+   
+
+.. py:function:: _streams(seed, keys)
+
+   One generator per key, from the seed and the key alone.
+
+
+.. py:class:: _SpecArrays(specs)
+
+
+   Specs as arrays per field, for drawing many parameters at once.
+
+   .. py:method:: draw(n, rng)
+
+      ``n`` draws of every spec from one generator, family by family.
+
+
+   .. py:method:: draw_streams(streams, n)
+
+      The next ``n`` draws of spec ``i`` from ``streams[i]``.
+
+
+   .. py:method:: _transform(standard)
+
+      Standard normal (normal, lognormal) or uniform (uniform, triangular)
+      variates to each spec's family.
+
+
+
+.. py:function:: sample_specs(specs, n, seed=None)
+
+   ``n`` draws of each spec, as an array ``(len(specs), n)``.
+
+   Families: exact and undeclared (the amount), normal, lognormal (mirrored
+   for ``negative``), uniform and triangular, the same as the moments.
+   ``seed`` is a seed or a ``numpy.random.Generator``.
+
+
+.. py:class:: Draws
+
+
+   Draws of the declared parameters as arrays by parameter: row ``i`` of
+   ``B`` is the B entry ``(b_rows[i], b_cols[i])``, row ``i`` of ``Q`` the CF
+   of flow ``q_rows[i]``, and column ``t`` is draw ``t`` in both.
+
+   .. py:attribute:: b_rows
+      :type: numpy.ndarray
+
+      
+
+   .. py:attribute:: b_cols
+      :type: numpy.ndarray
+
+      
+
+   .. py:attribute:: B
+      :type: numpy.ndarray
+
+      
+
+   .. py:attribute:: q_rows
+      :type: numpy.ndarray
+
+      
+
+   .. py:attribute:: Q
+      :type: numpy.ndarray
+
+      
+
+
+.. py:function:: declared_parameters(uncertainty_data: pulpo.utils.uncertainty.preparer.UncertaintyData, method=None)
+
+   ``(b_rows, b_cols, b_specs), (q_rows, q_specs)``: every declared B entry
+   and every declared CF of ``method`` (the data's only one by default).
+
+
+.. py:function:: draw_parameters(uncertainty_data: pulpo.utils.uncertainty.preparer.UncertaintyData, n, seed=None, method=None, processes=None) -> Draws
+
+   ``n`` draws of every declared B entry (only those on ``processes``, if
+   given) and every declared CF, by parameter.
+
+   The building block for formulations that need the sampled inputs
+   themselves, such as a scenario-based risk measure over the reduced space
+   (see :class:`cc.Projections`). ``seed`` is a seed or a
+   ``numpy.random.Generator``; draw in several calls with one ``Generator``
+   to bound the memory.
+
+
+.. py:class:: ImpactSampler(uncertainty_data: pulpo.utils.uncertainty.preparer.UncertaintyData, lci_data, scaling_vectors, seed=None, tol=1e-09, method=None)
+
+
+   Realized impacts ``X(s_k)`` of fixed decisions, all on the same draws.
+
+   :param uncertainty_data: the configuration to draw from; it may differ from
+                            the one the decisions were solved for.
+   :param lci_data: the LCI data, or a worker holding it.
+   :param scaling_vectors: one scaling vector per decision (original units).
+   :param seed: keys every parameter's stream (see the module
+                docstring); a fresh one is drawn and kept as ``seed`` if omitted.
+   :type seed: int, optional
+   :param tol: the share of each decision's ``Var X`` that may be held at its
+               mean (see the module docstring); 0 draws every entry that carries
+               variance.
+   :param method: the LCIA method; the data's only one by default.
+   :type method: str, optional
+
+   :ivar moments: the closed-form moments of ``uncertainty_data``.
+   :vartype moments: Moments
+   :ivar covered: per decision, the share of ``Var X`` that is drawn.
+   :vartype covered: ndarray
+   :ivar drawn: ``(flow, process)`` of each B entry drawn.
+   :vartype drawn: ndarray
+   :ivar n_drawn: the number of B entries drawn.
+
+   :vartype n_drawn: int
+
+   .. py:method:: sample(n)
+
+      The next ``n`` realizations: an array ``(decisions, n)``.
+
+
+
+.. py:function:: wilson(successes, n, level=0.95)
+
+   The Wilson score interval ``(low, high)`` of a binomial proportion.
+
+
+.. py:function:: _cvar(x, level)
+
+   Empirical CVaR at ``level`` (Rockafellar-Uryasev estimator).
+
+
+.. py:class:: Validation
+
+
+   Outcome of :func:`validate`.
+
+   :ivar table: one row per front point (``design = 'front'``) and
+                per design and front point, indexed by ``(design, lambda)``:
+                the claim (``lambda_impact``, ``threshold`` = z*, ``mean``,
+                ``sigma``); the audit of the sampler against the closed form of
+                the drawn configuration (``mean_error_in_se``, ``std_ratio``);
+                the shape of ``X`` (``skew``, ``excess_kurtosis``) and the
+                normal-approximation error ``quantile_error`` (the empirical
+                ``lambda_z`` quantile minus z*); ``coverage`` of the impact row,
+                of each bound (``coverage <kind>:<process>``, against
+                ``nominal <kind>:<process>``) and ``joint_coverage``, each with
+                Wilson bounds ``_low``/``_high``; ``cvar_gaussian`` and
+                ``cvar_empirical`` at ``lambda_z``; the regret against the lowest
+                level of the front and against the best front point in each draw
+                (mean and 95th percentile); ``covered_variance``.
+   :vartype table: DataFrame
+   :ivar impacts: the realized impacts, one row per decision.
+   :vartype impacts: ndarray
+   :ivar decisions: labels of the rows of ``impacts``.
+   :vartype decisions: list
+   :ivar seed: reproduces the draws.
+   :vartype seed: int
+   :ivar n: draws per decision.
+   :vartype n: int
+   :ivar tol: the variance share held at means (see :class:`ImpactSampler`).
+
+   :vartype tol: float
+
+   .. py:attribute:: table
+      :type: pandas.DataFrame
+
+      
+
+   .. py:attribute:: impacts
+      :type: numpy.ndarray
+
+      
+
+   .. py:attribute:: decisions
+      :type: list
+
+      
+
+   .. py:attribute:: seed
+      :type: int
+
+      
+
+   .. py:attribute:: n
+      :type: int
+
+      
+
+   .. py:attribute:: level
+      :type: float
+      :value: 0.95
+
+      
+
+   .. py:attribute:: tol
+      :type: float
+      :value: 1e-09
+
+      
+
+   .. py:attribute:: covered
+      :type: numpy.ndarray
+
+      
+
+
+.. py:function:: validate(front, problem, uncertainty_data: pulpo.utils.uncertainty.preparer.UncertaintyData, n=200000, seed=None, designs=None, tol=1e-09, level=0.95) -> Validation
+
+   Validate the points of a front out of sample.
+
+   :param front: a :class:`cc.Front` or a list of :class:`cc.Point`.
+   :param problem: the problem the front was solved with; it
+                   gives the moments of the claim and the uncertain bounds.
+   :type problem: ChanceConstrained
+   :param uncertainty_data: the configuration to draw from (usually the one
+                            solved for; a widened one tests the undeclared parameters).
+   :param n: draws per decision.
+   :type n: int
+   :param seed: a fresh one is drawn and recorded if omitted.
+   :type seed: int, optional
+   :param designs: ``{name: s}``, further decisions (e.g. the
+                   deterministic optimum) priced on the same draws against each
+                   front point's target and budget.
+   :type designs: dict, optional
+   :param tol: see :class:`ImpactSampler`.
+   :type tol: float
+   :param level: confidence level of the Wilson intervals.
+   :type level: float
+
+

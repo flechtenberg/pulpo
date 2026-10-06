@@ -1,0 +1,29 @@
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" xmlns:ns1="http://www.w3.org/1999/xlink" width="229pt" height="28pt" viewBox="0.00 0.00 229.00 28.00">
+<ns0:g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 24)">
+<ns0:title>inheritancee256525c8a</ns0:title>
+
+<ns0:g id="node1" class="node">
+<ns0:title>ChanceConstrainedError</ns0:title>
+<ns0:g id="a_node1"><ns0:a ns1:href="..\content\api\pulpo\utils\uncertainty\cc\index.html#pulpo.utils.uncertainty.cc.ChanceConstrainedError" ns1:title="A reliability level did not solve to optimality; ``results`` holds its" target="_top">
+<ns0:polygon fill="white" stroke="black" stroke-width="0.5" points="221,-20 97.75,-20 97.75,0 221,0 221,-20" />
+<ns0:text text-anchor="middle" x="159.38" y="-6.5" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">ChanceConstrainedError</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="node2" class="node">
+<ns0:title>SolveError</ns0:title>
+<ns0:g id="a_node2"><ns0:a ns1:href="..\content\api\pulpo\utils\optimizer\index.html#pulpo.utils.optimizer.SolveError" ns1:title="The solver ended without an optimal solution; the instance keeps its" target="_top">
+<ns0:polygon fill="white" stroke="black" stroke-width="0.5" points="61.75,-20 0,-20 0,0 61.75,0 61.75,-20" />
+<ns0:text text-anchor="middle" x="30.88" y="-6.5" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">SolveError</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge1" class="edge">
+<ns0:title>SolveError-&gt;ChanceConstrainedError</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M62.17,-10C70.95,-10 80.9,-10 91,-10" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="91.53,-11.75 96.53,-10 91.53,-8.25 91.53,-11.75" />
+</ns0:g>
+</ns0:g>
+</ns0:svg>

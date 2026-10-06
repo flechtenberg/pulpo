@@ -1,0 +1,904 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="../_static/favicon.svg" type="image/svg+xml">
+    <link rel="icon" sizes="144x144" href="../_static/favicon-144.png" type="image/png">
+    <link rel="mask-icon" href="../_static/favicon_mask-icon.svg" color="#222832" type="image/svg+xml">
+    <link rel="apple-touch-icon" sizes="500x500" href="../_static/favicon-500.png" type="image/png">
+    <title>Uncertainty &#8212; pulpo 2.0.0 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+
+  
+  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=913d6465" />
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341" />
+  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=3ee479438cf8b5e0d341"></script>
+
+    <script src="../_static/documentation_options.js?v=79f5c508"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/design-tabs.js?v=36754332"></script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'content/uncertainty';</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Example Collection" href="examples/index.html" />
+    <link rel="prev" title="Theory" href="theory.html" />
+<meta name="google-site-verification" content="Fb3YVU81AToFlPNhlaQf6LLq1SMrHPbY-RtFsgZkw9Q" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/pulpo_logo_big.svg" class="logo__image only-light" alt="pulpo 2.0.0 documentation - Home"/>
+    <script>document.write(`<img src="../_static/pulpo_logo_big.svg" class="logo__image only-dark" alt="pulpo 2.0.0 documentation - Home"/>`);</script>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav class="navbar-nav">
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="getting_started/index.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="theory.html">
+    Theory
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item current active">
+  <a class="nav-link nav-internal" href="#">
+    Uncertainty
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="examples/index.html">
+    Examples
+  </a>
+</li>
+
+            <li class="nav-item dropdown pst-header-nav-item">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="api/index.html">
+    API
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="codeofconduct.html">
+    Code of Conduct
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="license.html">
+    License
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="changelog.html">
+    Changelog
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  </button>
+`);
+</script></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links navbar-nav"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/flechtenberg/pulpo" title="Open this Repo on GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fab fa-brands fa-github fa-lg" aria-hidden="true"></i></span>
+            <span class="sr-only">Open this Repo on GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+    </div>
+  
+
+  
+    <button class="sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav class="navbar-nav">
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="getting_started/index.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="theory.html">
+    Theory
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item current active">
+  <a class="nav-link nav-internal" href="#">
+    Uncertainty
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="examples/index.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="api/index.html">
+    API
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="codeofconduct.html">
+    Code of Conduct
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="license.html">
+    License
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="changelog.html">
+    Changelog
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  </button>
+`);
+</script></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links navbar-nav"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/flechtenberg/pulpo" title="Open this Repo on GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fab fa-brands fa-github fa-lg" aria-hidden="true"></i></span>
+            <span class="sr-only">Open this Repo on GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"></div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    <li class="breadcrumb-item active" aria-current="page">Uncertainty</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="uncertainty">
+<h1>Uncertainty<a class="headerlink" href="#uncertainty" title="Link to this heading">#</a></h1>
+<p>PULPO optimizes one impact under the uncertainty its data declare. The method
+needs no sampling to solve: the impact’s mean and variance follow in closed
+form, the chance constraints become a second-order cone, and the cone is solved
+in reduced space, over the choice alternatives only. Sampling enters afterwards,
+to validate a solution out of sample. The <a class="reference external" href="https://github.com/flechtenberg/pulpo/blob/master/notebooks/uncertainty_toy.ipynb">uncertainty notebook</a>
+runs every step on the bundled demo database with open-source solvers.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>As of now, uncertainty in the LCA data is considered only in the biosphere
+(intervention) flows and the characterization factors. Technosphere exchanges
+are deterministic, even where the database declares a distribution for them
+(assumption A4 below). Uncertain capacities or availabilities enter as
+uncertain process bounds.</p>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pulpo.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">uncertainty</span> <span class="k">as</span> <span class="n">unc</span>
+
+<span class="n">data</span>  <span class="o">=</span> <span class="n">unc</span><span class="o">.</span><span class="n">import_declared</span><span class="p">(</span><span class="n">worker</span><span class="p">)</span>                         <span class="c1"># parameters of the impact</span>
+<span class="n">unc</span><span class="o">.</span><span class="n">override</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="s1">'If'</span><span class="p">,</span> <span class="s1">'my_foreground_db'</span><span class="p">,</span> <span class="n">expert_specs</span><span class="p">)</span>  <span class="c1"># elicited distributions</span>
+<span class="n">mom</span>   <span class="o">=</span> <span class="n">unc</span><span class="o">.</span><span class="n">compute_moments</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">worker</span><span class="p">)</span>                   <span class="c1"># closed-form mean and variance</span>
+<span class="n">ccp</span>   <span class="o">=</span> <span class="n">unc</span><span class="o">.</span><span class="n">ChanceConstrained</span><span class="p">(</span><span class="n">worker</span><span class="p">,</span> <span class="n">mom</span><span class="p">,</span> <span class="n">upper_bounds</span><span class="o">=</span><span class="p">{</span><span class="n">activity</span><span class="p">:</span> <span class="n">capacity_spec</span><span class="p">})</span>
+<span class="n">front</span> <span class="o">=</span> <span class="n">ccp</span><span class="o">.</span><span class="n">solve</span><span class="p">([</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.9</span><span class="p">,</span> <span class="mf">0.99</span><span class="p">])</span>                         <span class="c1"># reliability sweep</span>
+<span class="n">dec</span>   <span class="o">=</span> <span class="n">unc</span><span class="o">.</span><span class="n">decompose</span><span class="p">(</span><span class="n">front</span><span class="p">[</span><span class="mf">0.9</span><span class="p">],</span> <span class="n">mom</span><span class="p">)</span>                      <span class="c1"># exact Sobol' indices</span>
+<span class="n">scr</span>   <span class="o">=</span> <span class="n">unc</span><span class="o">.</span><span class="n">screen_undeclared</span><span class="p">(</span><span class="n">front</span><span class="p">[</span><span class="mf">0.9</span><span class="p">],</span> <span class="n">data</span><span class="p">,</span> <span class="n">worker</span><span class="p">,</span> <span class="n">exact_cfs</span><span class="o">=</span><span class="n">unc</span><span class="o">.</span><span class="n">co2_flows</span><span class="p">(</span><span class="n">worker</span><span class="p">))</span>
+<span class="n">val</span>   <span class="o">=</span> <span class="n">unc</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">front</span><span class="p">,</span> <span class="n">ccp</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">200_000</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">pulpo.pulpo_unc.PulpoOptimizerUnc</span></code> keeps <code class="docutils literal notranslate"><span class="pre">data</span></code> on the worker and offers the import, the override,
+the moments, the chance-constrained problem, the screening and the validation as methods
+(<code class="docutils literal notranslate"><span class="pre">import_uncertainty_data</span></code>, <code class="docutils literal notranslate"><span class="pre">apply_expert_knowledge</span></code>, <code class="docutils literal notranslate"><span class="pre">moments</span></code>, <code class="docutils literal notranslate"><span class="pre">chance_constrained</span></code>,
+<code class="docutils literal notranslate"><span class="pre">screen_undeclared</span></code>, <code class="docutils literal notranslate"><span class="pre">validate</span></code>). <code class="docutils literal notranslate"><span class="pre">decompose</span></code> and the other analyses are called as above, with
+<code class="docutils literal notranslate"><span class="pre">worker.uncertainty_data</span></code> as the data.</p>
+<section id="data-and-assumptions">
+<h2>Data and assumptions<a class="headerlink" href="#data-and-assumptions" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(A\)</span> is the technosphere matrix (square, invertible, deterministic), <span class="math notranslate nohighlight">\(B\)</span> the
+biosphere matrix with entries <span class="math notranslate nohighlight">\(b_{ej}\)</span>, <span class="math notranslate nohighlight">\(q\)</span> the characterization factors (CFs)
+of one LCIA method, <span class="math notranslate nohighlight">\(s\)</span> the scaling vector. The impact is
+<span class="math notranslate nohighlight">\(X(s) = \sum_e q_e \sum_j b_{ej} s_j\)</span>.</p></li>
+<li><p>The uncertain inputs are the entries of <span class="math notranslate nohighlight">\(B\)</span> and the CFs that <em>declare</em> a
+distribution (in the database, in the method, or by expert override), and the
+bounds on processes that the problem declares uncertain (e.g. an availability
+or a capacity).</p></li>
+<li><p>Supported families: lognormal (also for negative amounts), normal, uniform,
+triangular, and exact values (<code class="docutils literal notranslate"><span class="pre">uncertainty_type</span></code> 1). Any other family raises.</p></li>
+</ul>
+<p>The method rests on five assumptions, each stated where it is used:</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p></p></th>
+<th class="head"><p>Assumption</p></th>
+<th class="head"><p>Where</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>A1</p></td>
+<td><p>all uncertain inputs are mutually independent</p></td>
+<td><p>moments, decomposition</p></td>
+</tr>
+<tr class="row-odd"><td><p>A2</p></td>
+<td><p><span class="math notranslate nohighlight">\(X(s)\)</span> is approximately normal (the only normality assumption)</p></td>
+<td><p>the impact’s chance constraint; tested by the validation</p></td>
+</tr>
+<tr class="row-even"><td><p>A3</p></td>
+<td><p>undeclared parameters are deterministic</p></td>
+<td><p>everywhere; tested by the screening</p></td>
+</tr>
+<tr class="row-odd"><td><p>A4</p></td>
+<td><p><span class="math notranslate nohighlight">\(A\)</span> is deterministic</p></td>
+<td><p>makes the reduced space exact</p></td>
+</tr>
+<tr class="row-even"><td><p>A5</p></td>
+<td><p>the failure budget is split by Boole’s inequality</p></td>
+<td><p>joint chance constraints; conservative under any dependence</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">import_declared</span></code> takes every nonzero entry of <span class="math notranslate nohighlight">\(B\)</span> on a characterized flow and
+every CF on a flow that occurs in <span class="math notranslate nohighlight">\(B\)</span>. Parameters without a distribution are kept
+as <em>undeclared</em>: their mean is their amount and their variance zero. No
+contribution filter is applied and nothing is gap-filled.</p>
+</section>
+<section id="moments">
+<h2>Moments<a class="headerlink" href="#moments" title="Link to this heading">#</a></h2>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\begin{aligned}
+\mathrm{E}[X] &amp;= \mu^\top s, &amp; \mu_j &amp;= \textstyle\sum_e \mathrm{E}[q_e]\,\mathrm{E}[b_{ej}] \\
+\mathrm{Var}\,X &amp;= \textstyle\sum_j d_j s_j^2 + \sum_e w_e y_e^2, &amp;
+d_j &amp;= \textstyle\sum_e (\mathrm{E}[q_e]^2 + \mathrm{Var}\,q_e)\,\mathrm{Var}\,b_{ej},\quad
+w_e = \mathrm{Var}\,q_e
+\end{aligned}
+\end{split}\]</div>
+<p>with <span class="math notranslate nohighlight">\(y_e = \sum_j \mathrm{E}[b_{ej}] s_j\)</span> the mean flow <span class="math notranslate nohighlight">\(e\)</span>. The second sum is the
+covariance that every process emitting flow <span class="math notranslate nohighlight">\(e\)</span> shares through its one factor
+<span class="math notranslate nohighlight">\(q_e\)</span>; <code class="docutils literal notranslate"><span class="pre">Moments.std_independent</span></code> drops it for comparison.</p>
+</section>
+<section id="chance-constraints">
+<h2>Chance constraints<a class="headerlink" href="#chance-constraints" title="Link to this heading">#</a></h2>
+<p>At a joint reliability level <span class="math notranslate nohighlight">\(\lambda\)</span> over <span class="math notranslate nohighlight">\(K\)</span> events (the impact row and one
+per uncertain bound), each event may fail with probability
+<span class="math notranslate nohighlight">\(\varepsilon_k = w_k(1-\lambda)\)</span>, equal weights by default. Boole’s inequality then
+bounds the probability that any event fails by <span class="math notranslate nohighlight">\(1-\lambda\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\begin{aligned}
+\text{impact row:}\quad &amp; P(X \le z) \ge \lambda_z = 1-\varepsilon_0
+&amp;&amp;\Rightarrow\quad \mu^\top s + \kappa\,\sigma(s) \le z,\quad \kappa = \Phi^{-1}(\lambda_z) \\
+\text{bound } j:\quad &amp; P(s_j \le U_j) \ge 1-\varepsilon_k
+&amp;&amp;\Rightarrow\quad s_j \le F_{U_j}^{-1}(\varepsilon_k)
+\end{aligned}
+\end{split}\]</div>
+<p>and minimizing <span class="math notranslate nohighlight">\(z\)</span> gives</p>
+<div class="math notranslate nohighlight">
+\[
+\min_s\ \mu^\top s + \kappa\,\sigma(s)\quad \text{s.t. every constraint of the instance, with the uncertain bounds at their quantiles.}
+\]</div>
+<p>The bounds enter at the exact quantile of their declared family; only the
+impact row uses the normal approximation (A2). <span class="math notranslate nohighlight">\(\kappa \ge 0\)</span> (<span class="math notranslate nohighlight">\(\lambda_z \ge 1/2\)</span>)
+keeps the problem convex; lower levels are refused. <code class="docutils literal notranslate"><span class="pre">allocation='individual'</span></code>
+imposes every event at <span class="math notranslate nohighlight">\(\lambda\)</span> on its own, for comparison: it controls no joint
+probability.</p>
+</section>
+<section id="reduced-space">
+<h2>Reduced space<a class="headerlink" href="#reduced-space" title="Link to this heading">#</a></h2>
+<p>With <span class="math notranslate nohighlight">\(A\)</span> square and invertible, every scaling vector that meets the balances is</p>
+<div class="math notranslate nohighlight">
+\[
+s = s_0 + S v,\qquad s_0 = A^{-1}\tilde f,\qquad S = A^{-1}E,
+\]</div>
+<p>with one free variable <span class="math notranslate nohighlight">\(v_k\)</span> per alternative (the net output on its product row)
+and <span class="math notranslate nohighlight">\(\tilde f\)</span> the demand on all other rows. Every static PULPO constraint is
+linear in <span class="math notranslate nohighlight">\(s\)</span>, so it becomes one row in <span class="math notranslate nohighlight">\(v\)</span>, and the problem over <span class="math notranslate nohighlight">\(v\)</span> is the
+problem over <span class="math notranslate nohighlight">\(s\)</span>: the reduction is exact. <span class="math notranslate nohighlight">\(S\)</span> is never formed; each row
+<span class="math notranslate nohighlight">\(m^\top S\)</span> costs one adjoint solve with one factorization of <span class="math notranslate nohighlight">\(A\)</span> (PARDISO,
+UMFPACK or SciPy’s SuperLU). Every finite process bound is a row <span class="math notranslate nohighlight">\(S[j, :]\)</span>, so the problem
+stays small as long as only the processes with a real limit are bounded: finite
+<code class="docutils literal notranslate"><span class="pre">default_limits</span></code> on every process would put the whole of <span class="math notranslate nohighlight">\(S\)</span> into it.</p>
+<p>The deterministic LP is solved this way by <code class="docutils literal notranslate"><span class="pre">solve(formulation='reduced')</span></code>. For the
+chance-constrained problem <span class="math notranslate nohighlight">\(\sigma(s) = \lVert R\,[1; v]\rVert\)</span> with
+<span class="math notranslate nohighlight">\(R^\top R = G^\top G\)</span>, <span class="math notranslate nohighlight">\(G = Q^{1/2}[s_0, S]\)</span> and
+<span class="math notranslate nohighlight">\(Q = \mathrm{diag}(d) + B_u^\top \mathrm{diag}(w) B_u\)</span>: a second-order cone with one
+column per alternative, solved by Clarabel or Gurobi.</p>
+</section>
+<section id="exact-variance-decomposition">
+<h2>Exact variance decomposition<a class="headerlink" href="#exact-variance-decomposition" title="Link to this heading">#</a></h2>
+<p><span class="math notranslate nohighlight">\(X\)</span> is a sum of products of independent inputs, so its Sobol’ decomposition stops
+at second order. At a fixed <span class="math notranslate nohighlight">\(s\)</span>, with <span class="math notranslate nohighlight">\(V = \mathrm{Var}\,X\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\begin{aligned}
+S_1(q_e) &amp;= w_e y_e^2 / V, &amp;
+S_1(b_{ej}) &amp;= \mathrm{E}[q_e]^2\,\mathrm{Var}(b_{ej})\,s_j^2 / V, &amp;
+S_2(q_e, b_{ej}) &amp;= w_e\,\mathrm{Var}(b_{ej})\,s_j^2 / V, \\
+S_T(q_e) &amp;= w_e \big(y_e^2 + \textstyle\sum_j \mathrm{Var}(b_{ej})\,s_j^2\big) / V, &amp;
+S_T(b_{ej}) &amp;= (\mathrm{E}[q_e]^2 + w_e)\,\mathrm{Var}(b_{ej})\,s_j^2 / V
+\end{aligned}
+\end{split}\]</div>
+<p>and <span class="math notranslate nohighlight">\(\sum S_1 + \sum S_2 = 1\)</span> exactly. <code class="docutils literal notranslate"><span class="pre">decompose</span></code> reports them per parameter and
+per family (e.g. per database with <code class="docutils literal notranslate"><span class="pre">families_by_database</span></code>, and the CFs). B entries
+never interact with each other, nor CFs with each other, so a family’s indices
+are the sums over its members. The uncertain bounds are not inputs of <span class="math notranslate nohighlight">\(X\)</span> at a
+fixed <span class="math notranslate nohighlight">\(s\)</span>; they shape <span class="math notranslate nohighlight">\(s\)</span>.</p>
+</section>
+<section id="undeclared-parameters">
+<h2>Undeclared parameters<a class="headerlink" href="#undeclared-parameters" title="Link to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">screen_undeclared</span></code> tests assumption A3. Every undeclared parameter gets the same
+coefficient of variation <span class="math notranslate nohighlight">\(r\)</span> with its mean unchanged (<span class="math notranslate nohighlight">\(\mathrm{Var}\,b = r^2 b_0^2\)</span>,
+<span class="math notranslate nohighlight">\(\mathrm{Var}\,q = r^2\,\mathrm{E}[q]^2\)</span>) and the indices above are evaluated at a fixed
+decision. The CFs passed as <code class="docutils literal notranslate"><span class="pre">exact_cfs</span></code> never receive a width: for a global
+warming potential these are the CO₂ flows, whose factor is exact by definition
+because CO₂ is the reference gas (<code class="docutils literal notranslate"><span class="pre">co2_flows</span></code> finds them by name in an
+ecoinvent biosphere). Every undeclared B entry is widened: none is exact by
+definition, holding one exact could only lower the figures, and only the few at
+the top of the ranking need an expert’s judgement. The parameters are ranked by their
+deterministic contribution <span class="math notranslate nohighlight">\(\mathrm{E}[q_e]\,b_{0,ej}\,s_j\)</span>, which fixes the order
+of their total-order indices up to the CF factor <span class="math notranslate nohighlight">\(1 + w_e/\mathrm{E}[q_e]^2\)</span> and does
+not depend on <span class="math notranslate nohighlight">\(r\)</span>; the indices at each <span class="math notranslate nohighlight">\(r\)</span> are reported beside it.</p>
+<p><code class="docutils literal notranslate"><span class="pre">width_sensitivity</span></code> evaluates <span class="math notranslate nohighlight">\(\sigma(s^*)\)</span> with separate widths per database and
+for the CFs. The mean does not change, so <span class="math notranslate nohighlight">\(\kappa\,\Delta\sigma\)</span> is an upper bound on
+the rise of the optimal adjusted impact (re-optimizing can only do better).
+<code class="docutils literal notranslate"><span class="pre">widen(data,</span> <span class="pre">r,</span> <span class="pre">exact_cfs=co2_flows(worker))</span></code> returns the widened data, with a
+lognormal of the same mean and coefficient of variation (mirrored for negative
+amounts), so the same data give a re-solved front and validation draws. Widths
+are given per database name and <code class="docutils literal notranslate"><span class="pre">'Cf'</span></code>; a name that is not a subgroup of the data
+raises.</p>
+</section>
+<section id="out-of-sample-validation">
+<h2>Out-of-sample validation<a class="headerlink" href="#out-of-sample-validation" title="Link to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">validate</span></code> holds each solution <span class="math notranslate nohighlight">\(s^*\)</span> and its target <span class="math notranslate nohighlight">\(z^*\)</span> fixed and draws every
+declared input from its own family, together with the uncertain bounds, from one
+recorded seed. Every decision is priced on the same draws, so comparisons between
+decisions are paired. Per point it reports:</p>
+<ul class="simple">
+<li><p>the coverage of the impact row against <span class="math notranslate nohighlight">\(\lambda_z\)</span>, of each bound against
+<span class="math notranslate nohighlight">\(1-\varepsilon_k\)</span>, and of all events together against <span class="math notranslate nohighlight">\(\lambda\)</span>, with Wilson
+intervals;</p></li>
+<li><p>the normal-approximation error (the empirical <span class="math notranslate nohighlight">\(\lambda_z\)</span> quantile minus <span class="math notranslate nohighlight">\(z^*\)</span>),
+the skewness and excess kurtosis of <span class="math notranslate nohighlight">\(X\)</span>;</p></li>
+<li><p>the empirical CVaR at <span class="math notranslate nohighlight">\(\lambda_z\)</span> against the Gaussian
+<span class="math notranslate nohighlight">\(\mu + \varphi(\Phi^{-1}(\lambda_z))/(1-\lambda_z)\,\sigma\)</span>;</p></li>
+<li><p>the regret against the lowest level of the front and against the best front
+point in each draw (mean and 95th percentile).</p></li>
+</ul>
+<p>Further decisions, such as the deterministic optimum, are priced against the same
+targets with <code class="docutils literal notranslate"><span class="pre">designs=</span></code>. Each parameter is drawn from its own stream, keyed by the
+seed and its position, so its draws depend on the seed alone; decisions validated
+in separate calls with the same seed are paired as well. Only B entries that carry
+variance at the decisions are drawn; the smallest ones, below <code class="docutils literal notranslate"><span class="pre">tol</span></code> of each
+decision’s variance together, are held at their means, and the share drawn is
+reported.</p>
+</section>
+<section id="diagnostics">
+<h2>Diagnostics<a class="headerlink" href="#diagnostics" title="Link to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">diagnostics(front,</span> <span class="pre">moments)</span></code> reports at every point: <span class="math notranslate nohighlight">\(\sigma\)</span> without the shared-CF
+covariance and the ratio <span class="math notranslate nohighlight">\(\sigma/\sigma_{\text{indep}}\)</span>; the CFs’ share of the
+variance; the bound imposed on each uncertain process; the size of the reduced
+problem and the solve times.</p>
+</section>
+<section id="building-blocks">
+<h2>Building blocks<a class="headerlink" href="#building-blocks" title="Link to this heading">#</a></h2>
+<p>The reduced system and the sampler are public, so a study can formulate its own
+problem over <span class="math notranslate nohighlight">\(v\)</span>, such as a scenario-based CVaR front:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">reduced.build(worker)</span></code> returns the <code class="docutils literal notranslate"><span class="pre">ReducedModel</span></code> of an instance: its
+<code class="docutils literal notranslate"><span class="pre">ReducedSystem</span></code> maps <span class="math notranslate nohighlight">\(v\)</span> to <span class="math notranslate nohighlight">\(s\)</span> (<code class="docutils literal notranslate"><span class="pre">base</span></code>, <code class="docutils literal notranslate"><span class="pre">recover</span></code>) and projects any linear
+functional of <span class="math notranslate nohighlight">\(s\)</span> (<code class="docutils literal notranslate"><span class="pre">project</span></code>, <code class="docutils literal notranslate"><span class="pre">rows</span></code>, <code class="docutils literal notranslate"><span class="pre">project_vectors</span></code>); <code class="docutils literal notranslate"><span class="pre">linear_program()</span></code>
+assembles the constraint rows in <span class="math notranslate nohighlight">\(v\)</span>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ChanceConstrained.projections()</span></code> returns <span class="math notranslate nohighlight">\(s_0\)</span>, <span class="math notranslate nohighlight">\(\mathrm{E}[X] = m_0 + m^\top v\)</span>,
+the rows <span class="math notranslate nohighlight">\(S_J\)</span> of <span class="math notranslate nohighlight">\(S\)</span> on the processes that carry variance and <span class="math notranslate nohighlight">\(\mathrm{E}[B_u]S\)</span>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">draw_parameters</span></code> returns draws of the declared parameters as arrays, and
+<code class="docutils literal notranslate"><span class="pre">sample_specs</span></code> draws any list of specs.</p></li>
+</ul>
+</section>
+<section id="solvers-and-licences">
+<h2>Solvers and licences<a class="headerlink" href="#solvers-and-licences" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Problem</p></th>
+<th class="head"><p>Solvers</p></th>
+<th class="head"><p>Licence</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>deterministic LP, <code class="docutils literal notranslate"><span class="pre">formulation='full'</span></code></p></td>
+<td><p>HiGHS (default), Gurobi, GAMS/NEOS</p></td>
+<td><p>HiGHS: none</p></td>
+</tr>
+<tr class="row-odd"><td><p>deterministic LP, <code class="docutils literal notranslate"><span class="pre">formulation='reduced'</span></code></p></td>
+<td><p>HiGHS (default), Gurobi</p></td>
+<td><p>HiGHS: none</p></td>
+</tr>
+<tr class="row-even"><td><p>chance-constrained cone</p></td>
+<td><p>Clarabel (default), Gurobi</p></td>
+<td><p>Clarabel: none</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>HiGHS and Clarabel are installed with PULPO and need no licence. Gurobi is used
+when <code class="docutils literal notranslate"><span class="pre">gurobipy</span></code> is installed; the size-limited licence that comes with
+<code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">gurobipy</span></code> is for non-production use and covers reduced problems of up
+to 2,000 variables and 2,000 linear constraints, or 200 variables once quadratic
+terms (the cone) are present (see Gurobi’s licence terms). A reduced problem has
+one column per alternative, so most case studies fit.</p>
+<p>The defaults stay <code class="docutils literal notranslate"><span class="pre">formulation='full'</span></code> and <code class="docutils literal notranslate"><span class="pre">instantiate(scale=False)</span></code>. Current
+development considers <code class="docutils literal notranslate"><span class="pre">formulation='reduced'</span></code> and <code class="docutils literal notranslate"><span class="pre">scale=True</span></code> superior, and a future
+release may switch the defaults.</p>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="theory.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Theory</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="examples/index.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Example Collection</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#data-and-assumptions">Data and assumptions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#moments">Moments</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#chance-constraints">Chance constraints</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reduced-space">Reduced space</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exact-variance-decomposition">Exact variance decomposition</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#undeclared-parameters">Undeclared parameters</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#out-of-sample-validation">Out-of-sample validation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#diagnostics">Diagnostics</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#building-blocks">Building blocks</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#solvers-and-licences">Solvers and licences</a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  
+  <div class="tocsection editthispage">
+    <a href="https://github.com/flechtenberg/pulpo/edit/master/docs/content/uncertainty.md">
+      <i class="fa-solid fa-pencil"></i>
+      
+      
+        
+          Edit on GitHub
+        
+      
+    </a>
+  </div>
+</div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="../_sources/content/uncertainty.md.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2026 pulpo developers.
+      <br/>
+    
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item"><p>🌿🐛 Found a bug? Something not working? Frustrated? <a href=" latest/../../content/contributing.html">Please report it!</a></p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

@@ -1,0 +1,226 @@
+:py:mod:`pulpo.utils.optimizer`
+===============================
+
+.. py:module:: pulpo.utils.optimizer
+
+
+Module Contents
+---------------
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   pulpo.utils.optimizer.calculate_methods
+   pulpo.utils.optimizer.calculate_inv_flows
+   pulpo.utils.optimizer._group_env_cost_rows
+   pulpo.utils.optimizer.update_env_cost
+   pulpo.utils.optimizer.instantiate
+   pulpo.utils.optimizer.get_cplex_options
+   pulpo.utils.optimizer._not_optimal
+   pulpo.utils.optimizer.check_highs_options
+   pulpo.utils.optimizer.solve_highspy
+   pulpo.utils.optimizer.solve_neos
+   pulpo.utils.optimizer._gams_executable
+   pulpo.utils.optimizer.solve_gams
+   pulpo.utils.optimizer.solve_gurobi
+   pulpo.utils.optimizer.solve_model
+
+
+
+.. py:function:: calculate_methods(instance, lci_data, methods, time_steps=None)
+
+   Calculates the impacts if a method with weight 0 has been specified.
+
+   :param instance: The Pyomo model instance.
+   :param lci_data: LCI data containing matrices and mappings.
+   :type lci_data: dict
+   :param methods: Methods for environmental impact assessment.
+   :type methods: dict
+   :param time_steps: Timestep labels for a time-indexed instance.
+                      When given, `impacts_calculated` is populated per (t, method) instead
+                      of per method.
+   :type time_steps: list, optional
+
+   :returns: The updated Pyomo model instance with calculated impacts.
+   :rtype: instance
+
+
+.. py:function:: calculate_inv_flows(instance, lci_data, time_steps=None)
+
+   Calculates elementary flows post-optimization.
+
+   :param instance: The Pyomo model instance.
+   :param lci_data: LCI data containing matrices and mappings.
+   :type lci_data: dict
+   :param time_steps: Timestep labels for a time-indexed instance.
+                      When given, `inv_flows` is populated per (t, flow) instead of per flow.
+   :type time_steps: list, optional
+
+   :returns: The updated Pyomo model instance with calculated intervention flows.
+   :rtype: instance
+
+
+.. py:function:: _group_env_cost_rows(env_cost)
+
+   Group a dense {(process j, indicator h): value} environmental cost
+   dictionary into constraint rows, keeping only nonzero coefficients.
+
+   Returns a defaultdict mapping indicator h -> ([process j], [coefficient]);
+   an indicator with an all-zero row yields an empty row (empty impact sum).
+
+
+.. py:function:: update_env_cost(model, new_values)
+
+   Updates the environmental cost coefficients of an instantiated model.
+
+   The coefficients are embedded as plain floats in the impact constraints,
+   so unlike a mutable Param they cannot be changed in place: this merges
+   ``new_values`` (keyed ``(process j, indicator h)``) into the dense
+   ``model._env_cost`` dictionary and reconstructs the IMPACTS_CNSTR
+   component from the merged values. Works for both the plain and the
+   time-indexed model. Rebuilding the few impact constraint rows is cheap
+   compared to a solve; the next solver call picks up the new component.
+
+   :param model: An instance built by ``instantiate`` (or the
+                 time extension's ``instantiate``).
+   :type model: ConcreteModel
+   :param new_values: Mapping ``(process j, indicator h) -> value`` with
+                      the coefficients to overwrite.
+   :type new_values: dict
+
+
+.. py:function:: instantiate(model_data, objective='weighted_sum')
+
+   Builds an instance of the optimization model with specific data and objective function.
+
+   The model is assembled as a ConcreteModel directly from the data dictionary.
+   The technology, intervention, and environmental cost matrices are embedded
+   as plain float coefficients in LinearExpression constraint rows rather than
+   as Pyomo Params: skipping their per-entry Param (and relation-set)
+   components makes instantiation several times faster on ecoinvent-scale
+   data. The dense environmental cost dictionary is kept on the model as
+   ``model._env_cost``; code that needs different coefficients updates that
+   dictionary and rebuilds the impact constraints via :func:`update_env_cost`. Only parameters that are
+   updated in place between solves (limits, demand, weights) are mutable
+   Params.
+   Production capacities as well as intervention-flow and impact limits enter
+   as variable bounds instead of explicit constraints; the bounds reference
+   the mutable limit Params, so they are re-evaluated whenever the model is
+   passed to a solver again.
+   Slack variables exist only for the (typically few) products where a supply
+   is specified (identical lower and upper limit, SUPPLY == 1); for all other
+   products the slack would be fixed to zero, so it is not created at all.
+   Consequently the supply pattern is baked in at construction time: changing
+   which products are supplies requires re-instantiating the model.
+
+   :param model_data: Data dictionary for the optimization model.
+   :type model_data: dict
+   :param objective: 'weighted_sum' (default) minimizes the weighted sum of
+                     impacts. 'goal' minimizes the average transgression level
+                     (1/K) * sum_h max(0, impacts_h / IMP_GOALS_h - 1) over the K
+                     categories in GOAL_INDICATOR (goal programming; the time-extended
+                     twin applies the goals to the time-aggregated impacts instead).
+   :type objective: str
+
+   :returns: The instantiated Pyomo model.
+   :rtype: ConcreteModel
+
+
+.. py:function:: get_cplex_options(options)
+
+   Return the default XPLEX options if none are provided.
+
+
+.. py:exception:: SolveError(message, results)
+
+
+   Bases: :py:obj:`RuntimeError`
+
+   .. autoapi-inheritance-diagram:: pulpo.utils.optimizer.SolveError
+      :parts: 1
+      :private-bases:
+
+   The solver ended without an optimal solution; the instance keeps its
+   previous values. ``results`` holds what the solver returned.
+
+   Initialize self.  See help(type(self)) for accurate signature.
+
+
+.. py:function:: _not_optimal(solver, condition, results, incumbent=None)
+
+
+.. py:function:: check_highs_options(options)
+
+   Raise a ValueError for HiGHS options with an unknown name or an invalid value.
+
+   HiGHS reports both only through a status code and its log, which is often
+   switched off, so a mistyped option would otherwise be ignored silently.
+
+
+.. py:function:: solve_highspy(model_instance, options=None)
+
+   Solve the model using Highspy, with ``options`` (a dict) passed to HiGHS.
+
+
+.. py:function:: solve_neos(model_instance, solver_name, options, neos_email)
+
+   Solve the model using NEOS.
+
+
+.. py:function:: _gams_executable(gams_path)
+
+   The GAMS executable in ``gams_path``, a GAMS directory or the executable itself.
+
+
+.. py:function:: solve_gams(model_instance, gams_path, options, solver_name=None)
+
+   Solve the model with the GAMS installation at ``gams_path`` (``True``: the
+   ``GAMS_PULPO`` environment variable), using ``solver_name`` (default CPLEX).
+
+
+.. py:function:: solve_gurobi(model_instance, options=None)
+
+   Solve the given Pyomo ConcreteModel using Gurobi.
+
+   Stores ``solver_status`` and ``solver_termination`` on the instance, and
+   ``best_feasible_obj`` and ``best_obj_bound`` when Gurobi reports them. When the
+   solve is optimal, the Pyomo variables are already loaded.
+
+
+.. py:function:: solve_model(model_instance, gams_path=False, solver_name=None, options=None, neos_email=None)
+
+   Solves the instance of the optimization model using Highspy, Gurobi, NEOS, or GAMS.
+
+   Solver selection logic (in priority order):
+     1. GAMS  – when ``gams_path`` is provided (a path string or ``True``).
+     2. HiGHS – when no ``gams_path`` and ``solver_name`` is ``None`` or ``'highs'``.
+     3. Gurobi – when no ``gams_path`` and ``solver_name`` is ``'gurobi'``.
+     4. NEOS  – when no ``gams_path`` and any other ``solver_name`` is given.
+
+   :param model_instance: The Pyomo model instance.
+   :type model_instance: ConcreteModel
+   :param gams_path: Path to the GAMS solver or ``True`` to
+                     read the path from the ``GAMS_PULPO`` environment variable.
+   :type gams_path: str or bool, optional
+   :param solver_name: The solver to use (e.g. ``'highs'``, ``'gurobi'``,
+                       ``'cplex'``, ``'baron'``, or ``'xpress'``).
+   :type solver_name: str, optional
+   :param options: Solver options: a dict of option names and
+                   values for HiGHS and Gurobi, a list of option lines for GAMS. NEOS does
+                   not use them.
+   :type options: dict or list, optional
+   :param neos_email: Email for NEOS solver authentication.
+   :type neos_email: str, optional
+
+   :returns: Results of the optimization and the updated model instance.
+   :rtype: tuple
+
+   On an equilibrated instance (see :mod:`pulpo.utils.scaling`) the solver
+   works on the scaled variables; ``scaling_vector`` and ``slack`` are
+   multiplied back to original units before this function returns, so all
+   downstream code reads them as usual.
+
+

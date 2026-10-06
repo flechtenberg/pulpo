@@ -1,0 +1,61 @@
+:py:mod:`pulpo.datasets.sample_database`
+========================================
+
+.. py:module:: pulpo.datasets.sample_database
+
+
+Module Contents
+---------------
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   pulpo.datasets.sample_database.setup_biosphere_db
+   pulpo.datasets.sample_database.setup_test_db
+   pulpo.datasets.sample_database.setup_background_db
+   pulpo.datasets.sample_database.setup_foreground_db
+   pulpo.datasets.sample_database.setup_lcia_methods
+   pulpo.datasets.sample_database.setup_sample_db
+   pulpo.datasets.sample_database.sample_lcia
+   pulpo.datasets.sample_database.main
+
+
+
+.. py:function:: setup_biosphere_db()
+
+   Create a minimal biosphere database with four flows.
+
+
+.. py:function:: setup_test_db()
+
+   Create a minimal technosphere database and connect to biosphere3.
+
+
+.. py:function:: setup_background_db()
+
+   Create background_db with natural gas, electricity, water, SMR hydrogen, and ASU oxygen.
+   Adds naive uncertainty to all non-production exchanges.
+
+
+.. py:function:: setup_foreground_db()
+
+   Create foreground_db with electrolysis, O2-byproduct, O2-market, DAC, methanol synthesis, and ozone production.
+
+
+.. py:function:: setup_lcia_methods()
+
+   Create LCIA methods (identical numeric values).
+
+
+.. py:function:: setup_sample_db()
+
+
+.. py:function:: sample_lcia()
+
+
+.. py:function:: main()
+
+

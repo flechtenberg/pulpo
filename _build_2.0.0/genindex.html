@@ -1,0 +1,1895 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="./" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Index &#8212; pulpo 2.0.0 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+<link href="_static/styles/bootstrap.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+
+  
+  <link href="_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+    <link rel="stylesheet" type="text/css" href="_static/custom.css?v=913d6465" />
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341" />
+  <script src="_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=3ee479438cf8b5e0d341"></script>
+
+    <script src="_static/documentation_options.js?v=79f5c508"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="_static/copybutton.js?v=f281be69"></script>
+    <script src="_static/design-tabs.js?v=36754332"></script>
+    <script src="https://unpkg.com/mermaid@10.2.0/dist/mermaid.min.js"></script>
+    <script>
+    function initializeMermaidBasedOnTheme() {
+        const theme = document.documentElement.dataset.theme;
+
+        if (theme === 'dark') {
+            mermaid.initialize({
+                startOnLoad: true,
+                theme: 'base',
+                themeVariables: {
+                    edgeLabelBackground: 'transparent',
+                    defaultLinkColor: '#ced6dd',
+                    titleColor: '#ced6dd',
+                    nodeTextColor: '#ced6dd',
+                    lineColor: '#ced6dd',
+                }
+            });
+        } else {
+            mermaid.initialize({
+                startOnLoad: true,
+                theme: 'base',
+                themeVariables: {
+                    edgeLabelBackground: 'transparent',
+                    defaultLinkColor: '#222832',
+                    titleColor: '#222832',
+                    nodeTextColor: '#222832',
+                    lineColor: '#222832',
+                }
+            });
+        }
+
+        // Re-render all Mermaid diagrams
+        mermaid.contentLoaded();
+    }
+
+    // Observer to detect changes to the data-theme attribute
+    const themeObserver = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            if (mutation.type === 'attributes' && mutation.attributeName === 'data-theme') {
+            initializeMermaidBasedOnTheme();
+            }
+        });
+    });
+
+    themeObserver.observe(document.documentElement, { attributes: true });
+
+    initializeMermaidBasedOnTheme();
+</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'genindex';</script>
+    <link rel="index" title="Index" href="#" />
+    <link rel="search" title="Search" href="search.html" />
+<meta name="google-site-verification" content="Fb3YVU81AToFlPNhlaQf6LLq1SMrHPbY-RtFsgZkw9Q" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+
+<a class="navbar-brand logo" href="index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="_static/pulpo_logo_big.svg" class="logo__image only-light" alt="pulpo 2.0.0 documentation - Home"/>
+    <script>document.write(`<img src="_static/pulpo_logo_big.svg" class="logo__image only-dark" alt="pulpo 2.0.0 documentation - Home"/>`);</script>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav class="navbar-nav">
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="content/installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="content/getting_started/index.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="content/theory.html">
+    Theory
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="content/uncertainty.html">
+    Uncertainty
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="content/examples/index.html">
+    Examples
+  </a>
+</li>
+
+            <li class="nav-item dropdown pst-header-nav-item">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="content/api/index.html">
+    API
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="content/contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="content/codeofconduct.html">
+    Code of Conduct
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="content/license.html">
+    License
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="content/changelog.html">
+    Changelog
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  </button>
+`);
+</script></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links navbar-nav"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/flechtenberg/pulpo" title="Open this Repo on GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fab fa-brands fa-github fa-lg" aria-hidden="true"></i></span>
+            <span class="sr-only">Open this Repo on GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <div class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav class="navbar-nav">
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="content/installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="content/getting_started/index.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="content/theory.html">
+    Theory
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="content/uncertainty.html">
+    Uncertainty
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="content/examples/index.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="content/api/index.html">
+    API
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="content/contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="content/codeofconduct.html">
+    Code of Conduct
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="content/license.html">
+    License
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="content/changelog.html">
+    Changelog
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  </button>
+`);
+</script></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links navbar-nav"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/flechtenberg/pulpo" title="Open this Repo on GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fab fa-brands fa-github fa-lg" aria-hidden="true"></i></span>
+            <span class="sr-only">Open this Repo on GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none"></div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+
+<h1 id="index">Index</h1>
+
+<div class="genindex-jumpbox">
+ <a href="#_"><strong>_</strong></a>
+ | <a href="#A"><strong>A</strong></a>
+ | <a href="#B"><strong>B</strong></a>
+ | <a href="#C"><strong>C</strong></a>
+ | <a href="#D"><strong>D</strong></a>
+ | <a href="#E"><strong>E</strong></a>
+ | <a href="#F"><strong>F</strong></a>
+ | <a href="#G"><strong>G</strong></a>
+ | <a href="#H"><strong>H</strong></a>
+ | <a href="#I"><strong>I</strong></a>
+ | <a href="#J"><strong>J</strong></a>
+ | <a href="#K"><strong>K</strong></a>
+ | <a href="#L"><strong>L</strong></a>
+ | <a href="#M"><strong>M</strong></a>
+ | <a href="#N"><strong>N</strong></a>
+ | <a href="#O"><strong>O</strong></a>
+ | <a href="#P"><strong>P</strong></a>
+ | <a href="#Q"><strong>Q</strong></a>
+ | <a href="#R"><strong>R</strong></a>
+ | <a href="#S"><strong>S</strong></a>
+ | <a href="#T"><strong>T</strong></a>
+ | <a href="#U"><strong>U</strong></a>
+ | <a href="#V"><strong>V</strong></a>
+ | <a href="#W"><strong>W</strong></a>
+ | <a href="#X"><strong>X</strong></a>
+ 
+</div>
+<h2 id="_">_</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="content/api/pulpo/utils/bw_parser/index.html#pulpo.utils.bw_parser._activity_orm">_activity_orm() (in module pulpo.utils.bw_parser)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/bw_parser/index.html#pulpo.utils.bw_parser._activity_rows">_activity_rows() (in module pulpo.utils.bw_parser)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/scaling/index.html#pulpo.utils.scaling._apply">_apply() (in module pulpo.utils.scaling)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/bw_parser/index.html#pulpo.utils.bw_parser._as_list">_as_list() (in module pulpo.utils.bw_parser)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/reduced/index.html#pulpo.utils.reduced._CACHES">_CACHES (in module pulpo.utils.reduced)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/scaling/index.html#pulpo.utils.scaling._cap_bound">_cap_bound() (in module pulpo.utils.scaling)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/reduced/index.html#pulpo.utils.reduced._check_instance">_check_instance() (in module pulpo.utils.reduced)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/decomposition/index.html#pulpo.utils.uncertainty.decomposition._check_widths">_check_widths() (in module pulpo.utils.uncertainty.decomposition)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/validation/index.html#pulpo.utils.uncertainty.validation._cvar">_cvar() (in module pulpo.utils.uncertainty.validation)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/decomposition/index.html#pulpo.utils.uncertainty.decomposition._decision">_decision() (in module pulpo.utils.uncertainty.decomposition)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/reduced/index.html#pulpo.utils.reduced.ReducedModel._dependent_vectors">_dependent_vectors() (pulpo.utils.reduced.ReducedModel method)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/bw_parser/index.html#pulpo.utils.bw_parser._ensure_project_current">_ensure_project_current() (in module pulpo.utils.bw_parser)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/decomposition/index.html#pulpo.utils.uncertainty.decomposition._exact_cfs">_exact_cfs() (in module pulpo.utils.uncertainty.decomposition)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.ChanceConstrained._factor">_factor() (pulpo.utils.uncertainty.cc.ChanceConstrained method)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/reduced/index.html#pulpo.utils.reduced.Factorization._factorize">_factorize() (pulpo.utils.reduced.Factorization method)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/reduced/index.html#pulpo.utils.reduced._finite">_finite() (in module pulpo.utils.reduced)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/reduced/index.html#pulpo.utils.reduced._free_rows">_free_rows() (in module pulpo.utils.reduced)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/optimizer/index.html#pulpo.utils.optimizer._gams_executable">_gams_executable() (in module pulpo.utils.optimizer)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/optimizer/index.html#pulpo.utils.optimizer._group_env_cost_rows">_group_env_cost_rows() (in module pulpo.utils.optimizer)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/preparer/index.html#pulpo.utils.uncertainty.preparer._iter_defined">_iter_defined() (in module pulpo.utils.uncertainty.preparer)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/bw_parser/index.html#pulpo.utils.bw_parser._iterate_processes">_iterate_processes() (in module pulpo.utils.bw_parser)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/reduced/index.html#pulpo.utils.reduced._KNOWN_CONSTRAINTS">_KNOWN_CONSTRAINTS (in module pulpo.utils.reduced)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/reduced/index.html#pulpo.utils.reduced._KNOWN_VARS">_KNOWN_VARS (in module pulpo.utils.reduced)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/decomposition/index.html#pulpo.utils.uncertainty.decomposition._lci">_lci() (in module pulpo.utils.uncertainty.decomposition)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc._linear_rows">_linear_rows() (in module pulpo.utils.uncertainty.cc)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/bw_parser/index.html#pulpo.utils.bw_parser._linked_databases">_linked_databases() (in module pulpo.utils.bw_parser)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/bw_parser/index.html#pulpo.utils.bw_parser._load_lci_bw2">_load_lci_bw2() (in module pulpo.utils.bw_parser)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/bw_parser/index.html#pulpo.utils.bw_parser._load_lci_bw25">_load_lci_bw25() (in module pulpo.utils.bw_parser)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/processor/index.html#pulpo.utils.uncertainty.processor._merge_defined_blocks">_merge_defined_blocks() (in module pulpo.utils.uncertainty.processor)</a>
+</li>
+      <li><a href="content/api/pulpo/index.html#pulpo._missing">_missing (in module pulpo)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.ChanceConstrained._model">_model() (pulpo.utils.uncertainty.cc.ChanceConstrained method)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/validation/index.html#pulpo.utils.uncertainty.validation._NORMAL_BASED">_NORMAL_BASED (in module pulpo.utils.uncertainty.validation)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/optimizer/index.html#pulpo.utils.optimizer._not_optimal">_not_optimal() (in module pulpo.utils.optimizer)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/validation/index.html#pulpo.utils.uncertainty.validation._number">_number() (in module pulpo.utils.uncertainty.validation)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="content/api/pulpo/utils/warning/index.html#pulpo.utils.warning._PACKAGE">_PACKAGE (in module pulpo.utils.warning)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/bw_parser/index.html#pulpo.utils.bw_parser._parse_tuple">_parse_tuple() (in module pulpo.utils.bw_parser)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.ChanceConstrained._process_index">_process_index() (pulpo.utils.uncertainty.cc.ChanceConstrained method)</a>
+</li>
+      <li><a href="content/api/pulpo/datasets/soc_demo_database/index.html#pulpo.datasets.soc_demo_database._project">_project() (in module pulpo.datasets.soc_demo_database)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/bw_parser/index.html#pulpo.utils.bw_parser._query_processes_sql">_query_processes_sql() (in module pulpo.utils.bw_parser)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/reduced/index.html#pulpo.utils.reduced.Factorization._raw_solve">_raw_solve() (pulpo.utils.reduced.Factorization method)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/preparer/index.html#pulpo.utils.uncertainty.preparer._record">_record() (in module pulpo.utils.uncertainty.preparer)</a>
+</li>
+      <li><a href="content/api/pulpo/pulpo_unc/index.html#pulpo.pulpo_unc.PulpoOptimizerUnc._require_data">_require_data() (pulpo.pulpo_unc.PulpoOptimizerUnc method)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/reduced/index.html#pulpo.utils.reduced._resolve_backend">_resolve_backend() (in module pulpo.utils.reduced)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/processor/index.html#pulpo.utils.uncertainty.processor._sample_one_spec">_sample_one_spec() (in module pulpo.utils.uncertainty.processor)</a>
+</li>
+      <li><a href="content/api/pulpo/datasets/elec_time_database/index.html#pulpo.datasets.elec_time_database._setup_biosphere">_setup_biosphere() (in module pulpo.datasets.elec_time_database)</a>
+</li>
+      <li><a href="content/api/pulpo/datasets/elec_time_database/index.html#pulpo.datasets.elec_time_database._setup_lcia_method">_setup_lcia_method() (in module pulpo.datasets.elec_time_database)</a>
+</li>
+      <li><a href="content/api/pulpo/datasets/elec_time_database/index.html#pulpo.datasets.elec_time_database._setup_technosphere">_setup_technosphere() (in module pulpo.datasets.elec_time_database)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/preparer/index.html#pulpo.utils.uncertainty.preparer._single_method">_single_method() (in module pulpo.utils.uncertainty.preparer)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/reduced/index.html#pulpo.utils.reduced.ReducedModel._slack_bounds">_slack_bounds() (pulpo.utils.reduced.ReducedModel method)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc._solve_clarabel">_solve_clarabel() (in module pulpo.utils.uncertainty.cc)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/reduced/index.html#pulpo.utils.reduced._solve_gurobi">_solve_gurobi() (in module pulpo.utils.reduced)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc._solve_gurobi_cone">_solve_gurobi_cone() (in module pulpo.utils.uncertainty.cc)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/reduced/index.html#pulpo.utils.reduced._solve_highs">_solve_highs() (in module pulpo.utils.reduced)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/preparer/index.html#pulpo.utils.uncertainty.preparer._SPEC_FIELDS">_SPEC_FIELDS (in module pulpo.utils.uncertainty.preparer)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/validation/index.html#pulpo.utils.uncertainty.validation._SpecArrays">_SpecArrays (class in pulpo.utils.uncertainty.validation)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/preparer/index.html#pulpo.utils.uncertainty.preparer._split">_split() (in module pulpo.utils.uncertainty.preparer)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/bw_parser/index.html#pulpo.utils.bw_parser._SQL_BACKENDS">_SQL_BACKENDS (in module pulpo.utils.bw_parser)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/validation/index.html#pulpo.utils.uncertainty.validation._streams">_streams() (in module pulpo.utils.uncertainty.validation)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/validation/index.html#pulpo.utils.uncertainty.validation._SpecArrays._transform">_transform() (pulpo.utils.uncertainty.validation._SpecArrays method)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/utils/index.html#pulpo.utils.utils._undeclared_distributions">_undeclared_distributions() (in module pulpo.utils.utils)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/validation/index.html#pulpo.utils.uncertainty.validation._UNIFORM_BASED">_UNIFORM_BASED (in module pulpo.utils.uncertainty.validation)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/reduced/index.html#pulpo.utils.reduced.ReducedModel._unscaled">_unscaled() (pulpo.utils.reduced.ReducedModel method)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/preparer/index.html#pulpo.utils.uncertainty.preparer._validate">_validate() (in module pulpo.utils.uncertainty.preparer)</a>
+</li>
+      <li><a href="content/api/pulpo/pulpo/index.html#pulpo.pulpo.PulpoOptimizer._validate_goals">_validate_goals() (pulpo.pulpo.PulpoOptimizer method)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/reduced/index.html#pulpo.utils.reduced._var_bounds">_var_bounds() (in module pulpo.utils.reduced)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/reduced/index.html#pulpo.utils.reduced._vector_key">_vector_key() (in module pulpo.utils.reduced)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/reduced/index.html#pulpo.utils.reduced.ReducedModel._warn_remote">_warn_remote() (pulpo.utils.reduced.ReducedModel method)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/decomposition/index.html#pulpo.utils.uncertainty.decomposition._width">_width() (in module pulpo.utils.uncertainty.decomposition)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="A">A</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.Point.adjusted">adjusted (pulpo.utils.uncertainty.cc.Point attribute)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/preparer/index.html#pulpo.utils.uncertainty.preparer.UncertaintySpec.amount">amount (pulpo.utils.uncertainty.preparer.UncertaintySpec attribute)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.apply_CC_formulation">apply_CC_formulation() (in module pulpo.utils.uncertainty.cc)</a>
+</li>
+      <li><a href="content/api/pulpo/pulpo_unc/index.html#pulpo.pulpo_unc.PulpoOptimizerUnc.apply_expert_knowledge">apply_expert_knowledge() (pulpo.pulpo_unc.PulpoOptimizerUnc method)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/scaling/index.html#pulpo.utils.scaling.attach_scale">attach_scale() (in module pulpo.utils.scaling)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="B">B</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="content/api/pulpo/utils/uncertainty/validation/index.html#pulpo.utils.uncertainty.validation.Draws.B">B (pulpo.utils.uncertainty.validation.Draws attribute)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/validation/index.html#pulpo.utils.uncertainty.validation.Draws.b_cols">b_cols (pulpo.utils.uncertainty.validation.Draws attribute)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/moments/index.html#pulpo.utils.uncertainty.moments.Moments.B_mean">B_mean (pulpo.utils.uncertainty.moments.Moments attribute)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/validation/index.html#pulpo.utils.uncertainty.validation.Draws.b_rows">b_rows (pulpo.utils.uncertainty.validation.Draws attribute)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/moments/index.html#pulpo.utils.uncertainty.moments.Moments.B_unc">B_unc (pulpo.utils.uncertainty.moments.Moments property)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.Projections.B_unc_S">B_unc_S (pulpo.utils.uncertainty.cc.Projections attribute)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.Projections.B_unc_s0">B_unc_s0 (pulpo.utils.uncertainty.cc.Projections attribute)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/moments/index.html#pulpo.utils.uncertainty.moments.Moments.B_var">B_var (pulpo.utils.uncertainty.moments.Moments attribute)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/reduced/index.html#pulpo.utils.reduced.backward_error">backward_error() (in module pulpo.utils.reduced)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/reduced/index.html#pulpo.utils.reduced.ReducedResults.balance_residual">balance_residual (pulpo.utils.reduced.ReducedResults attribute)</a>
+
+      <ul>
+        <li><a href="content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.Point.balance_residual">(pulpo.utils.uncertainty.cc.Point attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="content/api/pulpo/utils/reduced/index.html#pulpo.utils.reduced.ReducedSystem.base">base() (pulpo.utils.reduced.ReducedSystem method)</a>
+</li>
+      <li><a href="content/api/pulpo/datasets/elec_time_database/index.html#pulpo.datasets.elec_time_database.BATTERY_CHARGE_KEY">BATTERY_CHARGE_KEY (in module pulpo.datasets.elec_time_database)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="content/api/pulpo/datasets/elec_time_database/index.html#pulpo.datasets.elec_time_database.BATTERY_DISCHARGE_KEY">BATTERY_DISCHARGE_KEY (in module pulpo.datasets.elec_time_database)</a>
+</li>
+      <li><a href="content/api/pulpo/datasets/elec_time_database/index.html#pulpo.datasets.elec_time_database.BATTERY_HOLD_KEY">BATTERY_HOLD_KEY (in module pulpo.datasets.elec_time_database)</a>
+</li>
+      <li><a href="content/api/pulpo/datasets/elec_time_database/index.html#pulpo.datasets.elec_time_database.BATTERY_HOLDTM1_KEY">BATTERY_HOLDTM1_KEY (in module pulpo.datasets.elec_time_database)</a>
+</li>
+      <li><a href="content/api/pulpo/datasets/elec_time_database/index.html#pulpo.datasets.elec_time_database.BIOSPHERE_NAME">BIOSPHERE_NAME (in module pulpo.datasets.elec_time_database)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.bonferroni_budget">bonferroni_budget() (in module pulpo.utils.uncertainty.cc)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.ChanceConstrained.bound_specs">bound_specs (pulpo.utils.uncertainty.cc.ChanceConstrained property)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/reduced/index.html#pulpo.utils.reduced.ReducedModel.BOUND_TOL">BOUND_TOL (pulpo.utils.reduced.ReducedModel attribute)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.Point.bounds">bounds (pulpo.utils.uncertainty.cc.Point attribute)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.ChanceConstrained.bounds">bounds() (pulpo.utils.uncertainty.cc.ChanceConstrained method)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/utils/index.html#pulpo.utils.utils.broadcast_over_time">broadcast_over_time() (in module pulpo.utils.utils)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/reduced/index.html#pulpo.utils.reduced.build">build() (in module pulpo.utils.reduced)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/utils/index.html#pulpo.utils.utils.build_bw25_params">build_bw25_params() (in module pulpo.utils.utils)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/utils/index.html#pulpo.utils.utils.BW25_DISTRIBUTION_FIELDS">BW25_DISTRIBUTION_FIELDS (in module pulpo.utils.utils)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/utils/index.html#pulpo.utils.utils.BW25_PARAM_DTYPE">BW25_PARAM_DTYPE (in module pulpo.utils.utils)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="C">C</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="content/api/pulpo/utils/reduced/index.html#pulpo.utils.reduced.ReducedLP.c">c (pulpo.utils.reduced.ReducedLP attribute)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/reduced/index.html#pulpo.utils.reduced.ReducedLP.c0">c0 (pulpo.utils.reduced.ReducedLP attribute)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/optimizer/index.html#pulpo.utils.optimizer.calculate_inv_flows">calculate_inv_flows() (in module pulpo.utils.optimizer)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/optimizer/index.html#pulpo.utils.optimizer.calculate_methods">calculate_methods() (in module pulpo.utils.optimizer)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/converter/index.html#pulpo.utils.converter.capacity_conflicts">capacity_conflicts() (in module pulpo.utils.converter)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/preparer/index.html#pulpo.utils.uncertainty.preparer.UncertaintyData.Cf">Cf (pulpo.utils.uncertainty.preparer.UncertaintyData attribute)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/moments/index.html#pulpo.utils.uncertainty.moments.Moments.cf_rows">cf_rows (pulpo.utils.uncertainty.moments.Moments attribute)</a>
+</li>
+      <li><a href="content/api/pulpo/pulpo_unc/index.html#pulpo.pulpo_unc.PulpoOptimizerUnc.chance_constrained">chance_constrained() (pulpo.pulpo_unc.PulpoOptimizerUnc method)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.ChanceConstrained">ChanceConstrained (class in pulpo.utils.uncertainty.cc)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.ChanceConstrainedError">ChanceConstrainedError</a>
+</li>
+      <li><a href="content/api/pulpo/utils/bw_parser/index.html#pulpo.utils.bw_parser.LCIDataDict.characterization_params">characterization_params (pulpo.utils.bw_parser.LCIDataDict attribute)</a>
+</li>
+      <li><a href="content/api/pulpo/datasets/elec_time_database/index.html#pulpo.datasets.elec_time_database.CHARGE_PRODUCT_CHOICE">CHARGE_PRODUCT_CHOICE (in module pulpo.datasets.elec_time_database)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/optimizer/index.html#pulpo.utils.optimizer.check_highs_options">check_highs_options() (in module pulpo.utils.optimizer)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/saver/index.html#pulpo.utils.saver.ResultDataDict.Choices">Choices (pulpo.utils.saver.ResultDataDict attribute)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/reduced/index.html#pulpo.utils.reduced.CHUNK_ENTRIES">CHUNK_ENTRIES (in module pulpo.utils.reduced)</a>
+
+      <ul>
+        <li><a href="content/api/pulpo/utils/uncertainty/validation/index.html#pulpo.utils.uncertainty.validation.CHUNK_ENTRIES">(in module pulpo.utils.uncertainty.validation)</a>
+</li>
+      </ul></li>
+      <li><a href="content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.CLARABEL_OPTIONS">CLARABEL_OPTIONS (in module pulpo.utils.uncertainty.cc)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="content/api/pulpo/utils/uncertainty/decomposition/index.html#pulpo.utils.uncertainty.decomposition.co2_flows">co2_flows() (in module pulpo.utils.uncertainty.decomposition)</a>
+</li>
+      <li><a href="content/api/pulpo/datasets/elec_time_database/index.html#pulpo.datasets.elec_time_database.CO2_KEY">CO2_KEY (in module pulpo.datasets.elec_time_database)</a>
+</li>
+      <li><a href="content/api/pulpo/datasets/elec_time_database/index.html#pulpo.datasets.elec_time_database.COAL_KEY">COAL_KEY (in module pulpo.datasets.elec_time_database)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/scaling/index.html#pulpo.utils.scaling.col_factor">col_factor() (in module pulpo.utils.scaling)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/reduced/index.html#pulpo.utils.reduced.ReducedLP.col_labels">col_labels (pulpo.utils.reduced.ReducedLP attribute)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/reduced/index.html#pulpo.utils.reduced.ReducedLP.col_lower">col_lower (pulpo.utils.reduced.ReducedLP attribute)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/reduced/index.html#pulpo.utils.reduced.ReducedLP.col_upper">col_upper (pulpo.utils.reduced.ReducedLP attribute)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/converter/index.html#pulpo.utils.converter.combine_inputs">combine_inputs() (in module pulpo.utils.converter)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/time_extension/index.html#pulpo.utils.time_extension.combine_inputs_time">combine_inputs_time() (in module pulpo.utils.time_extension)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/moments/index.html#pulpo.utils.uncertainty.moments.compute_closed_form_moments">compute_closed_form_moments() (in module pulpo.utils.uncertainty.moments)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/moments/index.html#pulpo.utils.uncertainty.moments.compute_moments">compute_moments() (in module pulpo.utils.uncertainty.moments)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/saver/index.html#pulpo.utils.saver.ResultDataDict.Constraints_Lower">Constraints_Lower (pulpo.utils.saver.ResultDataDict attribute)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/saver/index.html#pulpo.utils.saver.ResultDataDict.Constraints_Upper">Constraints_Upper (pulpo.utils.saver.ResultDataDict attribute)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/saver/index.html#pulpo.utils.saver.ResultDataDict.Constraints_Upper_Elem">Constraints_Upper_Elem (pulpo.utils.saver.ResultDataDict attribute)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/converter/index.html#pulpo.utils.converter.convert_to_dict">convert_to_dict() (in module pulpo.utils.converter)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/preparer/index.html#pulpo.utils.uncertainty.preparer.counts">counts() (in module pulpo.utils.uncertainty.preparer)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/validation/index.html#pulpo.utils.uncertainty.validation.Validation.covered">covered (pulpo.utils.uncertainty.validation.Validation attribute)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/moments/index.html#pulpo.utils.uncertainty.moments.current_scaling_vector">current_scaling_vector() (in module pulpo.utils.uncertainty.moments)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="D">D</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="content/api/pulpo/utils/uncertainty/moments/index.html#pulpo.utils.uncertainty.moments.Moments.d">d (pulpo.utils.uncertainty.moments.Moments attribute)</a>
+</li>
+      <li><a href="content/api/pulpo/datasets/elec_time_database/index.html#pulpo.datasets.elec_time_database.DB_NAME">DB_NAME (in module pulpo.datasets.elec_time_database)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/validation/index.html#pulpo.utils.uncertainty.validation.Validation.decisions">decisions (pulpo.utils.uncertainty.validation.Validation attribute)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/preparer/index.html#pulpo.utils.uncertainty.preparer.ParameterBlock.declared">declared (pulpo.utils.uncertainty.preparer.ParameterBlock attribute)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/validation/index.html#pulpo.utils.uncertainty.validation.declared_parameters">declared_parameters() (in module pulpo.utils.uncertainty.validation)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.declared_quantile">declared_quantile() (in module pulpo.utils.uncertainty.cc)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/decomposition/index.html#pulpo.utils.uncertainty.decomposition.decompose">decompose() (in module pulpo.utils.uncertainty.decomposition)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/decomposition/index.html#pulpo.utils.uncertainty.decomposition.Decomposition">Decomposition (class in pulpo.utils.uncertainty.decomposition)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="content/api/pulpo/utils/converter/index.html#pulpo.utils.converter.DEFAULT_LIMITS_NOTE">DEFAULT_LIMITS_NOTE (in module pulpo.utils.converter)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/saver/index.html#pulpo.utils.saver.ResultDataDict.Demand">Demand (pulpo.utils.saver.ResultDataDict attribute)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/reduced/index.html#pulpo.utils.reduced.ReducedModel.demand">demand() (pulpo.utils.reduced.ReducedModel method)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/decomposition/index.html#pulpo.utils.uncertainty.decomposition.diagnostics">diagnostics() (in module pulpo.utils.uncertainty.decomposition)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/validation/index.html#pulpo.utils.uncertainty.validation._SpecArrays.draw">draw() (pulpo.utils.uncertainty.validation._SpecArrays method)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/validation/index.html#pulpo.utils.uncertainty.validation.draw_parameters">draw_parameters() (in module pulpo.utils.uncertainty.validation)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/validation/index.html#pulpo.utils.uncertainty.validation._SpecArrays.draw_streams">draw_streams() (pulpo.utils.uncertainty.validation._SpecArrays method)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/processor/index.html#pulpo.utils.uncertainty.processor.draw_uncertainty_sample">draw_uncertainty_sample() (in module pulpo.utils.uncertainty.processor)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/validation/index.html#pulpo.utils.uncertainty.validation.Draws">Draws (class in pulpo.utils.uncertainty.validation)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="E">E</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="content/api/pulpo/datasets/elec_time_database/index.html#pulpo.datasets.elec_time_database.ELECTRICITY_CHOICE">ELECTRICITY_CHOICE (in module pulpo.datasets.elec_time_database)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.Point.epsilon">epsilon (pulpo.utils.uncertainty.cc.Point attribute)</a>
+
+      <ul>
+        <li><a href="content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.RiskBudget.epsilon">(pulpo.utils.uncertainty.cc.RiskBudget property)</a>
+</li>
+      </ul></li>
+      <li><a href="content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.RiskBudget.epsilon_at">epsilon_at() (pulpo.utils.uncertainty.cc.RiskBudget method)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/scaling/index.html#pulpo.utils.scaling.equilibrate_model_data">equilibrate_model_data() (in module pulpo.utils.scaling)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/decomposition/index.html#pulpo.utils.uncertainty.decomposition.Screening.exact_cfs">exact_cfs (pulpo.utils.uncertainty.decomposition.Screening attribute)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/saver/index.html#pulpo.utils.saver.extract_choices">extract_choices() (in module pulpo.utils.saver)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/saver/index.html#pulpo.utils.saver.extract_constraints">extract_constraints() (in module pulpo.utils.saver)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="content/api/pulpo/utils/saver/index.html#pulpo.utils.saver.extract_demand">extract_demand() (in module pulpo.utils.saver)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/saver/index.html#pulpo.utils.saver.extract_flows">extract_flows() (in module pulpo.utils.saver)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/saver/index.html#pulpo.utils.saver.extract_impacts">extract_impacts() (in module pulpo.utils.saver)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/saver/index.html#pulpo.utils.saver.extract_params">extract_params() (in module pulpo.utils.saver)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/saver/index.html#pulpo.utils.saver.extract_results">extract_results() (in module pulpo.utils.saver)</a>
+
+      <ul>
+        <li><a href="content/api/pulpo/pulpo/index.html#pulpo.pulpo.PulpoOptimizer.extract_results">(pulpo.pulpo.PulpoOptimizer method)</a>
+</li>
+      </ul></li>
+      <li><a href="content/api/pulpo/utils/saver/index.html#pulpo.utils.saver.extract_slack">extract_slack() (in module pulpo.utils.saver)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/saver/index.html#pulpo.utils.saver.extract_transgressions">extract_transgressions() (in module pulpo.utils.saver)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="F">F</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="content/api/pulpo/utils/reduced/index.html#pulpo.utils.reduced.Factorization">Factorization (class in pulpo.utils.reduced)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/decomposition/index.html#pulpo.utils.uncertainty.decomposition.Decomposition.families">families() (pulpo.utils.uncertainty.decomposition.Decomposition method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="content/api/pulpo/utils/uncertainty/decomposition/index.html#pulpo.utils.uncertainty.decomposition.families_by_database">families_by_database() (in module pulpo.utils.uncertainty.decomposition)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/scaling/index.html#pulpo.utils.scaling.from_scaled_process_bound">from_scaled_process_bound() (in module pulpo.utils.scaling)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.Front">Front (class in pulpo.utils.uncertainty.cc)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="G">G</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="content/api/pulpo/utils/scaling/index.html#pulpo.utils.scaling.geometric_scaling">geometric_scaling() (in module pulpo.utils.scaling)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/utils/index.html#pulpo.utils.utils.get_bw_version">get_bw_version() (in module pulpo.utils.utils)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/optimizer/index.html#pulpo.utils.optimizer.get_cplex_options">get_cplex_options() (in module pulpo.utils.optimizer)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="content/api/pulpo/pulpo/index.html#pulpo.pulpo.PulpoOptimizer.get_lci_data">get_lci_data() (pulpo.pulpo.PulpoOptimizer method)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.GUROBI_CONE_OPTIONS">GUROBI_CONE_OPTIONS (in module pulpo.utils.uncertainty.cc)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/reduced/index.html#pulpo.utils.reduced.GUROBI_OPTIONS">GUROBI_OPTIONS (in module pulpo.utils.reduced)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/scaling/index.html#pulpo.utils.scaling.GUROBI_OPTIONS_SCALED">GUROBI_OPTIONS_SCALED (in module pulpo.utils.scaling)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="H">H</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="content/api/pulpo/utils/reduced/index.html#pulpo.utils.reduced.HIGHS_OPTIONS">HIGHS_OPTIONS (in module pulpo.utils.reduced)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="I">I</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="content/api/pulpo/utils/uncertainty/preparer/index.html#pulpo.utils.uncertainty.preparer.UncertaintyData.If">If (pulpo.utils.uncertainty.preparer.UncertaintyData attribute)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/reduced/index.html#pulpo.utils.reduced.ReducedModel.impact_vectors">impact_vectors() (pulpo.utils.reduced.ReducedModel method)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/saver/index.html#pulpo.utils.saver.ResultDataDict.Impacts">Impacts (pulpo.utils.saver.ResultDataDict attribute)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/validation/index.html#pulpo.utils.uncertainty.validation.Validation.impacts">impacts (pulpo.utils.uncertainty.validation.Validation attribute)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/validation/index.html#pulpo.utils.uncertainty.validation.ImpactSampler">ImpactSampler (class in pulpo.utils.uncertainty.validation)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/bw_parser/index.html#pulpo.utils.bw_parser.import_data">import_data() (in module pulpo.utils.bw_parser)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/preparer/index.html#pulpo.utils.uncertainty.preparer.import_declared">import_declared() (in module pulpo.utils.uncertainty.preparer)</a>
+</li>
+      <li><a href="content/api/pulpo/pulpo_unc/index.html#pulpo.pulpo_unc.PulpoOptimizerUnc.import_uncertainty_data">import_uncertainty_data() (pulpo.pulpo_unc.PulpoOptimizerUnc method)</a>
+</li>
+      <li><a href="content/api/pulpo/pulpo_time/index.html#pulpo.pulpo_time.install_elec_time_db">install_elec_time_db() (in module pulpo.pulpo_time)</a>
+</li>
+      <li><a href="content/api/pulpo/pulpo/index.html#pulpo.pulpo.install_rice_husk_db">install_rice_husk_db() (in module pulpo.pulpo)</a>
+</li>
+      <li><a href="content/api/pulpo/pulpo/index.html#pulpo.pulpo.install_sample_db">install_sample_db() (in module pulpo.pulpo)</a>
+</li>
+      <li><a href="content/api/pulpo/pulpo/index.html#pulpo.pulpo.install_soc_demo_db">install_soc_demo_db() (in module pulpo.pulpo)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="content/api/pulpo/utils/optimizer/index.html#pulpo.utils.optimizer.instantiate">instantiate() (in module pulpo.utils.optimizer)</a>
+
+      <ul>
+        <li><a href="content/api/pulpo/pulpo/index.html#pulpo.pulpo.PulpoOptimizer.instantiate">(pulpo.pulpo.PulpoOptimizer method)</a>
+</li>
+        <li><a href="content/api/pulpo/pulpo_time/index.html#pulpo.pulpo_time.PulpoOptimizerTime.instantiate">(pulpo.pulpo_time.PulpoOptimizerTime method)</a>
+</li>
+      </ul></li>
+      <li><a href="content/api/pulpo/utils/time_extension/index.html#pulpo.utils.time_extension.instantiate_time">instantiate_time() (in module pulpo.utils.time_extension)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/decomposition/index.html#pulpo.utils.uncertainty.decomposition.Decomposition.interactions">interactions (pulpo.utils.uncertainty.decomposition.Decomposition attribute)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/bw_parser/index.html#pulpo.utils.bw_parser.LCIDataDict.intervention_map">intervention_map (pulpo.utils.bw_parser.LCIDataDict attribute)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/bw_parser/index.html#pulpo.utils.bw_parser.LCIDataDict.intervention_map_metadata">intervention_map_metadata (pulpo.utils.bw_parser.LCIDataDict attribute)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/bw_parser/index.html#pulpo.utils.bw_parser.LCIDataDict.intervention_matrix">intervention_matrix (pulpo.utils.bw_parser.LCIDataDict attribute)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/bw_parser/index.html#pulpo.utils.bw_parser.LCIDataDict.intervention_params">intervention_params (pulpo.utils.bw_parser.LCIDataDict attribute)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/saver/index.html#pulpo.utils.saver.ResultDataDict.Intervention_Vector">Intervention_Vector (pulpo.utils.saver.ResultDataDict attribute)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/utils/index.html#pulpo.utils.utils.is_bw25">is_bw25() (in module pulpo.utils.utils)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/scaling/index.html#pulpo.utils.scaling.is_scaled">is_scaled() (in module pulpo.utils.scaling)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/utils/index.html#pulpo.utils.utils.is_time_indexed">is_time_indexed() (in module pulpo.utils.utils)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="J">J</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.Projections.J">J (pulpo.utils.uncertainty.cc.Projections attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="K">K</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.ChanceConstrained.K">K (pulpo.utils.uncertainty.cc.ChanceConstrained property)</a>
+
+      <ul>
+        <li><a href="content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.RiskBudget.K">(pulpo.utils.uncertainty.cc.RiskBudget attribute)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.Point.kappa">kappa (pulpo.utils.uncertainty.cc.Point attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="L">L</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.Point.lambda_impact">lambda_impact (pulpo.utils.uncertainty.cc.Point attribute)</a>
+
+      <ul>
+        <li><a href="content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.RiskBudget.lambda_impact">(pulpo.utils.uncertainty.cc.RiskBudget property)</a>
+</li>
+      </ul></li>
+      <li><a href="content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.Point.lambda_level">lambda_level (pulpo.utils.uncertainty.cc.Point attribute)</a>
+
+      <ul>
+        <li><a href="content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.RiskBudget.lambda_level">(pulpo.utils.uncertainty.cc.RiskBudget attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="content/api/pulpo/utils/bw_parser/index.html#pulpo.utils.bw_parser.LCIDataDict">LCIDataDict (class in pulpo.utils.bw_parser)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="content/api/pulpo/utils/uncertainty/validation/index.html#pulpo.utils.uncertainty.validation.Validation.level">level (pulpo.utils.uncertainty.validation.Validation attribute)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.ChanceConstrained.levels">levels() (pulpo.utils.uncertainty.cc.ChanceConstrained method)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/reduced/index.html#pulpo.utils.reduced.ReducedModel.linear_program">linear_program() (pulpo.utils.reduced.ReducedModel method)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/preparer/index.html#pulpo.utils.uncertainty.preparer.UncertaintySpec.loc">loc (pulpo.utils.uncertainty.preparer.UncertaintySpec attribute)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/decomposition/index.html#pulpo.utils.uncertainty.decomposition.lognormal_with_cv">lognormal_with_cv() (in module pulpo.utils.uncertainty.decomposition)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/reduced/index.html#pulpo.utils.reduced.LPSolution">LPSolution (class in pulpo.utils.reduced)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="M">M</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.Projections.m">m (pulpo.utils.uncertainty.cc.Projections attribute)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.Projections.m0">m0 (pulpo.utils.uncertainty.cc.Projections attribute)</a>
+</li>
+      <li><a href="content/api/pulpo/datasets/rice_database/index.html#pulpo.datasets.rice_database.main">main() (in module pulpo.datasets.rice_database)</a>
+
+      <ul>
+        <li><a href="content/api/pulpo/datasets/sample_database/index.html#pulpo.datasets.sample_database.main">(in module pulpo.datasets.sample_database)</a>
+</li>
+        <li><a href="content/api/pulpo/datasets/soc_demo_database/index.html#pulpo.datasets.soc_demo_database.main">(in module pulpo.datasets.soc_demo_database)</a>
+</li>
+      </ul></li>
+      <li><a href="content/api/pulpo/utils/bw_parser/index.html#pulpo.utils.bw_parser.LCIDataDict.matrices">matrices (pulpo.utils.bw_parser.LCIDataDict attribute)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/reduced/index.html#pulpo.utils.reduced.ReducedLP.matrix">matrix (pulpo.utils.reduced.ReducedLP attribute)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/reduced/index.html#pulpo.utils.reduced.matrix_digest">matrix_digest() (in module pulpo.utils.reduced)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/preparer/index.html#pulpo.utils.uncertainty.preparer.UncertaintySpec.maximum">maximum (pulpo.utils.uncertainty.preparer.UncertaintySpec attribute)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.Point.mean">mean (pulpo.utils.uncertainty.cc.Point attribute)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/moments/index.html#pulpo.utils.uncertainty.moments.Moments.mean">mean() (pulpo.utils.uncertainty.moments.Moments method)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/moments/index.html#pulpo.utils.uncertainty.moments.Moments.method">method (pulpo.utils.uncertainty.moments.Moments attribute)</a>
+</li>
+      <li><a href="content/api/pulpo/datasets/soc_demo_database/index.html#pulpo.datasets.soc_demo_database.METHOD_KEY">METHOD_KEY (in module pulpo.datasets.soc_demo_database)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/preparer/index.html#pulpo.utils.uncertainty.preparer.UncertaintySpec.minimum">minimum (pulpo.utils.uncertainty.preparer.UncertaintySpec attribute)</a>
+</li>
+      <li>
+    module
+
+      <ul>
+        <li><a href="content/api/pulpo/index.html#module-pulpo">pulpo</a>
+</li>
+        <li><a href="content/api/pulpo/datasets/index.html#module-pulpo.datasets">pulpo.datasets</a>
+</li>
+        <li><a href="content/api/pulpo/datasets/elec_time_database/index.html#module-pulpo.datasets.elec_time_database">pulpo.datasets.elec_time_database</a>
+</li>
+        <li><a href="content/api/pulpo/datasets/rice_database/index.html#module-pulpo.datasets.rice_database">pulpo.datasets.rice_database</a>
+</li>
+        <li><a href="content/api/pulpo/datasets/sample_database/index.html#module-pulpo.datasets.sample_database">pulpo.datasets.sample_database</a>
+</li>
+        <li><a href="content/api/pulpo/datasets/soc_demo_database/index.html#module-pulpo.datasets.soc_demo_database">pulpo.datasets.soc_demo_database</a>
+</li>
+        <li><a href="content/api/pulpo/pulpo/index.html#module-pulpo.pulpo">pulpo.pulpo</a>
+</li>
+        <li><a href="content/api/pulpo/pulpo_time/index.html#module-pulpo.pulpo_time">pulpo.pulpo_time</a>
+</li>
+        <li><a href="content/api/pulpo/pulpo_unc/index.html#module-pulpo.pulpo_unc">pulpo.pulpo_unc</a>
+</li>
+        <li><a href="content/api/pulpo/utils/index.html#module-pulpo.utils">pulpo.utils</a>
+</li>
+        <li><a href="content/api/pulpo/utils/bw_parser/index.html#module-pulpo.utils.bw_parser">pulpo.utils.bw_parser</a>
+</li>
+        <li><a href="content/api/pulpo/utils/converter/index.html#module-pulpo.utils.converter">pulpo.utils.converter</a>
+</li>
+        <li><a href="content/api/pulpo/utils/monte_carlo/index.html#module-pulpo.utils.monte_carlo">pulpo.utils.monte_carlo</a>
+</li>
+        <li><a href="content/api/pulpo/utils/optimizer/index.html#module-pulpo.utils.optimizer">pulpo.utils.optimizer</a>
+</li>
+        <li><a href="content/api/pulpo/utils/reduced/index.html#module-pulpo.utils.reduced">pulpo.utils.reduced</a>
+</li>
+        <li><a href="content/api/pulpo/utils/saver/index.html#module-pulpo.utils.saver">pulpo.utils.saver</a>
+</li>
+        <li><a href="content/api/pulpo/utils/scaling/index.html#module-pulpo.utils.scaling">pulpo.utils.scaling</a>
+</li>
+        <li><a href="content/api/pulpo/utils/time_extension/index.html#module-pulpo.utils.time_extension">pulpo.utils.time_extension</a>
+</li>
+        <li><a href="content/api/pulpo/utils/uncertainty/index.html#module-pulpo.utils.uncertainty">pulpo.utils.uncertainty</a>
+</li>
+        <li><a href="content/api/pulpo/utils/uncertainty/cc/index.html#module-pulpo.utils.uncertainty.cc">pulpo.utils.uncertainty.cc</a>
+</li>
+        <li><a href="content/api/pulpo/utils/uncertainty/decomposition/index.html#module-pulpo.utils.uncertainty.decomposition">pulpo.utils.uncertainty.decomposition</a>
+</li>
+        <li><a href="content/api/pulpo/utils/uncertainty/moments/index.html#module-pulpo.utils.uncertainty.moments">pulpo.utils.uncertainty.moments</a>
+</li>
+        <li><a href="content/api/pulpo/utils/uncertainty/preparer/index.html#module-pulpo.utils.uncertainty.preparer">pulpo.utils.uncertainty.preparer</a>
+</li>
+        <li><a href="content/api/pulpo/utils/uncertainty/processor/index.html#module-pulpo.utils.uncertainty.processor">pulpo.utils.uncertainty.processor</a>
+</li>
+        <li><a href="content/api/pulpo/utils/uncertainty/validation/index.html#module-pulpo.utils.uncertainty.validation">pulpo.utils.uncertainty.validation</a>
+</li>
+        <li><a href="content/api/pulpo/utils/utils/index.html#module-pulpo.utils.utils">pulpo.utils.utils</a>
+</li>
+        <li><a href="content/api/pulpo/utils/warning/index.html#module-pulpo.utils.warning">pulpo.utils.warning</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="content/api/pulpo/utils/uncertainty/moments/index.html#pulpo.utils.uncertainty.moments.Moments">Moments (class in pulpo.utils.uncertainty.moments)</a>
+</li>
+      <li><a href="content/api/pulpo/pulpo_unc/index.html#pulpo.pulpo_unc.PulpoOptimizerUnc.moments">moments() (pulpo.pulpo_unc.PulpoOptimizerUnc method)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/moments/index.html#pulpo.utils.uncertainty.moments.Moments.mu">mu (pulpo.utils.uncertainty.moments.Moments attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="N">N</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="content/api/pulpo/utils/uncertainty/validation/index.html#pulpo.utils.uncertainty.validation.Validation.n">n (pulpo.utils.uncertainty.validation.Validation attribute)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/reduced/index.html#pulpo.utils.reduced.ReducedSystem.n_free">n_free (pulpo.utils.reduced.ReducedSystem property)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/reduced/index.html#pulpo.utils.reduced.ReducedResults.n_rows">n_rows (pulpo.utils.reduced.ReducedResults attribute)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="content/api/pulpo/utils/reduced/index.html#pulpo.utils.reduced.ReducedResults.n_variables">n_variables (pulpo.utils.reduced.ReducedResults attribute)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/preparer/index.html#pulpo.utils.uncertainty.preparer.UncertaintySpec.negative">negative (pulpo.utils.uncertainty.preparer.UncertaintySpec attribute)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/utils/index.html#pulpo.utils.utils.none_capacities">none_capacities() (in module pulpo.utils.utils)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/utils/index.html#pulpo.utils.utils.none_to_bound">none_to_bound() (in module pulpo.utils.utils)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="O">O</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="content/api/pulpo/utils/reduced/index.html#pulpo.utils.reduced.LPSolution.objective">objective (pulpo.utils.reduced.LPSolution attribute)</a>
+
+      <ul>
+        <li><a href="content/api/pulpo/utils/reduced/index.html#pulpo.utils.reduced.ReducedResults.objective">(pulpo.utils.reduced.ReducedResults attribute)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="content/api/pulpo/utils/reduced/index.html#pulpo.utils.reduced.ReducedModel.optimize">optimize() (pulpo.utils.reduced.ReducedModel method)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/preparer/index.html#pulpo.utils.uncertainty.preparer.override">override() (in module pulpo.utils.uncertainty.preparer)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="P">P</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="content/api/pulpo/utils/uncertainty/preparer/index.html#pulpo.utils.uncertainty.preparer.ParameterBlock">ParameterBlock (class in pulpo.utils.uncertainty.preparer)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/decomposition/index.html#pulpo.utils.uncertainty.decomposition.Decomposition.parameters">parameters (pulpo.utils.uncertainty.decomposition.Decomposition attribute)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/preparer/index.html#pulpo.utils.uncertainty.preparer.ParamIndex">ParamIndex (in module pulpo.utils.uncertainty.preparer)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.Point">Point (class in pulpo.utils.uncertainty.cc)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/monte_carlo/index.html#pulpo.utils.monte_carlo.pre_sample_lci_matrices">pre_sample_lci_matrices() (in module pulpo.utils.monte_carlo)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/reduced/index.html#pulpo.utils.reduced.ReducedModel.process_bounds">process_bounds() (pulpo.utils.reduced.ReducedModel method)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/bw_parser/index.html#pulpo.utils.bw_parser.LCIDataDict.process_map">process_map (pulpo.utils.bw_parser.LCIDataDict attribute)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/bw_parser/index.html#pulpo.utils.bw_parser.LCIDataDict.process_map_metadata">process_map_metadata (pulpo.utils.bw_parser.LCIDataDict attribute)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/moments/index.html#pulpo.utils.uncertainty.moments.Moments.process_std">process_std() (pulpo.utils.uncertainty.moments.Moments method)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/reduced/index.html#pulpo.utils.reduced.ReducedSystem.project">project() (pulpo.utils.reduced.ReducedSystem method)</a>
+</li>
+      <li><a href="content/api/pulpo/datasets/elec_time_database/index.html#pulpo.datasets.elec_time_database.PROJECT_NAME">PROJECT_NAME (in module pulpo.datasets.elec_time_database)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/reduced/index.html#pulpo.utils.reduced.ReducedSystem.project_vectors">project_vectors() (pulpo.utils.reduced.ReducedSystem method)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.Projections">Projections (class in pulpo.utils.uncertainty.cc)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.ChanceConstrained.projections">projections() (pulpo.utils.uncertainty.cc.ChanceConstrained method)</a>
+</li>
+      <li>
+    pulpo
+
+      <ul>
+        <li><a href="content/api/pulpo/index.html#module-pulpo">module</a>
+</li>
+      </ul></li>
+      <li>
+    pulpo.datasets
+
+      <ul>
+        <li><a href="content/api/pulpo/datasets/index.html#module-pulpo.datasets">module</a>
+</li>
+      </ul></li>
+      <li>
+    pulpo.datasets.elec_time_database
+
+      <ul>
+        <li><a href="content/api/pulpo/datasets/elec_time_database/index.html#module-pulpo.datasets.elec_time_database">module</a>
+</li>
+      </ul></li>
+      <li>
+    pulpo.datasets.rice_database
+
+      <ul>
+        <li><a href="content/api/pulpo/datasets/rice_database/index.html#module-pulpo.datasets.rice_database">module</a>
+</li>
+      </ul></li>
+      <li>
+    pulpo.datasets.sample_database
+
+      <ul>
+        <li><a href="content/api/pulpo/datasets/sample_database/index.html#module-pulpo.datasets.sample_database">module</a>
+</li>
+      </ul></li>
+      <li>
+    pulpo.datasets.soc_demo_database
+
+      <ul>
+        <li><a href="content/api/pulpo/datasets/soc_demo_database/index.html#module-pulpo.datasets.soc_demo_database">module</a>
+</li>
+      </ul></li>
+      <li>
+    pulpo.pulpo
+
+      <ul>
+        <li><a href="content/api/pulpo/pulpo/index.html#module-pulpo.pulpo">module</a>
+</li>
+      </ul></li>
+      <li>
+    pulpo.pulpo_time
+
+      <ul>
+        <li><a href="content/api/pulpo/pulpo_time/index.html#module-pulpo.pulpo_time">module</a>
+</li>
+      </ul></li>
+      <li>
+    pulpo.pulpo_unc
+
+      <ul>
+        <li><a href="content/api/pulpo/pulpo_unc/index.html#module-pulpo.pulpo_unc">module</a>
+</li>
+      </ul></li>
+      <li>
+    pulpo.utils
+
+      <ul>
+        <li><a href="content/api/pulpo/utils/index.html#module-pulpo.utils">module</a>
+</li>
+      </ul></li>
+      <li>
+    pulpo.utils.bw_parser
+
+      <ul>
+        <li><a href="content/api/pulpo/utils/bw_parser/index.html#module-pulpo.utils.bw_parser">module</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li>
+    pulpo.utils.converter
+
+      <ul>
+        <li><a href="content/api/pulpo/utils/converter/index.html#module-pulpo.utils.converter">module</a>
+</li>
+      </ul></li>
+      <li>
+    pulpo.utils.monte_carlo
+
+      <ul>
+        <li><a href="content/api/pulpo/utils/monte_carlo/index.html#module-pulpo.utils.monte_carlo">module</a>
+</li>
+      </ul></li>
+      <li>
+    pulpo.utils.optimizer
+
+      <ul>
+        <li><a href="content/api/pulpo/utils/optimizer/index.html#module-pulpo.utils.optimizer">module</a>
+</li>
+      </ul></li>
+      <li>
+    pulpo.utils.reduced
+
+      <ul>
+        <li><a href="content/api/pulpo/utils/reduced/index.html#module-pulpo.utils.reduced">module</a>
+</li>
+      </ul></li>
+      <li>
+    pulpo.utils.saver
+
+      <ul>
+        <li><a href="content/api/pulpo/utils/saver/index.html#module-pulpo.utils.saver">module</a>
+</li>
+      </ul></li>
+      <li>
+    pulpo.utils.scaling
+
+      <ul>
+        <li><a href="content/api/pulpo/utils/scaling/index.html#module-pulpo.utils.scaling">module</a>
+</li>
+      </ul></li>
+      <li>
+    pulpo.utils.time_extension
+
+      <ul>
+        <li><a href="content/api/pulpo/utils/time_extension/index.html#module-pulpo.utils.time_extension">module</a>
+</li>
+      </ul></li>
+      <li>
+    pulpo.utils.uncertainty
+
+      <ul>
+        <li><a href="content/api/pulpo/utils/uncertainty/index.html#module-pulpo.utils.uncertainty">module</a>
+</li>
+      </ul></li>
+      <li>
+    pulpo.utils.uncertainty.cc
+
+      <ul>
+        <li><a href="content/api/pulpo/utils/uncertainty/cc/index.html#module-pulpo.utils.uncertainty.cc">module</a>
+</li>
+      </ul></li>
+      <li>
+    pulpo.utils.uncertainty.decomposition
+
+      <ul>
+        <li><a href="content/api/pulpo/utils/uncertainty/decomposition/index.html#module-pulpo.utils.uncertainty.decomposition">module</a>
+</li>
+      </ul></li>
+      <li>
+    pulpo.utils.uncertainty.moments
+
+      <ul>
+        <li><a href="content/api/pulpo/utils/uncertainty/moments/index.html#module-pulpo.utils.uncertainty.moments">module</a>
+</li>
+      </ul></li>
+      <li>
+    pulpo.utils.uncertainty.preparer
+
+      <ul>
+        <li><a href="content/api/pulpo/utils/uncertainty/preparer/index.html#module-pulpo.utils.uncertainty.preparer">module</a>
+</li>
+      </ul></li>
+      <li>
+    pulpo.utils.uncertainty.processor
+
+      <ul>
+        <li><a href="content/api/pulpo/utils/uncertainty/processor/index.html#module-pulpo.utils.uncertainty.processor">module</a>
+</li>
+      </ul></li>
+      <li>
+    pulpo.utils.uncertainty.validation
+
+      <ul>
+        <li><a href="content/api/pulpo/utils/uncertainty/validation/index.html#module-pulpo.utils.uncertainty.validation">module</a>
+</li>
+      </ul></li>
+      <li>
+    pulpo.utils.utils
+
+      <ul>
+        <li><a href="content/api/pulpo/utils/utils/index.html#module-pulpo.utils.utils">module</a>
+</li>
+      </ul></li>
+      <li>
+    pulpo.utils.warning
+
+      <ul>
+        <li><a href="content/api/pulpo/utils/warning/index.html#module-pulpo.utils.warning">module</a>
+</li>
+      </ul></li>
+      <li><a href="content/api/pulpo/pulpo/index.html#pulpo.pulpo.PulpoOptimizer">PulpoOptimizer (class in pulpo.pulpo)</a>
+</li>
+      <li><a href="content/api/pulpo/pulpo_time/index.html#pulpo.pulpo_time.PulpoOptimizerTime">PulpoOptimizerTime (class in pulpo.pulpo_time)</a>
+</li>
+      <li><a href="content/api/pulpo/pulpo_unc/index.html#pulpo.pulpo_unc.PulpoOptimizerUnc">PulpoOptimizerUnc (class in pulpo.pulpo_unc)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="Q">Q</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="content/api/pulpo/utils/uncertainty/validation/index.html#pulpo.utils.uncertainty.validation.Draws.Q">Q (pulpo.utils.uncertainty.validation.Draws attribute)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/moments/index.html#pulpo.utils.uncertainty.moments.Moments.q_mean">q_mean (pulpo.utils.uncertainty.moments.Moments attribute)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="content/api/pulpo/utils/uncertainty/validation/index.html#pulpo.utils.uncertainty.validation.Draws.q_rows">q_rows (pulpo.utils.uncertainty.validation.Draws attribute)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/moments/index.html#pulpo.utils.uncertainty.moments.Moments.q_var">q_var (pulpo.utils.uncertainty.moments.Moments attribute)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.QR_ENTRIES">QR_ENTRIES (in module pulpo.utils.uncertainty.cc)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="R">R</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="content/api/pulpo/utils/uncertainty/decomposition/index.html#pulpo.utils.uncertainty.decomposition.Screening.ranking">ranking (pulpo.utils.uncertainty.decomposition.Screening attribute)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/reduced/index.html#pulpo.utils.reduced.ReducedSystem.recover">recover() (pulpo.utils.reduced.ReducedSystem method)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/reduced/index.html#pulpo.utils.reduced.ReducedLP">ReducedLP (class in pulpo.utils.reduced)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/reduced/index.html#pulpo.utils.reduced.ReducedModel">ReducedModel (class in pulpo.utils.reduced)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/reduced/index.html#pulpo.utils.reduced.ReducedResults">ReducedResults (class in pulpo.utils.reduced)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/reduced/index.html#pulpo.utils.reduced.ReducedSolveError">ReducedSolveError</a>
+</li>
+      <li><a href="content/api/pulpo/utils/reduced/index.html#pulpo.utils.reduced.ReducedSystem">ReducedSystem (class in pulpo.utils.reduced)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/reduced/index.html#pulpo.utils.reduced.REFINEMENT_STEPS">REFINEMENT_STEPS (in module pulpo.utils.reduced)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/reduced/index.html#pulpo.utils.reduced.REFINEMENT_TOL">REFINEMENT_TOL (in module pulpo.utils.reduced)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/utils/index.html#pulpo.utils.utils.reinstantiate_kwargs">reinstantiate_kwargs() (in module pulpo.utils.utils)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/scaling/index.html#pulpo.utils.scaling.relax_default_bounds">relax_default_bounds() (in module pulpo.utils.scaling)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/reduced/index.html#pulpo.utils.reduced.ReducedModel.REMOTE_BOUND">REMOTE_BOUND (pulpo.utils.reduced.ReducedModel attribute)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/scaling/index.html#pulpo.utils.scaling.rescale_solution">rescale_solution() (in module pulpo.utils.scaling)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/reduced/index.html#pulpo.utils.reduced.RESIDUAL_LIMIT">RESIDUAL_LIMIT (in module pulpo.utils.reduced)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/saver/index.html#pulpo.utils.saver.ResultDataDict">ResultDataDict (class in pulpo.utils.saver)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="content/api/pulpo/pulpo/index.html#pulpo.pulpo.PulpoOptimizer.retrieve_activities">retrieve_activities() (pulpo.pulpo.PulpoOptimizer method)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/bw_parser/index.html#pulpo.utils.bw_parser.retrieve_env_interventions">retrieve_env_interventions() (in module pulpo.utils.bw_parser)</a>
+</li>
+      <li><a href="content/api/pulpo/pulpo/index.html#pulpo.pulpo.PulpoOptimizer.retrieve_envflows">retrieve_envflows() (pulpo.pulpo.PulpoOptimizer method)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/bw_parser/index.html#pulpo.utils.bw_parser.retrieve_methods">retrieve_methods() (in module pulpo.utils.bw_parser)</a>
+
+      <ul>
+        <li><a href="content/api/pulpo/pulpo/index.html#pulpo.pulpo.PulpoOptimizer.retrieve_methods">(pulpo.pulpo.PulpoOptimizer method)</a>
+</li>
+      </ul></li>
+      <li><a href="content/api/pulpo/utils/bw_parser/index.html#pulpo.utils.bw_parser.retrieve_processes">retrieve_processes() (in module pulpo.utils.bw_parser)</a>
+
+      <ul>
+        <li><a href="content/api/pulpo/pulpo/index.html#pulpo.pulpo.PulpoOptimizer.retrieve_processes">(pulpo.pulpo.PulpoOptimizer method)</a>
+</li>
+      </ul></li>
+      <li><a href="content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.RiskBudget">RiskBudget (class in pulpo.utils.uncertainty.cc)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/reduced/index.html#pulpo.utils.reduced.ReducedResults.rounds">rounds (pulpo.utils.reduced.ReducedResults attribute)</a>
+
+      <ul>
+        <li><a href="content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.Point.rounds">(pulpo.utils.uncertainty.cc.Point attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="content/api/pulpo/utils/reduced/index.html#pulpo.utils.reduced.ReducedLP.row_labels">row_labels (pulpo.utils.reduced.ReducedLP attribute)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/reduced/index.html#pulpo.utils.reduced.ReducedLP.row_lower">row_lower (pulpo.utils.reduced.ReducedLP attribute)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/reduced/index.html#pulpo.utils.reduced.ReducedLP.row_upper">row_upper (pulpo.utils.reduced.ReducedLP attribute)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/reduced/index.html#pulpo.utils.reduced.ReducedSystem.rows">rows() (pulpo.utils.reduced.ReducedSystem method)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/scaling/index.html#pulpo.utils.scaling.ruiz_scaling">ruiz_scaling() (in module pulpo.utils.scaling)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="S">S</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="content/api/pulpo/utils/reduced/index.html#pulpo.utils.reduced.ReducedResults.s">s (pulpo.utils.reduced.ReducedResults attribute)</a>
+
+      <ul>
+        <li><a href="content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.Point.s">(pulpo.utils.uncertainty.cc.Point attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.Projections.s0">s0 (pulpo.utils.uncertainty.cc.Projections attribute)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.Projections.S_J">S_J (pulpo.utils.uncertainty.cc.Projections attribute)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/validation/index.html#pulpo.utils.uncertainty.validation.ImpactSampler.sample">sample() (pulpo.utils.uncertainty.validation.ImpactSampler method)</a>
+</li>
+      <li><a href="content/api/pulpo/datasets/sample_database/index.html#pulpo.datasets.sample_database.sample_lcia">sample_lcia() (in module pulpo.datasets.sample_database)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/validation/index.html#pulpo.utils.uncertainty.validation.sample_specs">sample_specs() (in module pulpo.utils.uncertainty.validation)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/saver/index.html#pulpo.utils.saver.save_results">save_results() (in module pulpo.utils.saver)</a>
+
+      <ul>
+        <li><a href="content/api/pulpo/pulpo/index.html#pulpo.pulpo.PulpoOptimizer.save_results">(pulpo.pulpo.PulpoOptimizer method)</a>
+</li>
+      </ul></li>
+      <li><a href="content/api/pulpo/utils/uncertainty/preparer/index.html#pulpo.utils.uncertainty.preparer.UncertaintySpec.scale">scale (pulpo.utils.uncertainty.preparer.UncertaintySpec attribute)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/scaling/index.html#pulpo.utils.scaling.SCALED_BOUND_CAP">SCALED_BOUND_CAP (in module pulpo.utils.scaling)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/saver/index.html#pulpo.utils.saver.ResultDataDict.Scaling_Vector">Scaling_Vector (pulpo.utils.saver.ResultDataDict attribute)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/decomposition/index.html#pulpo.utils.uncertainty.decomposition.screen_undeclared">screen_undeclared() (in module pulpo.utils.uncertainty.decomposition)</a>
+
+      <ul>
+        <li><a href="content/api/pulpo/pulpo_unc/index.html#pulpo.pulpo_unc.PulpoOptimizerUnc.screen_undeclared">(pulpo.pulpo_unc.PulpoOptimizerUnc method)</a>
+</li>
+      </ul></li>
+      <li><a href="content/api/pulpo/utils/uncertainty/decomposition/index.html#pulpo.utils.uncertainty.decomposition.Screening">Screening (class in pulpo.utils.uncertainty.decomposition)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/reduced/index.html#pulpo.utils.reduced.LPSolution.seconds">seconds (pulpo.utils.reduced.LPSolution attribute)</a>
+
+      <ul>
+        <li><a href="content/api/pulpo/utils/reduced/index.html#pulpo.utils.reduced.ReducedResults.seconds">(pulpo.utils.reduced.ReducedResults attribute)</a>
+</li>
+        <li><a href="content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.Point.seconds">(pulpo.utils.uncertainty.cc.Point attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="content/api/pulpo/utils/uncertainty/validation/index.html#pulpo.utils.uncertainty.validation.Validation.seed">seed (pulpo.utils.uncertainty.validation.Validation attribute)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/bw_parser/index.html#pulpo.utils.bw_parser.set_project">set_project() (in module pulpo.utils.bw_parser)</a>
+</li>
+      <li><a href="content/api/pulpo/datasets/sample_database/index.html#pulpo.datasets.sample_database.setup_background_db">setup_background_db() (in module pulpo.datasets.sample_database)</a>
+
+      <ul>
+        <li><a href="content/api/pulpo/datasets/soc_demo_database/index.html#pulpo.datasets.soc_demo_database.setup_background_db">(in module pulpo.datasets.soc_demo_database)</a>
+</li>
+      </ul></li>
+      <li><a href="content/api/pulpo/datasets/sample_database/index.html#pulpo.datasets.sample_database.setup_biosphere_db">setup_biosphere_db() (in module pulpo.datasets.sample_database)</a>
+
+      <ul>
+        <li><a href="content/api/pulpo/datasets/soc_demo_database/index.html#pulpo.datasets.soc_demo_database.setup_biosphere_db">(in module pulpo.datasets.soc_demo_database)</a>
+</li>
+      </ul></li>
+      <li><a href="content/api/pulpo/datasets/elec_time_database/index.html#pulpo.datasets.elec_time_database.setup_elec_time_db">setup_elec_time_db() (in module pulpo.datasets.elec_time_database)</a>
+</li>
+      <li><a href="content/api/pulpo/datasets/sample_database/index.html#pulpo.datasets.sample_database.setup_foreground_db">setup_foreground_db() (in module pulpo.datasets.sample_database)</a>
+
+      <ul>
+        <li><a href="content/api/pulpo/datasets/soc_demo_database/index.html#pulpo.datasets.soc_demo_database.setup_foreground_db">(in module pulpo.datasets.soc_demo_database)</a>
+</li>
+      </ul></li>
+      <li><a href="content/api/pulpo/datasets/sample_database/index.html#pulpo.datasets.sample_database.setup_lcia_methods">setup_lcia_methods() (in module pulpo.datasets.sample_database)</a>
+
+      <ul>
+        <li><a href="content/api/pulpo/datasets/soc_demo_database/index.html#pulpo.datasets.soc_demo_database.setup_lcia_methods">(in module pulpo.datasets.soc_demo_database)</a>
+</li>
+      </ul></li>
+      <li><a href="content/api/pulpo/datasets/rice_database/index.html#pulpo.datasets.rice_database.setup_rice_husk_db">setup_rice_husk_db() (in module pulpo.datasets.rice_database)</a>
+</li>
+      <li><a href="content/api/pulpo/datasets/sample_database/index.html#pulpo.datasets.sample_database.setup_sample_db">setup_sample_db() (in module pulpo.datasets.sample_database)</a>
+</li>
+      <li><a href="content/api/pulpo/datasets/soc_demo_database/index.html#pulpo.datasets.soc_demo_database.setup_soc_demo_db">setup_soc_demo_db() (in module pulpo.datasets.soc_demo_database)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="content/api/pulpo/datasets/sample_database/index.html#pulpo.datasets.sample_database.setup_test_db">setup_test_db() (in module pulpo.datasets.sample_database)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/preparer/index.html#pulpo.utils.uncertainty.preparer.UncertaintySpec.shape">shape (pulpo.utils.uncertainty.preparer.UncertaintySpec attribute)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.Point.sigma">sigma (pulpo.utils.uncertainty.cc.Point attribute)</a>
+
+      <ul>
+        <li><a href="content/api/pulpo/utils/uncertainty/decomposition/index.html#pulpo.utils.uncertainty.decomposition.Screening.sigma">(pulpo.utils.uncertainty.decomposition.Screening attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.Point.size">size (pulpo.utils.uncertainty.cc.Point attribute)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/saver/index.html#pulpo.utils.saver.ResultDataDict.Slack">Slack (pulpo.utils.saver.ResultDataDict attribute)</a>
+</li>
+      <li><a href="content/api/pulpo/datasets/elec_time_database/index.html#pulpo.datasets.elec_time_database.SOLAR_KEY">SOLAR_KEY (in module pulpo.datasets.elec_time_database)</a>
+</li>
+      <li><a href="content/api/pulpo/pulpo/index.html#pulpo.pulpo.PulpoOptimizer.solve">solve() (pulpo.pulpo.PulpoOptimizer method)</a>
+
+      <ul>
+        <li><a href="content/api/pulpo/pulpo_time/index.html#pulpo.pulpo_time.PulpoOptimizerTime.solve">(pulpo.pulpo_time.PulpoOptimizerTime method)</a>
+</li>
+        <li><a href="content/api/pulpo/utils/reduced/index.html#pulpo.utils.reduced.Factorization.solve">(pulpo.utils.reduced.Factorization method)</a>
+</li>
+        <li><a href="content/api/pulpo/utils/reduced/index.html#pulpo.utils.reduced.ReducedModel.solve">(pulpo.utils.reduced.ReducedModel method)</a>
+</li>
+        <li><a href="content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.ChanceConstrained.solve">(pulpo.utils.uncertainty.cc.ChanceConstrained method)</a>
+</li>
+      </ul></li>
+      <li><a href="content/api/pulpo/utils/optimizer/index.html#pulpo.utils.optimizer.solve_gams">solve_gams() (in module pulpo.utils.optimizer)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/optimizer/index.html#pulpo.utils.optimizer.solve_gurobi">solve_gurobi() (in module pulpo.utils.optimizer)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/optimizer/index.html#pulpo.utils.optimizer.solve_highspy">solve_highspy() (in module pulpo.utils.optimizer)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/reduced/index.html#pulpo.utils.reduced.solve_lp">solve_lp() (in module pulpo.utils.reduced)</a>
+</li>
+      <li><a href="content/api/pulpo/pulpo/index.html#pulpo.pulpo.PulpoOptimizer.solve_MC">solve_MC() (pulpo.pulpo.PulpoOptimizer method)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/optimizer/index.html#pulpo.utils.optimizer.solve_model">solve_model() (in module pulpo.utils.optimizer)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/monte_carlo/index.html#pulpo.utils.monte_carlo.solve_model_MC_pre_sampled">solve_model_MC_pre_sampled() (in module pulpo.utils.monte_carlo)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/optimizer/index.html#pulpo.utils.optimizer.solve_neos">solve_neos() (in module pulpo.utils.optimizer)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.ChanceConstrained.solve_point">solve_point() (pulpo.utils.uncertainty.cc.ChanceConstrained method)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.solve_socp">solve_socp() (in module pulpo.utils.uncertainty.cc)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/optimizer/index.html#pulpo.utils.optimizer.SolveError">SolveError</a>
+</li>
+      <li><a href="content/api/pulpo/utils/reduced/index.html#pulpo.utils.reduced.ReducedResults.solver">solver (pulpo.utils.reduced.ReducedResults attribute)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/moments/index.html#pulpo.utils.uncertainty.moments.spec_moments">spec_moments() (in module pulpo.utils.uncertainty.moments)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/decomposition/index.html#pulpo.utils.uncertainty.decomposition.Decomposition.std">std (pulpo.utils.uncertainty.decomposition.Decomposition property)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/moments/index.html#pulpo.utils.uncertainty.moments.Moments.std">std() (pulpo.utils.uncertainty.moments.Moments method)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/moments/index.html#pulpo.utils.uncertainty.moments.Moments.std_independent">std_independent() (pulpo.utils.uncertainty.moments.Moments method)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/saver/index.html#pulpo.utils.saver.summarize_results">summarize_results() (in module pulpo.utils.saver)</a>
+
+      <ul>
+        <li><a href="content/api/pulpo/pulpo/index.html#pulpo.pulpo.PulpoOptimizer.summarize_results">(pulpo.pulpo.PulpoOptimizer method)</a>
+</li>
+      </ul></li>
+      <li><a href="content/api/pulpo/utils/uncertainty/moments/index.html#pulpo.utils.uncertainty.moments.Moments.summary">summary() (pulpo.utils.uncertainty.moments.Moments method)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/preparer/index.html#pulpo.utils.uncertainty.preparer.SUPPORTED_FAMILIES">SUPPORTED_FAMILIES (in module pulpo.utils.uncertainty.preparer)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="T">T</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="content/api/pulpo/utils/uncertainty/validation/index.html#pulpo.utils.uncertainty.validation.Validation.table">table (pulpo.utils.uncertainty.validation.Validation attribute)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.Front.table">table() (pulpo.utils.uncertainty.cc.Front method)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/bw_parser/index.html#pulpo.utils.bw_parser.LCIDataDict.technology_matrix">technology_matrix (pulpo.utils.bw_parser.LCIDataDict attribute)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/reduced/index.html#pulpo.utils.reduced.LPSolution.termination_condition">termination_condition (pulpo.utils.reduced.LPSolution attribute)</a>
+
+      <ul>
+        <li><a href="content/api/pulpo/utils/reduced/index.html#pulpo.utils.reduced.ReducedResults.termination_condition">(pulpo.utils.reduced.ReducedResults attribute)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="content/api/pulpo/utils/scaling/index.html#pulpo.utils.scaling.to_scaled_coefficient">to_scaled_coefficient() (in module pulpo.utils.scaling)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/scaling/index.html#pulpo.utils.scaling.to_scaled_process_bound">to_scaled_process_bound() (in module pulpo.utils.scaling)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/validation/index.html#pulpo.utils.uncertainty.validation.Validation.tol">tol (pulpo.utils.uncertainty.validation.Validation attribute)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/decomposition/index.html#pulpo.utils.uncertainty.decomposition.Screening.top">top (pulpo.utils.uncertainty.decomposition.Screening attribute)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/decomposition/index.html#pulpo.utils.uncertainty.decomposition.Decomposition.top">top() (pulpo.utils.uncertainty.decomposition.Decomposition method)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/saver/index.html#pulpo.utils.saver.ResultDataDict.Transgressions">Transgressions (pulpo.utils.saver.ResultDataDict attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="U">U</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="content/api/pulpo/utils/uncertainty/preparer/index.html#pulpo.utils.uncertainty.preparer.UncertaintySpec.uncertainty_type">uncertainty_type (pulpo.utils.uncertainty.preparer.UncertaintySpec attribute)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/preparer/index.html#pulpo.utils.uncertainty.preparer.UncertaintyData">UncertaintyData (class in pulpo.utils.uncertainty.preparer)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/preparer/index.html#pulpo.utils.uncertainty.preparer.UncertaintySpec">UncertaintySpec (class in pulpo.utils.uncertainty.preparer)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="content/api/pulpo/utils/uncertainty/preparer/index.html#pulpo.utils.uncertainty.preparer.ParameterBlock.undeclared">undeclared (pulpo.utils.uncertainty.preparer.ParameterBlock attribute)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/preparer/index.html#pulpo.utils.uncertainty.preparer.undeclared">undeclared() (in module pulpo.utils.uncertainty.preparer)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/scaling/index.html#pulpo.utils.scaling.unscale_solution">unscale_solution() (in module pulpo.utils.scaling)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/optimizer/index.html#pulpo.utils.optimizer.update_env_cost">update_env_cost() (in module pulpo.utils.optimizer)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="V">V</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="content/api/pulpo/utils/reduced/index.html#pulpo.utils.reduced.ReducedResults.v">v (pulpo.utils.reduced.ReducedResults attribute)</a>
+
+      <ul>
+        <li><a href="content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.Point.v">(pulpo.utils.uncertainty.cc.Point attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="content/api/pulpo/utils/uncertainty/validation/index.html#pulpo.utils.uncertainty.validation.validate">validate() (in module pulpo.utils.uncertainty.validation)</a>
+
+      <ul>
+        <li><a href="content/api/pulpo/pulpo_unc/index.html#pulpo.pulpo_unc.PulpoOptimizerUnc.validate">(pulpo.pulpo_unc.PulpoOptimizerUnc method)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="content/api/pulpo/utils/uncertainty/validation/index.html#pulpo.utils.uncertainty.validation.Validation">Validation (class in pulpo.utils.uncertainty.validation)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/decomposition/index.html#pulpo.utils.uncertainty.decomposition.Decomposition.variance">variance (pulpo.utils.uncertainty.decomposition.Decomposition attribute)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/moments/index.html#pulpo.utils.uncertainty.moments.Moments.variance">variance() (pulpo.utils.uncertainty.moments.Moments method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="W">W</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="content/api/pulpo/utils/uncertainty/moments/index.html#pulpo.utils.uncertainty.moments.Moments.w">w (pulpo.utils.uncertainty.moments.Moments attribute)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/warning/index.html#pulpo.utils.warning.warn">warn() (in module pulpo.utils.warning)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/converter/index.html#pulpo.utils.converter.warn_capacity_overridden">warn_capacity_overridden() (in module pulpo.utils.converter)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/converter/index.html#pulpo.utils.converter.warn_finite_default_limits">warn_finite_default_limits() (in module pulpo.utils.converter)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.RiskBudget.weights">weights (pulpo.utils.uncertainty.cc.RiskBudget attribute)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="content/api/pulpo/utils/uncertainty/decomposition/index.html#pulpo.utils.uncertainty.decomposition.widen">widen() (in module pulpo.utils.uncertainty.decomposition)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/decomposition/index.html#pulpo.utils.uncertainty.decomposition.width_sensitivity">width_sensitivity() (in module pulpo.utils.uncertainty.decomposition)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/validation/index.html#pulpo.utils.uncertainty.validation.wilson">wilson() (in module pulpo.utils.uncertainty.validation)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/uncertainty/cc/index.html#pulpo.utils.uncertainty.cc.ChanceConstrained.write">write() (pulpo.utils.uncertainty.cc.ChanceConstrained method)</a>
+</li>
+      <li><a href="content/api/pulpo/utils/reduced/index.html#pulpo.utils.reduced.ReducedModel.write_solution">write_solution() (pulpo.utils.reduced.ReducedModel method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="X">X</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="content/api/pulpo/utils/reduced/index.html#pulpo.utils.reduced.LPSolution.x">x (pulpo.utils.reduced.LPSolution attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341"></script>
+<script src="_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2026 pulpo developers.
+      <br/>
+    
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item"><p>🌿🐛 Found a bug? Something not working? Frustrated? <a href=" latest/../content/contributing.html">Please report it!</a></p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

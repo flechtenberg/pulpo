@@ -1,0 +1,194 @@
+:py:mod:`pulpo.utils.uncertainty.moments`
+=========================================
+
+.. py:module:: pulpo.utils.uncertainty.moments
+
+.. autoapi-nested-parse::
+
+   Closed-form moments of the impact ``X(s) = sum_e q_e sum_j b_ej s_j``.
+
+   Why
+   ---
+   The chance constraint needs the mean and the variance of ``X`` at every
+   decision ``s``. Both follow in closed form from the first two moments of each
+   input, which every supported family has in closed form too, so nothing is
+   sampled and no parameter has to be normal. The only normality assumption is on
+   the aggregate ``X`` (made by the chance constraint, not here).
+
+   What
+   ----
+   Assumptions: all uncertain inputs are mutually independent (A1); undeclared
+   parameters are deterministic (A3); ``A`` is deterministic (A4). Then, with
+   ``y_e = sum_j E[b_ej] s_j`` the mean inventory flow ``e``, ::
+
+       E[X]  = mu' s,                    mu_j = sum_e E[q_e] E[b_ej]
+       Var X = sum_j d_j s_j^2 + sum_e w_e y_e^2
+               d_j = sum_e (E[q_e]^2 + Var q_e) Var b_ej,     w_e = Var q_e
+
+   The second term is the covariance that every process using flow ``e`` shares
+   through the one factor ``q_e``; dropping it gives :meth:`Moments.std_independent`.
+
+   Families: lognormal (also with ``negative`` amounts), normal, uniform,
+   triangular, and ``uncertainty_type = 1`` (an exact value). Any other family
+   raises.
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   pulpo.utils.uncertainty.moments.Moments
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   pulpo.utils.uncertainty.moments.spec_moments
+   pulpo.utils.uncertainty.moments.compute_closed_form_moments
+   pulpo.utils.uncertainty.moments.current_scaling_vector
+   pulpo.utils.uncertainty.moments.compute_moments
+
+
+
+.. py:function:: spec_moments(spec: pulpo.utils.uncertainty.preparer.UncertaintySpec)
+
+   ``(mean, variance)`` of one parameter's declared distribution.
+
+   An undeclared parameter (``uncertainty_type`` 0) and an exact one (1) have
+   mean ``amount`` and variance 0.
+
+
+.. py:function:: compute_closed_form_moments(uncertainty_data: pulpo.utils.uncertainty.preparer.UncertaintyData)
+
+   ``{group: {subgroup: {index: (mean, variance)}}}`` for every parameter,
+   declared and undeclared.
+
+
+.. py:class:: Moments
+
+
+   The moment coefficients of one impact, in original units.
+
+   :ivar method: the LCIA method.
+   :vartype method: str
+   :ivar mu: ``E[c_j]``, the expected impact of one unit of process j.
+   :vartype mu: ndarray, n_process
+   :ivar d: the diagonal of the variance's process term.
+   :vartype d: ndarray, n_process
+   :ivar w: ``Var q_e`` of the flows whose CF is uncertain.
+   :vartype w: ndarray, n_cf
+   :ivar cf_rows: the biosphere rows of ``w``.
+   :vartype cf_rows: ndarray, n_cf
+   :ivar B_mean: ``E[B]``.
+   :vartype B_mean: csr, n_flow x n_process
+   :ivar B_var: ``Var b_ej`` (zero where undeclared).
+   :vartype B_var: csr, n_flow x n_process
+   :ivar q_mean, q_var: moments of the characterization factors.
+
+   :vartype q_mean, q_var: ndarray, n_flow
+
+   .. py:property:: B_unc
+
+      Rows of ``E[B]`` whose characterization factor is uncertain.
+
+   .. py:attribute:: method
+      :type: str
+
+      
+
+   .. py:attribute:: mu
+      :type: numpy.ndarray
+
+      
+
+   .. py:attribute:: d
+      :type: numpy.ndarray
+
+      
+
+   .. py:attribute:: w
+      :type: numpy.ndarray
+
+      
+
+   .. py:attribute:: cf_rows
+      :type: numpy.ndarray
+
+      
+
+   .. py:attribute:: B_mean
+      :type: scipy.sparse.csr_matrix
+
+      
+
+   .. py:attribute:: B_var
+      :type: scipy.sparse.csr_matrix
+
+      
+
+   .. py:attribute:: q_mean
+      :type: numpy.ndarray
+
+      
+
+   .. py:attribute:: q_var
+      :type: numpy.ndarray
+
+      
+
+   .. py:method:: summary() -> dict
+
+      How many processes carry variance and how many CFs are uncertain.
+
+
+   .. py:method:: mean(s)
+
+      ``E[X(s)] = mu' s``.
+
+
+   .. py:method:: variance(s)
+
+      ``Var X(s)``, the shared-factor covariance included.
+
+
+   .. py:method:: std(s)
+
+
+   .. py:method:: process_std()
+
+      ``sigma_j``: the standard deviation of ``c_j = sum_e q_e b_ej``, the
+      impact of one unit of process j, ``sigma_j^2 = d_j + sum_e w_e E[b_ej]^2``.
+
+
+   .. py:method:: std_independent(s)
+
+      The standard deviation with the covariance through shared factors
+      dropped: each process's impact ``c_j`` treated as independent.
+
+
+
+.. py:function:: current_scaling_vector(model_instance, n=None)
+
+   The scaling vector a solved (static) instance holds, as an array in
+   process order and original units, for evaluating :class:`Moments` at it.
+
+
+.. py:function:: compute_moments(uncertainty_data: pulpo.utils.uncertainty.preparer.UncertaintyData, lci_data, method=None) -> Moments
+
+   Assemble :class:`Moments` from imported (and possibly overridden) data.
+
+   :param uncertainty_data: from :func:`preparer.import_declared`.
+   :param lci_data: the LCI data, or a worker holding it.
+   :type lci_data: dict or PulpoOptimizer
+   :param method: defaults to the method of ``uncertainty_data``.
+   :type method: str, optional
+
+

@@ -1,0 +1,978 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="../_static/favicon.svg" type="image/svg+xml">
+    <link rel="icon" sizes="144x144" href="../_static/favicon-144.png" type="image/png">
+    <link rel="mask-icon" href="../_static/favicon_mask-icon.svg" color="#222832" type="image/svg+xml">
+    <link rel="apple-touch-icon" sizes="500x500" href="../_static/favicon-500.png" type="image/png">
+    <title>Changelog &#8212; pulpo 2.0.0 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+
+  
+  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=913d6465" />
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341" />
+  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=3ee479438cf8b5e0d341"></script>
+
+    <script src="../_static/documentation_options.js?v=79f5c508"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/design-tabs.js?v=36754332"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'content/changelog';</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="prev" title="License" href="license.html" />
+<meta name="google-site-verification" content="Fb3YVU81AToFlPNhlaQf6LLq1SMrHPbY-RtFsgZkw9Q" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/pulpo_logo_big.svg" class="logo__image only-light" alt="pulpo 2.0.0 documentation - Home"/>
+    <script>document.write(`<img src="../_static/pulpo_logo_big.svg" class="logo__image only-dark" alt="pulpo 2.0.0 documentation - Home"/>`);</script>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav class="navbar-nav">
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="getting_started/index.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="theory.html">
+    Theory
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="uncertainty.html">
+    Uncertainty
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="examples/index.html">
+    Examples
+  </a>
+</li>
+
+            <li class="nav-item dropdown pst-header-nav-item">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="api/index.html">
+    API
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="codeofconduct.html">
+    Code of Conduct
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="license.html">
+    License
+  </a>
+</li>
+
+
+<li class="nav-item  current active">
+  <a class="nav-link dropdown-item nav-internal" href="#">
+    Changelog
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  </button>
+`);
+</script></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links navbar-nav"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/flechtenberg/pulpo" title="Open this Repo on GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fab fa-brands fa-github fa-lg" aria-hidden="true"></i></span>
+            <span class="sr-only">Open this Repo on GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+    </div>
+  
+
+  
+    <button class="sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav class="navbar-nav">
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="getting_started/index.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="theory.html">
+    Theory
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="uncertainty.html">
+    Uncertainty
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="examples/index.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="api/index.html">
+    API
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="codeofconduct.html">
+    Code of Conduct
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="license.html">
+    License
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item current active">
+  <a class="nav-link nav-internal" href="#">
+    Changelog
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  </button>
+`);
+</script></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links navbar-nav"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/flechtenberg/pulpo" title="Open this Repo on GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fab fa-brands fa-github fa-lg" aria-hidden="true"></i></span>
+            <span class="sr-only">Open this Repo on GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    <li class="breadcrumb-item active" aria-current="page">Changelog</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="changelog">
+<h1>Changelog<a class="headerlink" href="#changelog" title="Link to this heading">#</a></h1>
+<p>All notable changes to this project will be documented in this file.</p>
+<section id="id1">
+<h2>[2.0.0] - 2026-10-06<a class="headerlink" href="#id1" title="Link to this heading">#</a></h2>
+<section id="added">
+<h3>Added<a class="headerlink" href="#added" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p><strong>Reduced-space solver backend</strong> — <code class="docutils literal notranslate"><span class="pre">solve(formulation='reduced')</span></code>. Every scaling
+vector that satisfies the balances is one fixed vector plus a combination of
+the alternatives’ outputs, so the LP can be solved over the alternatives
+instead of over every process. The reformulation is exact, supports every
+static constraint type and is much smaller and faster on large databases; the
+solution is written back onto the instance, so results are read as before.
+Solved with HiGHS (default) or Gurobi. The time-dependent model supports
+<code class="docutils literal notranslate"><span class="pre">formulation='full'</span></code> only.</p></li>
+<li><p><strong>macOS and Linux on ARM</strong> — PULPO installs there without PARDISO, which needs
+Intel’s MKL. The reduced solves then use UMFPACK when <code class="docutils literal notranslate"><span class="pre">scikit-umfpack</span></code> is
+installed from conda-forge, and SciPy’s slower solver otherwise.</p></li>
+<li><p><strong>One uncertainty method, solved in reduced space</strong> — <code class="docutils literal notranslate"><span class="pre">pulpo.utils.uncertainty</span></code>.
+As of now, uncertainty in the LCA data is considered only in the biosphere
+flows and the characterization factors; technosphere exchanges are
+deterministic. The parameters of an impact are imported with their declared distributions
+(<code class="docutils literal notranslate"><span class="pre">import_declared</span></code>); parameters without one are deterministic and listed, not
+filled in. Expert knowledge replaces distributions (<code class="docutils literal notranslate"><span class="pre">override</span></code>). The mean and
+variance of the impact follow in closed form, shared characterization factors
+included (<code class="docutils literal notranslate"><span class="pre">compute_moments</span></code>). <code class="docutils literal notranslate"><span class="pre">ChanceConstrained</span></code> minimizes the impact at a
+joint reliability level over the impact and any uncertain capacities (Boole’s
+inequality, exact quantiles for the capacities) and sweeps the levels; each
+level is a small second-order cone program over the alternatives, solved with
+Clarabel (open source) or Gurobi. It reproduces PULPO 1.8.0’s exact front.
+<code class="docutils literal notranslate"><span class="pre">PulpoOptimizerUnc</span></code> offers these steps as worker methods.</p></li>
+<li><p><strong>Analyses of a solved front</strong> — exact Sobol’ indices of the impact at a
+decision (<code class="docutils literal notranslate"><span class="pre">decompose</span></code>), a screening of the parameters that declare no
+uncertainty and the sensitivity of the standard deviation to their widths
+(<code class="docutils literal notranslate"><span class="pre">screen_undeclared</span></code>, <code class="docutils literal notranslate"><span class="pre">width_sensitivity</span></code>), diagnostics per point
+(<code class="docutils literal notranslate"><span class="pre">diagnostics</span></code>), and out-of-sample validation of every point on shared draws
+(<code class="docutils literal notranslate"><span class="pre">validate</span></code>). The reduced system, the impact’s projections onto it and a
+vectorized sampler are public, for formulations of one’s own. The uncertainty
+notebook now runs on the bundled demo database with open-source solvers only.</p></li>
+<li><p><strong>Examples</strong> — four notebooks (showcase, rice, time-dependent, uncertainty), each
+in <code class="docutils literal notranslate"><span class="pre">notebooks/</span></code> and in the documentation, run on bundled databases with
+open-source solvers. The ecoinvent showcase notebooks are removed.</p></li>
+</ul>
+</section>
+<section id="defaults">
+<h3>Defaults<a class="headerlink" href="#defaults" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">formulation='full'</span></code> and <code class="docutils literal notranslate"><span class="pre">instantiate(scale=False)</span></code> remain the defaults. Current
+development considers <code class="docutils literal notranslate"><span class="pre">formulation='reduced'</span></code> and <code class="docutils literal notranslate"><span class="pre">scale=True</span></code> superior, and a
+future release may switch the defaults.</p></li>
+<li><p>Methods with weight 0 now appear in the results with their calculated impact.</p></li>
+<li><p>Finite <code class="docutils literal notranslate"><span class="pre">default_limits['lower_bound']</span></code> / <code class="docutils literal notranslate"><span class="pre">['upper_bound']</span></code> raise a
+<code class="docutils literal notranslate"><span class="pre">FutureWarning</span></code>: a bound on every activity has no physical meaning and makes
+<code class="docutils literal notranslate"><span class="pre">formulation='reduced'</span></code> build a dense row per process. Set <code class="docutils literal notranslate"><span class="pre">lower_limit</span></code> /
+<code class="docutils literal notranslate"><span class="pre">upper_limit</span></code> on the processes that have a real limit. <code class="docutils literal notranslate"><span class="pre">default_limits</span></code> may be
+deprecated in a near-future release.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">None</span></code> means “no limit” in choice capacities and in the limit dicts (<code class="docutils literal notranslate"><span class="pre">upper_limit</span></code>,
+<code class="docutils literal notranslate"><span class="pre">lower_limit</span></code> and the flow and impact limits), like <code class="docutils literal notranslate"><span class="pre">float('inf')</span></code>; <code class="docutils literal notranslate"><span class="pre">default_limits</span></code>
+takes numbers. <code class="docutils literal notranslate"><span class="pre">solve(formulation='reduced')</span></code> warns about huge finite stand-ins
+(e.g. a capacity of <code class="docutils literal notranslate"><span class="pre">1e10</span></code>); the examples and notebooks use <code class="docutils literal notranslate"><span class="pre">float('inf')</span></code>.</p></li>
+<li><p>Loading LCI data without (complete) uncertainty data no longer warns;
+<code class="docutils literal notranslate"><span class="pre">uncertainty.import_declared</span></code> says what is missing when it is needed.</p></li>
+</ul>
+</section>
+<section id="breaking-changes">
+<h3>Breaking changes<a class="headerlink" href="#breaking-changes" title="Link to this heading">#</a></h3>
+<p>The 1.x uncertainty API is replaced without a deprecation period.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">PulpoOptimizerUnc</span></code>: <code class="docutils literal notranslate"><span class="pre">import_and_filter_uncertainty_data</span></code> → <code class="docutils literal notranslate"><span class="pre">import_uncertainty_data</span></code>,
+<code class="docutils literal notranslate"><span class="pre">apply_uncertainty_strategies</span></code> → <code class="docutils literal notranslate"><span class="pre">apply_expert_knowledge</span></code>, <code class="docutils literal notranslate"><span class="pre">create_SOC_formulation</span></code> → <code class="docutils literal notranslate"><span class="pre">moments</span></code>,
+and <code class="docutils literal notranslate"><span class="pre">create_CC_formulation</span></code> / <code class="docutils literal notranslate"><span class="pre">solve_CC_problem</span></code> / <code class="docutils literal notranslate"><span class="pre">solve_SOC_problem</span></code> → <code class="docutils literal notranslate"><span class="pre">chance_constrained(...).solve(lambdas)</span></code>.</p></li>
+<li><p>Removed: gap-filling strategies, the parameter filter, Monte Carlo re-optimization over the
+uncertainty data (<code class="docutils literal notranslate"><span class="pre">run_mc_from_uncertainty</span></code>), the sampled sensitivity analysis (<code class="docutils literal notranslate"><span class="pre">run_gsa</span></code>), the
+<code class="docutils literal notranslate"><span class="pre">L1</span></code> formulation, the cutting planes, <code class="docutils literal notranslate"><span class="pre">restore_deterministic_objective</span></code>, and the modules
+<code class="docutils literal notranslate"><span class="pre">uncertainty.soc</span></code>, <code class="docutils literal notranslate"><span class="pre">uncertainty.gsa</span></code>, <code class="docutils literal notranslate"><span class="pre">uncertainty.monte_carlo</span></code> and <code class="docutils literal notranslate"><span class="pre">uncertainty.plots</span></code>
+(<code class="docutils literal notranslate"><span class="pre">soc.SOCCoefficients</span></code> is now <code class="docutils literal notranslate"><span class="pre">uncertainty.Moments</span></code>). <code class="docutils literal notranslate"><span class="pre">PulpoOptimizer.solve_MC</span></code>, which
+re-optimizes over Brightway’s own resampling, is kept.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">compute_closed_form_moments</span></code> (now in <code class="docutils literal notranslate"><span class="pre">uncertainty.moments</span></code>, importable from <code class="docutils literal notranslate"><span class="pre">uncertainty</span></code>)
+and <code class="docutils literal notranslate"><span class="pre">cc.apply_CC_formulation</span></code> take new arguments and return new results.</p></li>
+<li><p>Unused 1.x helpers are gone: the data checks in <code class="docutils literal notranslate"><span class="pre">uncertainty.processor</span></code>,
+<code class="docutils literal notranslate"><span class="pre">saver.compare_subsequent_paretosolutions</span></code> and <code class="docutils literal notranslate"><span class="pre">bw_parser.update_lci_data</span></code>.</p></li>
+<li><p>A solve that does not end optimal (infeasible, unbounded, or stopped by a limit) raises
+<code class="docutils literal notranslate"><span class="pre">optimizer.SolveError</span></code> and loads nothing, in both formulations and with every solver;
+<code class="docutils literal notranslate"><span class="pre">ReducedSolveError</span></code> and <code class="docutils literal notranslate"><span class="pre">ChanceConstrainedError</span></code> are subclasses.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">PulpoOptimizer</span></code> (and its <code class="docutils literal notranslate"><span class="pre">Time</span></code>/<code class="docutils literal notranslate"><span class="pre">Unc</span></code> variants) no longer takes the unused <code class="docutils literal notranslate"><span class="pre">directory</span></code>
+argument; <code class="docutils literal notranslate"><span class="pre">save_results</span></code> takes a relative or an absolute file path.</p></li>
+<li><p>Equal lower and upper limits of 0 switch a process off; they no longer define a supply
+of 0, whose slack made the process’s product free.</p></li>
+<li><p>In the static model an <code class="docutils literal notranslate"><span class="pre">upper_limit</span></code> overrides a choice capacity, with a warning when it
+replaces a finite one; the capacity used to win silently. The time-dependent model
+already did this.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">retrieve_envflows</span></code> matches names and categories exactly (a name used to match every flow
+whose name it contains) and returns an empty list, with a warning, when nothing matches;
+keys may be tuples.</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">uncertainty</span></code> extra is empty; <code class="docutils literal notranslate"><span class="pre">clarabel</span></code> and <code class="docutils literal notranslate"><span class="pre">stats_arrays</span></code> are core dependencies.</p></li>
+<li><p>JupyterLab, IPython, <code class="docutils literal notranslate"><span class="pre">fs</span></code> and <code class="docutils literal notranslate"><span class="pre">openpyxl</span></code> are no longer installed with PULPO. The new
+<code class="docutils literal notranslate"><span class="pre">notebooks</span></code> extra brings JupyterLab, matplotlib and seaborn for the example notebooks.</p></li>
+</ul>
+</section>
+</section>
+<section id="id2">
+<h2>[1.8.0] - 2026-09-19<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
+<section id="id3">
+<h3>Added<a class="headerlink" href="#id3" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p><strong>Exact chance-constrained optimization via a second-order cone</strong> —
+<code class="docutils literal notranslate"><span class="pre">PulpoOptimizerUnc.create_SOC_formulation()</span></code> / <code class="docutils literal notranslate"><span class="pre">solve_SOC_problem()</span></code>. The
+existing <code class="docutils literal notranslate"><span class="pre">solve_CC_problem</span></code> bounds the impact’s standard deviation by an <code class="docutils literal notranslate"><span class="pre">L1</span></code>
+sum over processes, which over-estimates it and treats the per-process
+contributions as independent although one characterization factor multiplies
+them all. The new formulation represents the standard deviation exactly,
+shared characterization factors included, so at the same reliability level it
+returns a front at or below the <code class="docutils literal notranslate"><span class="pre">L1</span></code> one. <code class="docutils literal notranslate"><span class="pre">method='cutting_plane'</span></code> (the
+default) solves a sequence of the ordinary LPs PULPO already builds and is
+what works at ecoinvent scale; <code class="docutils literal notranslate"><span class="pre">method='direct'</span></code> hands the cone to Gurobi in a
+single solve and suits small or well-conditioned systems. The cutting-plane
+solve reports a certified optimality gap per iteration.
+<code class="docutils literal notranslate"><span class="pre">restore_deterministic_objective()</span></code> returns the instance to the plain impact
+objective.</p></li>
+<li><p><strong>Closed-form moments</strong> — <code class="docutils literal notranslate"><span class="pre">create_SOC_formulation(moments='closed_form')</span></code>.
+Mean and variance are computed analytically per distribution family instead of
+by refitting every parameter to a Normal through Monte Carlo: faster, and free
+of sampling noise in the coefficients.</p></li>
+<li><p><strong>Joint chance constraints</strong> — <code class="docutils literal notranslate"><span class="pre">cc.bonferroni_budget()</span></code> and
+<code class="docutils literal notranslate"><span class="pre">apply_CC_formulation(risk_budget=...)</span></code>. Imposing each row at <code class="docutils literal notranslate"><span class="pre">lambda</span></code>
+individually controls no joint probability: with <code class="docutils literal notranslate"><span class="pre">K</span></code> constrained rows, the
+chance that at least one of them fails reaches <code class="docutils literal notranslate"><span class="pre">K(1</span> <span class="pre">-</span> <span class="pre">lambda)</span></code>. A risk budget
+divides the failure probability among the rows so they hold <em>together</em> at
+<code class="docutils literal notranslate"><span class="pre">lambda</span></code>. It adds no variables and no constraints — only each right-hand side
+moves — and it needs no correlation estimates. Opt-in; the default behaviour
+is unchanged.</p></li>
+<li><p><strong>Exact quantiles for uncertain bounds</strong> —
+<code class="docutils literal notranslate"><span class="pre">apply_CC_formulation(bound_quantile='exact')</span></code>. A chance constraint on a bare
+bound is exactly the declared distribution’s own quantile and needs no
+Gaussian approximation. This matters at high reliability, where a
+moment-matched normal can demand a bound below the distribution’s support — a
+negative capacity, in practice. Opt-in, and requires a risk budget.</p></li>
+<li><p><strong>Optional LP equilibration</strong> — <code class="docutils literal notranslate"><span class="pre">instantiate(scale=True)</span></code>, off by default. An
+ecoinvent technosphere spans 1e-13 to 2e+11, because infrastructure processes
+have a functional unit of one whole facility. Solvers apply their feasibility
+tolerance per row relative to that row’s largest coefficient, so such a
+facility can be under-supplied by more than its own activity level and still
+count as feasible — worth roughly 1 % of the optimum on an unaggregated
+system, with different solvers landing on different answers. No solver option
+repairs it. Equilibration rescales rows and columns by powers of two, which is
+exact in floating point, and the solution is unscaled after the solve, so
+<code class="docutils literal notranslate"><span class="pre">scaling_vector</span></code>, <code class="docutils literal notranslate"><span class="pre">impacts</span></code> and everything <code class="docutils literal notranslate"><span class="pre">extract_results()</span></code> returns stay in
+original units. It covers the uncertainty formulations too, so
+<code class="docutils literal notranslate"><span class="pre">solve_CC_problem</span></code> and <code class="docutils literal notranslate"><span class="pre">solve_SOC_problem</span></code> return the same fronts either way.
+Recommended for unaggregated ecoinvent backgrounds.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">import_and_filter_uncertainty_data(scaling_vector_strategy='none')</span></code> — retain
+every declared uncertain parameter. The contribution filter is a device for
+large systems; on a small one it strips the uncertainty from alternatives that
+happen to be inactive at the vector it filters on, which biases the subsequent
+risk-averse choice towards exactly those alternatives.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">run_gsa(seed=...)</span></code> — the SALib sampler’s seed is now controllable from the
+façade instead of fixed (still 161 by default, so previously reported indices
+are unchanged).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pulpo/datasets/soc_demo_database.py</span></code> — an open six-activity demonstration
+system covering every supported uncertainty family, usable without an
+ecoinvent licence.</p></li>
+</ul>
+</section>
+<section id="changed">
+<h3>Changed<a class="headerlink" href="#changed" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">solve_gurobi</span></code> no longer recommends <code class="docutils literal notranslate"><span class="pre">ScaleFlag=2</span></code> / <code class="docutils literal notranslate"><span class="pre">NumericFocus=3</span></code>. On an
+ecoinvent-scale model those made the optimum worse rather than better, because
+the feasibility tolerance is still applied relative to the 1e11 facility
+coefficients. On a scaled model it now applies <code class="docutils literal notranslate"><span class="pre">ScaleFlag=0</span></code>,
+<code class="docutils literal notranslate"><span class="pre">FeasibilityTol=OptimalityTol=1e-9</span></code> and <code class="docutils literal notranslate"><span class="pre">NumericFocus=1</span></code> unless the caller
+overrides them (<code class="docutils literal notranslate"><span class="pre">scaling.GUROBI_OPTIONS_SCALED</span></code>); add <code class="docutils literal notranslate"><span class="pre">Method=1</span></code> for
+bit-identical repeated solves.</p></li>
+<li><p>Under <code class="docutils literal notranslate"><span class="pre">scale=True</span></code>, process bounds inherited from <code class="docutils literal notranslate"><span class="pre">default_limits</span></code> become
+infinite, with a warning saying how many. A finite <code class="docutils literal notranslate"><span class="pre">upper_bound=1e9</span></code> never
+binds anyway, but on a facility column it scales to 1e20 and degrades the
+solve. Explicit <code class="docutils literal notranslate"><span class="pre">lower_limit</span></code> / <code class="docutils literal notranslate"><span class="pre">upper_limit</span></code> values and choice capacities are
+kept.</p></li>
+</ul>
+</section>
+<section id="fixed">
+<h3>Fixed<a class="headerlink" href="#fixed" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p><strong>An infinite variable bound was registered as an uncertain parameter.</strong> Every
+choice alternative and every explicit limit was recorded without testing its
+value, so an alternative declared <code class="docutils literal notranslate"><span class="pre">float('inf')</span></code> — the default already used to
+mean “unlimited” — became an uncertain bound with an <code class="docutils literal notranslate"><span class="pre">inf</span></code> amount, a <code class="docutils literal notranslate"><span class="pre">nan</span></code>
+variance and a <code class="docutils literal notranslate"><span class="pre">nan</span></code> bound handed to the solver. Infinite bounds are now
+skipped, so an unbounded alternative no longer has to be written as a large
+sentinel capacity.</p></li>
+<li><p><strong>A deterministic characterization factor turned every sampled impact into
+<code class="docutils literal notranslate"><span class="pre">NaN</span></code></strong> in the global sensitivity analysis. A flow whose factor declares no
+distribution received an all-<code class="docutils literal notranslate"><span class="pre">NaN</span></code> column, and one such column makes every
+sample impact <code class="docutils literal notranslate"><span class="pre">NaN</span></code>. Such a factor is constant rather than missing, and is now
+filled with its value from the characterization matrix. Previously the only
+way to keep the flow was to gap-fill its factor with an invented spread.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">seed=</span></code> did not make a Monte Carlo reproducible unless every parameter was
+Normal.</strong> Lognormal, triangular and uniform parameters drew from NumPy’s
+global stream and ignored the seed, so any run containing one was
+irreproducible, <code class="docutils literal notranslate"><span class="pre">run_mc_from_uncertainty(seed=...)</span></code> included.</p></li>
+</ul>
+</section>
+<section id="known-issues">
+<h3>Known issues<a class="headerlink" href="#known-issues" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">run_mc_from_uncertainty</span></code> draws its per-draw seeds from <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">10**6)</span></code>, so about
+164 of 20 000 draws are duplicates and the effective sample is ~0.8 % smaller
+than requested. Widening the range would shift published draw sequences, so it
+is deferred rather than bundled into this release.</p></li>
+</ul>
+</section>
+</section>
+<section id="id4">
+<h2>[1.7.0] - 2026-08-11<a class="headerlink" href="#id4" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p>Add a goal-programming objective (<code class="docutils literal notranslate"><span class="pre">objective='goal'</span></code>): minimize the average transgression of user-defined soft impact limits (<code class="docutils literal notranslate"><span class="pre">imp_goals</span></code>), e.g. for Planetary-Boundary-style budgets. Unlike <code class="docutils literal notranslate"><span class="pre">upper_imp_limit</span></code>, goals can be exceeded — the solver stays feasible and reports the transgression level per category instead. Available on both <code class="docutils literal notranslate"><span class="pre">PulpoOptimizer</span></code> and the time-extended <code class="docutils literal notranslate"><span class="pre">PulpoOptimizerTime</span></code> (goals apply to impacts aggregated across the whole time horizon), and carried through Monte Carlo re-instantiation.</p></li>
+<li><p>Report per-category goal results (impact, goal, transgression level) via <code class="docutils literal notranslate"><span class="pre">extract_results()[&quot;Transgressions&quot;]</span></code>, <code class="docutils literal notranslate"><span class="pre">summarize_results()</span></code>, and the Excel export.</p></li>
+<li><p>Fix several <code class="docutils literal notranslate"><span class="pre">default_limits</span></code> / goal-programming interactions found while hardening the new objective:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">default_limits</span></code> no longer silently hard-caps categories that carry a goal (was causing infeasibility or artificially suppressed transgression, #33).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">default_limits</span></code> now persists across Monte Carlo re-instantiation instead of reverting to the built-in infinite defaults on every sample.</p></li>
+<li><p>Goal limits accept numpy scalar types (e.g. from a DataFrame/array) and correctly reject <code class="docutils literal notranslate"><span class="pre">bool</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">extract_transgressions()</span></code>’s empty-goal-case result now shares the same <code class="docutils literal notranslate"><span class="pre">Method</span></code>-indexed schema as the populated case.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">objective='goal'</span></code> with an empty goal set now raises a clear <code class="docutils literal notranslate"><span class="pre">ValueError</span></code> instead of a bare <code class="docutils literal notranslate"><span class="pre">ZeroDivisionError</span></code>.</p></li>
+</ul>
+</li>
+<li><p>Fix Monte Carlo re-instantiation to forward every <code class="docutils literal notranslate"><span class="pre">instantiate()</span></code> argument instead of a hardcoded, drifting kwarg list — time-indexed workers were silently losing <code class="docutils literal notranslate"><span class="pre">time_steps</span></code>/<code class="docutils literal notranslate"><span class="pre">storage</span></code> on every MC sample and falling back to the static formulation.</p></li>
+<li><p>Fix bw25 uncertainty: stabilize <code class="docutils literal notranslate"><span class="pre">construct_scaling_vector_from_choices()</span></code> (NaN scaling vector from unmapped node ids, non-deterministic cutoff filtering from unstable dict ordering) so MC/CC/GSA results are deterministic and match the bw2 stack.</p></li>
+<li><p>Fix GSA on the bw25 stack under SALib 1.5 / numpy 2 (bump the <code class="docutils literal notranslate"><span class="pre">uncertainty</span></code> extra to SALib 1.5.1).</p></li>
+<li><p>Fix <code class="docutils literal notranslate"><span class="pre">import_data</span></code> to activate its <code class="docutils literal notranslate"><span class="pre">project</span></code> argument instead of silently using whatever bw2data project happened to be active.</p></li>
+<li><p>Dev: migrate the test suite to <code class="docutils literal notranslate"><span class="pre">pytest</span></code> with in-memory bw2data databases (faster, order-independent); see <code class="docutils literal notranslate"><span class="pre">tests/README.md</span></code>.</p></li>
+</ul>
+</section>
+<section id="id5">
+<h2>[1.6.1] - 2026-07-13<a class="headerlink" href="#id5" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p>Fix a solver hang on Windows with pyomo &gt;= 6.6: the huge finite default limits (±1e20 / ±1e24) made HiGHS log “treated as ±Infinity” warnings during model construction, which deadlocked pyomo’s appsi output capture (solve stuck forever at zero CPU). Unspecified limits and supply-slack bounds are now truly infinite (<code class="docutils literal notranslate"><span class="pre">float('inf')</span></code>), which HiGHS, Gurobi, and GAMS all handle natively — the resulting LP is unchanged. The choices documentation now recommends <code class="docutils literal notranslate"><span class="pre">float('inf')</span></code> instead of <code class="docutils literal notranslate"><span class="pre">1e20</span></code> for unconstrained capacities.</p></li>
+<li><p>Modernize dependencies to enable Python 3.13: unpin numpy 2 (the <code class="docutils literal notranslate"><span class="pre">&lt;2</span></code> cap now lives only in the legacy <code class="docutils literal notranslate"><span class="pre">bw2</span></code> extra, where bw2data 3.x needs it), relax pyomo to <code class="docutils literal notranslate"><span class="pre">&gt;=6.8.0,&lt;7</span></code> (6.7.3 still touches the removed <code class="docutils literal notranslate"><span class="pre">np.float_</span></code> under numpy 2), and replace the phantom <code class="docutils literal notranslate"><span class="pre">bw2data&lt;=3.9.9</span></code> pin with <code class="docutils literal notranslate"><span class="pre">bw2data&lt;4.0.0</span></code>.</p></li>
+<li><p>Skip <code class="docutils literal notranslate"><span class="pre">pypardiso</span></code> on macOS via an environment marker (no wheels there; scipy’s solver is used instead).</p></li>
+<li><p>Use a stable sort for result ordering in the saver so extracted results are deterministic across numpy versions.</p></li>
+<li><p>Dev: configure pytest discovery and ignore project virtualenvs.</p></li>
+</ul>
+</section>
+<section id="id6">
+<h2>[1.6.0] - 2026-07-10<a class="headerlink" href="#id6" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p>Add a time-dependent extension as a first-class feature via the new <code class="docutils literal notranslate"><span class="pre">pulpo.pulpo_time</span></code> module (<code class="docutils literal notranslate"><span class="pre">PulpoOptimizerTime</span></code>):</p>
+<ul>
+<li><p>Time-indexed LP formulation with per-timestep demands, limits, and impacts, plus aggregated impact bounds across timesteps.</p></li>
+<li><p>Storage / carry-over between timesteps via a product-by-product <code class="docutils literal notranslate"><span class="pre">K</span></code> matrix (<code class="docutils literal notranslate"><span class="pre">storage</span></code> argument), supporting the 4-activity CHARGE / HOLD / HOLD t-1 / DISCHARGE battery pattern.</p></li>
+<li><p>Time-indexed result extraction and saving; toy battery examples (daily, two-week, and hourly intra-day scenarios) in <code class="docutils literal notranslate"><span class="pre">notebooks/</span></code>.</p></li>
+</ul>
+</li>
+<li><p>Major model-construction speedup on ecoinvent-scale databases (several times faster instantiation):</p>
+<ul>
+<li><p>Build Pyomo models directly as <code class="docutils literal notranslate"><span class="pre">ConcreteModel</span></code> instead of <code class="docutils literal notranslate"><span class="pre">AbstractModel.create_instance()</span></code>.</p></li>
+<li><p>Embed the technology, intervention, and environmental cost matrices as plain float coefficients in <code class="docutils literal notranslate"><span class="pre">LinearExpression</span></code> constraint rows instead of per-entry mutable Params (near-zero coefficients no longer reach the solver).</p></li>
+<li><p>Apply production-capacity, intervention-flow, and impact limits as variable bounds instead of explicit constraints, and create supply slack variables only for products with a specified supply.</p></li>
+<li><p>The chance-constrained formulation updates environmental costs through the new <code class="docutils literal notranslate"><span class="pre">optimizer.update_env_cost()</span></code>, which rebuilds the impact constraints in place.</p></li>
+</ul>
+</li>
+<li><p>Faster and more robust Brightway data import:</p>
+<ul>
+<li><p>Build LCI matrices once per database rather than once per method, and push <code class="docutils literal notranslate"><span class="pre">retrieve_processes</span></code> filtering down to SQL.</p></li>
+<li><p>Load all databases in a single LCA so that the database order does not matter.</p></li>
+<li><p>Decouple Monte Carlo RNG seeds per matrix in the bw2 path and skip unused uncertainty parameters during MC sampling.</p></li>
+</ul>
+</li>
+<li><p>Fixes and maintenance: numpy 2.0 compatibility, <code class="docutils literal notranslate"><span class="pre">highspy</span></code> pinned to 1.15.1, <code class="docutils literal notranslate"><span class="pre">pypardiso</span></code> added as dependency, <code class="docutils literal notranslate"><span class="pre">None</span></code> defaults instead of mutable dict arguments in <code class="docutils literal notranslate"><span class="pre">instantiate()</span></code>, uncertainty characterization-factor index rename fix.</p></li>
+</ul>
+</section>
+<section id="id7">
+<h2>[1.5.2] - 2026-06-02<a class="headerlink" href="#id7" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p>Fix bw25 uncertainty parameter extraction: dynamically inspect datapackage resources by metadata instead of relying on hard-coded indices. This resolves failures when extracting uncertainty information from brightway databases that lack uncertainty distributions.</p></li>
+<li><p>Add comprehensive uncertainty handling to the rice-husk example database, matching the uncertainty specification pattern used in the sample database.</p></li>
+<li><p>Fix multi-database parameter accumulation in bw25 path: ensure both foreground and background database flows are included in the combined parameter array (previously only the last database’s bio_params were retained).</p></li>
+<li><p>Refactor <code class="docutils literal notranslate"><span class="pre">bw_parser.py</span></code> for improved maintainability: move the rarely-used bw25 uncertainty handling utilities (<code class="docutils literal notranslate"><span class="pre">build_bw25_params()</span></code>, <code class="docutils literal notranslate"><span class="pre">BW25_PARAM_DTYPE</span></code>, <code class="docutils literal notranslate"><span class="pre">BW25_DISTRIBUTION_FIELDS</span></code>) to <code class="docutils literal notranslate"><span class="pre">pulpo.utils.utils</span></code>, keeping the primary import orchestration logic lean and focused.</p></li>
+<li><p>Add comprehensive test coverage for bw25 uncertainty extraction with and without complete uncertainty information in both sample and rice-husk databases.</p></li>
+</ul>
+</section>
+<section id="id8">
+<h2>[1.5.1] - 2026-04-24<a class="headerlink" href="#id8" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p>Fix chance-constrained environmental-cost mean computation by replacing fragile pandas sparse updates with direct sparse matrix updates and multiplication in <code class="docutils literal notranslate"><span class="pre">pulpo.utils.uncertainty.cc</span></code>.</p></li>
+<li><p>Update and re-run the Section 10 uncertainty showcase notebook to include the deterministic reference result used by <code class="docutils literal notranslate"><span class="pre">run_gsa</span></code> and validate the hotfix workflow end-to-end.</p></li>
+<li><p>Move the sample and rice-husk database helpers from <code class="docutils literal notranslate"><span class="pre">tests/</span></code> into a new <code class="docutils literal notranslate"><span class="pre">pulpo.datasets</span></code> subpackage so that <code class="docutils literal notranslate"><span class="pre">pulpo.install_sample_db()</span></code> / <code class="docutils literal notranslate"><span class="pre">pulpo.install_rice_husk_db()</span></code> work from an installed wheel (previously they imported from <code class="docutils literal notranslate"><span class="pre">tests/</span></code>, which is not shipped).</p></li>
+<li><p>Fix wheel packaging: exclude <code class="docutils literal notranslate"><span class="pre">tests/</span></code> from the distribution and drop the redundant <code class="docutils literal notranslate"><span class="pre">utils*</span></code> include in <code class="docutils literal notranslate"><span class="pre">[tool.setuptools.packages.find]</span></code>.</p></li>
+<li><p>Declare the mutual exclusivity of the <code class="docutils literal notranslate"><span class="pre">bw2</span></code> and <code class="docutils literal notranslate"><span class="pre">bw25</span></code> extras via <code class="docutils literal notranslate"><span class="pre">[tool.uv]</span> <span class="pre">conflicts</span></code> so that <code class="docutils literal notranslate"><span class="pre">uv</span></code> can resolve the environment without picking one over the other.</p></li>
+</ul>
+</section>
+<section id="id9">
+<h2>[1.5.0] - 2026-04-23<a class="headerlink" href="#id9" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p>Integrate full uncertainty analysis pipeline as a first-class feature via the new <code class="docutils literal notranslate"><span class="pre">pulpo.pulpo_unc</span></code> module (<code class="docutils literal notranslate"><span class="pre">PulpoOptimizerUnc</span></code>):</p>
+<ul>
+<li><p>Import and filter uncertain LCI parameters from Brightway databases (<code class="docutils literal notranslate"><span class="pre">import_and_filter_uncertainty_data()</span></code>)</p></li>
+<li><p>Apply uncertainty strategies to fill missing distributions (<code class="docutils literal notranslate"><span class="pre">apply_uncertainty_strategies()</span></code>)</p></li>
+<li><p>Monte Carlo sampling from prepared uncertainty distributions (<code class="docutils literal notranslate"><span class="pre">run_mc_from_uncertainty()</span></code>)</p></li>
+<li><p>Chance-Constrained optimization with Pareto front solving (<code class="docutils literal notranslate"><span class="pre">create_CC_formulation()</span></code>, <code class="docutils literal notranslate"><span class="pre">solve_CC_problem()</span></code>)</p></li>
+<li><p>Global Sensitivity Analysis via Sobol indices (<code class="docutils literal notranslate"><span class="pre">run_gsa()</span></code>)</p></li>
+</ul>
+</li>
+<li><p>Section 10 of the main showcase notebook (<code class="docutils literal notranslate"><span class="pre">notebooks/pulpo_showcase.ipynb</span></code>) demonstrates the complete uncertainty workflow on the methanol system.</p></li>
+<li><p>Enhanced Pareto front visualization (base case overlay, choice highlighting, grouping by process/product/location)</p></li>
+<li><p>L1-norm variance used in CC formulation</p></li>
+<li><p>Minor bugfixes and code cleanup</p></li>
+</ul>
+</section>
+<section id="id10">
+<h2>[1.4.2] - 2025-06-06<a class="headerlink" href="#id10" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p>Enable the use of Gurobi solver</p></li>
+<li><p>Pass email as argument to NEOS solver</p></li>
+<li><p>Enable choices to be specified as dict of lists rather than dict of dicts</p></li>
+</ul>
+</section>
+<section id="id11">
+<h2>[0.1.5] - 2025-01-26<a class="headerlink" href="#id11" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p>Convenience changes to optimization problem formulation</p></li>
+<li><p>Enable users to specify separate fore- and background databases to retrieve data from simultaneously.</p></li>
+<li><p>Several bugfixes</p>
+<ul>
+<li><p>Instances can now be solved more than once</p></li>
+<li><p>Enable negative slack values</p></li>
+<li><p>Downgrade pyomo in requirements to facilitate highspy solution</p></li>
+</ul>
+</li>
+<li><p>Switch from <code class="docutils literal notranslate"><span class="pre">setup.py</span></code> to <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code> for package management</p></li>
+</ul>
+</section>
+<section id="id12">
+<h2>[0.1.4] - 2025-01-05<a class="headerlink" href="#id12" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p>Resolve dependency issues revolving around scipy</p></li>
+</ul>
+</section>
+<section id="id13">
+<h2>[0.1.3] - 2024-12-01<a class="headerlink" href="#id13" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p>Start tracing changes in changelog.</p></li>
+<li><p>Enable PULPO to use both bw2 and bw25 projects. Different install options are available via <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">pulpo-dev[bw2]</span></code> or <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">pulpo-dev[bw25]</span></code>.</p></li>
+</ul>
+</section>
+<section id="id14">
+<h2>[0.0.1] - 2023-10-10<a class="headerlink" href="#id14" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p>Initial version .</p></li>
+</ul>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="license.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">License</p>
+      </div>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">[2.0.0] - 2026-10-06</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#added">Added</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#defaults">Defaults</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#breaking-changes">Breaking changes</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">[1.8.0] - 2026-09-19</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">Added</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#changed">Changed</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#fixed">Fixed</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#known-issues">Known issues</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">[1.7.0] - 2026-08-11</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">[1.6.1] - 2026-07-13</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">[1.6.0] - 2026-07-10</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">[1.5.2] - 2026-06-02</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">[1.5.1] - 2026-04-24</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">[1.5.0] - 2026-04-23</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">[1.4.2] - 2025-06-06</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">[0.1.5] - 2025-01-26</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id12">[0.1.4] - 2025-01-05</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id13">[0.1.3] - 2024-12-01</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id14">[0.0.1] - 2023-10-10</a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  
+  <div class="tocsection editthispage">
+    <a href="https://github.com/flechtenberg/pulpo/edit/master/docs/content/changelog.md">
+      <i class="fa-solid fa-pencil"></i>
+      
+      
+        
+          Edit on GitHub
+        
+      
+    </a>
+  </div>
+</div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="../_sources/content/changelog.md.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2026 pulpo developers.
+      <br/>
+    
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item"><p>🌿🐛 Found a bug? Something not working? Frustrated? <a href=" latest/../../content/contributing.html">Please report it!</a></p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

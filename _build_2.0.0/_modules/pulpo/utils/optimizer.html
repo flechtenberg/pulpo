@@ -1,0 +1,1228 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pulpo.utils.optimizer &#8212; pulpo 2.0.0 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+<link href="../../../_static/styles/bootstrap.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+
+  
+  <link href="../../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=913d6465" />
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341" />
+  <script src="../../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=3ee479438cf8b5e0d341"></script>
+
+    <script src="../../../_static/documentation_options.js?v=79f5c508"></script>
+    <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../../_static/design-tabs.js?v=36754332"></script>
+    <script src="https://unpkg.com/mermaid@10.2.0/dist/mermaid.min.js"></script>
+    <script>
+    function initializeMermaidBasedOnTheme() {
+        const theme = document.documentElement.dataset.theme;
+
+        if (theme === 'dark') {
+            mermaid.initialize({
+                startOnLoad: true,
+                theme: 'base',
+                themeVariables: {
+                    edgeLabelBackground: 'transparent',
+                    defaultLinkColor: '#ced6dd',
+                    titleColor: '#ced6dd',
+                    nodeTextColor: '#ced6dd',
+                    lineColor: '#ced6dd',
+                }
+            });
+        } else {
+            mermaid.initialize({
+                startOnLoad: true,
+                theme: 'base',
+                themeVariables: {
+                    edgeLabelBackground: 'transparent',
+                    defaultLinkColor: '#222832',
+                    titleColor: '#222832',
+                    nodeTextColor: '#222832',
+                    lineColor: '#222832',
+                }
+            });
+        }
+
+        // Re-render all Mermaid diagrams
+        mermaid.contentLoaded();
+    }
+
+    // Observer to detect changes to the data-theme attribute
+    const themeObserver = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            if (mutation.type === 'attributes' && mutation.attributeName === 'data-theme') {
+            initializeMermaidBasedOnTheme();
+            }
+        });
+    });
+
+    themeObserver.observe(document.documentElement, { attributes: true });
+
+    initializeMermaidBasedOnTheme();
+</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/pulpo/utils/optimizer';</script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+<meta name="google-site-verification" content="Fb3YVU81AToFlPNhlaQf6LLq1SMrHPbY-RtFsgZkw9Q" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+
+<a class="navbar-brand logo" href="../../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../../_static/pulpo_logo_big.svg" class="logo__image only-light" alt="pulpo 2.0.0 documentation - Home"/>
+    <script>document.write(`<img src="../../../_static/pulpo_logo_big.svg" class="logo__image only-dark" alt="pulpo 2.0.0 documentation - Home"/>`);</script>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav class="navbar-nav">
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/getting_started/index.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/theory.html">
+    Theory
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/uncertainty.html">
+    Uncertainty
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/examples/index.html">
+    Examples
+  </a>
+</li>
+
+            <li class="nav-item dropdown pst-header-nav-item">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../content/api/index.html">
+    API
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../content/contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../content/codeofconduct.html">
+    Code of Conduct
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../content/license.html">
+    License
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../content/changelog.html">
+    Changelog
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  </button>
+`);
+</script></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links navbar-nav"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/flechtenberg/pulpo" title="Open this Repo on GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fab fa-brands fa-github fa-lg" aria-hidden="true"></i></span>
+            <span class="sr-only">Open this Repo on GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <div class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav class="navbar-nav">
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/getting_started/index.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/theory.html">
+    Theory
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/uncertainty.html">
+    Uncertainty
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/examples/index.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/api/index.html">
+    API
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/codeofconduct.html">
+    Code of Conduct
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/license.html">
+    License
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../../content/changelog.html">
+    Changelog
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  </button>
+`);
+</script></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links navbar-nav"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/flechtenberg/pulpo" title="Open this Repo on GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fab fa-brands fa-github fa-lg" aria-hidden="true"></i></span>
+            <span class="sr-only">Open this Repo on GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">Module code</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="../../pulpo.html" class="nav-link">pulpo</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page">pulpo.utils....</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for pulpo.utils.optimizer</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">defaultdict</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pyomo.common</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pyomo.environ</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pyo</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyomo.core.expr.numeric_expr</span><span class="w"> </span><span class="kn">import</span> <span class="n">LinearExpression</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyomo.contrib</span><span class="w"> </span><span class="kn">import</span> <span class="n">appsi</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.saver</span><span class="w"> </span><span class="kn">import</span> <span class="n">extract_flows</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">scaling</span> <span class="k">as</span> <span class="n">_scaling</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.warning</span><span class="w"> </span><span class="kn">import</span> <span class="n">warn</span>
+
+
+
+<div class="viewcode-block" id="calculate_methods">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/optimizer/index.html#pulpo.utils.optimizer.calculate_methods">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">calculate_methods</span><span class="p">(</span><span class="n">instance</span><span class="p">,</span> <span class="n">lci_data</span><span class="p">,</span> <span class="n">methods</span><span class="p">,</span> <span class="n">time_steps</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Calculates the impacts if a method with weight 0 has been specified.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        instance: The Pyomo model instance.</span>
+<span class="sd">        lci_data (dict): LCI data containing matrices and mappings.</span>
+<span class="sd">        methods (dict): Methods for environmental impact assessment.</span>
+<span class="sd">        time_steps (list, optional): Timestep labels for a time-indexed instance.</span>
+<span class="sd">            When given, `impacts_calculated` is populated per (t, method) instead</span>
+<span class="sd">            of per method.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        instance: The updated Pyomo model instance with calculated impacts.</span>
+<span class="sd">    """</span>
+    <span class="c1"># Filter matrices for specified methods</span>
+    <span class="n">matrices</span> <span class="o">=</span> <span class="p">{</span><span class="n">h</span><span class="p">:</span> <span class="n">lci_data</span><span class="p">[</span><span class="s1">'matrices'</span><span class="p">][</span><span class="n">h</span><span class="p">]</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">lci_data</span><span class="p">[</span><span class="s1">'matrices'</span><span class="p">]</span> <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">h</span><span class="p">)</span> <span class="ow">in</span> <span class="n">methods</span><span class="p">}</span>
+    <span class="n">intervention_matrix</span> <span class="o">=</span> <span class="n">lci_data</span><span class="p">[</span><span class="s1">'intervention_matrix'</span><span class="p">]</span>
+
+    <span class="c1"># Calculate environmental costs</span>
+    <span class="n">env_cost</span> <span class="o">=</span> <span class="p">{</span><span class="n">h</span><span class="p">:</span> <span class="n">matrices</span><span class="p">[</span><span class="n">h</span><span class="p">]</span> <span class="o">@</span> <span class="n">intervention_matrix</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">matrices</span><span class="p">}</span>
+
+    <span class="c1"># Extract scaling vector</span>
+    <span class="n">scaling_vector</span> <span class="o">=</span> <span class="n">extract_flows</span><span class="p">(</span><span class="n">instance</span><span class="p">,</span> <span class="n">lci_data</span><span class="p">[</span><span class="s1">'process_map'</span><span class="p">],</span> <span class="n">lci_data</span><span class="p">[</span><span class="s1">'process_map_metadata'</span><span class="p">],</span> <span class="s1">'scaling'</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">time_steps</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">scaling_values</span> <span class="o">=</span> <span class="n">scaling_vector</span><span class="o">.</span><span class="n">sort_index</span><span class="p">()[</span><span class="s1">'Value'</span><span class="p">]</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span>
+
+        <span class="c1"># Calculate impacts</span>
+        <span class="n">impacts</span> <span class="o">=</span> <span class="p">{</span><span class="n">h</span><span class="p">:</span> <span class="p">(</span><span class="n">env_cost</span><span class="p">[</span><span class="n">h</span><span class="p">]</span> <span class="o">@</span> <span class="n">scaling_values</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">matrices</span><span class="p">}</span>
+
+        <span class="c1"># Update or create impacts_calculated variable</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">instance</span><span class="p">,</span> <span class="s1">'impacts_calculated'</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">h</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">impacts</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">instance</span><span class="o">.</span><span class="n">impacts_calculated</span><span class="p">[</span><span class="n">h</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">instance</span><span class="o">.</span><span class="n">impacts_calculated</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Var</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">impacts</span><span class="p">),</span> <span class="n">initialize</span><span class="o">=</span><span class="n">impacts</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">instance</span>
+
+    <span class="c1"># Time-indexed: compute impacts per (t, method) from that timestep's scaling slice.</span>
+    <span class="n">impacts</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">time_steps</span><span class="p">:</span>
+        <span class="n">scaling_values</span> <span class="o">=</span> <span class="n">scaling_vector</span><span class="o">.</span><span class="n">xs</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="s1">'Time'</span><span class="p">)</span><span class="o">.</span><span class="n">sort_index</span><span class="p">()[</span><span class="s1">'Value'</span><span class="p">]</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">matrices</span><span class="p">:</span>
+            <span class="n">impacts</span><span class="p">[(</span><span class="n">t</span><span class="p">,</span> <span class="n">h</span><span class="p">)]</span> <span class="o">=</span> <span class="p">(</span><span class="n">env_cost</span><span class="p">[</span><span class="n">h</span><span class="p">]</span> <span class="o">@</span> <span class="n">scaling_values</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">instance</span><span class="p">,</span> <span class="s1">'impacts_calculated'</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">impacts</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">instance</span><span class="o">.</span><span class="n">impacts_calculated</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">value</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">instance</span><span class="o">.</span><span class="n">impacts_calculated</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Var</span><span class="p">(</span><span class="n">time_steps</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">matrices</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span> <span class="n">initialize</span><span class="o">=</span><span class="n">impacts</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">instance</span></div>
+
+
+<div class="viewcode-block" id="calculate_inv_flows">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/optimizer/index.html#pulpo.utils.optimizer.calculate_inv_flows">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">calculate_inv_flows</span><span class="p">(</span><span class="n">instance</span><span class="p">,</span> <span class="n">lci_data</span><span class="p">,</span> <span class="n">time_steps</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Calculates elementary flows post-optimization.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        instance: The Pyomo model instance.</span>
+<span class="sd">        lci_data (dict): LCI data containing matrices and mappings.</span>
+<span class="sd">        time_steps (list, optional): Timestep labels for a time-indexed instance.</span>
+<span class="sd">            When given, `inv_flows` is populated per (t, flow) instead of per flow.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        instance: The updated Pyomo model instance with calculated intervention flows.</span>
+<span class="sd">    """</span>
+    <span class="c1"># Extract intervention matrix and scaling vector</span>
+    <span class="n">intervention_matrix</span> <span class="o">=</span> <span class="n">lci_data</span><span class="p">[</span><span class="s1">'intervention_matrix'</span><span class="p">]</span>
+    <span class="n">scaling_vector</span> <span class="o">=</span> <span class="n">extract_flows</span><span class="p">(</span><span class="n">instance</span><span class="p">,</span> <span class="n">lci_data</span><span class="p">[</span><span class="s1">'process_map'</span><span class="p">],</span> <span class="n">lci_data</span><span class="p">[</span><span class="s1">'process_map_metadata'</span><span class="p">],</span> <span class="s1">'scaling'</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">time_steps</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">scaling_values</span> <span class="o">=</span> <span class="n">scaling_vector</span><span class="o">.</span><span class="n">sort_index</span><span class="p">()[</span><span class="s1">'Value'</span><span class="p">]</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span>
+
+        <span class="c1"># Calculate intervention flows</span>
+        <span class="n">flows</span> <span class="o">=</span> <span class="n">intervention_matrix</span> <span class="o">@</span> <span class="n">scaling_values</span>
+
+        <span class="c1"># Update or create inv_flows variable</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">instance</span><span class="p">,</span> <span class="s1">'inv_flows'</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">flow_value</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">flows</span><span class="p">):</span>
+                <span class="n">instance</span><span class="o">.</span><span class="n">inv_flows</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">flow_value</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">instance</span><span class="o">.</span><span class="n">inv_flows</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Var</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">flows</span><span class="p">)),</span> <span class="n">initialize</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="nb">enumerate</span><span class="p">(</span><span class="n">flows</span><span class="p">)))</span>
+
+        <span class="k">return</span> <span class="n">instance</span>
+
+    <span class="c1"># Time-indexed: compute the full intervention-flow vector per timestep from</span>
+    <span class="c1"># that timestep's scaling slice.</span>
+    <span class="n">n_inv</span> <span class="o">=</span> <span class="n">intervention_matrix</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">init</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">time_steps</span><span class="p">:</span>
+        <span class="n">scaling_values</span> <span class="o">=</span> <span class="n">scaling_vector</span><span class="o">.</span><span class="n">xs</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="s1">'Time'</span><span class="p">)</span><span class="o">.</span><span class="n">sort_index</span><span class="p">()[</span><span class="s1">'Value'</span><span class="p">]</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span>
+        <span class="n">flows</span> <span class="o">=</span> <span class="n">intervention_matrix</span> <span class="o">@</span> <span class="n">scaling_values</span>
+        <span class="k">for</span> <span class="n">g</span><span class="p">,</span> <span class="n">flow_value</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">flows</span><span class="p">):</span>
+            <span class="n">init</span><span class="p">[(</span><span class="n">t</span><span class="p">,</span> <span class="n">g</span><span class="p">)]</span> <span class="o">=</span> <span class="n">flow_value</span>
+
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">instance</span><span class="p">,</span> <span class="s1">'inv_flows'</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">init</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">instance</span><span class="o">.</span><span class="n">inv_flows</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">value</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">instance</span><span class="o">.</span><span class="n">inv_flows</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Var</span><span class="p">(</span><span class="n">time_steps</span><span class="p">,</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_inv</span><span class="p">),</span> <span class="n">initialize</span><span class="o">=</span><span class="n">init</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">instance</span></div>
+
+
+
+<div class="viewcode-block" id="_group_env_cost_rows">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/optimizer/index.html#pulpo.utils.optimizer._group_env_cost_rows">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">_group_env_cost_rows</span><span class="p">(</span><span class="n">env_cost</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Group a dense {(process j, indicator h): value} environmental cost</span>
+<span class="sd">    dictionary into constraint rows, keeping only nonzero coefficients.</span>
+
+<span class="sd">    Returns a defaultdict mapping indicator h -&gt; ([process j], [coefficient]);</span>
+<span class="sd">    an indicator with an all-zero row yields an empty row (empty impact sum).</span>
+<span class="sd">    """</span>
+    <span class="n">env_rows</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="p">([],</span> <span class="p">[]))</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">h</span><span class="p">),</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">env_cost</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">value</span><span class="p">:</span>
+            <span class="n">row</span> <span class="o">=</span> <span class="n">env_rows</span><span class="p">[</span><span class="n">h</span><span class="p">]</span>
+            <span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">j</span><span class="p">)</span>
+            <span class="n">row</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">env_rows</span></div>
+
+
+
+<div class="viewcode-block" id="update_env_cost">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/optimizer/index.html#pulpo.utils.optimizer.update_env_cost">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">update_env_cost</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">new_values</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Updates the environmental cost coefficients of an instantiated model.</span>
+
+<span class="sd">    The coefficients are embedded as plain floats in the impact constraints,</span>
+<span class="sd">    so unlike a mutable Param they cannot be changed in place: this merges</span>
+<span class="sd">    ``new_values`` (keyed ``(process j, indicator h)``) into the dense</span>
+<span class="sd">    ``model._env_cost`` dictionary and reconstructs the IMPACTS_CNSTR</span>
+<span class="sd">    component from the merged values. Works for both the plain and the</span>
+<span class="sd">    time-indexed model. Rebuilding the few impact constraint rows is cheap</span>
+<span class="sd">    compared to a solve; the next solver call picks up the new component.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        model (ConcreteModel): An instance built by ``instantiate`` (or the</span>
+<span class="sd">            time extension's ``instantiate``).</span>
+<span class="sd">        new_values (dict): Mapping ``(process j, indicator h) -&gt; value`` with</span>
+<span class="sd">            the coefficients to overwrite.</span>
+<span class="sd">    """</span>
+    <span class="n">unknown</span> <span class="o">=</span> <span class="p">[</span><span class="n">key</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">new_values</span> <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">_env_cost</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">unknown</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Unknown environmental cost indices: </span><span class="si">{</span><span class="n">unknown</span><span class="p">[:</span><span class="mi">5</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span>
+                       <span class="o">+</span> <span class="p">(</span><span class="s2">" ..."</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">unknown</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">5</span> <span class="k">else</span> <span class="s2">""</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">_scaling</span><span class="o">.</span><span class="n">is_scaled</span><span class="p">(</span><span class="n">model</span><span class="p">):</span>
+        <span class="c1"># ``new_values`` are given in original units (per unit of activity);</span>
+        <span class="c1"># the model's rows are in scaled units (per unit of scaled activity).</span>
+        <span class="n">col_scale</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">_col_scale</span>
+        <span class="n">new_values</span> <span class="o">=</span> <span class="p">{(</span><span class="n">j</span><span class="p">,</span> <span class="n">h</span><span class="p">):</span> <span class="n">v</span> <span class="o">*</span> <span class="n">col_scale</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="k">for</span> <span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">h</span><span class="p">),</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">new_values</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">_env_cost</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">new_values</span><span class="p">)</span>
+    <span class="n">env_rows</span> <span class="o">=</span> <span class="n">_group_env_cost_rows</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">_env_cost</span><span class="p">)</span>
+
+    <span class="n">model</span><span class="o">.</span><span class="n">del_component</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">IMPACTS_CNSTR</span><span class="p">)</span>
+    <span class="c1"># Remove the implicit index set Pyomo creates for multi-set constraints</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="s1">'IMPACTS_CNSTR_index'</span><span class="p">):</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">del_component</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">IMPACTS_CNSTR_index</span><span class="p">)</span>
+
+    <span class="n">scaling</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">scaling_vector</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="s1">'TIME'</span><span class="p">):</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">impact_constraint</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">h</span><span class="p">):</span>
+            <span class="n">processes</span><span class="p">,</span> <span class="n">coefs</span> <span class="o">=</span> <span class="n">env_rows</span><span class="p">[</span><span class="n">h</span><span class="p">]</span>
+            <span class="n">lhs</span> <span class="o">=</span> <span class="n">LinearExpression</span><span class="p">(</span><span class="n">constant</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">linear_coefs</span><span class="o">=</span><span class="n">coefs</span><span class="p">,</span>
+                                   <span class="n">linear_vars</span><span class="o">=</span><span class="p">[</span><span class="n">scaling</span><span class="p">[</span><span class="n">t</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">processes</span><span class="p">])</span>
+            <span class="k">return</span> <span class="n">model</span><span class="o">.</span><span class="n">impacts</span><span class="p">[</span><span class="n">t</span><span class="p">,</span> <span class="n">h</span><span class="p">]</span> <span class="o">==</span> <span class="n">lhs</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">add_component</span><span class="p">(</span><span class="s1">'IMPACTS_CNSTR'</span><span class="p">,</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Constraint</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">TIME</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">INDICATOR</span><span class="p">,</span> <span class="n">rule</span><span class="o">=</span><span class="n">impact_constraint</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">impact_constraint</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">h</span><span class="p">):</span>
+            <span class="n">processes</span><span class="p">,</span> <span class="n">coefs</span> <span class="o">=</span> <span class="n">env_rows</span><span class="p">[</span><span class="n">h</span><span class="p">]</span>
+            <span class="n">lhs</span> <span class="o">=</span> <span class="n">LinearExpression</span><span class="p">(</span><span class="n">constant</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">linear_coefs</span><span class="o">=</span><span class="n">coefs</span><span class="p">,</span>
+                                   <span class="n">linear_vars</span><span class="o">=</span><span class="p">[</span><span class="n">scaling</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">processes</span><span class="p">])</span>
+            <span class="k">return</span> <span class="n">model</span><span class="o">.</span><span class="n">impacts</span><span class="p">[</span><span class="n">h</span><span class="p">]</span> <span class="o">==</span> <span class="n">lhs</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">add_component</span><span class="p">(</span><span class="s1">'IMPACTS_CNSTR'</span><span class="p">,</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Constraint</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">INDICATOR</span><span class="p">,</span> <span class="n">rule</span><span class="o">=</span><span class="n">impact_constraint</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="instantiate">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/optimizer/index.html#pulpo.utils.optimizer.instantiate">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">instantiate</span><span class="p">(</span><span class="n">model_data</span><span class="p">,</span> <span class="n">objective</span><span class="o">=</span><span class="s1">'weighted_sum'</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Builds an instance of the optimization model with specific data and objective function.</span>
+
+<span class="sd">    The model is assembled as a ConcreteModel directly from the data dictionary.</span>
+<span class="sd">    The technology, intervention, and environmental cost matrices are embedded</span>
+<span class="sd">    as plain float coefficients in LinearExpression constraint rows rather than</span>
+<span class="sd">    as Pyomo Params: skipping their per-entry Param (and relation-set)</span>
+<span class="sd">    components makes instantiation several times faster on ecoinvent-scale</span>
+<span class="sd">    data. The dense environmental cost dictionary is kept on the model as</span>
+<span class="sd">    ``model._env_cost``; code that needs different coefficients updates that</span>
+<span class="sd">    dictionary and rebuilds the impact constraints via :func:`update_env_cost`. Only parameters that are</span>
+<span class="sd">    updated in place between solves (limits, demand, weights) are mutable</span>
+<span class="sd">    Params.</span>
+<span class="sd">    Production capacities as well as intervention-flow and impact limits enter</span>
+<span class="sd">    as variable bounds instead of explicit constraints; the bounds reference</span>
+<span class="sd">    the mutable limit Params, so they are re-evaluated whenever the model is</span>
+<span class="sd">    passed to a solver again.</span>
+<span class="sd">    Slack variables exist only for the (typically few) products where a supply</span>
+<span class="sd">    is specified (identical lower and upper limit, SUPPLY == 1); for all other</span>
+<span class="sd">    products the slack would be fixed to zero, so it is not created at all.</span>
+<span class="sd">    Consequently the supply pattern is baked in at construction time: changing</span>
+<span class="sd">    which products are supplies requires re-instantiating the model.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        model_data (dict): Data dictionary for the optimization model.</span>
+<span class="sd">        objective (str): 'weighted_sum' (default) minimizes the weighted sum of</span>
+<span class="sd">            impacts. 'goal' minimizes the average transgression level</span>
+<span class="sd">            (1/K) * sum_h max(0, impacts_h / IMP_GOALS_h - 1) over the K</span>
+<span class="sd">            categories in GOAL_INDICATOR (goal programming; the time-extended</span>
+<span class="sd">            twin applies the goals to the time-aggregated impacts instead).</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        ConcreteModel: The instantiated Pyomo model.</span>
+<span class="sd">    """</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">'Creating Instance'</span><span class="p">)</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">model_data</span><span class="p">[</span><span class="kc">None</span><span class="p">]</span>
+    <span class="n">tech</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">'TECH_MATRIX'</span><span class="p">]</span>
+    <span class="n">env</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">'ENV_COST_MATRIX'</span><span class="p">]</span>
+    <span class="n">inv</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">'INV_MATRIX'</span><span class="p">]</span>
+
+    <span class="c1"># Group the sparse matrix entries by constraint row (product, indicator, flow)</span>
+    <span class="n">tech_rows</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="p">([],</span> <span class="p">[]))</span>  <span class="c1"># product i -&gt; ([process j], [A[i, j]])</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">),</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">tech</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">row</span> <span class="o">=</span> <span class="n">tech_rows</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">j</span><span class="p">)</span>
+        <span class="n">row</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="n">env_rows</span> <span class="o">=</span> <span class="n">_group_env_cost_rows</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
+    <span class="n">inv_rows</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="p">([],</span> <span class="p">[]))</span>  <span class="c1"># intervention g -&gt; ([process j], [B[g, j]])</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">j</span><span class="p">),</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">inv</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">row</span> <span class="o">=</span> <span class="n">inv_rows</span><span class="p">[</span><span class="n">g</span><span class="p">]</span>
+        <span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">j</span><span class="p">)</span>
+        <span class="n">row</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+    <span class="n">model</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">ConcreteModel</span><span class="p">()</span>
+    <span class="c1"># Dense environmental cost dictionary (Q*B), kept for update_env_cost and</span>
+    <span class="c1"># for the saver (extract_params); the constraints embed only the nonzeros.</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">_env_cost</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
+    <span class="c1"># Equilibration factors (empty dicts when the data was not scaled); see</span>
+    <span class="c1"># pulpo.utils.scaling. solve_model unscales the solution after each solve.</span>
+    <span class="n">_scaling</span><span class="o">.</span><span class="n">attach_scale</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+
+    <span class="c1"># Sets</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">PRODUCT</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Set</span><span class="p">(</span><span class="n">initialize</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="s1">'PRODUCT'</span><span class="p">][</span><span class="kc">None</span><span class="p">],</span> <span class="n">doc</span><span class="o">=</span><span class="s1">'Set of intermediate products (or technosphere exchanges), indexed by i'</span><span class="p">)</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">PROCESS</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Set</span><span class="p">(</span><span class="n">initialize</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="s1">'PROCESS'</span><span class="p">][</span><span class="kc">None</span><span class="p">],</span> <span class="n">doc</span><span class="o">=</span><span class="s1">'Set of processes (or activities), indexed by j'</span><span class="p">)</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">INDICATOR</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Set</span><span class="p">(</span><span class="n">initialize</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="s1">'INDICATOR'</span><span class="p">][</span><span class="kc">None</span><span class="p">],</span> <span class="n">doc</span><span class="o">=</span><span class="s1">'Set of impact assessment indicators, indexed by h'</span><span class="p">)</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">INV</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Set</span><span class="p">(</span><span class="n">initialize</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="s1">'INV'</span><span class="p">][</span><span class="kc">None</span><span class="p">],</span> <span class="n">doc</span><span class="o">=</span><span class="s1">'Set of intervention flows, indexed by g'</span><span class="p">)</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">GOAL_INDICATOR</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Set</span><span class="p">(</span><span class="n">initialize</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="s1">'GOAL_INDICATOR'</span><span class="p">][</span><span class="kc">None</span><span class="p">],</span> <span class="n">within</span><span class="o">=</span><span class="n">model</span><span class="o">.</span><span class="n">INDICATOR</span><span class="p">,</span>
+                                   <span class="n">doc</span><span class="o">=</span><span class="s1">'Impact categories with a goal-programming soft limit'</span><span class="p">)</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">DEPENDENT_CONSTRAINTS</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Set</span><span class="p">(</span><span class="n">initialize</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="s1">'DEPENDENT_CONSTRAINTS'</span><span class="p">][</span><span class="kc">None</span><span class="p">],</span> <span class="n">doc</span><span class="o">=</span><span class="s1">'Set of dependent constraint names'</span><span class="p">)</span>
+    <span class="n">supply_products</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="s1">'PRODUCT'</span><span class="p">][</span><span class="kc">None</span><span class="p">]</span> <span class="k">if</span> <span class="n">data</span><span class="p">[</span><span class="s1">'SUPPLY'</span><span class="p">][</span><span class="n">i</span><span class="p">]]</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">PRODUCT_SUPPLY</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Set</span><span class="p">(</span><span class="n">initialize</span><span class="o">=</span><span class="n">supply_products</span><span class="p">,</span> <span class="n">within</span><span class="o">=</span><span class="n">model</span><span class="o">.</span><span class="n">PRODUCT</span><span class="p">,</span> <span class="n">doc</span><span class="o">=</span><span class="s1">'Products for which a supply is specified instead of a demand (slack active)'</span><span class="p">)</span>
+
+    <span class="c1"># Parameters (mutable: limits may be changed in place between solves)</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">UPPER_LIMIT</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Param</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">PROCESS</span><span class="p">,</span> <span class="n">initialize</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="s1">'UPPER_LIMIT'</span><span class="p">],</span> <span class="n">mutable</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">within</span><span class="o">=</span><span class="n">pyo</span><span class="o">.</span><span class="n">Reals</span><span class="p">,</span> <span class="n">doc</span><span class="o">=</span><span class="s1">'Maximum production capacity of process j'</span><span class="p">)</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">LOWER_LIMIT</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Param</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">PROCESS</span><span class="p">,</span> <span class="n">initialize</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="s1">'LOWER_LIMIT'</span><span class="p">],</span> <span class="n">mutable</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">within</span><span class="o">=</span><span class="n">pyo</span><span class="o">.</span><span class="n">Reals</span><span class="p">,</span> <span class="n">doc</span><span class="o">=</span><span class="s1">'Minimum production capacity of process j'</span><span class="p">)</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">UPPER_INV_LIMIT</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Param</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">INV</span><span class="p">,</span> <span class="n">initialize</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="s1">'UPPER_INV_LIMIT'</span><span class="p">],</span> <span class="n">mutable</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">within</span><span class="o">=</span><span class="n">pyo</span><span class="o">.</span><span class="n">Reals</span><span class="p">,</span> <span class="n">doc</span><span class="o">=</span><span class="s1">'Maximum intervention flow g'</span><span class="p">)</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">LOWER_INV_LIMIT</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Param</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">INV</span><span class="p">,</span> <span class="n">initialize</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="s1">'LOWER_INV_LIMIT'</span><span class="p">],</span> <span class="n">mutable</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">within</span><span class="o">=</span><span class="n">pyo</span><span class="o">.</span><span class="n">Reals</span><span class="p">,</span> <span class="n">doc</span><span class="o">=</span><span class="s1">'Minimum intervention flow g'</span><span class="p">)</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">UPPER_IMP_LIMIT</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Param</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">INDICATOR</span><span class="p">,</span> <span class="n">initialize</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="s1">'UPPER_IMP_LIMIT'</span><span class="p">],</span> <span class="n">mutable</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">within</span><span class="o">=</span><span class="n">pyo</span><span class="o">.</span><span class="n">Reals</span><span class="p">,</span> <span class="n">doc</span><span class="o">=</span><span class="s1">'Maximum impact on category h'</span><span class="p">)</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">LOWER_IMP_LIMIT</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Param</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">INDICATOR</span><span class="p">,</span> <span class="n">initialize</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="s1">'LOWER_IMP_LIMIT'</span><span class="p">],</span> <span class="n">mutable</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">within</span><span class="o">=</span><span class="n">pyo</span><span class="o">.</span><span class="n">Reals</span><span class="p">,</span> <span class="n">doc</span><span class="o">=</span><span class="s1">'Minimum impact on category h'</span><span class="p">)</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">FINAL_DEMAND</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Param</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">PRODUCT</span><span class="p">,</span> <span class="n">initialize</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="s1">'FINAL_DEMAND'</span><span class="p">],</span> <span class="n">mutable</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">within</span><span class="o">=</span><span class="n">pyo</span><span class="o">.</span><span class="n">Reals</span><span class="p">,</span> <span class="n">doc</span><span class="o">=</span><span class="s1">'Final demand of intermediate product flows (i.e., functional unit)'</span><span class="p">)</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">WEIGHTS</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Param</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">INDICATOR</span><span class="p">,</span> <span class="n">initialize</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="s1">'WEIGHTS'</span><span class="p">],</span> <span class="n">mutable</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">within</span><span class="o">=</span><span class="n">pyo</span><span class="o">.</span><span class="n">NonNegativeReals</span><span class="p">,</span> <span class="n">doc</span><span class="o">=</span><span class="s1">'Weighting factors for the impact assessment indicators in the objective function'</span><span class="p">)</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">IMP_GOALS</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Param</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">GOAL_INDICATOR</span><span class="p">,</span> <span class="n">initialize</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="s1">'IMP_GOALS'</span><span class="p">],</span> <span class="n">mutable</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">within</span><span class="o">=</span><span class="n">pyo</span><span class="o">.</span><span class="n">PositiveReals</span><span class="p">,</span> <span class="n">doc</span><span class="o">=</span><span class="s1">'Soft limit (goal) L_h of category h; transgression level TL_h = impacts_h / L_h'</span><span class="p">)</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">LEFT_WEIGHTS</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Param</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">DEPENDENT_CONSTRAINTS</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">PROCESS</span><span class="p">,</span> <span class="n">initialize</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="s1">'LEFT_WEIGHTS'</span><span class="p">],</span> <span class="n">mutable</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">doc</span><span class="o">=</span><span class="s1">'Left side weights for dependent constraints'</span><span class="p">)</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">RIGHT_WEIGHTS</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Param</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">DEPENDENT_CONSTRAINTS</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">PROCESS</span><span class="p">,</span> <span class="n">initialize</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="s1">'RIGHT_WEIGHTS'</span><span class="p">],</span> <span class="n">mutable</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">doc</span><span class="o">=</span><span class="s1">'Right side weights for dependent constraints'</span><span class="p">)</span>
+
+    <span class="c1"># Variables. Capacity and slack-activation limits are variable bounds rather</span>
+    <span class="c1"># than constraints; they reference the mutable Params, so updated limits take</span>
+    <span class="c1"># effect on the next solve.</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">impacts</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Var</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">INDICATOR</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="k">lambda</span> <span class="n">model</span><span class="p">,</span> <span class="n">h</span><span class="p">:</span> <span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">LOWER_IMP_LIMIT</span><span class="p">[</span><span class="n">h</span><span class="p">],</span> <span class="n">model</span><span class="o">.</span><span class="n">UPPER_IMP_LIMIT</span><span class="p">[</span><span class="n">h</span><span class="p">]),</span>
+                            <span class="n">doc</span><span class="o">=</span><span class="s1">'Environmental impact on indicator h evaluated with the established LCIA method'</span><span class="p">)</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">scaling_vector</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Var</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">PROCESS</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="k">lambda</span> <span class="n">model</span><span class="p">,</span> <span class="n">j</span><span class="p">:</span> <span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">LOWER_LIMIT</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="n">model</span><span class="o">.</span><span class="n">UPPER_LIMIT</span><span class="p">[</span><span class="n">j</span><span class="p">]),</span>
+                                   <span class="n">doc</span><span class="o">=</span><span class="s1">'Activity level of each process to meet the final demand'</span><span class="p">)</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">inv_vector</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Var</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">INV</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="k">lambda</span> <span class="n">model</span><span class="p">,</span> <span class="n">g</span><span class="p">:</span> <span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">LOWER_INV_LIMIT</span><span class="p">[</span><span class="n">g</span><span class="p">],</span> <span class="n">model</span><span class="o">.</span><span class="n">UPPER_INV_LIMIT</span><span class="p">[</span><span class="n">g</span><span class="p">]),</span>
+                               <span class="n">doc</span><span class="o">=</span><span class="s1">'Intervention flows'</span><span class="p">)</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">slack</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Var</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">PRODUCT_SUPPLY</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                          <span class="n">doc</span><span class="o">=</span><span class="s1">'Supply slack variables (only products with a specified supply)'</span><span class="p">)</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">transgression</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Var</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">GOAL_INDICATOR</span><span class="p">,</span> <span class="n">within</span><span class="o">=</span><span class="n">pyo</span><span class="o">.</span><span class="n">NonNegativeReals</span><span class="p">,</span>
+                                  <span class="n">doc</span><span class="o">=</span><span class="s1">'Transgression level max(0, impacts_h / IMP_GOALS_h - 1) of goal category h'</span><span class="p">)</span>
+
+    <span class="n">scaling</span> <span class="o">=</span> <span class="p">{</span><span class="n">j</span><span class="p">:</span> <span class="n">model</span><span class="o">.</span><span class="n">scaling_vector</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="s1">'PROCESS'</span><span class="p">][</span><span class="kc">None</span><span class="p">]}</span>
+    <span class="n">supply_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">supply_products</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">demand_constraint</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">i</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Fixes a value in the demand vector"""</span>
+        <span class="n">processes</span><span class="p">,</span> <span class="n">coefs</span> <span class="o">=</span> <span class="n">tech_rows</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">lhs</span> <span class="o">=</span> <span class="n">LinearExpression</span><span class="p">(</span><span class="n">constant</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">linear_coefs</span><span class="o">=</span><span class="n">coefs</span><span class="p">,</span> <span class="n">linear_vars</span><span class="o">=</span><span class="p">[</span><span class="n">scaling</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">processes</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">supply_set</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">lhs</span> <span class="o">==</span> <span class="n">model</span><span class="o">.</span><span class="n">FINAL_DEMAND</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">model</span><span class="o">.</span><span class="n">slack</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">lhs</span> <span class="o">==</span> <span class="n">model</span><span class="o">.</span><span class="n">FINAL_DEMAND</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">impact_constraint</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">h</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Calculates all the impact categories"""</span>
+        <span class="n">processes</span><span class="p">,</span> <span class="n">coefs</span> <span class="o">=</span> <span class="n">env_rows</span><span class="p">[</span><span class="n">h</span><span class="p">]</span>
+        <span class="n">lhs</span> <span class="o">=</span> <span class="n">LinearExpression</span><span class="p">(</span><span class="n">constant</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">linear_coefs</span><span class="o">=</span><span class="n">coefs</span><span class="p">,</span> <span class="n">linear_vars</span><span class="o">=</span><span class="p">[</span><span class="n">scaling</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">processes</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">model</span><span class="o">.</span><span class="n">impacts</span><span class="p">[</span><span class="n">h</span><span class="p">]</span> <span class="o">==</span> <span class="n">lhs</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">inventory_constraint</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">g</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Calculates the environmental flows"""</span>
+        <span class="n">processes</span><span class="p">,</span> <span class="n">coefs</span> <span class="o">=</span> <span class="n">inv_rows</span><span class="p">[</span><span class="n">g</span><span class="p">]</span>
+        <span class="n">lhs</span> <span class="o">=</span> <span class="n">LinearExpression</span><span class="p">(</span><span class="n">constant</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">linear_coefs</span><span class="o">=</span><span class="n">coefs</span><span class="p">,</span> <span class="n">linear_vars</span><span class="o">=</span><span class="p">[</span><span class="n">scaling</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">processes</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">model</span><span class="o">.</span><span class="n">inv_vector</span><span class="p">[</span><span class="n">g</span><span class="p">]</span> <span class="o">==</span> <span class="n">lhs</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">dependent_constraint</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">constraint_name</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Dependent constraint: sum of left side weights * scaling &lt;= sum of right side weights * scaling"""</span>
+        <span class="n">left_sum</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">quicksum</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">LEFT_WEIGHTS</span><span class="p">[</span><span class="n">constraint_name</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">*</span> <span class="n">scaling</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">PROCESS</span><span class="p">)</span>
+        <span class="n">right_sum</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">quicksum</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">RIGHT_WEIGHTS</span><span class="p">[</span><span class="n">constraint_name</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">*</span> <span class="n">scaling</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">PROCESS</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">left_sum</span> <span class="o">&lt;=</span> <span class="n">right_sum</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">transgression_constraint</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">h</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Transgression slack: t_h &gt;= impacts_h / L_h - 1 (linear; t_h &gt;= 0 via domain)"""</span>
+        <span class="k">return</span> <span class="n">model</span><span class="o">.</span><span class="n">transgression</span><span class="p">[</span><span class="n">h</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">model</span><span class="o">.</span><span class="n">impacts</span><span class="p">[</span><span class="n">h</span><span class="p">]</span> <span class="o">/</span> <span class="n">model</span><span class="o">.</span><span class="n">IMP_GOALS</span><span class="p">[</span><span class="n">h</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span>
+
+    <span class="c1"># Constraints</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">FINAL_DEMAND_CNSTR</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Constraint</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">PRODUCT</span><span class="p">,</span> <span class="n">rule</span><span class="o">=</span><span class="n">demand_constraint</span><span class="p">)</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">IMPACTS_CNSTR</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Constraint</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">INDICATOR</span><span class="p">,</span> <span class="n">rule</span><span class="o">=</span><span class="n">impact_constraint</span><span class="p">)</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">INVENTORY_CNSTR</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Constraint</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">INV</span><span class="p">,</span> <span class="n">rule</span><span class="o">=</span><span class="n">inventory_constraint</span><span class="p">)</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">DEPENDENT_CNSTR</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Constraint</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">DEPENDENT_CONSTRAINTS</span><span class="p">,</span> <span class="n">rule</span><span class="o">=</span><span class="n">dependent_constraint</span><span class="p">)</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">TRANSGRESSION_CNSTR</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Constraint</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">GOAL_INDICATOR</span><span class="p">,</span> <span class="n">rule</span><span class="o">=</span><span class="n">transgression_constraint</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">objective</span> <span class="o">==</span> <span class="s1">'goal'</span><span class="p">:</span>
+        <span class="c1"># Objective: average transgression level over the categories with a goal.</span>
+        <span class="n">K</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">GOAL_INDICATOR</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">K</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">"objective='goal' requires at least one category in GOAL_INDICATOR "</span>
+                <span class="s2">"(model_data['GOAL_INDICATOR']/'IMP_GOALS'); got none."</span>
+            <span class="p">)</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">OBJ</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Objective</span><span class="p">(</span><span class="n">sense</span><span class="o">=</span><span class="n">pyo</span><span class="o">.</span><span class="n">minimize</span><span class="p">,</span>
+                                  <span class="n">expr</span><span class="o">=</span><span class="n">pyo</span><span class="o">.</span><span class="n">quicksum</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">transgression</span><span class="p">[</span><span class="n">h</span><span class="p">]</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">GOAL_INDICATOR</span><span class="p">)</span> <span class="o">/</span> <span class="n">K</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># Objective: a weighted sum over all indicators. Typically, the indicator of study has weight 1, the rest 0.</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">OBJ</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Objective</span><span class="p">(</span><span class="n">sense</span><span class="o">=</span><span class="n">pyo</span><span class="o">.</span><span class="n">minimize</span><span class="p">,</span> <span class="n">expr</span><span class="o">=</span><span class="n">pyo</span><span class="o">.</span><span class="n">quicksum</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">impacts</span><span class="p">[</span><span class="n">h</span><span class="p">]</span> <span class="o">*</span> <span class="n">model</span><span class="o">.</span><span class="n">WEIGHTS</span><span class="p">[</span><span class="n">h</span><span class="p">]</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">INDICATOR</span><span class="p">))</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s1">'Instance created'</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">model</span></div>
+
+
+
+<div class="viewcode-block" id="get_cplex_options">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/optimizer/index.html#pulpo.utils.optimizer.get_cplex_options">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_cplex_options</span><span class="p">(</span><span class="n">options</span><span class="p">):</span>
+    <span class="c1"># ATTN: Write some instructions on how to tune these parameters. For now, they are set to work for standard ecoinvent problems with CPLEX.</span>
+<span class="w">    </span><span class="sd">"""Return the default XPLEX options if none are provided."""</span>
+    <span class="n">default_options</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s1">'option optcr = 1e-15;'</span><span class="p">,</span>
+        <span class="s1">'option reslim = 3600;'</span><span class="p">,</span>  <span class="c1"># Time limit</span>
+        <span class="s1">'GAMS_MODEL.optfile = 1;'</span><span class="p">,</span>
+        <span class="s1">'$onecho &gt; cplex.opt'</span><span class="p">,</span>
+        <span class="s1">'workmem=4096'</span><span class="p">,</span>
+        <span class="s1">'scaind=1'</span><span class="p">,</span>
+        <span class="s1">'$offecho'</span><span class="p">,</span>
+    <span class="p">]</span>
+    <span class="k">return</span> <span class="n">options</span> <span class="k">if</span> <span class="n">options</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">default_options</span></div>
+
+
+<div class="viewcode-block" id="SolveError">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/optimizer/index.html#pulpo.utils.optimizer.SolveError">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SolveError</span><span class="p">(</span><span class="ne">RuntimeError</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""The solver ended without an optimal solution; the instance keeps its</span>
+<span class="sd">    previous values. ``results`` holds what the solver returned."""</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">results</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">results</span> <span class="o">=</span> <span class="n">results</span></div>
+
+
+
+<div class="viewcode-block" id="_not_optimal">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/optimizer/index.html#pulpo.utils.optimizer._not_optimal">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">_not_optimal</span><span class="p">(</span><span class="n">solver</span><span class="p">,</span> <span class="n">condition</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">incumbent</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="n">found</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">" A feasible point with objective </span><span class="si">{</span><span class="n">incumbent</span><span class="si">}</span><span class="s2"> was found but not loaded."</span> <span class="k">if</span> <span class="n">incumbent</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="s2">""</span>
+    <span class="n">condition</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">condition</span><span class="p">,</span> <span class="s1">'name'</span><span class="p">,</span> <span class="n">condition</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">SolveError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">solver</span><span class="si">}</span><span class="s2"> did not solve the model to optimality (</span><span class="si">{</span><span class="n">condition</span><span class="si">}</span><span class="s2">); the instance keeps "</span>
+                      <span class="sa">f</span><span class="s2">"its previous values.</span><span class="si">{</span><span class="n">found</span><span class="si">}</span><span class="s2"> The solver's results are on the exception's .results."</span><span class="p">,</span>
+                      <span class="n">results</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="check_highs_options">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/optimizer/index.html#pulpo.utils.optimizer.check_highs_options">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">check_highs_options</span><span class="p">(</span><span class="n">options</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Raise a ValueError for HiGHS options with an unknown name or an invalid value.</span>
+
+<span class="sd">    HiGHS reports both only through a status code and its log, which is often</span>
+<span class="sd">    switched off, so a mistyped option would otherwise be ignored silently.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">options</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">highspy</span>
+    <span class="n">probe</span> <span class="o">=</span> <span class="n">highspy</span><span class="o">.</span><span class="n">Highs</span><span class="p">()</span>
+    <span class="n">probe</span><span class="o">.</span><span class="n">setOptionValue</span><span class="p">(</span><span class="s1">'output_flag'</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+    <span class="n">invalid</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">=</span><span class="si">{</span><span class="n">value</span><span class="si">!r}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">options</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+               <span class="k">if</span> <span class="n">probe</span><span class="o">.</span><span class="n">setOptionValue</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="o">==</span> <span class="n">highspy</span><span class="o">.</span><span class="n">HighsStatus</span><span class="o">.</span><span class="n">kError</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">invalid</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Unknown HiGHS option(s) or invalid value(s): </span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">invalid</span><span class="p">)</span><span class="si">}</span><span class="s2">. "</span>
+                         <span class="s2">"See https://ergo-code.github.io/HiGHS/stable/options/definitions/."</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="solve_highspy">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/optimizer/index.html#pulpo.utils.optimizer.solve_highspy">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">solve_highspy</span><span class="p">(</span><span class="n">model_instance</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Solve the model using Highspy, with ``options`` (a dict) passed to HiGHS."""</span>
+    <span class="n">check_highs_options</span><span class="p">(</span><span class="n">options</span><span class="p">)</span>
+    <span class="n">opt</span> <span class="o">=</span> <span class="n">appsi</span><span class="o">.</span><span class="n">solvers</span><span class="o">.</span><span class="n">Highs</span><span class="p">()</span>
+    <span class="n">opt</span><span class="o">.</span><span class="n">highs_options</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">options</span> <span class="ow">or</span> <span class="p">{})</span>
+    <span class="n">opt</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">load_solution</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="n">opt</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">model_instance</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">results</span><span class="o">.</span><span class="n">termination_condition</span> <span class="o">!=</span> <span class="n">appsi</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">TerminationCondition</span><span class="o">.</span><span class="n">optimal</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">_not_optimal</span><span class="p">(</span><span class="s1">'HiGHS'</span><span class="p">,</span> <span class="n">results</span><span class="o">.</span><span class="n">termination_condition</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">results</span><span class="o">.</span><span class="n">best_feasible_objective</span><span class="p">)</span>
+    <span class="n">results</span><span class="o">.</span><span class="n">solution_loader</span><span class="o">.</span><span class="n">load_vars</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">'optimal solution found: '</span><span class="p">,</span> <span class="n">results</span><span class="o">.</span><span class="n">best_feasible_objective</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">'Optimization problem solved using Highspy'</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">results</span><span class="p">,</span> <span class="n">model_instance</span></div>
+
+
+<div class="viewcode-block" id="solve_neos">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/optimizer/index.html#pulpo.utils.optimizer.solve_neos">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">solve_neos</span><span class="p">(</span><span class="n">model_instance</span><span class="p">,</span> <span class="n">solver_name</span><span class="p">,</span> <span class="n">options</span><span class="p">,</span> <span class="n">neos_email</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Solve the model using NEOS."""</span>
+    <span class="k">if</span> <span class="n">neos_email</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">'NEOS_EMAIL'</span><span class="p">]</span> <span class="o">=</span> <span class="n">neos_email</span>
+
+    <span class="k">if</span> <span class="s1">'NEOS_EMAIL'</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"'NEOS_EMAIL' environment variable is not set. </span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"To use the NEOS solver, please set the 'NEOS_EMAIL' environment variable as explained here:</span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"https://www.twilio.com/en-us/blog/how-to-set-environment-variables-html </span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"If you do not have a NEOS account, please create one at https://neos-server.org/neos/ </span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"Alternatively, you can pass the 'neos_email' argument to the solve function. </span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="n">model_instance</span>
+    <span class="n">solver_manager</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">SolverManagerFactory</span><span class="p">(</span><span class="s1">'neos'</span><span class="p">)</span>
+    <span class="c1"># ATTN: deleted the 'options' use as kwargs, since I do not think it makes sense, it holds options for the PULPO solver and for the pyomo solver_manager, </span>
+    <span class="c1"># it needs to be either different options or completely differently structured. Now I have hard programmed the seetings.</span>
+    <span class="c1">#  Also solver_name is a solver_manager option, it kind of does not make sense</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="n">solver_manager</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">model_instance</span><span class="p">,</span> <span class="n">opt</span><span class="o">=</span><span class="n">solver_name</span><span class="p">,</span> <span class="n">tee</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">load_solutions</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">results</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">termination_condition</span> <span class="o">!=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">TerminationCondition</span><span class="o">.</span><span class="n">optimal</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">_not_optimal</span><span class="p">(</span><span class="sa">f</span><span class="s1">'NEOS (</span><span class="si">{</span><span class="n">solver_name</span><span class="si">}</span><span class="s1">)'</span><span class="p">,</span> <span class="n">results</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">termination_condition</span><span class="p">,</span> <span class="n">results</span><span class="p">)</span>
+    <span class="n">model_instance</span><span class="o">.</span><span class="n">solutions</span><span class="o">.</span><span class="n">load_from</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"Optimization problem solved using NEOS"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">results</span><span class="p">,</span> <span class="n">model_instance</span></div>
+
+
+<div class="viewcode-block" id="_gams_executable">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/optimizer/index.html#pulpo.utils.optimizer._gams_executable">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">_gams_executable</span><span class="p">(</span><span class="n">gams_path</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""The GAMS executable in ``gams_path``, a GAMS directory or the executable itself."""</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">gams_path</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">candidate</span> <span class="ow">in</span> <span class="p">([</span><span class="n">path</span><span class="p">]</span> <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">is_file</span><span class="p">()</span> <span class="k">else</span> <span class="p">[</span><span class="n">path</span> <span class="o">/</span> <span class="s1">'gams.exe'</span><span class="p">,</span> <span class="n">path</span> <span class="o">/</span> <span class="s1">'gams'</span><span class="p">]):</span>
+        <span class="k">if</span> <span class="n">candidate</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">candidate</span><span class="p">)</span>
+    <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"No GAMS executable at </span><span class="si">{</span><span class="n">gams_path</span><span class="si">!r}</span><span class="s2">; pass the GAMS directory "</span>
+                            <span class="s2">"(e.g. 'C:/GAMS/47') or the path to the gams executable."</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="solve_gams">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/optimizer/index.html#pulpo.utils.optimizer.solve_gams">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">solve_gams</span><span class="p">(</span><span class="n">model_instance</span><span class="p">,</span> <span class="n">gams_path</span><span class="p">,</span> <span class="n">options</span><span class="p">,</span> <span class="n">solver_name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Solve the model with the GAMS installation at ``gams_path`` (``True``: the</span>
+<span class="sd">    ``GAMS_PULPO`` environment variable), using ``solver_name`` (default CPLEX)."""</span>
+    <span class="k">if</span> <span class="n">gams_path</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">gams_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">'GAMS_PULPO'</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">gams_path</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"GAMS_PATH=True reads the GAMS directory from the GAMS_PULPO environment "</span>
+                             <span class="s2">"variable, which is not set; set it or pass the directory as GAMS_PATH."</span><span class="p">)</span>
+    <span class="n">executable</span> <span class="o">=</span> <span class="n">_gams_executable</span><span class="p">(</span><span class="n">gams_path</span><span class="p">)</span>
+
+    <span class="n">io_options</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'solver'</span><span class="p">:</span> <span class="n">solver_name</span> <span class="ow">or</span> <span class="s1">'CPLEX'</span><span class="p">}</span>
+    <span class="n">options</span> <span class="o">=</span> <span class="n">get_cplex_options</span><span class="p">(</span><span class="n">options</span><span class="p">)</span> <span class="k">if</span> <span class="n">solver_name</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">options</span>
+
+    <span class="c1"># Pyomo finds GAMS on the system PATH; point it at the requested installation</span>
+    <span class="c1"># for this solve only.</span>
+    <span class="n">registered</span> <span class="o">=</span> <span class="n">pyomo</span><span class="o">.</span><span class="n">common</span><span class="o">.</span><span class="n">Executable</span><span class="p">(</span><span class="s1">'gams'</span><span class="p">)</span>
+    <span class="n">previous</span> <span class="o">=</span> <span class="n">registered</span><span class="o">.</span><span class="n">path</span><span class="p">()</span>
+    <span class="n">registered</span><span class="o">.</span><span class="n">set_path</span><span class="p">(</span><span class="n">executable</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">SolverFactory</span><span class="p">(</span><span class="s1">'gams'</span><span class="p">)</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span>
+            <span class="n">model_instance</span><span class="p">,</span>
+            <span class="n">keepfiles</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">symbolic_solver_labels</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">tee</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">report_timing</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">io_options</span><span class="o">=</span><span class="n">io_options</span><span class="p">,</span>
+            <span class="n">add_options</span><span class="o">=</span><span class="n">options</span><span class="p">,</span>
+            <span class="n">load_solutions</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="n">registered</span><span class="o">.</span><span class="n">set_path</span><span class="p">(</span><span class="n">previous</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">results</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">termination_condition</span> <span class="o">!=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">TerminationCondition</span><span class="o">.</span><span class="n">optimal</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">_not_optimal</span><span class="p">(</span><span class="sa">f</span><span class="s2">"GAMS (</span><span class="si">{</span><span class="n">io_options</span><span class="p">[</span><span class="s1">'solver'</span><span class="p">]</span><span class="si">}</span><span class="s2">)"</span><span class="p">,</span> <span class="n">results</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">termination_condition</span><span class="p">,</span> <span class="n">results</span><span class="p">)</span>
+    <span class="n">model_instance</span><span class="o">.</span><span class="n">solutions</span><span class="o">.</span><span class="n">load_from</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">'Optimization problem solved using GAMS'</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">results</span><span class="p">,</span> <span class="n">model_instance</span></div>
+
+
+
+<div class="viewcode-block" id="solve_gurobi">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/optimizer/index.html#pulpo.utils.optimizer.solve_gurobi">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">solve_gurobi</span><span class="p">(</span><span class="n">model_instance</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Solve the given Pyomo ConcreteModel using Gurobi.</span>
+
+<span class="sd">    Stores ``solver_status`` and ``solver_termination`` on the instance, and</span>
+<span class="sd">    ``best_feasible_obj`` and ``best_obj_bound`` when Gurobi reports them. When the</span>
+<span class="sd">    solve is optimal, the Pyomo variables are already loaded.</span>
+<span class="sd">    """</span>
+    <span class="c1"># Create the Gurobi solver plugin</span>
+    <span class="n">solver</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">SolverFactory</span><span class="p">(</span><span class="s1">'gurobi'</span><span class="p">)</span>
+
+    <span class="c1"># An equilibrated model (instantiate(scale=True), see pulpo.utils.scaling) is handed</span>
+    <span class="c1"># over with Gurobi's own scaling switched off and tightened tolerances</span>
+    <span class="c1"># (_scaling.GUROBI_OPTIONS_SCALED); anything the caller passes wins. Do NOT</span>
+    <span class="c1"># add "ScaleFlag": 2 / "NumericFocus": 3 for ecoinvent-scale models: on an</span>
+    <span class="c1"># unscaled model they made the optimum worse, not better, because the</span>
+    <span class="c1"># tolerance is still applied relative to the 1e11 facility coefficients.</span>
+    <span class="c1"># Add "Method": 1 for bit-identical repeated LP solves; extras like</span>
+    <span class="c1"># "TimeLimit": 600 or "MIPGap": 1e-8 go in the same dict.</span>
+    <span class="n">tee</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">merged</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">_scaling</span><span class="o">.</span><span class="n">GUROBI_OPTIONS_SCALED</span><span class="p">)</span> <span class="k">if</span> <span class="n">_scaling</span><span class="o">.</span><span class="n">is_scaled</span><span class="p">(</span><span class="n">model_instance</span><span class="p">)</span> <span class="k">else</span> <span class="p">{}</span>
+    <span class="n">merged</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">options</span> <span class="ow">or</span> <span class="p">{})</span>
+
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">merged</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="o">!=</span> <span class="s2">"tee"</span><span class="p">:</span>
+            <span class="n">solver</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">tee</span> <span class="o">=</span> <span class="n">val</span>
+
+    <span class="c1"># Solve. The results object is a standard Pyomo SolverResults.</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="n">solver</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">model_instance</span><span class="p">,</span> <span class="n">tee</span><span class="o">=</span><span class="n">tee</span><span class="p">,</span> <span class="n">load_solutions</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="c1"># Capture solver status and termination condition on the model instance:</span>
+    <span class="n">model_instance</span><span class="o">.</span><span class="n">solver_status</span>      <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">status</span>
+    <span class="n">model_instance</span><span class="o">.</span><span class="n">solver_termination</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">termination_condition</span>
+
+    <span class="c1"># If Gurobi found a feasible or optimal solution, you can also read:</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">obj_val</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">problem</span><span class="o">.</span><span class="n">lower_bound</span> <span class="k">if</span> <span class="n">model_instance</span><span class="o">.</span><span class="n">OBJ</span><span class="o">.</span><span class="n">sense</span> <span class="o">==</span> <span class="n">pyo</span><span class="o">.</span><span class="n">minimize</span> <span class="k">else</span> <span class="n">results</span><span class="o">.</span><span class="n">problem</span><span class="o">.</span><span class="n">upper_bound</span>
+        <span class="n">model_instance</span><span class="o">.</span><span class="n">best_obj_bound</span> <span class="o">=</span> <span class="n">obj_val</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="n">model_instance</span><span class="o">.</span><span class="n">best_obj_bound</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">model_instance</span><span class="o">.</span><span class="n">best_feasible_obj</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">problem</span><span class="o">.</span><span class="n">upper_bound</span> <span class="k">if</span> <span class="n">model_instance</span><span class="o">.</span><span class="n">OBJ</span><span class="o">.</span><span class="n">sense</span> <span class="o">==</span> <span class="n">pyo</span><span class="o">.</span><span class="n">minimize</span> <span class="k">else</span> <span class="n">results</span><span class="o">.</span><span class="n">problem</span><span class="o">.</span><span class="n">lower_bound</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="n">model_instance</span><span class="o">.</span><span class="n">best_feasible_obj</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">if</span> <span class="n">results</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">termination_condition</span> <span class="o">!=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">TerminationCondition</span><span class="o">.</span><span class="n">optimal</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">_not_optimal</span><span class="p">(</span><span class="s1">'Gurobi'</span><span class="p">,</span> <span class="n">results</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">termination_condition</span><span class="p">,</span> <span class="n">results</span><span class="p">)</span>
+    <span class="n">model_instance</span><span class="o">.</span><span class="n">solutions</span><span class="o">.</span><span class="n">load_from</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"Optimization problem solved using gurobi"</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"status=</span><span class="si">{</span><span class="n">results</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">status</span><span class="si">}</span><span class="s2">, termination=</span><span class="si">{</span><span class="n">results</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">termination_condition</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">results</span><span class="p">,</span> <span class="n">model_instance</span></div>
+
+
+<div class="viewcode-block" id="solve_model">
+<a class="viewcode-back" href="../../../content/api/pulpo/utils/optimizer/index.html#pulpo.utils.optimizer.solve_model">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">solve_model</span><span class="p">(</span><span class="n">model_instance</span><span class="p">,</span> <span class="n">gams_path</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">solver_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">neos_email</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Solves the instance of the optimization model using Highspy, Gurobi, NEOS, or GAMS.</span>
+
+<span class="sd">    Solver selection logic (in priority order):</span>
+<span class="sd">      1. GAMS  – when ``gams_path`` is provided (a path string or ``True``).</span>
+<span class="sd">      2. HiGHS – when no ``gams_path`` and ``solver_name`` is ``None`` or ``'highs'``.</span>
+<span class="sd">      3. Gurobi – when no ``gams_path`` and ``solver_name`` is ``'gurobi'``.</span>
+<span class="sd">      4. NEOS  – when no ``gams_path`` and any other ``solver_name`` is given.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        model_instance (ConcreteModel): The Pyomo model instance.</span>
+<span class="sd">        gams_path (str or bool, optional): Path to the GAMS solver or ``True`` to</span>
+<span class="sd">            read the path from the ``GAMS_PULPO`` environment variable.</span>
+<span class="sd">        solver_name (str, optional): The solver to use (e.g. ``'highs'``, ``'gurobi'``,</span>
+<span class="sd">            ``'cplex'``, ``'baron'``, or ``'xpress'``).</span>
+<span class="sd">        options (dict or list, optional): Solver options: a dict of option names and</span>
+<span class="sd">            values for HiGHS and Gurobi, a list of option lines for GAMS. NEOS does</span>
+<span class="sd">            not use them.</span>
+<span class="sd">        neos_email (str, optional): Email for NEOS solver authentication.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        tuple: Results of the optimization and the updated model instance.</span>
+
+<span class="sd">    On an equilibrated instance (see :mod:`pulpo.utils.scaling`) the solver</span>
+<span class="sd">    works on the scaled variables; ``scaling_vector`` and ``slack`` are</span>
+<span class="sd">    multiplied back to original units before this function returns, so all</span>
+<span class="sd">    downstream code reads them as usual.</span>
+<span class="sd">    """</span>
+    <span class="c1"># A previous solve left the values in original units; the solver expects</span>
+    <span class="c1"># (and, if it warm-starts, reads) scaled ones.</span>
+    <span class="n">_scaling</span><span class="o">.</span><span class="n">rescale_solution</span><span class="p">(</span><span class="n">model_instance</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">gams_path</span><span class="p">:</span>
+            <span class="n">results</span><span class="p">,</span> <span class="n">model_instance</span> <span class="o">=</span> <span class="n">solve_gams</span><span class="p">(</span><span class="n">model_instance</span><span class="p">,</span> <span class="n">gams_path</span><span class="p">,</span> <span class="n">options</span><span class="p">,</span> <span class="n">solver_name</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">solver_name</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">solver_name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">'highs'</span><span class="p">:</span>
+            <span class="n">results</span><span class="p">,</span> <span class="n">model_instance</span> <span class="o">=</span> <span class="n">solve_highspy</span><span class="p">(</span><span class="n">model_instance</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">solver_name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">'gurobi'</span><span class="p">:</span>
+            <span class="n">results</span><span class="p">,</span> <span class="n">model_instance</span> <span class="o">=</span> <span class="n">solve_gurobi</span><span class="p">(</span><span class="n">model_instance</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="n">options</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">options</span><span class="p">:</span>
+                <span class="n">warn</span><span class="p">(</span><span class="s2">"options are not passed to NEOS; the solve uses NEOS's settings."</span><span class="p">)</span>
+            <span class="n">results</span><span class="p">,</span> <span class="n">model_instance</span> <span class="o">=</span> <span class="n">solve_neos</span><span class="p">(</span><span class="n">model_instance</span><span class="p">,</span> <span class="n">solver_name</span><span class="p">,</span> <span class="n">options</span><span class="p">,</span> <span class="n">neos_email</span><span class="p">)</span>
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="c1"># Also on failure: whatever values the instance holds (fresh or stale)</span>
+        <span class="c1"># must be in original units for the post-processing and the caller.</span>
+        <span class="n">_scaling</span><span class="o">.</span><span class="n">unscale_solution</span><span class="p">(</span><span class="n">model_instance</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">results</span><span class="p">,</span> <span class="n">model_instance</span></div>
+
+</pre></div>
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341"></script>
+<script src="../../../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2026 pulpo developers.
+      <br/>
+    
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item"><p>🌿🐛 Found a bug? Something not working? Frustrated? <a href=" latest/../../../../content/contributing.html">Please report it!</a></p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

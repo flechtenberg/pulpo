@@ -1,0 +1,311 @@
+:py:mod:`pulpo.utils.uncertainty.decomposition`
+===============================================
+
+.. py:module:: pulpo.utils.uncertainty.decomposition
+
+.. autoapi-nested-parse::
+
+   Exact variance decomposition at a fixed decision, screening of undeclared
+   parameters, and post-hoc diagnostics of a solved front.
+
+   Why
+   ---
+   ``X(s) = sum_e q_e sum_j b_ej s_j`` is a sum of products of independent
+   inputs (A1), so its ANOVA decomposition stops at second order. With
+   ``V = Var X(s)`` and ``y_e = sum_j E[b_ej] s_j``, ::
+
+       S1(q_e)        = w_e y_e^2 / V
+       S1(b_ej)       = E[q_e]^2 Var(b_ej) s_j^2 / V
+       S2(q_e, b_ej)  = w_e Var(b_ej) s_j^2 / V
+       ST(q_e)        = w_e (y_e^2 + sum_j Var(b_ej) s_j^2) / V
+       ST(b_ej)       = (E[q_e]^2 + w_e) Var(b_ej) s_j^2 / V
+
+   and ``sum S1 + sum S2 = 1`` with no higher-order terms. The Sobol' indices
+   are therefore computed, not estimated: no sampling and no confidence
+   intervals. Parameters of one kind (B entries among themselves, CFs among
+   themselves) never interact, so the first-order and total-order indices of a
+   family of B entries, or of CFs, are the sums over its members. The uncertain
+   process bounds are not inputs of ``X`` at a fixed ``s``; they shape ``s``.
+
+   Undeclared parameters are deterministic (A3). :func:`screen_undeclared`
+   tests that assumption: every undeclared parameter gets the same coefficient of
+   variation ``r`` with its mean unchanged (:func:`widen`), and the indices show
+   which of them would carry variance. The caller names the CFs that are exact
+   by definition (``exact_cfs``; for a global warming potential the CO2 flows,
+   since CO2 is its reference gas), and those never receive a width. No B entry is
+   exact by definition, so every undeclared one is widened: holding one exact
+   could only lower the figures, and only the few at the top of the ranking need
+   an expert's judgement. The distribution family of a widened parameter does not matter to
+   the moments; :func:`widen` uses a lognormal (mirrored for a negative amount),
+   so the same data also serve for validation draws and for a re-solved front.
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   pulpo.utils.uncertainty.decomposition.Decomposition
+   pulpo.utils.uncertainty.decomposition.Screening
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   pulpo.utils.uncertainty.decomposition._lci
+   pulpo.utils.uncertainty.decomposition._decision
+   pulpo.utils.uncertainty.decomposition.co2_flows
+   pulpo.utils.uncertainty.decomposition.families_by_database
+   pulpo.utils.uncertainty.decomposition.decompose
+   pulpo.utils.uncertainty.decomposition.lognormal_with_cv
+   pulpo.utils.uncertainty.decomposition._width
+   pulpo.utils.uncertainty.decomposition._check_widths
+   pulpo.utils.uncertainty.decomposition.widen
+   pulpo.utils.uncertainty.decomposition._exact_cfs
+   pulpo.utils.uncertainty.decomposition.screen_undeclared
+   pulpo.utils.uncertainty.decomposition.width_sensitivity
+   pulpo.utils.uncertainty.decomposition.diagnostics
+
+
+
+.. py:function:: _lci(lci_data)
+
+
+.. py:function:: _decision(s)
+
+   ``(s, kappa)`` from a solved point, or ``(s, None)`` from an array.
+
+
+.. py:function:: co2_flows(lci_data)
+
+   Rows of the intervention matrix whose flow name begins with "Carbon dioxide".
+
+   Fossil, non-fossil, uptake from air, from or to soil: in a global warming
+   potential each has the factor +-1 by definition, so this is the usual
+   ``exact_cfs`` of :func:`screen_undeclared`, :func:`width_sensitivity` and
+   :func:`widen` for such a method. Flows are matched by the name in
+   ``intervention_map_metadata`` (ecoinvent's naming); check the result on
+   another biosphere.
+
+
+.. py:function:: families_by_database(lci_data)
+
+   A ``families`` function for :func:`decompose`: each B entry belongs to
+   the database of its process.
+
+
+.. py:class:: Decomposition
+
+
+   Sobol' indices of ``X`` at one decision (see the module docstring).
+
+   :ivar variance: ``V = Var X(s)``.
+   :vartype variance: float
+   :ivar parameters: one row per parameter that carries variance,
+                     by decreasing ``ST``: ``group`` (``'If'`` or ``'Cf'``), ``flow``,
+                     ``process`` (-1 for a CF), ``family``, ``S1``, ``ST``.
+   :vartype parameters: DataFrame
+   :ivar interactions: ``S2(q_e, b_ej)`` for each B entry whose CF
+                       is uncertain, by ``flow`` and ``process``.
+
+   :vartype interactions: DataFrame
+
+   .. py:property:: std
+
+
+   .. py:attribute:: variance
+      :type: float
+
+      
+
+   .. py:attribute:: parameters
+      :type: pandas.DataFrame
+
+      
+
+   .. py:attribute:: interactions
+      :type: pandas.DataFrame
+
+      
+
+   .. py:method:: families() -> pandas.DataFrame
+
+      ``S1`` and ``ST`` of each family: the sums over its members, exact
+      because a family holds either B entries or CFs.
+
+
+   .. py:method:: top(n=10) -> pandas.DataFrame
+
+      The ``n`` parameters with the largest total-order index.
+
+
+
+.. py:function:: decompose(s, moments: pulpo.utils.uncertainty.moments.Moments, families=None) -> Decomposition
+
+   Exact first-, second- and total-order Sobol' indices of ``X(s)``.
+
+   :param s: a scaling vector in original units, or a solved
+             :class:`cc.Point`.
+   :param moments: from :func:`moments.compute_moments`.
+   :type moments: Moments
+   :param families: ``families(flows, processes)`` returns
+                    a label for each B entry (arrays of equal length), e.g.
+                    :func:`families_by_database`. CFs always form the family ``'Cf'``;
+                    without it every B entry is in family ``'If'``.
+   :type families: callable, optional
+
+
+.. py:function:: lognormal_with_cv(amount, r)
+
+   A lognormal spec with mean ``amount`` and coefficient of variation ``r``,
+   mirrored for a negative amount (``Var = r^2 amount^2`` either way).
+
+
+.. py:function:: _width(widths, group, subgroup)
+
+
+.. py:function:: _check_widths(widths, uncertainty_data)
+
+   A key that names no subgroup would leave a group deterministic unnoticed.
+
+
+.. py:function:: widen(uncertainty_data: pulpo.utils.uncertainty.preparer.UncertaintyData, widths, *, exact_cfs) -> pulpo.utils.uncertainty.preparer.UncertaintyData
+
+   A copy of the data in which every undeclared parameter has a width.
+
+   Each gets :func:`lognormal_with_cv` of its amount: its mean is unchanged
+   and its variance is ``r^2 amount^2``. Parameters with a zero amount carry
+   nothing and stay undeclared; declared parameters are not touched.
+
+   :param uncertainty_data: from :func:`preparer.import_declared`.
+   :param widths: one coefficient of variation ``r`` for every undeclared
+                  parameter, or ``{subgroup: r}`` with a database name for its B
+                  entries and ``'Cf'`` for the CFs; a subgroup not named keeps its
+                  undeclared parameters deterministic.
+   :param exact_cfs: flow rows whose CF never receives a width, normally the
+                     CO2 flows, ``co2_flows(worker)``; ``()`` holds none exact.
+
+
+.. py:function:: _exact_cfs(exact_cfs)
+
+
+.. py:class:: Screening
+
+
+   Outcome of :func:`screen_undeclared`.
+
+   :ivar sigma: per width ``r``: ``sigma``, ``ratio`` to the
+                declared sigma, and the undeclared parameters' share of ``sum ST``.
+   :vartype sigma: DataFrame
+   :ivar ranking: the undeclared parameters that receive a width,
+                  by decreasing ``|contribution|``, their deterministic contribution
+                  ``E[q_e] b_ej s_j`` (``E[q_e] y_e`` for a CF) to ``E[X]``. This is
+                  the ranking: it does not depend on ``r``. Columns ``ST r=...``
+                  hold each parameter's total-order index at each width.
+   :vartype ranking: DataFrame
+   :ivar top: ``{r: DataFrame}``, the ``n`` parameters, declared or not,
+              with the largest total-order index at width ``r``, with their
+              ``share`` of ``sum ST``.
+   :vartype top: dict
+   :ivar exact_cfs: the flows whose CF was held exact.
+
+   :vartype exact_cfs: ndarray
+
+   .. py:attribute:: sigma
+      :type: pandas.DataFrame
+
+      
+
+   .. py:attribute:: ranking
+      :type: pandas.DataFrame
+
+      
+
+   .. py:attribute:: top
+      :type: dict
+
+      
+
+   .. py:attribute:: exact_cfs
+      :type: numpy.ndarray
+
+      
+
+
+.. py:function:: screen_undeclared(s, uncertainty_data: pulpo.utils.uncertainty.preparer.UncertaintyData, lci_data, *, exact_cfs, widths=(0.1, 0.3), n=10, families=None) -> Screening
+
+   Which undeclared parameters would matter if they were uncertain.
+
+   Every undeclared parameter gets each coefficient of variation ``r`` in ``widths`` (see
+   :func:`widen`), the CFs in ``exact_cfs`` excepted, and the exact indices of
+   :func:`decompose` are evaluated at the fixed decision ``s``. For an
+   undeclared B entry ``ST`` is ``(E[q_e]^2 + w_e) r^2 b_ej^2 s_j^2 / V``:
+   up to its CF's factor ``1 + w_e / E[q_e]^2`` it is proportional to
+   ``(E[q_e] b_ej s_j)^2``, the same at every ``r``. The ``ranking`` uses
+   that deterministic contribution, so it does not depend on ``r``; the
+   indices at each ``r`` sit beside it.
+
+   :param s: a scaling vector (original units) or a solved :class:`cc.Point`,
+             typically the decision of the declared configuration.
+   :param uncertainty_data: the declared configuration.
+   :param lci_data: the LCI data, or a worker holding it.
+   :param widths: the coefficients of variation ``r`` to evaluate, each given to
+                  every undeclared parameter.
+   :param n: rows of each ``top`` table.
+   :param exact_cfs: flow rows whose CF is exact by definition and never
+                     receives a width, e.g. ``co2_flows(worker)`` for a GWP method.
+                     Undeclared B entries are all widened: none is exact by definition,
+                     and holding one exact could only lower the figures.
+   :param families: as in :func:`decompose`.
+
+
+.. py:function:: width_sensitivity(s, uncertainty_data: pulpo.utils.uncertainty.preparer.UncertaintyData, lci_data, widths, *, exact_cfs, kappa=None) -> pandas.DataFrame
+
+   ``sigma(s)`` with the undeclared parameters at each of ``widths``.
+
+   The mean does not change with the widths, so at a fixed decision the
+   chance-constrained impact rises by ``kappa * (sigma - sigma_declared)``.
+   Re-optimizing at the wider setting can only do better, so that is an
+   upper bound on the rise of the optimal adjusted impact (and the rise is
+   not negative, since no variance decreases).
+
+   :param s: a scaling vector, or a solved :class:`cc.Point` (whose ``kappa``
+             is used unless ``kappa`` is given).
+   :param uncertainty_data: the configuration the decision was solved for.
+   :param lci_data: the LCI data, or a worker holding it.
+   :param widths: a list of settings, each a coefficient of variation for every
+                  undeclared parameter or ``{subgroup: r}`` (see :func:`widen`), e.g.
+                  ``{'ecoinvent-3.10-cutoff': 0.1, 'my_foreground_db': 0.3, 'Cf': 0.1}``
+                  with the names of the worker's databases.
+   :param exact_cfs: flow rows whose CF never receives a width (see
+                     :func:`screen_undeclared`).
+
+   :returns: per setting, the width of each subgroup (``r[...]``),
+             ``sigma``, ``ratio`` to the declared sigma, ``delta_sigma`` and, with
+             a ``kappa``, ``bound`` (``kappa * delta_sigma``).
+   :rtype: DataFrame
+
+
+.. py:function:: diagnostics(front, moments: pulpo.utils.uncertainty.moments.Moments) -> pandas.DataFrame
+
+   Post-hoc figures of each solved point, all evaluated at its ``s``.
+
+   - ``sigma_indep``: the standard deviation with the covariance through
+     shared CFs dropped, and ``sigma / sigma_indep``;
+   - ``cf_share``: the CFs' share of ``Var X`` (the sum of their total-order
+     indices: the variance that goes away when every CF is exact);
+   - the bound imposed on each uncertain process (``bound <kind>:<process>``);
+   - the size of the reduced problem and the solve times.
+
+   :param front: a :class:`cc.Front` or an iterable of :class:`cc.Point`.
+   :param moments: the moments the front was solved with.
+   :type moments: Moments
+
+

@@ -1,0 +1,29 @@
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" xmlns:ns1="http://www.w3.org/1999/xlink" width="228pt" height="28pt" viewBox="0.00 0.00 227.50 28.00">
+<ns0:g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 24)">
+<ns0:title>inheritanceee73d6ff84</ns0:title>
+
+<ns0:g id="node1" class="node">
+<ns0:title>PulpoOptimizer</ns0:title>
+<ns0:g id="a_node1"><ns0:a ns1:href="..\content\api\pulpo\pulpo\index.html#pulpo.pulpo.PulpoOptimizer" ns1:title="PulpoOptimizer" target="_top">
+<ns0:polygon fill="white" stroke="black" stroke-width="0.5" points="82.75,-20 0,-20 0,0 82.75,0 82.75,-20" />
+<ns0:text text-anchor="middle" x="41.38" y="-6.5" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">PulpoOptimizer</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="node2" class="node">
+<ns0:title>PulpoOptimizerUnc</ns0:title>
+<ns0:g id="a_node2"><ns0:a ns1:href="..\content\api\pulpo\pulpo_unc\index.html#pulpo.pulpo_unc.PulpoOptimizerUnc" ns1:title="PulpoOptimizer plus the uncertainty steps, with ``uncertainty_data`` kept on the worker." target="_top">
+<ns0:polygon fill="white" stroke="black" stroke-width="0.5" points="219.5,-20 118.75,-20 118.75,0 219.5,0 219.5,-20" />
+<ns0:text text-anchor="middle" x="169.12" y="-6.5" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">PulpoOptimizerUnc</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge1" class="edge">
+<ns0:title>PulpoOptimizer-&gt;PulpoOptimizerUnc</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M83.2,-10C92.38,-10 102.27,-10 111.95,-10" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="112.52,-11.75 117.52,-10 112.52,-8.25 112.52,-11.75" />
+</ns0:g>
+</ns0:g>
+</ns0:svg>
