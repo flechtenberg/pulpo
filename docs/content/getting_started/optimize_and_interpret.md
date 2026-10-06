@@ -54,8 +54,8 @@ To make the results accessible and interpretable, use the following methods:
 
 #### Example Usage:
 ```python
-pulpo_worker.summarize_results(choices=choices, demand=demand, constraints=upper_limit)
-pulpo_worker.save_results(choices=choices, demand=demand, name='path/to/save/results.xlsx')
+pulpo_worker.summarize_results()
+pulpo_worker.save_results(name='path/to/save/results.xlsx')
 ```
 
 ---
