@@ -4,6 +4,7 @@ pulpo_unc.py
 A PulpoOptimizer that holds its uncertainty data::
 
     from pulpo import pulpo_unc
+    from pulpo.utils import uncertainty
     worker = pulpo_unc.PulpoOptimizerUnc(project, databases, method)
     worker.get_lci_data()
     worker.instantiate(choices=..., demand=...)
@@ -15,9 +16,11 @@ A PulpoOptimizer that holds its uncertainty data::
     worker.validate(front, problem, seed=1)
 
 Each method delegates to :mod:`pulpo.utils.uncertainty`, which works with a
-plain ``PulpoOptimizer`` as well. As of now, uncertainty is considered only in
-the biosphere flows and the characterization factors; technosphere exchanges
-are deterministic.
+plain ``PulpoOptimizer`` as well. The other analyses (``decompose``,
+``diagnostics``, ``width_sensitivity``, ``widen``) are called from there, with
+``worker.uncertainty_data`` as the data. As of now, uncertainty is considered
+only in the biosphere flows and the characterization factors; technosphere
+exchanges are deterministic.
 """
 
 from pulpo.pulpo import PulpoOptimizer
@@ -51,15 +54,17 @@ class PulpoOptimizerUnc(PulpoOptimizer):
                                              lower_bounds=lower_bounds, allocation=allocation,
                                              weights=weights)
 
-    def screen_undeclared(self, s, *, exact_cfs, widths=(0.1, 0.3), n=10):
+    def screen_undeclared(self, s, *, exact_cfs, widths=(0.1, 0.3), n=10, families=None):
         """Rank the undeclared parameters at a decision (see ``uncertainty.screen_undeclared``)."""
         self._require_data()
-        return uncertainty.screen_undeclared(s, self.uncertainty_data, self, exact_cfs=exact_cfs, widths=widths, n=n)
+        return uncertainty.screen_undeclared(s, self.uncertainty_data, self, exact_cfs=exact_cfs, widths=widths, n=n,
+                                             families=families)
 
-    def validate(self, front, problem, n=200_000, seed=None, designs=None):
+    def validate(self, front, problem, n=200_000, seed=None, designs=None, tol=1e-9, level=0.95):
         """Out-of-sample coverage of a front (see ``uncertainty.validate``)."""
         self._require_data()
-        return uncertainty.validate(front, problem, self.uncertainty_data, n=n, seed=seed, designs=designs)
+        return uncertainty.validate(front, problem, self.uncertainty_data, n=n, seed=seed, designs=designs,
+                                    tol=tol, level=level)
 
     def _require_data(self):
         if self.uncertainty_data is None:

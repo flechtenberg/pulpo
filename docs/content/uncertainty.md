@@ -28,7 +28,11 @@ scr   = unc.screen_undeclared(front[0.9], data, worker, exact_cfs=unc.co2_flows(
 val   = unc.validate(front, ccp, data, n=200_000, seed=1)
 ```
 
-`pulpo.pulpo_unc.PulpoOptimizerUnc` offers the same steps as methods of a worker.
+`pulpo.pulpo_unc.PulpoOptimizerUnc` keeps `data` on the worker and offers the import, the override,
+the moments, the chance-constrained problem, the screening and the validation as methods
+(`import_uncertainty_data`, `apply_expert_knowledge`, `moments`, `chance_constrained`,
+`screen_undeclared`, `validate`). `decompose` and the other analyses are called as above, with
+`worker.uncertainty_data` as the data.
 
 ## Data and assumptions
 

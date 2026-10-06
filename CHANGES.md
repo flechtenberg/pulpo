@@ -28,7 +28,7 @@ All notable changes to this project will be documented in this file.
   inequality, exact quantiles for the capacities) and sweeps the levels; each
   level is a small second-order cone program over the alternatives, solved with
   Clarabel (open source) or Gurobi. It reproduces PULPO 1.8.0's exact front.
-  `PulpoOptimizerUnc` offers the same steps as worker methods.
+  `PulpoOptimizerUnc` offers these steps as worker methods.
 * **Analyses of a solved front** — exact Sobol' indices of the impact at a
   decision (`decompose`), a screening of the parameters that declare no
   uncertainty and the sensitivity of the standard deviation to their widths

@@ -624,6 +624,14 @@ class TestChanceConstrained(unittest.TestCase):
         pd.testing.assert_frame_equal(screening.ranking, reference.ranking)
         validation = worker.validate(front, problem, n=5_000, seed=1)
         pd.testing.assert_frame_equal(validation.table, unc.validate(front, problem, data, n=5_000, seed=1).table)
+        # The optional arguments reach the functions.
+        families = unc.families_by_database(worker)
+        screening = worker.screen_undeclared(front[0.9], exact_cfs=exact_cfs, families=families)
+        reference = unc.screen_undeclared(front[0.9], data, worker, exact_cfs=exact_cfs, families=families)
+        pd.testing.assert_frame_equal(screening.ranking, reference.ranking)
+        validation = worker.validate(front, problem, n=5_000, seed=1, tol=1e-6, level=0.9)
+        reference = unc.validate(front, problem, data, n=5_000, seed=1, tol=1e-6, level=0.9)
+        pd.testing.assert_frame_equal(validation.table, reference.table)
 
     def test_input_errors(self):
         """Each invalid input to the chance-constrained problem raises a clear error."""
