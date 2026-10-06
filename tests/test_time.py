@@ -394,6 +394,73 @@ class TestTimeGoalObjective(unittest.TestCase):
                                imp_goals={GWP: -5}, objective='goal')
 
 
+class TestPerStepLimits(unittest.TestCase):
+    """Per-step limits and a zero-weight method on three hourly steps.
+
+    Demand is 1 kWh per step and solar is capped at 0.2 / 0.8 / 0.5 kWh, so coal
+    (1 kg CO2 per kWh) supplies 0.8 / 0.2 / 0.5 kWh: 1.5 kg in all.
+    """
+
+    STEPS = [0, 1, 2]
+    SOLAR = {0: 0.2, 1: 0.8, 2: 0.5}
+
+    def solve(self, methods=None, **limits):
+        worker = pulpo_time.PulpoOptimizerTime(PROJECT_NAME, DB_NAME, methods or {GWP: 1}, "")
+        worker.intervention_matrix = "biosphere3"
+        worker.get_lci_data()
+        solar, coal = (worker.retrieve_activities(activities=[name])[0] for name in ("solar", "coal"))
+        worker.instantiate(choices={ELECTRICITY_CHOICE: {solar: float('inf'), coal: float('inf')}},
+                           demand={t: {ELECTRICITY_CHOICE: 1.0} for t in self.STEPS},
+                           upper_limit={t: {solar: self.SOLAR[t]} for t in self.STEPS},
+                           time_steps=self.STEPS, **limits)
+        worker.solve()
+        return worker
+
+    def per_step(self, worker, method=GWP):
+        """The impact of ``method`` per step: in the model's impacts, or, for a method
+        with weight 0 and no limit, in those calculated after the solve."""
+        inst = worker.instance
+        values = inst.impacts if (self.STEPS[0], method) in inst.impacts else inst.impacts_calculated
+        return [values[t, method].value for t in self.STEPS]
+
+    def test_without_limits(self):
+        for value, expected in zip(self.per_step(self.solve()), (0.8, 0.2, 0.5)):
+            self.assertAlmostEqual(value, expected, places=9)
+
+    def test_a_per_step_impact_limit(self):
+        worker = self.solve(lower_imp_limit={0: {}, 1: {GWP: 0.5}, 2: {}})
+        for value, expected in zip(self.per_step(worker), (0.8, 0.5, 0.5)):
+            self.assertAlmostEqual(value, expected, places=9)
+        self.assertAlmostEqual(worker.instance.OBJ(), 1.8, places=9)
+
+    def test_a_per_step_flow_limit(self):
+        worker = pulpo_time.PulpoOptimizerTime(PROJECT_NAME, DB_NAME, {GWP: 1}, "")
+        worker.intervention_matrix = "biosphere3"
+        worker.get_lci_data()
+        co2 = worker.retrieve_envflows(activities=["Carbon dioxide, fossil"])[0]
+        worker = self.solve(lower_elem_limit={0: {}, 1: {}, 2: {co2: 0.7}})
+        for value, expected in zip(self.per_step(worker), (0.8, 0.2, 0.7)):
+            self.assertAlmostEqual(value, expected, places=9)
+
+    def test_a_zero_weight_method_is_calculated(self):
+        import bw2data as bd
+        bd.projects.set_current(PROJECT_NAME)
+        doubled = ("GWP", "doubled")
+        if doubled not in bd.methods:
+            bd.Method(doubled).register()
+            bd.Method(doubled).write([(flow, 2 * (cf['amount'] if isinstance(cf, dict) else cf))
+                                      for flow, cf, *_ in bd.Method(("GWP", "100a")).load()])
+        worker = self.solve(methods={GWP: 1, str(doubled): 0})
+        for _ in range(2):                     # also on a re-solve of the same instance
+            for gwp, twice in zip(self.per_step(worker), self.per_step(worker, str(doubled))):
+                self.assertAlmostEqual(twice, 2 * gwp, places=9)
+            worker.solve()
+
+    def test_an_input_keyed_by_some_steps_only(self):
+        with self.assertRaisesRegex(ValueError, r'time steps \[1\] but not by \[0, 2\]'):
+            self.solve(lower_imp_limit={1: {GWP: 0.5}})
+
+
 class TestStaticFallbackAndErrors(unittest.TestCase):
     def test_instantiate_without_time_steps_falls_back_to_static(self):
         worker = build_worker()

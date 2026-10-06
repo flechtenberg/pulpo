@@ -74,6 +74,13 @@ def broadcast_over_time(d, time_steps):
                     f"got {type(sub).__name__} for t={t!r}"
                 )
         return {t: dict(d[t]) for t in time_steps}
+    covered = [t for t in time_steps if t in d]
+    if covered and len(covered) == len(d) and all(isinstance(sub, dict) for sub in d.values()):
+        missing = [t for t in time_steps if t not in d]
+        raise ValueError(
+            f"This input is keyed by the time steps {covered} but not by {missing}; a "
+            f"time-indexed input needs every time step (an empty dict for a step without entries)."
+        )
     return {t: dict(d) for t in time_steps}
 
 
