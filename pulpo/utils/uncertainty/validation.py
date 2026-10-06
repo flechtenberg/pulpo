@@ -131,14 +131,14 @@ class _SpecArrays:
         return out
 
 
-def sample_specs(specs, n, rng=None):
+def sample_specs(specs, n, seed=None):
     """``n`` draws of each spec, as an array ``(len(specs), n)``.
 
     Families: exact and undeclared (the amount), normal, lognormal (mirrored
     for ``negative``), uniform and triangular, the same as the moments.
-    ``rng`` is a seed or a ``numpy.random.Generator``.
+    ``seed`` is a seed or a ``numpy.random.Generator``.
     """
-    return _SpecArrays(specs).draw(int(n), np.random.default_rng(rng))
+    return _SpecArrays(specs).draw(int(n), np.random.default_rng(seed))
 
 
 @dataclass
@@ -160,25 +160,26 @@ def declared_parameters(uncertainty_data: UncertaintyData, method=None):
         (method,) = uncertainty_data['Cf']
     b_index, b_specs = [], []
     for block in uncertainty_data['If'].values():
-        for index, spec in block['defined'].items():
+        for index, spec in block['declared'].items():
             b_index.append(index)
             b_specs.append(spec)
     b_index = np.asarray(b_index, dtype=np.int64).reshape(-1, 2)
-    cf = uncertainty_data['Cf'][method]['defined']
+    cf = uncertainty_data['Cf'][method]['declared']
     return ((b_index[:, 0], b_index[:, 1], b_specs),
             (np.asarray(list(cf), dtype=np.int64), list(cf.values())))
 
 
-def draw_parameters(uncertainty_data: UncertaintyData, n, rng=None, method=None, processes=None) -> Draws:
+def draw_parameters(uncertainty_data: UncertaintyData, n, seed=None, method=None, processes=None) -> Draws:
     """``n`` draws of every declared B entry (only those on ``processes``, if
     given) and every declared CF, by parameter.
 
     The building block for formulations that need the sampled inputs
     themselves, such as a scenario-based risk measure over the reduced space
-    (see :class:`cc.Projections`). Draw in several calls with one
-    ``Generator`` to bound the memory.
+    (see :class:`cc.Projections`). ``seed`` is a seed or a
+    ``numpy.random.Generator``; draw in several calls with one ``Generator``
+    to bound the memory.
     """
-    rng = np.random.default_rng(rng)
+    rng = np.random.default_rng(seed)
     (b_rows, b_cols, b_specs), (q_rows, q_specs) = declared_parameters(uncertainty_data, method)
     if processes is not None:
         keep = np.isin(b_cols, np.asarray(list(processes), dtype=np.int64))
@@ -395,7 +396,7 @@ def validate(front, problem, uncertainty_data: UncertaintyData, n=200_000, seed=
                 name = f'{kind}:{j}'
                 row[f'coverage {name}'] = float(h.mean())
                 row[f'coverage {name}_low'], row[f'coverage {name}_high'] = wilson(int(h.sum()), n, level)
-                row[f'nominal {name}'] = 1.0 - point.epsilon[name]
+                row[f'nominal {name}'] = 1.0 - point.epsilon[(kind, j)]
             joint = ok & all_held
             row['joint_coverage'] = float(joint.mean())
             row['joint_coverage_low'], row['joint_coverage_high'] = wilson(int(joint.sum()), n, level)

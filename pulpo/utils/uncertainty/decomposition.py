@@ -195,7 +195,7 @@ def _check_widths(widths, uncertainty_data):
                        f"name a database of {sorted(uncertainty_data['If'])} or 'Cf'.")
 
 
-def widen(uncertainty_data: UncertaintyData, widths, exact_cfs) -> UncertaintyData:
+def widen(uncertainty_data: UncertaintyData, widths, *, exact_cfs) -> UncertaintyData:
     """A copy of the data in which every undeclared parameter has a width.
 
     Each gets :func:`lognormal_with_cv` of its amount: its mean is unchanged
@@ -219,11 +219,11 @@ def widen(uncertainty_data: UncertaintyData, widths, exact_cfs) -> UncertaintyDa
             r = _width(widths, group, subgroup)
             if not r > 0:
                 continue
-            for index, spec in list(block['undefined'].items()):
+            for index, spec in list(block['undeclared'].items()):
                 if (group == 'Cf' and int(index) in exact) or spec['amount'] == 0:
                     continue
-                block['defined'][index] = lognormal_with_cv(spec['amount'], r)
-                del block['undefined'][index]
+                block['declared'][index] = lognormal_with_cv(spec['amount'], r)
+                del block['undeclared'][index]
     return data
 
 
@@ -254,11 +254,11 @@ class Screening:
     exact_cfs: np.ndarray = field(default_factory=lambda: np.zeros(0, dtype=np.int64))
 
 
-def screen_undeclared(s, uncertainty_data: UncertaintyData, lci_data, *, exact_cfs, r=(0.1, 0.3), n=10,
+def screen_undeclared(s, uncertainty_data: UncertaintyData, lci_data, *, exact_cfs, widths=(0.1, 0.3), n=10,
                       families=None) -> Screening:
     """Which undeclared parameters would matter if they were uncertain.
 
-    Every undeclared parameter gets the coefficient of variation ``r`` (see
+    Every undeclared parameter gets each coefficient of variation ``r`` in ``widths`` (see
     :func:`widen`), the CFs in ``exact_cfs`` excepted, and the exact indices of
     :func:`decompose` are evaluated at the fixed decision ``s``. For an
     undeclared B entry ``ST`` is ``(E[q_e]^2 + w_e) r^2 b_ej^2 s_j^2 / V``:
@@ -272,7 +272,8 @@ def screen_undeclared(s, uncertainty_data: UncertaintyData, lci_data, *, exact_c
             typically the decision of the declared configuration.
         uncertainty_data: the declared configuration.
         lci_data: the LCI data, or a worker holding it.
-        r: the widths to evaluate.
+        widths: the coefficients of variation ``r`` to evaluate, each given to
+            every undeclared parameter.
         n: rows of each ``top`` table.
         exact_cfs: flow rows whose CF is exact by definition and never
             receives a width, e.g. ``co2_flows(worker)`` for a GWP method.
@@ -292,7 +293,7 @@ def screen_undeclared(s, uncertainty_data: UncertaintyData, lci_data, *, exact_c
     entries = []
     for group, blocks in uncertainty_data.items():
         for subgroup, block in blocks.items():
-            for index, spec in block['undefined'].items():
+            for index, spec in block['undeclared'].items():
                 if spec['amount'] == 0 or (group == 'Cf' and int(index) in exact_set):
                     continue
                 if group == 'If':
@@ -310,9 +311,9 @@ def screen_undeclared(s, uncertainty_data: UncertaintyData, lci_data, *, exact_c
     undeclared_keys = set(zip(ranking['group'], ranking['flow'], ranking['process']))
 
     sigma_rows, top = [], {}
-    for width in np.atleast_1d(r):
+    for width in np.atleast_1d(widths):
         width = float(width)
-        mom = compute_moments(widen(uncertainty_data, width, exact), lci)
+        mom = compute_moments(widen(uncertainty_data, width, exact_cfs=exact), lci)
         dec = decompose(s, mom, families)
         params = dec.parameters
         total = params['ST'].sum()
@@ -372,7 +373,7 @@ def width_sensitivity(s, uncertainty_data: UncertaintyData, lci_data, widths, *,
     subgroups = [('If', sub) for sub in uncertainty_data['If']] + [('Cf', 'Cf')]
     rows = []
     for setting in widths:
-        sigma = compute_moments(widen(uncertainty_data, setting, exact), lci).std(s)
+        sigma = compute_moments(widen(uncertainty_data, setting, exact_cfs=exact), lci).std(s)
         row = {f'r[{sub}]': _width(setting, group, sub) for group, sub in subgroups}
         row.update({'sigma': sigma, 'ratio': sigma / sigma0 if sigma0 > 0 else np.nan,
                     'delta_sigma': sigma - sigma0})

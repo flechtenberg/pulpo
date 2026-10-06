@@ -65,7 +65,7 @@ def compute_closed_form_moments(uncertainty_data: UncertaintyData):
     """``{group: {subgroup: {index: (mean, variance)}}}`` for every parameter,
     declared and undeclared."""
     return {group: {sub: {index: spec_moments(spec)
-                          for status in ('defined', 'undefined')
+                          for status in ('declared', 'undeclared')
                           for index, spec in block[status].items()}
                     for sub, block in blocks.items()}
             for group, blocks in uncertainty_data.items()}
@@ -158,7 +158,7 @@ def compute_moments(uncertainty_data: UncertaintyData, lci_data, method=None) ->
 
     rows, cols, means, variances = [], [], [], []
     for block in uncertainty_data['If'].values():
-        for status in ('defined', 'undefined'):
+        for status in ('declared', 'undeclared'):
             for (e, j), spec in block[status].items():
                 mean, var = spec_moments(spec)
                 rows.append(e)
@@ -178,7 +178,7 @@ def compute_moments(uncertainty_data: UncertaintyData, lci_data, method=None) ->
     q_mean = np.asarray(lci['matrices'][method].diagonal(), dtype=float).ravel().copy()
     q_var = np.zeros(n_flow)
     cf = uncertainty_data['Cf'][method]
-    for status in ('defined', 'undefined'):
+    for status in ('declared', 'undeclared'):
         for e, spec in cf[status].items():
             q_mean[e], q_var[e] = spec_moments(spec)
 

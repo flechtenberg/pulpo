@@ -51,10 +51,10 @@ class PulpoOptimizerUnc(PulpoOptimizer):
                                              lower_bounds=lower_bounds, allocation=allocation,
                                              weights=weights)
 
-    def screen_undeclared(self, s, exact_cfs, r=(0.1, 0.3), n=10):
+    def screen_undeclared(self, s, *, exact_cfs, widths=(0.1, 0.3), n=10):
         """Rank the undeclared parameters at a decision (see ``uncertainty.screen_undeclared``)."""
         self._require_data()
-        return uncertainty.screen_undeclared(s, self.uncertainty_data, self, exact_cfs=exact_cfs, r=r, n=n)
+        return uncertainty.screen_undeclared(s, self.uncertainty_data, self, exact_cfs=exact_cfs, widths=widths, n=n)
 
     def validate(self, front, problem, n=200_000, seed=None, designs=None):
         """Out-of-sample coverage of a front (see ``uncertainty.validate``)."""

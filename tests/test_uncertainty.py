@@ -147,13 +147,13 @@ class TestImport(unittest.TestCase):
         self.assertEqual(set(self.data['If']), set(SOC_DBS))
         self.assertEqual(list(self.data['Cf']), [SOC_METHOD])
         families = {int(spec['uncertainty_type']) for group in self.data.values()
-                    for block in group.values() for spec in block['defined'].values()}
+                    for block in group.values() for spec in block['declared'].values()}
         self.assertTrue({2, 3, 4, 5} <= families)
         cf = self.data['Cf'][SOC_METHOD]
         co2, n2o = 0, 2
-        self.assertEqual(cf['defined'][co2]['uncertainty_type'], 3)      # exact: N(1, 0)
-        self.assertEqual(cf['defined'][co2]['scale'], 0.0)
-        self.assertIn(n2o, cf['undefined'])
+        self.assertEqual(cf['declared'][co2]['uncertainty_type'], 3)      # exact: N(1, 0)
+        self.assertEqual(cf['declared'][co2]['scale'], 0.0)
+        self.assertIn(n2o, cf['undeclared'])
 
     def test_every_characterized_entry_is_a_parameter(self):
         """No filter: the parameters are exactly the nonzero, characterized entries of B."""
@@ -163,13 +163,13 @@ class TestImport(unittest.TestCase):
         self.assertTrue(all(q[e] != 0 for e in characterized))
         expected = {(int(e), int(j)) for e, j, v in zip(B.row, B.col, B.data) if v != 0 and e in characterized}
         imported = {idx for block in self.data['If'].values()
-                    for status in ('defined', 'undefined') for idx in block[status]}
+                    for status in ('declared', 'undeclared') for idx in block[status]}
         self.assertEqual(imported, expected)
 
     def test_counts_and_undeclared(self):
         rows = unc.counts(self.data)
         total = sum(r['n'] for r in rows)
-        n = sum(len(b[s]) for g in self.data.values() for b in g.values() for s in ('defined', 'undefined'))
+        n = sum(len(b[s]) for g in self.data.values() for b in g.values() for s in ('declared', 'undeclared'))
         self.assertEqual(total, n)
         und = unc.undeclared(self.data)
         self.assertIn(2, und['Cf'][SOC_METHOD])
@@ -183,10 +183,10 @@ class TestImport(unittest.TestCase):
     def test_override(self):
         data = copy.deepcopy(self.data)
         n2o = 2
-        amount = data['Cf'][SOC_METHOD]['undefined'][n2o]['amount']
+        amount = data['Cf'][SOC_METHOD]['undeclared'][n2o]['amount']
         unc.override(data, 'Cf', SOC_METHOD, {n2o: {'uncertainty_type': 4, 'minimum': 200.0, 'maximum': 350.0}})
-        spec = data['Cf'][SOC_METHOD]['defined'][n2o]
-        self.assertNotIn(n2o, data['Cf'][SOC_METHOD]['undefined'])
+        spec = data['Cf'][SOC_METHOD]['declared'][n2o]
+        self.assertNotIn(n2o, data['Cf'][SOC_METHOD]['undeclared'])
         self.assertEqual(spec['amount'], amount)                      # the deterministic value stays
         with self.assertRaises(KeyError):
             unc.override(data, 'Cf', SOC_METHOD, {99: {'uncertainty_type': 3, 'loc': 1.0, 'scale': 0.1}})
@@ -196,7 +196,7 @@ class TestImport(unittest.TestCase):
         with self.assertRaises(NotImplementedError):                   # Weibull: no closed form here
             unc.override(data, 'Cf', SOC_METHOD, {n2o: {'uncertainty_type': 8, 'loc': 1.0, 'scale': 1.0}})
         unc.override(data, 'Cf', SOC_METHOD, {n2o: {'uncertainty_type': 0}})
-        self.assertIn(n2o, data['Cf'][SOC_METHOD]['undefined'])
+        self.assertIn(n2o, data['Cf'][SOC_METHOD]['undeclared'])
 
     def test_shared_entries_are_refused(self):
         """Two exchanges on one entry of B have no single declared distribution."""
@@ -300,11 +300,11 @@ class TestImpactMoments(unittest.TestCase):
 
         g = {e: np.full(N, B[e] @ s) for e in range(B.shape[0])}
         for block in data['If'].values():
-            for (e, j), spec in block['defined'].items():
+            for (e, j), spec in block['declared'].items():
                 g[e] += (draw(spec) - B[e, j]) * s[j]
         X = np.zeros(N)
         for e in range(B.shape[0]):
-            spec = data['Cf'][SOC_METHOD]['defined'].get(e) or data['Cf'][SOC_METHOD]['undefined'].get(e)
+            spec = data['Cf'][SOC_METHOD]['declared'].get(e) or data['Cf'][SOC_METHOD]['undeclared'].get(e)
             X += (draw(spec) if spec is not None else q[e]) * g[e]
         se_mean = X.std() / np.sqrt(N)
         c = X - X.mean()
@@ -335,7 +335,7 @@ class TestImpactMoments(unittest.TestCase):
 
     def test_closed_form_table(self):
         table = unc.compute_closed_form_moments(self.data)
-        n = sum(len(b[st]) for g in self.data.values() for b in g.values() for st in ('defined', 'undefined'))
+        n = sum(len(b[st]) for g in self.data.values() for b in g.values() for st in ('declared', 'undeclared'))
         self.assertEqual(sum(len(b) for g in table.values() for b in g.values()), n)
 
 
@@ -452,6 +452,7 @@ class TestChanceConstrained(unittest.TestCase):
         self.assertAlmostEqual(point.adjusted, point.mean + point.kappa * point.sigma, places=12)
         j = index(self.capped, self.capped.elyz)
         self.assertAlmostEqual(point.bounds[('upper', j)], cc.declared_quantile(TRI_CAP, 0.05), places=14)
+        self.assertAlmostEqual(point.epsilon[('upper', j)], 0.05, places=14)   # keyed like bounds
         self.assertLess(point.balance_residual, 1e-12)
         table = front.table()
         self.assertEqual(list(table.index), self.LAMBDAS)
@@ -749,7 +750,7 @@ class TestDrawUncertaintySampleSeeding(unittest.TestCase):
 
     def test_fixture_contains_non_normal_parameters(self):
         families = {spec['uncertainty_type'] for g in self.data.values() for b in g.values()
-                    for spec in b['defined'].values()}
+                    for spec in b['declared'].values()}
         self.assertTrue(families - {stats_arrays.NormalUncertainty.id})
 
     def test_same_seed_reproduces_despite_global_rng_use(self):
@@ -882,18 +883,18 @@ class TestUndeclaredData(unittest.TestCase):
     def test_nothing_declared(self):
         data, method = self.import_declared(["no_uncertainty_db"])
         block, cfs = data['If']['no_uncertainty_db'], data['Cf'][method]
-        self.assertEqual((block['defined'], cfs['defined']), ({}, {}))
-        self.assertEqual([spec['amount'] for spec in block['undefined'].values()], [2.0])
-        self.assertEqual([spec['amount'] for spec in cfs['undefined'].values()], [1.0])
+        self.assertEqual((block['declared'], cfs['declared']), ({}, {}))
+        self.assertEqual([spec['amount'] for spec in block['undeclared'].values()], [2.0])
+        self.assertEqual([spec['amount'] for spec in cfs['undeclared'].values()], [1.0])
 
     def test_a_database_without_distributions_hides_no_other(self):
         data, method = self.import_declared(["no_uncertainty_db", "declared_db"])
-        [spec] = data['If']['declared_db']['defined'].values()
+        [spec] = data['If']['declared_db']['declared'].values()
         self.assertEqual((spec['uncertainty_type'], spec['amount']), (2, 3.0))
         self.assertAlmostEqual(spec['scale'], 0.1)
-        self.assertEqual(data['If']['no_uncertainty_db']['defined'], {})
-        self.assertEqual(len(data['If']['no_uncertainty_db']['undefined']), 1)
-        self.assertEqual(len(data['Cf'][method]['undefined']), 1)
+        self.assertEqual(data['If']['no_uncertainty_db']['declared'], {})
+        self.assertEqual(len(data['If']['no_uncertainty_db']['undeclared']), 1)
+        self.assertEqual(len(data['Cf'][method]['undeclared']), 1)
 
 
 if __name__ == '__main__':

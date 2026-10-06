@@ -10,10 +10,10 @@ from typing import Union, Dict, Tuple
 
 
 def _merge_defined_blocks(unc_data: dict, top_key: str) -> Dict[Union[Tuple[int,int],int], dict]:
-    """Collect & merge all 'defined' blocks under unc_data[top_key]."""
+    """Collect & merge all 'declared' blocks under unc_data[top_key]."""
     out = {}
     for block in unc_data.get(top_key, {}).values():
-        out.update(block.get('defined', {}))
+        out.update(block.get('declared', {}))
     return out
 
 
@@ -55,6 +55,6 @@ def draw_uncertainty_sample(
     """
     rng = np.random.default_rng(seed)
     if_draw = {k: _sample_one_spec(v, rng) for k, v in _merge_defined_blocks(uncertainty_data, 'If').items()}
-    cf_defined = uncertainty_data.get('Cf', {}).get(method, {}).get('defined', {})
-    cf_draw = {k: _sample_one_spec(v, rng) for k, v in cf_defined.items()}
+    cf_declared = uncertainty_data.get('Cf', {}).get(method, {}).get('declared', {})
+    cf_draw = {k: _sample_one_spec(v, rng) for k, v in cf_declared.items()}
     return {'If': if_draw, 'Cf': cf_draw}

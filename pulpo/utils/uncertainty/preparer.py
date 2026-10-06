@@ -19,14 +19,14 @@ Declared and undeclared
 A parameter is *declared* when the database or the method gives it a
 distribution (``uncertainty_type > 0``) and *undeclared* otherwise. Undeclared
 parameters are deterministic in every result (mean = amount, variance 0); they
-are kept, under ``'undefined'``, so that the screening of undeclared parameters
+are kept, under ``'undeclared'``, so that the screening of undeclared parameters
 can rank them. ``uncertainty_type = 1`` ("no uncertainty") is a declaration of
-an exact value and is kept under ``'defined'`` with variance 0.
+an exact value and is kept under ``'declared'`` with variance 0.
 
 The container (``UncertaintyData``) is a nested dict::
 
-    {'If': {database: {'defined': {(e, j): spec}, 'undefined': {(e, j): spec}}},
-     'Cf': {method:   {'defined': {e: spec},      'undefined': {e: spec}}}}
+    {'If': {database: {'declared': {(e, j): spec}, 'undeclared': {(e, j): spec}}},
+     'Cf': {method:   {'declared': {e: spec},      'undeclared': {e: spec}}}}
 
 with ``spec`` a stats_arrays-style dict (``uncertainty_type``, ``amount``,
 ``loc``, ``scale``, ``shape``, ``minimum``, ``maximum``, ``negative``) and
@@ -57,14 +57,14 @@ class UncertaintySpec(TypedDict, total=False):
 ParamIndex = Union[Tuple[int, int], int]
 
 
-class DefUndefBlock(TypedDict, total=False):
-    defined: Dict[ParamIndex, UncertaintySpec]
-    undefined: Dict[ParamIndex, UncertaintySpec]
+class ParameterBlock(TypedDict, total=False):
+    declared: Dict[ParamIndex, UncertaintySpec]
+    undeclared: Dict[ParamIndex, UncertaintySpec]
 
 
 class UncertaintyData(TypedDict, total=False):
-    If: Dict[str, DefUndefBlock]     # one block per database
-    Cf: Dict[str, DefUndefBlock]     # one block, for the LCIA method
+    If: Dict[str, ParameterBlock]     # one block per database
+    Cf: Dict[str, ParameterBlock]     # one block, for the LCIA method
 
 
 #: Families with closed-form moments and quantiles, and the fields each needs.
@@ -97,10 +97,10 @@ def _record(row) -> UncertaintySpec:
 
 
 def _split(records):
-    defined, undefined = {}, {}
+    declared, undeclared = {}, {}
     for index, spec in records:
-        (defined if spec['uncertainty_type'] > 0 else undefined)[index] = spec
-    return defined, undefined
+        (declared if spec['uncertainty_type'] > 0 else undeclared)[index] = spec
+    return declared, undeclared
 
 
 def import_declared(worker, method=None) -> UncertaintyData:
@@ -147,7 +147,7 @@ def import_declared(worker, method=None) -> UncertaintyData:
             "has no single declared distribution.")
 
     process_db = {j: key[0] for key, j in lci['process_map'].items()}
-    data: UncertaintyData = {'If': {db: {'defined': {}, 'undefined': {}} for db in databases},
+    data: UncertaintyData = {'If': {db: {'declared': {}, 'undeclared': {}} for db in databases},
                              'Cf': {}}
     records = {db: [] for db in databases}
     for row in params.to_dict('records'):
@@ -159,8 +159,8 @@ def import_declared(worker, method=None) -> UncertaintyData:
                              "uncertainty of its exchanges.")
         records[db].append((index, _record(row)))
     for db, recs in records.items():
-        data['If'][db]['defined'], data['If'][db]['undefined'] = _split(recs)
-    data['Cf'][method] = dict(zip(('defined', 'undefined'),
+        data['If'][db]['declared'], data['If'][db]['undeclared'] = _split(recs)
+    data['Cf'][method] = dict(zip(('declared', 'undeclared'),
                                   _split((int(row['row']), _record(row))
                                          for row in cf_params.to_dict('records'))))
     for spec in _iter_defined(data):
@@ -171,7 +171,7 @@ def import_declared(worker, method=None) -> UncertaintyData:
 def _iter_defined(data):
     for group in data.values():
         for block in group.values():
-            yield from block['defined'].values()
+            yield from block['declared'].values()
 
 
 def _validate(spec: UncertaintySpec, index=None):
@@ -216,7 +216,7 @@ def override(uncertainty_data: UncertaintyData, group: str, subgroup: str,
     block = uncertainty_data[group][subgroup]
     replaced = {}
     for index, spec in specs.items():
-        current = block['defined'].get(index, block['undefined'].get(index))
+        current = block['declared'].get(index, block['undeclared'].get(index))
         if current is None:
             raise KeyError(f"{index!r} is not a parameter of {group}/{subgroup}: it is not a nonzero, "
                            "characterized entry of the impact.")
@@ -231,15 +231,15 @@ def override(uncertainty_data: UncertaintyData, group: str, subgroup: str,
     # Applied only once every spec has been validated, so a rejected call
     # leaves the data unchanged.
     for index, new in replaced.items():
-        block['defined'].pop(index, None)
-        block['undefined'].pop(index, None)
-        (block['defined'] if new['uncertainty_type'] > 0 else block['undefined'])[index] = new
+        block['declared'].pop(index, None)
+        block['undeclared'].pop(index, None)
+        (block['declared'] if new['uncertainty_type'] > 0 else block['undeclared'])[index] = new
     return uncertainty_data
 
 
 def undeclared(uncertainty_data: UncertaintyData) -> Dict[str, Dict[str, Dict[ParamIndex, UncertaintySpec]]]:
     """``{group: {subgroup: {index: spec}}}`` of every undeclared parameter."""
-    return {group: {sub: dict(block['undefined']) for sub, block in blocks.items()}
+    return {group: {sub: dict(block['undeclared']) for sub, block in blocks.items()}
             for group, blocks in uncertainty_data.items()}
 
 
@@ -249,8 +249,8 @@ def counts(uncertainty_data: UncertaintyData) -> List[dict]:
     for group, blocks in uncertainty_data.items():
         for sub, block in blocks.items():
             rows.append({'group': group, 'subgroup': sub, 'status': 'undeclared',
-                         'uncertainty_type': 0, 'n': len(block['undefined'])})
-            types = pd.Series([int(s['uncertainty_type']) for s in block['defined'].values()], dtype=int)
+                         'uncertainty_type': 0, 'n': len(block['undeclared'])})
+            types = pd.Series([int(s['uncertainty_type']) for s in block['declared'].values()], dtype=int)
             for utype, n in types.value_counts().sort_index().items():
                 rows.append({'group': group, 'subgroup': sub, 'status': 'declared',
                              'uncertainty_type': int(utype), 'n': int(n)})

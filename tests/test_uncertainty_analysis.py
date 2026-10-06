@@ -56,8 +56,8 @@ def ppf(spec, u):
 
 
 def declared_specs(data):
-    return {('If', index_): spec for block in data['If'].values() for index_, spec in block['defined'].items()} | \
-        {('Cf', e): spec for block in data['Cf'].values() for e, spec in block['defined'].items()}
+    return {('If', index_): spec for block in data['If'].values() for index_, spec in block['declared'].items()} | \
+        {('Cf', e): spec for block in data['Cf'].values() for e, spec in block['declared'].items()}
 
 
 # ---------------------------------------------------------------------------
@@ -154,7 +154,7 @@ class TestScreening(unittest.TestCase):
         # More undeclared parameters: the background's B entries and the CO2 CF.
         cls.wide = copy.deepcopy(cls.data)
         unc.override(cls.wide, 'If', 'soc_demo_background_db',
-                     {i: {'uncertainty_type': 0} for i in list(cls.wide['If']['soc_demo_background_db']['defined'])
+                     {i: {'uncertainty_type': 0} for i in list(cls.wide['If']['soc_demo_background_db']['declared'])
                       if i[0] != 1})
         unc.override(cls.wide, 'Cf', SOC_METHOD, {0: {'uncertainty_type': 0}})
 
@@ -168,12 +168,12 @@ class TestScreening(unittest.TestCase):
         after = unc.compute_moments(widened, self.worker)
         np.testing.assert_allclose(after.mu, before.mu, rtol=1e-14)
         for db, block in self.wide['If'].items():
-            for (e, j), spec in block['undefined'].items():
+            for (e, j), spec in block['undeclared'].items():
                 self.assertAlmostEqual(after.B_var[e, j] / spec['amount'] ** 2, r * r, places=13)
-                self.assertNotIn((e, j), widened['If'][db]['undefined'])
+                self.assertNotIn((e, j), widened['If'][db]['undeclared'])
         # The declared parameters are untouched.
-        self.assertEqual(widened['If']['soc_demo_background_db']['defined'][(1, 0)],
-                         self.wide['If']['soc_demo_background_db']['defined'][(1, 0)])
+        self.assertEqual(widened['If']['soc_demo_background_db']['declared'][(1, 0)],
+                         self.wide['If']['soc_demo_background_db']['declared'][(1, 0)])
         # Per subgroup: only the named ones widen.
         only_cf = unc.compute_moments(unc.widen(self.wide, {'Cf': r}, exact_cfs=[0]), self.worker)
         np.testing.assert_array_equal(only_cf.B_var.toarray(), before.B_var.toarray())
@@ -191,9 +191,9 @@ class TestScreening(unittest.TestCase):
     def test_co2_cfs_never_receive_a_width(self):
         for r in (0.1, 0.3, 5.0):
             widened = unc.widen(self.wide, r, exact_cfs=unc.co2_flows(self.worker))
-            self.assertIn(0, widened['Cf'][SOC_METHOD]['undefined'])
+            self.assertIn(0, widened['Cf'][SOC_METHOD]['undeclared'])
             self.assertEqual(unc.compute_moments(widened, self.worker).q_var[0], 0.0)
-            scr = unc.screen_undeclared(self.point, self.wide, self.worker, exact_cfs=[0], r=(r,))
+            scr = unc.screen_undeclared(self.point, self.wide, self.worker, exact_cfs=[0], widths=(r,))
             self.assertFalse(((scr.ranking['group'] == 'Cf') & (scr.ranking['flow'] == 0)).any())
             self.assertFalse(((scr.top[r]['group'] == 'Cf') & (scr.top[r]['flow'] == 0)).any())
         # Only because they are held exact: without that the CO2 CF would widen.
@@ -201,7 +201,7 @@ class TestScreening(unittest.TestCase):
         self.assertGreater(unc.compute_moments(unheld, self.worker).q_var[0], 0.0)
 
     def test_ranking_does_not_depend_on_the_width(self):
-        rankings = [unc.screen_undeclared(self.point, self.wide, self.worker, exact_cfs=[0], r=(r,)).ranking
+        rankings = [unc.screen_undeclared(self.point, self.wide, self.worker, exact_cfs=[0], widths=(r,)).ranking
                     for r in (0.05, 0.1, 0.3, 1.0)]
         keys = ['group', 'subgroup', 'flow', 'process', 'amount', 'contribution']
         for other in rankings[1:]:
@@ -209,17 +209,17 @@ class TestScreening(unittest.TestCase):
         self.assertGreaterEqual(len(rankings[0]), 6)
         # Among B entries on a flow with an exact CF, the total-order index
         # follows the ranking at every width.
-        scr = unc.screen_undeclared(self.point, self.wide, self.worker, exact_cfs=[0], r=(0.1, 0.3))
+        scr = unc.screen_undeclared(self.point, self.wide, self.worker, exact_cfs=[0], widths=(0.1, 0.3))
         exact_cf = scr.ranking[(scr.ranking['group'] == 'If') & (scr.ranking['flow'] == 0)]
         self.assertGreaterEqual(len(exact_cf), 3)
         for column in ('ST r=0.1', 'ST r=0.3'):
             self.assertTrue((np.diff(exact_cf[column].to_numpy()) <= 0).all())
 
     def test_sigma_and_shares(self):
-        scr = unc.screen_undeclared(self.point, self.wide, self.worker, exact_cfs=[0], r=(0.1, 0.3), n=5)
+        scr = unc.screen_undeclared(self.point, self.wide, self.worker, exact_cfs=[0], widths=(0.1, 0.3), n=5)
         declared = unc.compute_moments(self.wide, self.worker).std(self.point.s)
         for r in (0.1, 0.3):
-            widened = unc.compute_moments(unc.widen(self.wide, r, [0]), self.worker)
+            widened = unc.compute_moments(unc.widen(self.wide, r, exact_cfs=[0]), self.worker)
             self.assertAlmostEqual(scr.sigma.loc[r, 'sigma'], widened.std(self.point.s), places=13)
             self.assertAlmostEqual(scr.sigma.loc[r, 'ratio'], widened.std(self.point.s) / declared, places=13)
             top = scr.top[r]
@@ -238,7 +238,7 @@ class TestScreening(unittest.TestCase):
         self.assertEqual(list(table.loc[2, ['r[soc_demo_background_db]', 'r[soc_demo_foreground_db]', 'r[Cf]']]),
                          [0.0, r, 0.0])
         # Re-solving at the wider setting rises by at least 0 and at most the bound.
-        widened = unc.compute_moments(unc.widen(self.data, r, unc.co2_flows(self.worker)), self.worker)
+        widened = unc.compute_moments(unc.widen(self.data, r, exact_cfs=unc.co2_flows(self.worker)), self.worker)
         resolved = unc.ChanceConstrained(self.worker, widened, upper_bounds={self.worker.elyz: TRI_CAP})
         rise = resolved.solve_point(0.9).adjusted - self.point.adjusted
         self.assertGreaterEqual(rise, -1e-9)
@@ -290,7 +290,7 @@ class TestSampling(unittest.TestCase):
 
     def test_each_family_against_its_moments_and_cdf(self):
         n = 400_000
-        x = unc.sample_specs(self.SPECS, n, rng=3)
+        x = unc.sample_specs(self.SPECS, n, seed=3)
         self.assertEqual(x.shape, (len(self.SPECS), n))
         for spec, draws in zip(self.SPECS, x):
             mean, var = unc.spec_moments(spec)
@@ -304,7 +304,7 @@ class TestSampling(unittest.TestCase):
                 self.assertLess(abs((draws <= q).mean() - p), 4 * np.sqrt(p * (1 - p) / n))
 
     def test_seeded_and_unsupported(self):
-        np.testing.assert_array_equal(unc.sample_specs(self.SPECS, 10, rng=5), unc.sample_specs(self.SPECS, 10, rng=5))
+        np.testing.assert_array_equal(unc.sample_specs(self.SPECS, 10, seed=5), unc.sample_specs(self.SPECS, 10, seed=5))
         with self.assertRaises(NotImplementedError):
             unc.sample_specs([{'uncertainty_type': 7, 'amount': 1.0}], 3)
 
@@ -375,7 +375,7 @@ class TestImpactSampler(unittest.TestCase):
         model = self.problem.model
         f_tilde = model.demand()[0]
         rng = np.random.default_rng(0)
-        draws = unc.draw_parameters(self.data, 4, rng=rng, processes=p.J)
+        draws = unc.draw_parameters(self.data, 4, seed=rng, processes=p.J)
         B_mean, q_mean = self.mom.B_mean.toarray(), self.mom.q_mean
         S_J = dict(zip(p.J.tolist(), p.S_J))
         position = {e: i for i, e in enumerate(self.mom.cf_rows)}
@@ -412,11 +412,11 @@ class TestValidate(unittest.TestCase):
         data = copy.deepcopy(self.data)
         for db, block in data['If'].items():
             specs = {}
-            for idx, spec in block['defined'].items():
+            for idx, spec in block['declared'].items():
                 mean, var = unc.spec_moments(spec)
                 specs[idx] = {'uncertainty_type': 3, 'loc': mean, 'scale': np.sqrt(var)}
             unc.override(data, 'If', db, specs)
-        unc.override(data, 'Cf', SOC_METHOD, {e: {'uncertainty_type': 1} for e in data['Cf'][SOC_METHOD]['defined']})
+        unc.override(data, 'Cf', SOC_METHOD, {e: {'uncertainty_type': 1} for e in data['Cf'][SOC_METHOD]['declared']})
         mom = unc.compute_moments(data, self.worker)
         self.assertEqual(mom.w.size, 0)
         problem = unc.ChanceConstrained(self.worker, mom, upper_bounds={self.worker.elyz: TRI_CAP})
@@ -483,7 +483,7 @@ class TestValidate(unittest.TestCase):
             self.assertAlmostEqual(high, ci.high, places=12)
 
     def test_widened_configuration(self):
-        widened = unc.widen(self.data, 0.3, unc.co2_flows(self.worker))
+        widened = unc.widen(self.data, 0.3, exact_cfs=unc.co2_flows(self.worker))
         val = unc.validate(self.front, self.problem, widened, n=50_000, seed=4)
         world = unc.compute_moments(widened, self.worker)
         for k, (lam, point) in enumerate(self.front.items()):

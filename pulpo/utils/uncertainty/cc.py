@@ -302,8 +302,9 @@ class Point:
 
     ``adjusted`` is the chance-constrained impact ``z = mean + kappa * sigma``;
     ``mean`` and ``sigma`` are evaluated exactly at ``s`` (not read off the
-    cone). ``bounds`` holds the bound imposed on each uncertain process,
-    ``epsilon`` the failure probability allocated to each event, ``size`` the
+    cone). ``bounds`` holds the bound imposed on each uncertain process and
+    ``epsilon`` the failure probability allocated to it, both keyed by the event
+    ``(kind, process)``, e.g. ``('upper', 4)``; ``size`` is the
     number of processes and the columns and rows of the reduced problem.
     """
     lambda_level: float
@@ -315,7 +316,7 @@ class Point:
     s: np.ndarray
     v: np.ndarray
     bounds: Dict[Tuple[str, int], float]
-    epsilon: Dict[str, float]
+    epsilon: Dict[Tuple[str, int], float]
     seconds: dict = field(default_factory=dict)
     rounds: int = 1
     balance_residual: float = None
@@ -569,7 +570,7 @@ class ChanceConstrained:
         results.seconds['total'] = time.perf_counter() - start
         return Point(lambda_level=float(lambda_level), lambda_impact=float(lambda_impact), kappa=kappa,
                      mean=mean, sigma=sigma, adjusted=mean + kappa * sigma, s=s, v=results.v,
-                     bounds=imposed, epsilon={f'{k}:{j}': e for (k, j), e in eps.items()},
+                     bounds=imposed, epsilon=dict(eps),
                      seconds=results.seconds, rounds=results.rounds,
                      balance_residual=results.balance_residual,
                      size={'processes': model.n, 'variables': results.n_variables, 'rows': results.n_rows})
