@@ -1,6 +1,5 @@
 import bw2data as bd
 import bw2calc as bc
-import copy
 from pulpo.utils.utils import is_bw25
 from stats_arrays import NormalUncertainty
 import numpy as np
@@ -390,7 +389,6 @@ def setup_lcia_methods():
 
     co2_key = ('biosphere3', 'CO2')
     ch4_key = ('biosphere3', 'CH4')
-    pm_key = ('biosphere3', 'PM')
     h2o_irrigation_key = ('biosphere3', 'H2O_irrigation')
 
     # Deregister existing methods

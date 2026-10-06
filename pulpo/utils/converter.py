@@ -1,6 +1,5 @@
 
 import numpy as np
-import scipy.sparse as sparse
 
 from pulpo.utils import scaling
 from pulpo.utils.utils import none_capacities, none_to_bound

@@ -142,3 +142,10 @@ All remaining tests use the bundled HiGHS solver and run offline.
   quantiles, the chance-constrained problem in reduced space (against PULPO
   1.8.0, an independent full-space cone and an analytic optimum), and the
   bw25 uncertainty-parameter extraction in `bw_parser.import_data`
+- `test_uncertainty_analysis.py` — the analyses of a solved front: the exact
+  variance decomposition (against SALib), the screening of undeclared
+  parameters and the width sensitivity, the diagnostics, the vectorized
+  sampler and the out-of-sample validation
+- `test_scaling.py` — the LP equilibration (`instantiate(scale=True)`): the
+  same optimum and results as unscaled, on the static and the time-indexed
+  model, and on a synthetic model with ecoinvent-like magnitudes

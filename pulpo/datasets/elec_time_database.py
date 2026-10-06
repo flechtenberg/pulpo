@@ -46,7 +46,6 @@ energy-conserving battery with round-trip efficiency K per held step.
 from __future__ import annotations
 
 import bw2data as bd
-import numpy as np
 
 from pulpo.utils.utils import is_bw25
 
