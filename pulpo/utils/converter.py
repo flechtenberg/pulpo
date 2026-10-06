@@ -214,10 +214,15 @@ def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, upper_in
             explicit_upper={process_map[proc] for proc in upper_limit} | choice_procs,
         )
 
-    # Check if a supply has been specified
+    # A process with equal lower and upper limits is a supply: its output is fixed and the
+    # balance of its product gets a slack. Equal limits of 0 switch the process off instead
+    # (a supply of 0 would make its product free), and an alternative of a choice is no
+    # supply of the choice's product (as in the time-dependent model).
     supply_dict = {prod: 0 for prod in PRODUCTS[None]}
     for proc in list(lower_limit.keys() & upper_limit.keys()):
-        supply_dict[process_map[proc]] = 1 if lower_limit[proc] == upper_limit[proc] else 0
+        product = process_map[proc]
+        if lower_limit[proc] == upper_limit[proc] != 0 and product not in keys:
+            supply_dict[product] = 1
 
     # Specify the upper elementary flow limit
     upper_inv_limit_dict = {elem: default_limits['upper_inv_bound'] for elem in INV[None]}

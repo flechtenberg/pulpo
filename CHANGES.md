@@ -78,6 +78,8 @@ The 1.x uncertainty API is replaced without a deprecation period.
   `ReducedSolveError` and `ChanceConstrainedError` are subclasses.
 * `PulpoOptimizer` (and its `Time`/`Unc` variants) no longer takes the unused `directory`
   argument; `save_results` takes a relative or an absolute file path.
+* Equal lower and upper limits of 0 switch a process off; they no longer define a supply
+  of 0, whose slack made the process's product free.
 * `retrieve_envflows` matches names and categories exactly (a name used to match every flow
   whose name it contains) and returns an empty list, with a warning, when nothing matches;
   keys may be tuples.

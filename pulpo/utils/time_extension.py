@@ -303,11 +303,12 @@ def combine_inputs_time(
     for t in time_steps:
         common = lower_limit_t[t].keys() & upper_limit_t[t].keys()
         for proc in common:
-            if lower_limit_t[t][proc] == upper_limit_t[t][proc]:
+            # Equal limits fix a supply, except equal limits of 0, which switch the
+            # process off (a supply of 0 would make its product free).
+            if lower_limit_t[t][proc] == upper_limit_t[t][proc] != 0:
                 prod_id = process_map[proc]
                 # Skip products that were rewired into a choice label;
-                # locking a single option to 0 does not mean the choice
-                # supply is fixed.
+                # locking a single option does not fix the choice's supply.
                 if prod_id in keys:
                     continue
                 supply_dict[(t, prod_id)] = 1

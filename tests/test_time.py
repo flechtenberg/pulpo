@@ -560,6 +560,23 @@ class TestStaticFallbackAndErrors(unittest.TestCase):
         self.assertEqual(len(choice_results), 2 * len(time_steps))
         self.assertTrue((choice_results['Capacity'] == float('inf')).all())
 
+    def test_equal_limits_of_zero_are_no_supply(self):
+        """Equal limits of 0 switch a process off; equal limits of another value fix a supply."""
+        worker = build_worker()
+        acts = {name: worker.retrieve_activities(activities=[name])[0] for name in ACTIVITY_NAMES}
+        holdtm1 = acts["battery_holdtm1"]
+        product = worker.lci_data['process_map'][holdtm1.key]
+        time_steps = [0, 1]
+        for value, is_supply in ((0.0, False), (0.5, True)):
+            with self.subTest(value=value):
+                worker.instantiate(choices={ELECTRICITY_CHOICE: {acts["solar"]: None, acts["coal"]: None}},
+                                   demand={t: {ELECTRICITY_CHOICE: 1.0} for t in time_steps},
+                                   lower_limit={holdtm1: value}, upper_limit={holdtm1: value},
+                                   time_steps=time_steps)
+                supplied = set(worker.instance.PRODUCT_SUPPLY)
+                self.assertEqual({(t, product) for t in time_steps} <= supplied, is_supply)
+                self.assertEqual(any(p == product for _, p in supplied), is_supply)
+
     def test_upper_limit_replaces_choice_capacity_in_the_time_path(self):
         worker = build_worker()
         acts = {name: worker.retrieve_activities(activities=[name])[0] for name in ACTIVITY_NAMES}

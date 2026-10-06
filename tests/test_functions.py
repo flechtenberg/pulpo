@@ -302,6 +302,26 @@ class TestPULPO(unittest.TestCase):
             self.assertEqual(twin.instance.impacts_calculated[method].value,
                              worker.instance.impacts_calculated[method].value)
 
+    def test_equal_limits_of_zero_switch_a_process_off(self):
+        """Equal lower and upper limits of 0 switch a process off, as upper_limit=0 does; they
+        are no supply of 0, whose slack would make the process's product free."""
+        worker, demand, wind, steam = self._sample_worker()
+        ecar = worker.retrieve_activities(activities=['e-Car'])[0]
+        wind_product = worker.lci_data['process_map'][wind.key]
+        for formulation in ('full', 'reduced'):
+            for limits in ({'upper_limit': {wind: 0}}, {'lower_limit': {wind: 0}, 'upper_limit': {wind: 0}}):
+                with self.subTest(formulation=formulation, limits=sorted(limits)):
+                    with contextlib.redirect_stdout(io.StringIO()):
+                        worker.instantiate(demand={ecar: 1}, **limits)
+                    self.assertNotIn(wind_product, list(worker.instance.PRODUCT_SUPPLY))
+                    # The e-Car's electricity market needs wind power: infeasible, not free.
+                    with self.assertRaises(SolveError), contextlib.redirect_stdout(io.StringIO()):
+                        worker.solve(formulation=formulation)
+        # Equal limits other than 0 still fix a supply.
+        with contextlib.redirect_stdout(io.StringIO()):
+            worker.instantiate(demand={ecar: 1}, lower_limit={wind: 0.2}, upper_limit={wind: 0.2})
+        self.assertIn(wind_product, list(worker.instance.PRODUCT_SUPPLY))
+
     def test_upper_limit_replaces_choice_capacity(self):
         """An upper_limit on an alternative wins over its capacity, with a warning."""
         worker = pulpo.PulpoOptimizer(self.project, self.database, self.methods)

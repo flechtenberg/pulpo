@@ -107,7 +107,7 @@ $$
 
 The calculation of the indicators $z_h$ has been shifted from the objective function to an equality constraint. The current objective function uses a set of weighting parameters $w_h$, allowing users to emphasize different indicators—individually or simultaneously—depending on the analysis goals.
 
-An important addition to the base TCM formulation is the inclusion of slack variables. These variables relax the demand constraint, which is particularly useful when supply is specified instead of demand. This would have saved the solution of an auxiliar problem in [this study](https://www.science.org/doi/10.1126/science.abg9853), and has been used in the [paper introducing PULPO](https://onlinelibrary.wiley.com/doi/full/10.1111/jiec.13561).
+An important addition to the base TCM formulation is the inclusion of slack variables. These variables relax the demand constraint, which is particularly useful when supply is specified instead of demand. This would have saved the solution of an auxiliar problem in [this study](https://www.science.org/doi/10.1126/science.abg9853), and has been used in the [paper introducing PULPO](https://onlinelibrary.wiley.com/doi/full/10.1111/jiec.13561). A supply is specified by giving a process equal lower and upper limits; equal limits of 0 switch the process off instead of specifying a supply of 0, which would make its product free.
 
 Additional additions include the specification of various constraints:
 - $z_h^{\text{high}}$: Upper bounds for impact indicators.

@@ -82,7 +82,9 @@ class PulpoOptimizer:
             demand (dict): Demand data.
             upper_limit (dict): Upper limit constraints. On a choice alternative it replaces the
                                 capacity, with a warning.
-            lower_limit (dict): Lower limit constraints.
+            lower_limit (dict): Lower limit constraints. Equal lower and upper limits on a process
+                                fix its output as a supply (its product's balance gets a slack);
+                                equal limits of 0 switch the process off.
             upper_elem_limit (dict): Upper elemental limit constraints.
             upper_imp_limit (dict): Upper impact limit constraints.
             lower_elem_limit (dict): Lower elemental limit constraints.
