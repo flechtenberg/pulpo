@@ -914,6 +914,95 @@ class TestReducedElecStatic(ParityMixin, unittest.TestCase):
 
 
 # ---------------------------------------------------------------------------
+# far limits and bounds: withheld in round 1, imposed in round 2
+# ---------------------------------------------------------------------------
+
+class TestReducedRemoteRounds(ParityMixin, unittest.TestCase):
+    """The second round of the reduced solve, with a problem built for it.
+
+    Routes A and B make product P, of which consumer C needs one unit. A uses
+    less land (1 vs 2) but emits more CO2 (2e8 vs 1e8 per unit, the size of
+    ecoinvent's large characterized flows) and draws 1e7 units of a bulk input
+    X. The consumer is linked to B, so the reduced system's base point runs
+    B, and the problem's scale is about 1: a CO2 limit of 1.5e8 or a bound of
+    5e6 on X lies far beyond it. Both are withheld in round 1, whose optimum
+    (all A) violates them, and must be imposed in round 2.
+    """
+
+    PROJECT = 'reduced_remote_rounds'
+    LAND, CO2 = "('remote', 'land')", "('remote', 'co2')"
+
+    @classmethod
+    def setUpClass(cls):
+        import bw2data as bd
+        bd.projects.set_current(cls.PROJECT)
+        bd.Database('biosphere3').write({
+            ('biosphere3', 'co2'): {'name': 'CO2', 'type': 'emission', 'unit': 'kg', 'categories': ('air',)},
+            ('biosphere3', 'land'): {'name': 'land', 'type': 'natural resource', 'unit': 'm2',
+                                     'categories': ('land',)},
+        })
+
+        def act(code, name, product, exchanges):
+            return {'name': name, 'reference product': product, 'unit': 'unit', 'location': 'GLO',
+                    'exchanges': [{'input': ('far', code), 'amount': 1.0, 'type': 'production'}] + exchanges}
+
+        co2, land = ('biosphere3', 'co2'), ('biosphere3', 'land')
+        bd.Database('far').write({
+            ('far', 'X'): act('X', 'bulk input', 'bulk', []),
+            ('far', 'A'): act('A', 'route A', 'P', [
+                {'input': co2, 'amount': 2e8, 'type': 'biosphere'},
+                {'input': land, 'amount': 1.0, 'type': 'biosphere'},
+                {'input': ('far', 'X'), 'amount': 1e7, 'type': 'technosphere'}]),
+            ('far', 'B'): act('B', 'route B', 'P', [
+                {'input': co2, 'amount': 1e8, 'type': 'biosphere'},
+                {'input': land, 'amount': 2.0, 'type': 'biosphere'}]),
+            # Linked to B, so the reduced system's base point runs B and X stays out of the scale.
+            ('far', 'C'): act('C', 'consumer', 'Q', [{'input': ('far', 'B'), 'amount': 1.0, 'type': 'technosphere'}]),
+        })
+        for name, flow in (('land', land), ('co2', co2)):
+            method = bd.Method(('remote', name))
+            method.register()
+            method.write([(flow, 1.0)])
+
+    def worker(self):
+        worker = pulpo.PulpoOptimizer(self.PROJECT, 'far', {self.LAND: 1, self.CO2: 0}, '')
+        worker.get_lci_data()
+        get = worker.retrieve_processes
+        self.a, self.b, self.c, self.x = (get(processes=[name])[0]
+                                          for name in ('route A', 'route B', 'consumer', 'bulk input'))
+        return worker
+
+    def solve(self, worker, **limits):
+        worker.instantiate(choices={'P': [self.a, self.b]}, demand={self.c: 1}, **limits)
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter('always')
+            results, objective = self.assert_parity(worker)
+        # Imposed in round 2, so it is not reported as a bound that did not bind.
+        self.assertFalse([w for w in caught if 'far beyond' in str(w.message)])
+        return results, objective
+
+    def test_unconstrained_takes_one_round(self):
+        results, objective = self.solve(self.worker())
+        self.assertEqual(results.rounds, 1)
+        self.assertAlmostEqual(objective, 1.0, places=9)                          # all A
+
+    def test_a_far_impact_limit_that_binds_is_imposed(self):
+        worker = self.worker()
+        results, objective = self.solve(worker, upper_imp_limit={self.CO2: 1.5e8})
+        self.assertEqual(results.rounds, 2)
+        self.assertAlmostEqual(objective, 1.5, places=9)                          # half A, half B
+        self.assertAlmostEqual(worker.instance.impacts_calculated[self.CO2].value, 1.5e8, delta=1e-6 * 1.5e8)
+
+    def test_a_far_process_bound_that_is_reached_is_imposed(self):
+        worker = self.worker()
+        results, objective = self.solve(worker, upper_limit={self.x: 5e6})
+        self.assertEqual(results.rounds, 2)
+        self.assertAlmostEqual(objective, 1.5, places=9)
+        j = worker.lci_data['process_map'][self.x.key]
+        self.assertAlmostEqual(worker.instance.scaling_vector[j].value, 5e6, delta=1e-9 * 5e6)
+
+
+# ---------------------------------------------------------------------------
 # building blocks
 # ---------------------------------------------------------------------------
 
