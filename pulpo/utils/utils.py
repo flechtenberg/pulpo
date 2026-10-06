@@ -45,6 +45,21 @@ def is_time_indexed(d, time_steps):
     return set(d.keys()) == set(time_steps)
 
 
+def none_to_bound(limits, bound):
+    """A copy of a limit dict in which ``None`` (no limit) reads as ``bound``,
+    i.e. +inf for an upper and -inf for a lower limit."""
+    return {key: (bound if value is None else value) for key, value in (limits or {}).items()}
+
+
+def none_capacities(choices):
+    """A copy of ``choices`` as ``{label: {activity: capacity}}``, in which a
+    ``None`` capacity and a list of activities (no capacities) read as unlimited."""
+    inf = float('inf')
+    return {label: (none_to_bound(alternatives, inf) if isinstance(alternatives, dict)
+                    else {activity: inf for activity in alternatives})
+            for label, alternatives in (choices or {}).items()}
+
+
 def broadcast_over_time(d, time_steps):
     """Convert a (possibly static) input dict into ``{t: dict}`` form."""
     if d is None:
@@ -59,15 +74,21 @@ def broadcast_over_time(d, time_steps):
                     f"got {type(sub).__name__} for t={t!r}"
                 )
         return {t: dict(d[t]) for t in time_steps}
+    covered = [t for t in time_steps if t in d]
+    if covered and len(covered) == len(d) and all(isinstance(sub, dict) for sub in d.values()):
+        missing = [t for t in time_steps if t not in d]
+        raise ValueError(
+            f"This input is keyed by the time steps {covered} but not by {missing}; a "
+            f"time-indexed input needs every time step (an empty dict for a step without entries)."
+        )
     return {t: dict(d) for t in time_steps}
 
 
 # ---------------------------------------------------------------------------
 # Monte Carlo re-instantiation helper
 # ---------------------------------------------------------------------------
-# Shared by pulpo.utils.monte_carlo and pulpo.utils.uncertainty.monte_carlo:
-# both re-instantiate the same worker once per sample with fresh LCI data, and
-# must forward every kwarg the original instantiate() call used -- including
+# Used by pulpo.utils.monte_carlo, which re-instantiates the same worker once
+# per sample with fresh LCI data, and must forward every kwarg the original instantiate() call used -- including
 # subclass-only ones (PulpoOptimizerTime's time_steps/storage/
 # upper_imp_agg_limit) -- or a time-indexed worker silently gets rebuilt as a
 # static model (demand/limits are still in {t: {...}} form, which the static
@@ -130,13 +151,18 @@ def build_bw25_params(data_objs, matrix_name, row_mapping, col_mapping=None):
             kept (used for the characterization matrix where the column is a
             dummy value).
 
+    A datapackage that declares no distribution at all carries no
+    ``distributions`` resource; its entries are deterministic and are listed
+    with ``uncertainty_type`` 0, as in bw2's parameter arrays.
+
     Returns:
         Tuple[Optional[np.ndarray], bool]: The combined parameter array (or
-        ``None`` when uncertainty information is missing or incomplete) and a
-        flag indicating that data existed but distributions were absent.
+        ``None`` when the matrix has no entries or a datapackage is
+        inconsistent) and a flag set when some datapackage declared no
+        distributions.
     """
     parts = []
-    incomplete = False
+    incomplete = undeclared = False
     for obj in data_objs:
         idx = dat = dist = None
         for res, arr in zip(obj.resources, obj.data):
@@ -152,14 +178,16 @@ def build_bw25_params(data_objs, matrix_name, row_mapping, col_mapping=None):
         # Skip datapackages that do not contribute entries to this matrix.
         if dat is None or len(dat) == 0:
             continue
-        # Data present but no (matching) distributions => uncertainty missing.
-        if dist is None or len(dist) != len(dat) or idx is None:
+        if idx is None or (dist is not None and len(dist) != len(dat)):
             incomplete = True
             continue
+        if dist is None:
+            dist = _undeclared_distributions(dat)
+            undeclared = True
         parts.append((idx, dat, dist))
 
     if incomplete or not parts:
-        return None, incomplete
+        return None, undeclared
 
     total = sum(len(dat) for _, dat, _ in parts)
     combined = np.empty(total, dtype=BW25_PARAM_DTYPE)
@@ -177,4 +205,17 @@ def build_bw25_params(data_objs, matrix_name, row_mapping, col_mapping=None):
             combined[field][sl] = dist[field]
         pos += n
 
-    return combined, False
+    return combined, undeclared
+
+
+def _undeclared_distributions(amounts):
+    """Distribution records for deterministic entries: ``uncertainty_type`` 0,
+    ``loc`` the amount and the other parameters NaN, as bw2 stores them."""
+    amounts = np.asarray(amounts, dtype=np.float64)
+    dist = np.empty(len(amounts), dtype=[(f, BW25_PARAM_DTYPE[f]) for f in BW25_DISTRIBUTION_FIELDS])
+    dist['uncertainty_type'] = 0
+    dist['loc'] = amounts
+    for field in ('scale', 'shape', 'minimum', 'maximum'):
+        dist[field] = np.nan
+    dist['negative'] = amounts < 0
+    return dist

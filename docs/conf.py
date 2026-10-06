@@ -1,6 +1,8 @@
 ### path setup ####################################################################################
 
 import datetime
+import tomllib
+from pathlib import Path
 
 ###################################################################################################
 ### Project Information ###########################################################################
@@ -10,6 +12,8 @@ project = "pulpo"
 author = "Fabian Lechtenberg"
 copyright = datetime.date.today().strftime("%Y") + " pulpo developers"
 version: str = "latest"  # required by the version switcher
+# The package is not installed for the docs build, so the release is read from pyproject.toml.
+release = tomllib.loads((Path(__file__).parents[1] / "pyproject.toml").read_text(encoding="utf8"))["project"]["version"]
 
 ###################################################################################################
 ### Project Configuration #########################################################################
@@ -55,7 +59,6 @@ autoapi_ignore = [
     "*/data/*",
     "*tests/*",
     "*tests.py",
-    "*validation.py",
     "*version.py",
     "*.rst",
     "*.yml",
@@ -80,6 +83,17 @@ autoapi_member_order = "bysource"
 autoapi_root = "content/api"
 autoapi_template_dir = "_templates/autoapi_templates/"
 autoapi_keep_files = False
+# The dataclasses document their fields in an "Attributes:" section; as :ivar: fields
+# they do not repeat the attribute entries that AutoAPI writes for them.
+napoleon_use_ivar = True
+# Links from the API pages to the types of the libraries PULPO works with.
+intersphinx_mapping = {
+    "python": ("https://docs.python.org/3", None),
+    "numpy": ("https://numpy.org/doc/stable", None),
+    "pandas": ("https://pandas.pydata.org/docs", None),
+    "scipy": ("https://docs.scipy.org/doc/scipy", None),
+    "pyomo": ("https://pyomo.readthedocs.io/en/stable", None),
+}
 
 graphviz_output_format = "svg"  # https://pydata-sphinx-theme.readthedocs.io/en/stable/examples/graphviz.html#inheritance-diagram
 
@@ -180,7 +194,7 @@ html_theme_options = {
     # "navbar_persistent": ["theme-switcher"], # this is where the search button is usually placed
     "footer_start": ["copyright"],
     "footer_end": ["footer"],
-    "secondary_sidebar_items": ["page-toc", "edit-this-page", "sourcelink", "support"],
+    "secondary_sidebar_items": ["page-toc", "edit-this-page", "sourcelink"],
     "header_links_before_dropdown": 5,
     # page elements content
     "icon_links": [

@@ -13,12 +13,7 @@ The functionality for specifying objectives is being expanded to facilitate the 
 The objective is specified when creating a `pulpo` object, often referred to as `pulpo_worker`. Below is an example of how to create and fully specify a `pulpo_worker`.
 
 ```python
-import os
 from pulpo import pulpo
-
-# Define the working directory
-notebook_dir = os.path.dirname(os.getcwd())
-directory = os.path.join(notebook_dir, 'data')
 
 # (Optional) Define the path to GAMS
 GAMS_PATH = r"C:\APPS\GAMS\win64\40.1\gams.exe"
@@ -47,7 +42,7 @@ In this example, the `pulpo_worker` is created with the objective of minimizing 
 
 ```python
 # Create the pulpo_worker object
-pulpo_worker = pulpo.PulpoOptimizer(project, database, methods, directory)
+pulpo_worker = pulpo.PulpoOptimizer(project, database, methods)
 
 # Retrieve the LCI data
 pulpo_worker.get_lci_data()
@@ -88,6 +83,6 @@ Notes:
 - Unlike the hard `upper_imp_limit` (see [constraints](constraints.md)), goals **can** be exceeded — the solver stays feasible and reports the transgression instead.
 - The method weights are ignored with `objective='goal'`; categories with a goal are included in the model even if their weight is 0.
 - Per-category results (impact, goal, transgression level) are available via `pulpo_worker.extract_results()["Transgressions"]` and shown by `summarize_results()`.
-- In the time-extended model (`PulpoOptimizerTime` with `time_steps`), the goals apply to the impacts **aggregated over all timesteps** — i.e. each `imp_goals` entry is a total (e.g. yearly) budget for that category across the whole horizon.
+- In the time-dependent model (`PulpoOptimizerTime` with `time_steps`), the goals apply to the impacts **aggregated over all timesteps** — i.e. each `imp_goals` entry is a total (e.g. yearly) budget for that category across the whole horizon.
 
 With the `pulpo_worker` created, the next step is to define the **functional unit**, which will be covered in the following section.

@@ -1,13 +1,13 @@
 import os
 from collections import defaultdict
-import pandas as pd
-import numpy as np
-import scipy
+from pathlib import Path
+import pyomo.common
 import pyomo.environ as pyo
 from pyomo.core.expr.numeric_expr import LinearExpression
 from pyomo.contrib import appsi
 from .saver import extract_flows
 from . import scaling as _scaling
+from .warning import warn
 
 
 
@@ -47,7 +47,7 @@ def calculate_methods(instance, lci_data, methods, time_steps=None):
             for h, value in impacts.items():
                 instance.impacts_calculated[h].value = value
         else:
-            instance.impacts_calculated = pyo.Var(impacts.keys(), initialize=impacts)
+            instance.impacts_calculated = pyo.Var(list(impacts), initialize=impacts)
 
         return instance
 
@@ -196,9 +196,8 @@ def instantiate(model_data, objective='weighted_sum'):
     as Pyomo Params: skipping their per-entry Param (and relation-set)
     components makes instantiation several times faster on ecoinvent-scale
     data. The dense environmental cost dictionary is kept on the model as
-    ``model._env_cost``; code that needs different coefficients (the
-    chance-constrained formulation) updates that dictionary and rebuilds the
-    impact constraints via :func:`update_env_cost`. Only parameters that are
+    ``model._env_cost``; code that needs different coefficients updates that
+    dictionary and rebuilds the impact constraints via :func:`update_env_cost`. Only parameters that are
     updated in place between solves (limits, demand, weights) are mutable
     Params.
     Production capacities as well as intervention-flow and impact limits enter
@@ -260,7 +259,7 @@ def instantiate(model_data, objective='weighted_sum'):
     supply_products = [i for i in data['PRODUCT'][None] if data['SUPPLY'][i]]
     model.PRODUCT_SUPPLY = pyo.Set(initialize=supply_products, within=model.PRODUCT, doc='Products for which a supply is specified instead of a demand (slack active)')
 
-    # Parameters (mutable: updated in place by the chance-constrained and Monte Carlo code)
+    # Parameters (mutable: limits may be changed in place between solves)
     model.UPPER_LIMIT = pyo.Param(model.PROCESS, initialize=data['UPPER_LIMIT'], mutable=True, within=pyo.Reals, doc='Maximum production capacity of process j')
     model.LOWER_LIMIT = pyo.Param(model.PROCESS, initialize=data['LOWER_LIMIT'], mutable=True, within=pyo.Reals, doc='Minimum production capacity of process j')
     model.UPPER_INV_LIMIT = pyo.Param(model.INV, initialize=data['UPPER_INV_LIMIT'], mutable=True, within=pyo.Reals, doc='Maximum intervention flow g')
@@ -359,20 +358,53 @@ def get_cplex_options(options):
     ]
     return options if options is not None else default_options
 
-def solve_highspy(model_instance):
-    """Solve the model using Highspy."""
+class SolveError(RuntimeError):
+    """The solver ended without an optimal solution; the instance keeps its
+    previous values. ``results`` holds what the solver returned."""
+
+    def __init__(self, message, results):
+        super().__init__(message)
+        self.results = results
+
+
+def _not_optimal(solver, condition, results, incumbent=None):
+    found = f" A feasible point with objective {incumbent} was found but not loaded." if incumbent is not None else ""
+    condition = getattr(condition, 'name', condition)
+    return SolveError(f"{solver} did not solve the model to optimality ({condition}); the instance keeps "
+                      f"its previous values.{found} The solver's results are on the exception's .results.",
+                      results)
+
+
+def check_highs_options(options):
+    """Raise a ValueError for HiGHS options with an unknown name or an invalid value.
+
+    HiGHS reports both only through a status code and its log, which is often
+    switched off, so a mistyped option would otherwise be ignored silently.
+    """
+    if not options:
+        return
+    import highspy
+    probe = highspy.Highs()
+    probe.setOptionValue('output_flag', False)
+    invalid = [f"{key}={value!r}" for key, value in options.items()
+               if probe.setOptionValue(key, value) == highspy.HighsStatus.kError]
+    if invalid:
+        raise ValueError(f"Unknown HiGHS option(s) or invalid value(s): {', '.join(invalid)}. "
+                         "See https://ergo-code.github.io/HiGHS/stable/options/definitions/.")
+
+
+def solve_highspy(model_instance, options=None):
+    """Solve the model using Highspy, with ``options`` (a dict) passed to HiGHS."""
+    check_highs_options(options)
     opt = appsi.solvers.Highs()
+    opt.highs_options = dict(options or {})
+    opt.config.load_solution = False
     results = opt.solve(model_instance)
-    if results.termination_condition == appsi.base.TerminationCondition.optimal: 
-        print('optimal solution found: ', results.best_feasible_objective) 
-        results.solution_loader.load_vars() 
-    elif results.best_feasible_objective is not None: 
-        print('sub-optimal but feasible solution found: ', results.best_feasible_objective) 
-    elif results.termination_condition in {appsi.base.TerminationCondition.maxIterations, appsi.base.TerminationCondition.maxTimeLimit}: 
-        print('No feasible solution was found. The best lower bound found was ', results.best_objective_bound) 
-    else: 
-        print('The following termination condition was encountered: ', results.termination_condition) 
-        print('Optimization problem solved using Highspy')
+    if results.termination_condition != appsi.base.TerminationCondition.optimal:
+        raise _not_optimal('HiGHS', results.termination_condition, results, results.best_feasible_objective)
+    results.solution_loader.load_vars()
+    print('optimal solution found: ', results.best_feasible_objective)
+    print('Optimization problem solved using Highspy')
     return results, model_instance
 
 def solve_neos(model_instance, solver_name, options, neos_email):
@@ -391,40 +423,58 @@ def solve_neos(model_instance, solver_name, options, neos_email):
     # ATTN: deleted the 'options' use as kwargs, since I do not think it makes sense, it holds options for the PULPO solver and for the pyomo solver_manager, 
     # it needs to be either different options or completely differently structured. Now I have hard programmed the seetings.
     #  Also solver_name is a solver_manager option, it kind of does not make sense
-    results = solver_manager.solve(model_instance, opt=solver_name, tee=True)
-    if not results.solver.termination_condition == pyo.TerminationCondition.optimal:
-        raise Exception('Could not find an optimal solutions to the problem.')
+    results = solver_manager.solve(model_instance, opt=solver_name, tee=True, load_solutions=False)
+    if results.solver.termination_condition != pyo.TerminationCondition.optimal:
+        raise _not_optimal(f'NEOS ({solver_name})', results.solver.termination_condition, results)
+    model_instance.solutions.load_from(results)
 
     print("Optimization problem solved using NEOS")
     return results, model_instance
 
+def _gams_executable(gams_path):
+    """The GAMS executable in ``gams_path``, a GAMS directory or the executable itself."""
+    path = Path(gams_path)
+    for candidate in ([path] if path.is_file() else [path / 'gams.exe', path / 'gams']):
+        if candidate.is_file():
+            return str(candidate)
+    raise FileNotFoundError(f"No GAMS executable at {gams_path!r}; pass the GAMS directory "
+                            "(e.g. 'C:/GAMS/47') or the path to the gams executable.")
+
+
 def solve_gams(model_instance, gams_path, options, solver_name=None):
-    """Solve the model using GAMS with either CPLEX or an alternative solver."""
+    """Solve the model with the GAMS installation at ``gams_path`` (``True``: the
+    ``GAMS_PULPO`` environment variable), using ``solver_name`` (default CPLEX)."""
     if gams_path is True:
         gams_path = os.getenv('GAMS_PULPO')
-        if gams_path:
-            print('GAMS path retrieved from GAMS_PULPO environment variable:', gams_path)
-        else:
-            print("GAMS path not found. Set the 'GAMS_PULPO' environment variable to your GAMS path or pass it explicitly.")
-            return None, model_instance
-
-    solver = pyo.SolverFactory('gams')
-    if not solver.available():
-        print("GAMS solver is not available. Ensure GAMS is installed and the path is correct.")
-        return None, model_instance
+        if not gams_path:
+            raise ValueError("GAMS_PATH=True reads the GAMS directory from the GAMS_PULPO environment "
+                             "variable, which is not set; set it or pass the directory as GAMS_PATH.")
+    executable = _gams_executable(gams_path)
 
     io_options = {'solver': solver_name or 'CPLEX'}
     options = get_cplex_options(options) if solver_name is None else options
 
-    results = solver.solve(
-        model_instance,
-        keepfiles=False,
-        symbolic_solver_labels=True,
-        tee=False,
-        report_timing=False,
-        io_options=io_options,
-        add_options=options,
-    )
+    # Pyomo finds GAMS on the system PATH; point it at the requested installation
+    # for this solve only.
+    registered = pyomo.common.Executable('gams')
+    previous = registered.path()
+    registered.set_path(executable)
+    try:
+        results = pyo.SolverFactory('gams').solve(
+            model_instance,
+            keepfiles=False,
+            symbolic_solver_labels=True,
+            tee=False,
+            report_timing=False,
+            io_options=io_options,
+            add_options=options,
+            load_solutions=False,
+        )
+    finally:
+        registered.set_path(previous)
+    if results.solver.termination_condition != pyo.TerminationCondition.optimal:
+        raise _not_optimal(f"GAMS ({io_options['solver']})", results.solver.termination_condition, results)
+    model_instance.solutions.load_from(results)
     print('Optimization problem solved using GAMS')
     return results, model_instance
 
@@ -432,12 +482,10 @@ def solve_gams(model_instance, gams_path, options, solver_name=None):
 def solve_gurobi(model_instance, options=None):
     """
     Solve the given Pyomo ConcreteModel using Gurobi.
-    Captures:
-      - model_instance.solver_status
-      - model_instance.solver_termination
-      - model_instance.best_feasible_obj (if available)
-      - model_instance.best_obj_bound    (if available)
-    Then, if truly optimal, the Pyomo vars are already loaded (no extra loader needed).
+
+    Stores ``solver_status`` and ``solver_termination`` on the instance, and
+    ``best_feasible_obj`` and ``best_obj_bound`` when Gurobi reports them. When the
+    solve is optimal, the Pyomo variables are already loaded.
     """
     # Create the Gurobi solver plugin
     solver = pyo.SolverFactory('gurobi')
@@ -461,11 +509,7 @@ def solve_gurobi(model_instance, options=None):
             tee = val
 
     # Solve. The results object is a standard Pyomo SolverResults.
-    results = solver.solve(
-        model_instance,
-        tee=tee,               
-        load_solutions=True      
-    )
+    results = solver.solve(model_instance, tee=tee, load_solutions=False)
 
     # Capture solver status and termination condition on the model instance:
     model_instance.solver_status      = results.solver.status
@@ -483,6 +527,9 @@ def solve_gurobi(model_instance, options=None):
     except Exception:
         model_instance.best_feasible_obj = None
 
+    if results.solver.termination_condition != pyo.TerminationCondition.optimal:
+        raise _not_optimal('Gurobi', results.solver.termination_condition, results)
+    model_instance.solutions.load_from(results)
     print("Optimization problem solved using gurobi")
     print(f"status={results.solver.status}, termination={results.solver.termination_condition}")
     return results, model_instance
@@ -503,7 +550,9 @@ def solve_model(model_instance, gams_path=False, solver_name=None, options=None,
             read the path from the ``GAMS_PULPO`` environment variable.
         solver_name (str, optional): The solver to use (e.g. ``'highs'``, ``'gurobi'``,
             ``'cplex'``, ``'baron'``, or ``'xpress'``).
-        options (list, optional): Additional options forwarded to the solver.
+        options (dict or list, optional): Solver options: a dict of option names and
+            values for HiGHS and Gurobi, a list of option lines for GAMS. NEOS does
+            not use them.
         neos_email (str, optional): Email for NEOS solver authentication.
 
     Returns:
@@ -519,12 +568,14 @@ def solve_model(model_instance, gams_path=False, solver_name=None, options=None,
     _scaling.rescale_solution(model_instance)
     try:
         if gams_path:
-            results, model_instance = solve_gams(model_instance, gams_path, options)
+            results, model_instance = solve_gams(model_instance, gams_path, options, solver_name)
         elif solver_name is None or solver_name.lower() == 'highs':
-            results, model_instance = solve_highspy(model_instance)
+            results, model_instance = solve_highspy(model_instance, options)
         elif solver_name.lower() == 'gurobi':
             results, model_instance = solve_gurobi(model_instance, options=options)
         else:
+            if options:
+                warn("options are not passed to NEOS; the solve uses NEOS's settings.")
             results, model_instance = solve_neos(model_instance, solver_name, options, neos_email)
     finally:
         # Also on failure: whatever values the instance holds (fresh or stale)

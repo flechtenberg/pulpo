@@ -16,6 +16,7 @@ three-step instance.
 
 import os
 import unittest
+import warnings
 from tempfile import TemporaryDirectory
 
 import pandas as pd
@@ -40,7 +41,7 @@ ACTIVITY_NAMES = (
 
 
 def build_worker():
-    worker = pulpo_time.PulpoOptimizerTime(PROJECT_NAME, DB_NAME, {GWP: 1}, "")
+    worker = pulpo_time.PulpoOptimizerTime(PROJECT_NAME, DB_NAME, {GWP: 1})
     worker.intervention_matrix = "biosphere3"
     worker.get_lci_data()
     return worker
@@ -61,17 +62,17 @@ def solve_scenario(K, time_steps, solar_cap, demand_kwh):
     discharge, holdtm1 = acts["battery_discharge"], acts["battery_holdtm1"]
 
     choices = {
-        ELECTRICITY_CHOICE: {solar: 1e6, coal: 1e6, discharge: 1e6},
-        CHARGE_PRODUCT_CHOICE: {charge: 1e6, hold: 1e6},
+        ELECTRICITY_CHOICE: {solar: float('inf'), coal: float('inf'), discharge: float('inf')},
+        CHARGE_PRODUCT_CHOICE: {charge: float('inf'), hold: float('inf')},
     }
     upper_limit = {
         t: {
             solar: solar_cap[t],
-            coal: 1e6,
-            charge: 1e6,
-            hold: 1e6,
+            coal: float('inf'),
+            charge: float('inf'),
+            hold: float('inf'),
             # battery starts empty -> nothing to discharge at t=0
-            discharge: 0.0 if t == time_steps[0] else 1e6,
+            discharge: 0.0 if t == time_steps[0] else float('inf'),
             holdtm1: 0.0,  # phantom, never actually produced
         }
         for t in time_steps
@@ -340,8 +341,8 @@ class TestTimeGoalObjective(unittest.TestCase):
         worker = build_worker()
         acts = {name: worker.retrieve_activities(activities=[name])[0]
                 for name in ACTIVITY_NAMES}
-        choices = {ELECTRICITY_CHOICE: {acts["solar"]: 1e6, acts["coal"]: 1e6}}
-        upper_limit = {t: {acts["solar"]: self.solar_cap[t], acts["coal"]: 1e6}
+        choices = {ELECTRICITY_CHOICE: {acts["solar"]: float('inf'), acts["coal"]: float('inf')}}
+        upper_limit = {t: {acts["solar"]: self.solar_cap[t], acts["coal"]: float('inf')}
                        for t in self.time_steps}
         demand = {t: {ELECTRICITY_CHOICE: self.demand_kwh[t]} for t in self.time_steps}
         worker.instantiate(
@@ -382,7 +383,7 @@ class TestTimeGoalObjective(unittest.TestCase):
         solar = worker.retrieve_activities(activities=["solar"])[0]
         coal = worker.retrieve_activities(activities=["coal"])[0]
         time_steps = [0, 1]
-        choices = {ELECTRICITY_CHOICE: {solar: 1e6, coal: 1e6}}
+        choices = {ELECTRICITY_CHOICE: {solar: float('inf'), coal: float('inf')}}
         demand = {t: {ELECTRICITY_CHOICE: 1.0} for t in time_steps}
         with self.assertRaises(ValueError):
             worker.instantiate(choices=choices, demand=demand,
@@ -393,6 +394,78 @@ class TestTimeGoalObjective(unittest.TestCase):
                                imp_goals={GWP: -5}, objective='goal')
 
 
+class TestPerStepLimits(unittest.TestCase):
+    """Per-step limits and a zero-weight method on three hourly steps.
+
+    Demand is 1 kWh per step and solar is capped at 0.2 / 0.8 / 0.5 kWh, so coal
+    (1 kg CO2 per kWh) supplies 0.8 / 0.2 / 0.5 kWh: 1.5 kg in all.
+    """
+
+    STEPS = [0, 1, 2]
+    SOLAR = {0: 0.2, 1: 0.8, 2: 0.5}
+
+    def solve(self, methods=None, **limits):
+        worker = pulpo_time.PulpoOptimizerTime(PROJECT_NAME, DB_NAME, methods or {GWP: 1})
+        worker.intervention_matrix = "biosphere3"
+        worker.get_lci_data()
+        solar, coal = (worker.retrieve_activities(activities=[name])[0] for name in ("solar", "coal"))
+        worker.instantiate(choices={ELECTRICITY_CHOICE: {solar: float('inf'), coal: float('inf')}},
+                           demand={t: {ELECTRICITY_CHOICE: 1.0} for t in self.STEPS},
+                           upper_limit={t: {solar: self.SOLAR[t]} for t in self.STEPS},
+                           time_steps=self.STEPS, **limits)
+        worker.solve()
+        return worker
+
+    def per_step(self, worker, method=GWP):
+        """The impact of ``method`` per step: in the model's impacts, or, for a method
+        with weight 0 and no limit, in those calculated after the solve."""
+        inst = worker.instance
+        values = inst.impacts if (self.STEPS[0], method) in inst.impacts else inst.impacts_calculated
+        return [values[t, method].value for t in self.STEPS]
+
+    def test_without_limits(self):
+        for value, expected in zip(self.per_step(self.solve()), (0.8, 0.2, 0.5)):
+            self.assertAlmostEqual(value, expected, places=9)
+
+    def test_a_per_step_impact_limit(self):
+        worker = self.solve(lower_imp_limit={0: {}, 1: {GWP: 0.5}, 2: {}})
+        for value, expected in zip(self.per_step(worker), (0.8, 0.5, 0.5)):
+            self.assertAlmostEqual(value, expected, places=9)
+        self.assertAlmostEqual(worker.instance.OBJ(), 1.8, places=9)
+
+    def test_a_per_step_flow_limit(self):
+        worker = pulpo_time.PulpoOptimizerTime(PROJECT_NAME, DB_NAME, {GWP: 1})
+        worker.intervention_matrix = "biosphere3"
+        worker.get_lci_data()
+        co2 = worker.retrieve_envflows(activities=["Carbon dioxide, fossil"])[0]
+        worker = self.solve(lower_elem_limit={0: {}, 1: {}, 2: {co2: 0.7}})
+        for value, expected in zip(self.per_step(worker), (0.8, 0.2, 0.7)):
+            self.assertAlmostEqual(value, expected, places=9)
+
+    def test_a_zero_weight_method_is_calculated(self):
+        import bw2data as bd
+        bd.projects.set_current(PROJECT_NAME)
+        doubled = ("GWP", "doubled")
+        if doubled not in bd.methods:
+            bd.Method(doubled).register()
+            bd.Method(doubled).write([(flow, 2 * (cf['amount'] if isinstance(cf, dict) else cf))
+                                      for flow, cf, *_ in bd.Method(("GWP", "100a")).load()])
+        worker = self.solve(methods={GWP: 1, str(doubled): 0})
+        for _ in range(2):                     # also on a re-solve of the same instance
+            for gwp, twice in zip(self.per_step(worker), self.per_step(worker, str(doubled))):
+                self.assertAlmostEqual(twice, 2 * gwp, places=9)
+            worker.solve()
+        # The results report it, with weight 0.
+        impacts = worker.extract_results()['Impacts'].xs(str(doubled), level='Method')
+        self.assertEqual(set(impacts['Weight']), {0})
+        for t, gwp in zip(self.STEPS, self.per_step(worker)):
+            self.assertAlmostEqual(impacts.loc[t, 'Value'], 2 * gwp, places=9)
+
+    def test_an_input_keyed_by_some_steps_only(self):
+        with self.assertRaisesRegex(ValueError, r'time steps \[1\] but not by \[0, 2\]'):
+            self.solve(lower_imp_limit={1: {GWP: 0.5}})
+
+
 class TestStaticFallbackAndErrors(unittest.TestCase):
     def test_instantiate_without_time_steps_falls_back_to_static(self):
         worker = build_worker()
@@ -401,7 +474,7 @@ class TestStaticFallbackAndErrors(unittest.TestCase):
         # cap solar (via its choice capacity, which is what bounds choice
         # members in the static formulation) below the demand so that
         # 0.6 kWh of coal (1 kg CO2/kWh) is unavoidable
-        choices = {ELECTRICITY_CHOICE: {acts["solar"]: 0.4, acts["coal"]: 1e6}}
+        choices = {ELECTRICITY_CHOICE: {acts["solar"]: 0.4, acts["coal"]: float('inf')}}
         demand = {ELECTRICITY_CHOICE: 1.0}
         # battery flows must be non-negative (the default lower bound is -inf,
         # under which running the battery backwards creates free electricity)
@@ -413,12 +486,123 @@ class TestStaticFallbackAndErrors(unittest.TestCase):
         self.assertIsNone(worker.time_steps)
         self.assertAlmostEqual(worker.instance.OBJ(), 0.6, places=6)
 
+    def test_static_instance_after_a_time_dependent_one(self):
+        """Re-instantiating without time_steps gives a static worker that solves and
+        extracts; the earlier time-dependent settings are dropped."""
+        worker = build_worker()
+        acts = {name: worker.retrieve_activities(activities=[name])[0] for name in ACTIVITY_NAMES}
+        choices = {ELECTRICITY_CHOICE: {acts["solar"]: 0.4, acts["coal"]: float('inf')}}
+        lower = {acts["battery_charge"]: 0.0, acts["battery_hold"]: 0.0, acts["battery_discharge"]: 0.0}
+        time_steps = [0, 1]
+        inf = float('inf')
+        battery = {ELECTRICITY_CHOICE: {acts["solar"]: 0.4, acts["coal"]: inf, acts["battery_discharge"]: inf},
+                   CHARGE_PRODUCT_CHOICE: {acts["battery_charge"]: inf, acts["battery_hold"]: inf}}
+        worker.instantiate(choices=battery, demand={t: {ELECTRICITY_CHOICE: 1.0} for t in time_steps},
+                           lower_limit=lower, upper_limit={acts["battery_holdtm1"]: 0.0}, time_steps=time_steps,
+                           storage=[(acts["battery_holdtm1"], CHARGE_PRODUCT_CHOICE, 0.9)],
+                           upper_imp_agg_limit={GWP: inf})
+        worker.solve()
+        worker.instantiate(choices=choices, demand={ELECTRICITY_CHOICE: 1.0}, lower_limit=lower)
+        self.assertEqual((worker.time_steps, worker.storage, worker.upper_imp_agg_limit), (None, [], {}))
+        worker.solve()
+        self.assertAlmostEqual(worker.instance.OBJ(), 0.6, places=6)
+        self.assertNotIn('Time', worker.extract_results()['Scaling Vector'].index.names)
+        with self.assertRaises(ValueError):
+            worker.instantiate(choices=choices, demand={ELECTRICITY_CHOICE: 1.0},
+                               upper_imp_agg_limit={GWP: 1.0})
+
+    def test_finite_default_limits_warn_in_the_time_path(self):
+        worker = build_worker()
+        solar = worker.retrieve_activities(activities=["solar"])[0]
+        coal = worker.retrieve_activities(activities=["coal"])[0]
+        time_steps = [0, 1]
+        limits = {'lower_bound': 0.0, 'upper_bound': float('inf'), 'upper_inv_bound': float('inf'),
+                  'lower_inv_bound': -float('inf'), 'lower_imp_bound': -float('inf'),
+                  'upper_imp_bound': float('inf'), 'upper_imp_agg_bound': float('inf')}
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter('always')
+            worker.instantiate(choices={ELECTRICITY_CHOICE: {solar: float('inf'), coal: float('inf')}},
+                               demand={t: {ELECTRICITY_CHOICE: 1.0} for t in time_steps},
+                               time_steps=time_steps, default_limits=limits)
+        self.assertTrue(any(issubclass(w.category, FutureWarning) and 'may be deprecated' in str(w.message)
+                            for w in caught))
+
+    def test_none_means_no_limit_in_the_time_path(self):
+        worker = build_worker()
+        acts = {name: worker.retrieve_activities(activities=[name])[0] for name in ACTIVITY_NAMES}
+        time_steps = [0, 1]
+        demand = {t: {ELECTRICITY_CHOICE: 1.0} for t in time_steps}
+        lower = {acts["battery_charge"]: 0.0, acts["battery_hold"]: 0.0, acts["battery_discharge"]: 0.0}
+        objectives = []
+        for unlimited in (float('inf'), None):
+            worker.instantiate(choices={ELECTRICITY_CHOICE: {acts["solar"]: 0.4, acts["coal"]: unlimited}},
+                               demand=demand, lower_limit=lower, upper_limit={acts["coal"]: unlimited},
+                               upper_imp_agg_limit={GWP: unlimited}, time_steps=time_steps)
+            worker.solve()
+            objectives.append(worker.instance.OBJ())
+        self.assertAlmostEqual(objectives[0], objectives[1], places=9)
+
+    def test_list_choices_in_the_time_path(self):
+        worker = build_worker()
+        acts = {name: worker.retrieve_activities(activities=[name])[0] for name in ACTIVITY_NAMES}
+        time_steps = [0, 1]
+        demand = {t: {ELECTRICITY_CHOICE: 1.0} for t in time_steps}
+        lower = {acts["battery_charge"]: 0.0, acts["battery_hold"]: 0.0, acts["battery_discharge"]: 0.0}
+        objectives = []
+        for choices in ({ELECTRICITY_CHOICE: {acts["solar"]: float('inf'), acts["coal"]: float('inf')}},
+                        {ELECTRICITY_CHOICE: [acts["solar"], acts["coal"]]}):
+            worker.instantiate(choices=choices, demand=demand, lower_limit=lower,
+                               upper_limit={acts["solar"]: 0.4}, time_steps=time_steps)
+            worker.solve()
+            objectives.append(worker.instance.OBJ())
+        self.assertAlmostEqual(objectives[0], objectives[1], places=9)
+        choice_results = worker.extract_results()['Choices'][ELECTRICITY_CHOICE]
+        self.assertEqual(len(choice_results), 2 * len(time_steps))
+        self.assertTrue((choice_results['Capacity'] == float('inf')).all())
+
+    def test_equal_limits_of_zero_are_no_supply(self):
+        """Equal limits of 0 switch a process off; equal limits of another value fix a supply."""
+        worker = build_worker()
+        acts = {name: worker.retrieve_activities(activities=[name])[0] for name in ACTIVITY_NAMES}
+        holdtm1 = acts["battery_holdtm1"]
+        product = worker.lci_data['process_map'][holdtm1.key]
+        time_steps = [0, 1]
+        for value, is_supply in ((0.0, False), (0.5, True)):
+            with self.subTest(value=value):
+                worker.instantiate(choices={ELECTRICITY_CHOICE: {acts["solar"]: None, acts["coal"]: None}},
+                                   demand={t: {ELECTRICITY_CHOICE: 1.0} for t in time_steps},
+                                   lower_limit={holdtm1: value}, upper_limit={holdtm1: value},
+                                   time_steps=time_steps)
+                supplied = set(worker.instance.PRODUCT_SUPPLY)
+                self.assertEqual({(t, product) for t in time_steps} <= supplied, is_supply)
+                self.assertEqual(any(p == product for _, p in supplied), is_supply)
+
+    def test_upper_limit_replaces_choice_capacity_in_the_time_path(self):
+        worker = build_worker()
+        acts = {name: worker.retrieve_activities(activities=[name])[0] for name in ACTIVITY_NAMES}
+        time_steps = [0, 1]
+        demand = {t: {ELECTRICITY_CHOICE: 1.0} for t in time_steps}
+        lower = {acts["battery_charge"]: 0.0, acts["battery_hold"]: 0.0, acts["battery_discharge"]: 0.0}
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter('always')
+            worker.instantiate(choices={ELECTRICITY_CHOICE: {acts["solar"]: 0.4, acts["coal"]: None}},
+                               demand=demand, lower_limit=lower, upper_limit={acts["solar"]: 0.2},
+                               time_steps=time_steps)
+        [warning] = [w for w in caught if 'the upper_limit is used' in str(w.message)]
+        self.assertEqual(os.path.basename(warning.filename), 'test_time.py')
+        worker.solve()
+        limited = worker.instance.OBJ()
+        worker.instantiate(choices={ELECTRICITY_CHOICE: {acts["solar"]: 0.2, acts["coal"]: None}},
+                           demand=demand, lower_limit=lower, time_steps=time_steps)
+        worker.solve()
+        self.assertAlmostEqual(limited, worker.instance.OBJ(), places=9)
+
     def test_dependent_constraints_rejected_in_time_path(self):
         worker = build_worker()
         solar = worker.retrieve_activities(activities=["solar"])[0]
         coal = worker.retrieve_activities(activities=["coal"])[0]
         time_steps = [0, 1]
-        choices = {ELECTRICITY_CHOICE: {solar: 1e6, coal: 1e6}}
+        choices = {ELECTRICITY_CHOICE: {solar: float('inf'), coal: float('inf')}}
         demand = {t: {ELECTRICITY_CHOICE: 1.0} for t in time_steps}
         dependent_constraints = {"solar_cap": {"left": {solar: 1}, "right": {coal: 4}}}
         with self.assertRaises(NotImplementedError):

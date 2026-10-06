@@ -31,7 +31,7 @@ The illustration above shows the "full optimization" case from the previous gene
 
 ## Specification in PULPO
 
-In `pulpo`, constraints are specified in a manner similar to choices. As mentioned earlier, choices always include an upper bound, which can be set to a very high value to represent an "unconstrained" scenario. 
+In `pulpo`, constraints are specified in a manner similar to choices. As mentioned earlier, each alternative of a choice has an upper bound, which is `float('inf')` (or `None`) when it has no limit. The same holds for the limits below: `None` means no limit. Only `default_limits` takes numbers, such as `float('inf')`. 
 
 To implement constraints, identify the processes that need to be limited and assign the desired upper bound in a dictionary:
 
@@ -43,6 +43,16 @@ locations = ["GLO"]
 nuclear_fuel = pulpo_worker.retrieve_activities(activities=activities, reference_products=reference_products, locations=locations)
 
 upper_limit = {nuclear_fuel[0]: 100000}
+```
+
+An `upper_limit` on an alternative of a choice replaces its capacity, with a warning; setting it to `0` excludes that alternative.
+
+```{note}
+Bound only the processes that have a real limit. Finite
+`default_limits['lower_bound']` / `['upper_bound']` put a bound on every activity,
+which has no physical meaning and makes `solve(formulation='reduced')` build a dense
+row for every process. They raise a `FutureWarning`, and `default_limits` may be
+deprecated in a near-future release.
 ```
 
 For environmental flow and impact constraints, the methodology is similar. Here we put a constraint on the environmental emission of Radon-222:

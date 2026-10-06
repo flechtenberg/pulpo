@@ -21,7 +21,7 @@ of :func:`combine_inputs_time`, given as a list of triples::
 Each triple says: *the net production of ``source_product`` at time t-1
 contributes ``factor`` units to the balance of ``target_product`` at time t.*
 Formally it sets ``K[target_product, source_product] = factor`` in a
-product-by-product carry-over matrix; the demand balance at t becomes
+product-by-product carry-over matrix; the demand balance at t becomes ::
 
     A_i · s[t]  +  Σ_{i2} K[i, i2] · ( A_{i2} · s[t-1] )  ≥ / =  d[t, i].
 
@@ -55,8 +55,10 @@ import pyomo.environ as pyo
 from pyomo.core.expr.numeric_expr import LinearExpression
 
 from pulpo.utils import scaling as _scaling
+from pulpo.utils.converter import capacity_conflicts, warn_capacity_overridden, warn_finite_default_limits
 from pulpo.utils.optimizer import _group_env_cost_rows
 from pulpo.utils.utils import broadcast_over_time as _broadcast_over_time
+from pulpo.utils.utils import none_capacities, none_to_bound
 
 
 # ---------------------------------------------------------------------------
@@ -114,6 +116,9 @@ def combine_inputs_time(
             'lower_imp_bound'/'upper_imp_bound'/'upper_imp_agg_bound' (the
             goal is a soft limit, not a hard Var bound) unless also given an
             explicit upper_imp_limit/lower_imp_limit/upper_imp_agg_limit.
+            Finite 'lower_bound' / 'upper_bound' bound every activity and
+            raise a FutureWarning; default_limits may be deprecated in a
+            near-future release.
 
     Each of ``demand``, ``choices``, ``upper_limit``, ``lower_limit``,
     ``upper_inv_limit``, ``upper_imp_limit``, ``lower_inv_limit``,
@@ -123,6 +128,7 @@ def combine_inputs_time(
     if not time_steps:
         raise ValueError("`time_steps` must be a non-empty list.")
     time_steps = list(time_steps)
+    warn_finite_default_limits(default_limits, scale)
 
     # Unspecified limits must be truly infinite: huge finite defaults
     # (e.g. ±1e20) make HiGHS log "treated as ±Infinity" warnings for every
@@ -139,14 +145,20 @@ def combine_inputs_time(
             'upper_imp_agg_bound': float('inf'),
         }
 
+    # None means "no limit" in every capacity and limit dict (default_limits takes numbers).
+    inf = float('inf')
+
+    def per_step(limits, bound):
+        return {t: none_to_bound(d, bound) for t, d in _broadcast_over_time(limits, time_steps).items()}
+
     demand_t = _broadcast_over_time(demand, time_steps)
-    choices_t = _broadcast_over_time(choices, time_steps)
-    upper_limit_t = _broadcast_over_time(upper_limit, time_steps)
-    lower_limit_t = _broadcast_over_time(lower_limit, time_steps)
-    upper_inv_limit_t = _broadcast_over_time(upper_inv_limit, time_steps)
-    upper_imp_limit_t = _broadcast_over_time(upper_imp_limit, time_steps)
-    lower_inv_limit_t = _broadcast_over_time(lower_inv_limit, time_steps)
-    lower_imp_limit_t = _broadcast_over_time(lower_imp_limit, time_steps)
+    choices_t = {t: none_capacities(c) for t, c in _broadcast_over_time(choices, time_steps).items()}
+    upper_limit_t = per_step(upper_limit, inf)
+    lower_limit_t = per_step(lower_limit, -inf)
+    upper_inv_limit_t = per_step(upper_inv_limit, inf)
+    upper_imp_limit_t = per_step(upper_imp_limit, inf)
+    lower_inv_limit_t = per_step(lower_inv_limit, -inf)
+    lower_imp_limit_t = per_step(lower_imp_limit, -inf)
 
     matrices = lci_data['matrices']
     intervention_matrix = lci_data['intervention_matrix']
@@ -259,6 +271,7 @@ def combine_inputs_time(
 
     lower_limit_dict = {(t, p): default_limits['lower_bound'] for t in time_steps for p in PROCESS[None]}
     upper_limit_dict = {(t, p): default_limits['upper_bound'] for t in time_steps for p in PROCESS[None]}
+    conflicts = {}
     for t in time_steps:
         for choice_label, processes in choices_t[t].items():
             for proc, capacity in processes.items():
@@ -266,8 +279,12 @@ def combine_inputs_time(
                 upper_limit_dict[(t, process_map[proc])] = capacity
         for proc, value in lower_limit_t[t].items():
             lower_limit_dict[(t, process_map[proc])] = value
+        # An explicit upper_limit wins over a choice capacity.
         for proc, value in upper_limit_t[t].items():
             upper_limit_dict[(t, process_map[proc])] = value
+        for proc, capacity, limit in capacity_conflicts(choices_t[t], upper_limit_t[t], process_map):
+            conflicts.setdefault(process_map[proc], (proc, capacity, limit))
+    warn_capacity_overridden(list(conflicts.values()))
 
     if scale:
         # Only explicitly set bounds survive scaling as finite numbers; the
@@ -286,11 +303,12 @@ def combine_inputs_time(
     for t in time_steps:
         common = lower_limit_t[t].keys() & upper_limit_t[t].keys()
         for proc in common:
-            if lower_limit_t[t][proc] == upper_limit_t[t][proc]:
+            # Equal limits fix a supply, except equal limits of 0, which switch the
+            # process off (a supply of 0 would make its product free).
+            if lower_limit_t[t][proc] == upper_limit_t[t][proc] != 0:
                 prod_id = process_map[proc]
                 # Skip products that were rewired into a choice label;
-                # locking a single option to 0 does not mean the choice
-                # supply is fixed.
+                # locking a single option does not fix the choice's supply.
                 if prod_id in keys:
                     continue
                 supply_dict[(t, prod_id)] = 1
@@ -336,7 +354,7 @@ def combine_inputs_time(
         for imp, value in lower_imp_limit_t[t].items():
             lower_imp_limit_dict[(t, imp)] = value
 
-    upper_imp_agg_limit = upper_imp_agg_limit or {}
+    upper_imp_agg_limit = none_to_bound(upper_imp_agg_limit, inf)
     upper_imp_agg_limit_dict = {
         h: (float('inf') if h in imp_goals else default_limits['upper_imp_agg_bound'])
         for h in INDICATOR[None]
@@ -390,7 +408,7 @@ def instantiate_time(model_data, objective='weighted_sum'):
     """Build a concrete instance of the time-indexed model.
 
     With ``objective='goal'`` the model minimizes the average transgression
-    level of the *time-aggregated* impacts,
+    level of the *time-aggregated* impacts, ::
 
         (1/K) * sum_h max(0, sum_t impacts[t, h] / IMP_GOALS[h] - 1),
 
@@ -404,8 +422,7 @@ def instantiate_time(model_data, objective='weighted_sum'):
     as Pyomo Params, which makes instantiation several times faster on
     ecoinvent-scale data. This includes the environmental cost matrix: its
     dense dictionary is kept on the model as ``model._env_cost``, and code
-    that needs different coefficients (the chance-constrained formulation)
-    rebuilds the impact constraints via
+    that needs different coefficients rebuilds the impact constraints via
     :func:`pulpo.utils.optimizer.update_env_cost`. Only the per-timestep
     parameters that may be updated in place between solves remain
     mutable Params. Production capacities as well as intervention-flow and
@@ -500,11 +517,11 @@ def instantiate_time(model_data, objective='weighted_sum'):
     def demand_constraint(model, t, i):
         """Demand balance at time t for product i.
 
-        Within-step contribution from all producers/consumers of i:
+        Within-step contribution from all producers/consumers of i::
 
             tech_t = Σ_j A[i, j] · s[t, j]
 
-        Carry-over from t-1 (only for products that appear as a target in K):
+        Carry-over from t-1 (only for products that appear as a target in K)::
 
             prev_t = Σ_{i2 : (i, i2) ∈ K} K[i, i2] · Σ_j A[i2, j] · s[t-1, j]
 

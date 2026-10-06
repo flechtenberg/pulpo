@@ -2,6 +2,94 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.0] - 2026-10-06
+
+### Added
+* **Reduced-space solver backend** — `solve(formulation='reduced')`. Every scaling
+  vector that satisfies the balances is one fixed vector plus a combination of
+  the alternatives' outputs, so the LP can be solved over the alternatives
+  instead of over every process. The reformulation is exact, supports every
+  static constraint type and is much smaller and faster on large databases; the
+  solution is written back onto the instance, so results are read as before.
+  Solved with HiGHS (default) or Gurobi. The time-dependent model supports
+  `formulation='full'` only.
+* **macOS and Linux on ARM** — PULPO installs there without PARDISO, which needs
+  Intel's MKL. The reduced solves then use UMFPACK when `scikit-umfpack` is
+  installed from conda-forge, and SciPy's slower solver otherwise.
+* **One uncertainty method, solved in reduced space** — `pulpo.utils.uncertainty`.
+  As of now, uncertainty in the LCA data is considered only in the biosphere
+  flows and the characterization factors; technosphere exchanges are
+  deterministic. The parameters of an impact are imported with their declared distributions
+  (`import_declared`); parameters without one are deterministic and listed, not
+  filled in. Expert knowledge replaces distributions (`override`). The mean and
+  variance of the impact follow in closed form, shared characterization factors
+  included (`compute_moments`). `ChanceConstrained` minimizes the impact at a
+  joint reliability level over the impact and any uncertain capacities (Boole's
+  inequality, exact quantiles for the capacities) and sweeps the levels; each
+  level is a small second-order cone program over the alternatives, solved with
+  Clarabel (open source) or Gurobi. It reproduces PULPO 1.8.0's exact front.
+  `PulpoOptimizerUnc` offers these steps as worker methods.
+* **Analyses of a solved front** — exact Sobol' indices of the impact at a
+  decision (`decompose`), a screening of the parameters that declare no
+  uncertainty and the sensitivity of the standard deviation to their widths
+  (`screen_undeclared`, `width_sensitivity`), diagnostics per point
+  (`diagnostics`), and out-of-sample validation of every point on shared draws
+  (`validate`). The reduced system, the impact's projections onto it and a
+  vectorized sampler are public, for formulations of one's own. The uncertainty
+  notebook now runs on the bundled demo database with open-source solvers only.
+* **Examples** — four notebooks (showcase, rice, time-dependent, uncertainty), each
+  in `notebooks/` and in the documentation, run on bundled databases with
+  open-source solvers. The ecoinvent showcase notebooks are removed.
+
+### Defaults
+* `formulation='full'` and `instantiate(scale=False)` remain the defaults. Current
+  development considers `formulation='reduced'` and `scale=True` superior, and a
+  future release may switch the defaults.
+* Methods with weight 0 now appear in the results with their calculated impact.
+* Finite `default_limits['lower_bound']` / `['upper_bound']` raise a
+  `FutureWarning`: a bound on every activity has no physical meaning and makes
+  `formulation='reduced'` build a dense row per process. Set `lower_limit` /
+  `upper_limit` on the processes that have a real limit. `default_limits` may be
+  deprecated in a near-future release.
+* `None` means "no limit" in choice capacities and in the limit dicts (`upper_limit`,
+  `lower_limit` and the flow and impact limits), like `float('inf')`; `default_limits`
+  takes numbers. `solve(formulation='reduced')` warns about huge finite stand-ins
+  (e.g. a capacity of `1e10`); the examples and notebooks use `float('inf')`.
+* Loading LCI data without (complete) uncertainty data no longer warns;
+  `uncertainty.import_declared` says what is missing when it is needed.
+
+### Breaking changes
+The 1.x uncertainty API is replaced without a deprecation period.
+* `PulpoOptimizerUnc`: `import_and_filter_uncertainty_data` → `import_uncertainty_data`,
+  `apply_uncertainty_strategies` → `apply_expert_knowledge`, `create_SOC_formulation` → `moments`,
+  and `create_CC_formulation` / `solve_CC_problem` / `solve_SOC_problem` → `chance_constrained(...).solve(lambdas)`.
+* Removed: gap-filling strategies, the parameter filter, Monte Carlo re-optimization over the
+  uncertainty data (`run_mc_from_uncertainty`), the sampled sensitivity analysis (`run_gsa`), the
+  `L1` formulation, the cutting planes, `restore_deterministic_objective`, and the modules
+  `uncertainty.soc`, `uncertainty.gsa`, `uncertainty.monte_carlo` and `uncertainty.plots`
+  (`soc.SOCCoefficients` is now `uncertainty.Moments`). `PulpoOptimizer.solve_MC`, which
+  re-optimizes over Brightway's own resampling, is kept.
+* `compute_closed_form_moments` (now in `uncertainty.moments`, importable from `uncertainty`)
+  and `cc.apply_CC_formulation` take new arguments and return new results.
+* Unused 1.x helpers are gone: the data checks in `uncertainty.processor`,
+  `saver.compare_subsequent_paretosolutions` and `bw_parser.update_lci_data`.
+* A solve that does not end optimal (infeasible, unbounded, or stopped by a limit) raises
+  `optimizer.SolveError` and loads nothing, in both formulations and with every solver;
+  `ReducedSolveError` and `ChanceConstrainedError` are subclasses.
+* `PulpoOptimizer` (and its `Time`/`Unc` variants) no longer takes the unused `directory`
+  argument; `save_results` takes a relative or an absolute file path.
+* Equal lower and upper limits of 0 switch a process off; they no longer define a supply
+  of 0, whose slack made the process's product free.
+* In the static model an `upper_limit` overrides a choice capacity, with a warning when it
+  replaces a finite one; the capacity used to win silently. The time-dependent model
+  already did this.
+* `retrieve_envflows` matches names and categories exactly (a name used to match every flow
+  whose name it contains) and returns an empty list, with a warning, when nothing matches;
+  keys may be tuples.
+* The `uncertainty` extra is empty; `clarabel` and `stats_arrays` are core dependencies.
+* JupyterLab, IPython, `fs` and `openpyxl` are no longer installed with PULPO. The new
+  `notebooks` extra brings JupyterLab, matplotlib and seaborn for the example notebooks.
+
 ## [1.8.0] - 2026-09-19
 
 ### Added

@@ -1,10 +1,11 @@
 """
 monte_carlo.py (base)
 
-Monte Carlo functions that rely only on Brightway resampling. These are part of the
-core pulpo package and do NOT depend on the uncertainty sub-package (no SALib /
-seaborn / stats_arrays required).
+Monte Carlo re-optimization by Brightway resampling (``PulpoOptimizer.solve_MC``).
+Independent of the uncertainty sub-package.
 """
+
+import copy
 
 import numpy as np
 from joblib import Parallel, delayed
@@ -12,6 +13,7 @@ from tqdm import tqdm, trange
 
 from pulpo.utils import bw_parser
 from pulpo.utils.utils import reinstantiate_kwargs
+from pulpo.utils.warning import warn
 
 
 def pre_sample_lci_matrices(
@@ -28,11 +30,11 @@ def pre_sample_lci_matrices(
     Runs Brightway only once (thread-safe).
     Returns list of dicts with randomized A, B, Q matrices.
     """
-    np.random.seed(seed)
+    rng = np.random.default_rng(seed)   # local: the global NumPy generator stays untouched
     samples = []
 
     for i in trange(n_samples, desc="Sampling LCI matrices"):
-        seed_i = np.random.randint(0, 1_000_000)
+        seed_i = int(rng.integers(0, 1_000_000))
         lci_data_i = bw_parser.import_data(
             project=project,
             databases=databases,
@@ -69,19 +71,18 @@ def solve_model_MC_pre_sampled(
     print(f"Running {len(samples)} Monte Carlo optimizations in parallel (n_jobs={n_jobs})...")
 
     def _solve_single(i, sample):
+        # Each sample runs on a shallow copy, so the caller's worker keeps its data and
+        # instance: with n_jobs=1 joblib runs this in-process, on the very same object.
+        worker = copy.copy(pulpo_optimizer)
         try:
-            # Inject pre-sampled matrices
-            lci_data = pulpo_optimizer.lci_data.copy()
-            lci_data.update(sample)
-            pulpo_optimizer.lci_data = lci_data
-
-            pulpo_optimizer.instantiate(**reinstantiate_kwargs(pulpo_optimizer))
-            pulpo_optimizer.solve(
+            worker.lci_data = {**pulpo_optimizer.lci_data, **sample}   # the pre-sampled matrices
+            worker.instantiate(**reinstantiate_kwargs(worker))
+            worker.solve(
                 GAMS_PATH=GAMS_PATH,
                 solver_name=solver_name,
                 options=options,
             )
-            return pulpo_optimizer.extract_results()
+            return worker.extract_results()
         except Exception as e:
             return {"error": str(e)}
 
@@ -90,4 +91,8 @@ def solve_model_MC_pre_sampled(
         for i, sample in enumerate(tqdm(samples, desc="Monte Carlo solve"))
     )
 
+    failed = [i for i, res in enumerate(results) if 'error' in res]
+    if failed:
+        warn(f"{len(failed)} of {len(results)} Monte Carlo samples did not solve (e.g. sample "
+             f"{failed[0]}: {results[failed[0]]['error'][:200]}); their entries hold the error.")
     return {i: res for i, res in enumerate(results)}

@@ -1,6 +1,62 @@
-import scipy.sparse as sparse
+
+import numpy as np
 
 from pulpo.utils import scaling
+from pulpo.utils.utils import none_capacities, none_to_bound
+from pulpo.utils.warning import warn
+
+
+DEFAULT_LIMITS_NOTE = (
+    "Finite default_limits['lower_bound'] / ['upper_bound'] put a bound on every activity. "
+    "Such bounds have no physical meaning, and they make solve(formulation='reduced') build the "
+    "whole of S (one dense row per bounded process). Set lower_limit / upper_limit on the "
+    "processes that have a real limit instead. default_limits may be deprecated in a "
+    "near-future release.")
+
+
+def warn_finite_default_limits(default_limits, scale):
+    """One FutureWarning when ``default_limits`` bounds every activity.
+
+    With ``scale=True`` the same message says that those defaults are replaced
+    by +-inf (:func:`scaling.relax_default_bounds`), so the user gets one
+    warning, not two.
+    """
+    if default_limits is None:
+        return
+    if not (np.isfinite(default_limits['lower_bound']) or np.isfinite(default_limits['upper_bound'])):
+        return
+    message = DEFAULT_LIMITS_NOTE
+    if scale:
+        message += (" With scale=True these defaults are replaced by +-inf; only lower_limit / "
+                    "upper_limit and the choice capacities stay finite.")
+    warn(message, FutureWarning)
+
+
+def capacity_conflicts(choices, upper_limit, process_map):
+    """The alternatives with a finite choice capacity that an ``upper_limit``
+    replaces, as ``(activity, capacity, limit)``.
+
+    ``choices`` and ``upper_limit`` are already normalised (no ``None``, no lists).
+    """
+    capacities = {process_map[proc]: capacity
+                  for alternatives in choices.values() for proc, capacity in alternatives.items()}
+    conflicts = []
+    for proc, limit in upper_limit.items():
+        capacity = capacities.get(process_map[proc])
+        if capacity is not None and np.isfinite(capacity) and capacity != limit:
+            conflicts.append((proc, capacity, limit))
+    return conflicts
+
+
+def warn_capacity_overridden(conflicts):
+    """One UserWarning when an ``upper_limit`` replaces choice capacities."""
+    if not conflicts:
+        return
+    shown = '; '.join(f"{proc} (capacity {capacity:g}, upper_limit {limit:g})"
+                      for proc, capacity, limit in conflicts[:3])
+    more = f" and {len(conflicts) - 3} more" if len(conflicts) > 3 else ""
+    warn(f"{len(conflicts)} choice alternative(s) have both a capacity and an upper_limit; the "
+         f"upper_limit is used: {shown}{more}. Give each limit in one place to silence this warning.")
 
 
 def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, upper_inv_limit, upper_imp_limit, lower_inv_limit, lower_imp_limit, methods, dependent_constraints=None, default_limits=None, imp_goals=None, scale=False):
@@ -25,7 +81,10 @@ def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, upper_in
                                         'lower_inv_bound', 'lower_imp_bound', 'upper_imp_bound'. Categories
                                         listed in imp_goals ignore 'lower_imp_bound'/'upper_imp_bound' (the
                                         goal is a soft limit, not a hard Var bound) unless also given an
-                                        explicit lower_imp_limit/upper_imp_limit.
+                                        explicit lower_imp_limit/upper_imp_limit. Finite 'lower_bound' /
+                                        'upper_bound' bound every activity and raise a FutureWarning (see
+                                        :func:`warn_finite_default_limits`); default_limits may be
+                                        deprecated in a near-future release.
         imp_goals (dict, optional): Goal-programming soft limits {method_string: limit}. Only
                                     categories listed here receive a transgression slack.
         scale (bool, optional): Equilibrate the LP (row/column scaling of the technosphere,
@@ -53,6 +112,15 @@ def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, upper_in
             'upper_imp_bound': float('inf'),
         }
 
+    warn_finite_default_limits(default_limits, scale)
+
+    # None means "no limit" in every capacity and limit dict (default_limits takes numbers).
+    inf = float('inf')
+    choices = none_capacities(choices)
+    upper_limit, lower_limit = none_to_bound(upper_limit, inf), none_to_bound(lower_limit, -inf)
+    upper_inv_limit, lower_inv_limit = none_to_bound(upper_inv_limit, inf), none_to_bound(lower_inv_limit, -inf)
+    upper_imp_limit, lower_imp_limit = none_to_bound(upper_imp_limit, inf), none_to_bound(lower_imp_limit, -inf)
+
     # Load LCI data matrices and mappings
     matrices = lci_data['matrices']
     intervention_matrix = lci_data['intervention_matrix']
@@ -73,7 +141,8 @@ def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, upper_in
                               for j in range(technology_matrix.indptr[i - 1], technology_matrix.indptr[i])}
 
     # Convert sparse csr intervention flow matrix to dictionary
-    inv_to_consider = [intervention_map[g] for g in upper_inv_limit]
+    # Every flow with a limit, upper or lower (each once, in order).
+    inv_to_consider = list(dict.fromkeys(intervention_map[g] for g in [*upper_inv_limit, *lower_inv_limit]))
     inv_dict = {(g, intervention_matrix.indices[j]): intervention_matrix.data[j]
                 for g in inv_to_consider
                 for j in range(intervention_matrix.indptr[g], intervention_matrix.indptr[g + 1])}
@@ -126,12 +195,13 @@ def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, upper_in
 
     # Specify the upper limit
     upper_limit_dict = {proc: default_limits['upper_bound'] for proc in PROCESS[None]}
-    for proc in upper_limit:
-        upper_limit_dict[process_map[proc]] = upper_limit[proc]
     for choice in choices:
         for proc in choices[choice]:
-            if isinstance(choices[choice], dict):
-                upper_limit_dict[process_map[proc]] = choices[choice][proc]
+            upper_limit_dict[process_map[proc]] = choices[choice][proc]
+    # An explicit upper_limit wins over a choice capacity (as in the time-dependent model).
+    for proc in upper_limit:
+        upper_limit_dict[process_map[proc]] = upper_limit[proc]
+    warn_capacity_overridden(capacity_conflicts(choices, upper_limit, process_map))
 
     if scale:
         # Only explicitly set bounds survive scaling as finite numbers; the
@@ -140,15 +210,18 @@ def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, upper_in
         scaling.relax_default_bounds(
             lower_limit_dict, upper_limit_dict,
             explicit_lower={process_map[proc] for proc in lower_limit} | choice_procs,
-            explicit_upper={process_map[proc] for proc in upper_limit}
-                           | {process_map[proc] for choice in choices if isinstance(choices[choice], dict)
-                              for proc in choices[choice]},
+            explicit_upper={process_map[proc] for proc in upper_limit} | choice_procs,
         )
 
-    # Check if a supply has been specified
+    # A process with equal lower and upper limits is a supply: its output is fixed and the
+    # balance of its product gets a slack. Equal limits of 0 switch the process off instead
+    # (a supply of 0 would make its product free), and an alternative of a choice is no
+    # supply of the choice's product (as in the time-dependent model).
     supply_dict = {prod: 0 for prod in PRODUCTS[None]}
     for proc in list(lower_limit.keys() & upper_limit.keys()):
-        supply_dict[process_map[proc]] = 1 if lower_limit[proc] == upper_limit[proc] else 0
+        product = process_map[proc]
+        if lower_limit[proc] == upper_limit[proc] != 0 and product not in keys:
+            supply_dict[product] = 1
 
     # Specify the upper elementary flow limit
     upper_inv_limit_dict = {elem: default_limits['upper_inv_bound'] for elem in INV[None]}

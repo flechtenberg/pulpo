@@ -5,7 +5,7 @@ Time-dependent façade for PULPO. Users opt into the time-indexed formulation
 by writing::
 
     from pulpo import pulpo_time
-    worker = pulpo_time.PulpoOptimizerTime(project, db, method, directory)
+    worker = pulpo_time.PulpoOptimizerTime(project, db, method)
     worker.get_lci_data()
     worker.instantiate(
         choices=..., demand=..., upper_limit=...,
@@ -30,8 +30,8 @@ from pulpo.datasets.elec_time_database import setup_elec_time_db
 class PulpoOptimizerTime(PulpoOptimizer):
     """PulpoOptimizer + time-indexed formulation with optional storage carry-over."""
 
-    def __init__(self, project, database, method, directory):
-        super().__init__(project, database, method, directory)
+    def __init__(self, project, database, method):
+        super().__init__(project, database, method)
         self.time_steps: Optional[list] = None
         self.storage: list = []
         self.upper_imp_agg_limit: dict = {}
@@ -63,10 +63,26 @@ class PulpoOptimizerTime(PulpoOptimizer):
 
         Each of ``demand``, ``choices`` and the limit dicts may be supplied
         either as a static dict (broadcast across all timesteps) or as
-        ``{t: dict}``. ``dependent_constraints`` is not yet supported in the
+        ``{t: dict}``. A capacity or limit of ``None`` means no limit, as
+        ``float('inf')`` does; ``default_limits`` takes numbers. An
+        ``upper_limit`` on a choice alternative replaces its capacity, with a
+        warning. ``dependent_constraints`` is not yet supported in the
         time-dependent path.
 
         Args:
+            choices (dict, optional): ``{label: {activity: capacity}}`` or a list of
+                activities, as in the static model.
+            demand (dict, optional): ``{activity or choice label: amount}``.
+            upper_limit (dict, optional): Upper limits on the scaling of activities.
+            lower_limit (dict, optional): Lower limits on the scaling of activities.
+            upper_elem_limit (dict, optional): Upper limits on elementary flows, per timestep.
+            upper_imp_limit (dict, optional): Upper limits on the impacts, per timestep.
+            lower_elem_limit (dict, optional): Lower limits on elementary flows, per timestep.
+            lower_imp_limit (dict, optional): Lower limits on the impacts, per timestep.
+            dependent_constraints (dict, optional): Only for the static model; with
+                ``time_steps`` they raise a NotImplementedError.
+            time_steps (list, optional): The timesteps. Without them, the static model
+                is built.
             default_limits (dict, optional): Custom default limits. If None, uses
                 standard values. Required keys: 'lower_bound', 'upper_bound',
                 'upper_inv_bound', 'lower_inv_bound', 'lower_imp_bound',
@@ -76,6 +92,10 @@ class PulpoOptimizerTime(PulpoOptimizer):
                 ``imp_goals`` ignore the impact-bound defaults (the goal is a
                 soft limit, not a hard Var bound) unless also given an
                 explicit upper_imp_limit/lower_imp_limit/upper_imp_agg_limit.
+                Finite 'lower_bound' / 'upper_bound' bound every activity and
+                raise a FutureWarning (see
+                :meth:`pulpo.pulpo.PulpoOptimizer.instantiate`);
+                default_limits may be deprecated in a near-future release.
             storage (list, optional): Carry-over specification. List of triples
                 ``(stored_product, producing_activity, factor)`` so that
                 charging at *t-1* contributes ``factor * scaling[t-1]`` units
@@ -96,7 +116,10 @@ class PulpoOptimizerTime(PulpoOptimizer):
                 factors are shared by all timesteps.
         """
         if time_steps is None:
-            return super().instantiate(
+            if storage or upper_imp_agg_limit:
+                raise ValueError("storage and upper_imp_agg_limit need time_steps; without them "
+                                 "the static model is built.")
+            result = super().instantiate(
                 choices=choices, demand=demand,
                 upper_limit=upper_limit, lower_limit=lower_limit,
                 upper_elem_limit=upper_elem_limit, upper_imp_limit=upper_imp_limit,
@@ -105,6 +128,9 @@ class PulpoOptimizerTime(PulpoOptimizer):
                 default_limits=default_limits,
                 imp_goals=imp_goals, objective=objective, scale=scale,
             )
+            # The instance is static now: forget the settings of an earlier time-dependent one.
+            self.time_steps, self.storage, self.upper_imp_agg_limit = None, [], {}
+            return result
 
         choices = choices or {}
         demand = demand or {}
@@ -166,19 +192,27 @@ class PulpoOptimizerTime(PulpoOptimizer):
         self.objective = objective
         self.scale = scale
 
-    def solve(self, GAMS_PATH=False, solver_name=None, options=None, neos_email=None):
+    def solve(self, GAMS_PATH=False, solver_name=None, options=None, neos_email=None, formulation='full'):
         """
         Solve the model. Mirrors ``PulpoOptimizer.solve()``'s post-processing
         (auxiliary zero-weight methods, elementary flows), generalized to the
         per-timestep variable layout so that ``extract_results()``/
         ``save_results()``/``summarize_results()`` work unchanged on a
-        time-indexed instance.
+        time-indexed instance. ``formulation='reduced'`` is available for the
+        static fallback only (``time_steps`` omitted).
         """
         if self.time_steps is None:
             return super().solve(
                 GAMS_PATH=GAMS_PATH, solver_name=solver_name,
-                options=options, neos_email=neos_email,
+                options=options, neos_email=neos_email, formulation=formulation,
             )
+        if formulation == 'reduced':
+            raise NotImplementedError(
+                "formulation='reduced' supports static models only; the time-dependent "
+                "model couples timesteps through storage and is solved with formulation='full'."
+            )
+        if formulation != 'full':
+            raise ValueError(f"Unknown formulation {formulation!r}; use 'full' or 'reduced'.")
 
         from pulpo.utils import optimizer
         results, self.instance = optimizer.solve_model(

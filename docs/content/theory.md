@@ -42,7 +42,7 @@ Here:
 - $As = f$: System constraints, where $A$ is the technology matrix, $f$ is the demand vector, and $s$ represents activity scaling.
 - $s \geq 0$: Non-negativity constraint ensuring scaling variables remain realistic.
 
-The matrices $A$, $B$, and $Q$ are derived from the LCA database, while the user specifies the demand vector $y$. The optimization identifies the scaling vector $s$ that minimizes the objective function while satisfying the constraints. 
+The matrices $A$, $B$, and $Q$ are derived from the LCA database, while the user specifies the demand vector $f$. The optimization identifies the scaling vector $s$ that minimizes the objective function while satisfying the constraints. 
 
 When $A$ is square and invertible, the system constraints yield a unique solution, equivalent to a standard LCA with no degrees of freedom. Optimization is applied when $A$ is not square—i.e., there are more activities than products—introducing degrees of freedom. The user defines these degrees of freedom by converting the original square $A$ matrix into a rectangular matrix $A^*$, which is created in PULPO using a top-down approach, as shown below.
 
@@ -107,7 +107,7 @@ $$
 
 The calculation of the indicators $z_h$ has been shifted from the objective function to an equality constraint. The current objective function uses a set of weighting parameters $w_h$, allowing users to emphasize different indicators—individually or simultaneously—depending on the analysis goals.
 
-An important addition to the base TCM formulation is the inclusion of slack variables. These variables relax the demand constraint, which is particularly useful when supply is specified instead of demand. This would have saved the solution of an auxiliar problem in [this study](https://www.science.org/doi/10.1126/science.abg9853), and has been used in the [paper introducing PULPO](https://onlinelibrary.wiley.com/doi/full/10.1111/jiec.13561).
+An important addition to the base TCM formulation is the inclusion of slack variables. These variables relax the demand constraint, which is particularly useful when supply is specified instead of demand. This would have saved the solution of an auxiliar problem in [this study](https://www.science.org/doi/10.1126/science.abg9853), and has been used in the [paper introducing PULPO](https://onlinelibrary.wiley.com/doi/full/10.1111/jiec.13561). A supply is specified by giving a process equal lower and upper limits; equal limits of 0 switch the process off instead of specifying a supply of 0, which would make its product free.
 
 Additional additions include the specification of various constraints:
 - $z_h^{\text{high}}$: Upper bounds for impact indicators.
@@ -115,7 +115,7 @@ Additional additions include the specification of various constraints:
 - $s_j^{\text{low}}$ and $s_j^{\text{high}}$: Lower and upper bounds for technosphere / activity scaling variables.
 
 ```{note}
-This nomenclature will be expanded in the future to support additional functionalities, such as the integration of chance constraints, multi-objective optimization, and more.
+The chance-constrained formulation under uncertainty, with its own notation, is described on the [uncertainty page](uncertainty.md).
 ```
 
 

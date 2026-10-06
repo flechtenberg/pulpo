@@ -1,162 +1,845 @@
-"""Tests for PULPO's uncertainty features.
+"""Tests for the uncertainty module.
 
-Systematic version of ``notebooks/uncertainty_toy.ipynb``, exercising the
-curated ``pulpo_unc`` pipeline on the methanol + ozone sample system:
+- the import of declared parameters (``preparer``), and expert overrides;
+- the closed-form moments of each family and of the impact, against Monte
+  Carlo (within four standard errors) and against PULPO 1.8.0's coefficients;
+- the risk budget and the exact bound quantiles (against SciPy, 1e-12);
+- the chance-constrained problem in reduced space, against PULPO 1.8.0's
+  reference front, an independent full-space cone, an analytic optimum on an
+  ill-conditioned facility system, and across solvers, scaling and the two
+  ways of factoring the variance;
+- the bw25 extraction of uncertainty parameters in ``bw_parser.import_data``.
 
-1. deterministic reference solve,
-2. ``import_and_filter_uncertainty_data`` (impact cutoff filtering),
-3. ``apply_uncertainty_strategies`` (triangular gap filling),
-4. ``run_mc_from_uncertainty`` (Monte Carlo on the curated distributions),
-5. ``create_CC_formulation`` + ``solve_CC_problem`` (chance constraints),
-6. ``run_gsa`` (Sobol global sensitivity analysis).
-
-The module also contains the bw25-only checks of the uncertainty-parameter
-extraction in ``bw_parser.import_data`` (formerly test_bw25_uncertainty.py).
-
-Requires the ``uncertainty`` extra (``pip install "pulpo-dev[uncertainty]"``);
-the workflow classes skip themselves when those packages are missing.
+Reference values of PULPO 1.8.0 (tag v1.8.0) come from its own exact
+chance-constrained pipeline on the SOC demo database: no parameter filter,
+undeclared parameters deterministic, closed-form moments, a Bonferroni budget
+with exact quantiles for the uncertain cap, and cutting planes to a relative
+gap of 1e-11.
 """
 
+import copy
+import io
+import contextlib
+import types
 import unittest
 import warnings
 
 import numpy as np
+import pandas as pd
+import pyomo.environ as pyo
+import scipy.sparse as sp
+import scipy.stats
+import stats_arrays
 import bw2data as bd
 
-from pulpo.utils import bw_parser
+from pulpo import pulpo, pulpo_unc
+from pulpo.utils import bw_parser, converter, optimizer, reduced, scaling
+from pulpo.utils import uncertainty as unc
+from pulpo.utils.uncertainty import cc, moments as moments_module, processor
 from pulpo.utils.utils import is_bw25
 from pulpo.datasets.sample_database import setup_sample_db
+from pulpo.datasets.soc_demo_database import setup_soc_demo_db, METHOD_KEY
 
-try:
-    import pandas as pd
-    import scipy.sparse
-    import scipy.stats
-    import stats_arrays
-    from pulpo import pulpo_unc
-    from pulpo.utils.uncertainty import cc, gsa, processor
-    from pulpo.utils.uncertainty.processor import TriangluarBaseStrategy, DeterministicGapFillStrategy
-    from pulpo.datasets.soc_demo_database import setup_soc_demo_db
-    from SALib.sample import sobol as sobol_sample
-    from SALib.analyze import sobol as sobol_analyze
-    UNCERTAINTY_DEPS = True
-    UNCERTAINTY_SKIP_REASON = ""
-except ImportError as _err:  # pragma: no cover - depends on installed extras
-    UNCERTAINTY_DEPS = False
-    UNCERTAINTY_SKIP_REASON = (
-        f"uncertainty extras not installed ({_err}); "
-        'install with pip install "pulpo-dev[uncertainty]"'
-    )
-
-setup_sample_db()
-if UNCERTAINTY_DEPS:
+with contextlib.redirect_stdout(io.StringIO()):
+    setup_sample_db()
     setup_soc_demo_db()
 
 PROJECT = "sample_project_bw25" if is_bw25() else "sample_project"
 DATABASES = ["background_db", "foreground_db"]
 CLIMATE_KEY = "('my project', 'climate change')"
-METHODS = {CLIMATE_KEY: 1}
+SOC_PROJECT = "soc_demo_project_bw25" if is_bw25() else "soc_demo_project"
+SOC_DBS = ['soc_demo_background_db', 'soc_demo_foreground_db']
+SOC_METHOD = str(METHOD_KEY)
 
-# Optimal climate-change impact of the deterministic methanol + ozone system;
-# identical on both Brightway stacks.
-DETERMINISTIC_IMPACT = 1.760427
+#: The uncertain electrolysis capacity of the reference runs.
+TRI_CAP = {'uncertainty_type': 5, 'minimum': 0.005, 'loc': 0.03, 'maximum': 0.035}
+
+#: PULPO 1.8.0 on the SOC demo: lambda -> (adjusted impact, electrolysis activity).
+V18_FREE = {0.5: (1.865886926931, 0.178000003099), 0.7: (2.266162388164, 0.066156919274),
+            0.9: (2.498129644517, 0.028422647633), 0.95: (2.600239384625, 0.024531214375),
+            0.99: (2.788914638782, 0.020714075925)}
+V18_CAP = {0.5: (2.336715722843, 0.018693063938), 0.7: (2.439943323446, 0.015606601718),
+           0.9: (2.612847472715, 0.011123724357), 0.95: (2.702274329489, 0.009330127019),
+           0.99: (2.876249701522, 0.006936491673)}
+#: PULPO 1.8.0's moment coefficients (mu_j, d_j) by process, and w of the methane CF.
+V18_MU_D = {'natural gas extraction': (0.2373365139441714, 0.003363260101492242),
+            'electricity supply': (0.1699722655725929, 0.008205656484765336),
+            'hydrogen SMR': (9.759025373346807, 2.1008190540748135),
+            'N2 air separation': (0.0, 0.0), 'hydrogen electrolysis': (0.0, 0.0),
+            'ammonia synthesis': (0.26570000327774324, 0.00894347998195326)}
+V18_W_METHANE = 8.954250039306524
 
 
-def build_solved_worker(scale: bool = False):
-    """Set up and solve the methanol + ozone system from the toy notebook.
+def quiet(function, *args, **kwargs):
+    with contextlib.redirect_stdout(io.StringIO()):
+        return function(*args, **kwargs)
 
-    ``scale=True`` builds the equilibrated instance (``instantiate(scale=True)``).
-    """
-    worker = pulpo_unc.PulpoOptimizerUnc(PROJECT, DATABASES, METHODS, "")
-    worker.get_lci_data()
 
-    methanol = worker.retrieve_processes(reference_products="methanol")
-    ozone = worker.retrieve_processes(reference_products="ozone")
-    electricity = worker.retrieve_processes(
-        processes=["wind electricity", "natural gas electricity"])
-    hydrogen = worker.retrieve_processes(
-        processes=["hydrogen SMR", "hydrogen electrolysis"])
-    oxygen = worker.retrieve_processes(processes=["O2-market", "O2 ASU"])
-    oxygen_byproduct = worker.retrieve_processes(processes=["O2-byproduct"])
-
-    demand = {methanol[0]: 1, ozone[0]: 2}
-    choices = {
-        "Electricity": {electricity[0]: 1e10, electricity[1]: 1e10},
-        "Hydrogen": {hydrogen[0]: 1e10, hydrogen[1]: 1e10},
-        "Oxygen": {oxygen[0]: 1e10, oxygen[1]: 1e10},
-    }
-    lower_limit = {oxygen_byproduct[0]: 0}
-
-    worker.instantiate(choices=choices, demand=demand, lower_limit=lower_limit,
-                       scale=scale)
-    worker.solve()
+def soc_worker(electrolysis_cap=float('inf'), scale=False, worker_class=pulpo.PulpoOptimizer, **kwargs):
+    worker = worker_class(SOC_PROJECT, SOC_DBS, {SOC_METHOD: 1})
+    quiet(worker.get_lci_data)
+    get = worker.retrieve_processes
+    worker.ammonia = get(processes=['ammonia synthesis'])[0]
+    worker.smr = get(processes=['hydrogen SMR'])[0]
+    worker.elyz = get(processes=['hydrogen electrolysis'])[0]
+    choices = {'hydrogen': {worker.smr: float('inf'), worker.elyz: electrolysis_cap}}
+    quiet(worker.instantiate, choices=choices, demand={worker.ammonia: 1}, scale=scale, **kwargs)
     return worker
 
 
-def default_strategies(worker):
-    """Explicit gap-filling strategies as used in the toy notebook:
-    +-10% triangular for intervention flows, +-5% for characterization factors.
+def index(worker, activity):
+    return worker.lci_data['process_map'][activity.key]
+
+
+# ---------------------------------------------------------------------------
+# full-space reference cone, written independently of the reduced code
+# ---------------------------------------------------------------------------
+
+def full_space_front(worker, mom, lambdas, cap_spec=None, K=1):
+    """min mu's + kappa ||G s|| over the merged balances and the bounds, in full space."""
+    import clarabel
+    A = sp.csr_matrix(worker.lci_data['technology_matrix']).toarray()
+    n = A.shape[0]
+    alts = [index(worker, worker.smr), index(worker, worker.elyz)]
+    keep = [i for i in range(n) if i not in alts]
+    A_m = np.vstack([A[keep], A[alts].sum(axis=0)])
+    f = np.zeros(n)
+    f[index(worker, worker.ammonia)] = 1.0
+    f_m = np.append(f[keep], 0.0)
+    G = np.vstack([np.diag(np.sqrt(mom.d)), np.sqrt(mom.w)[:, None] * mom.B_unc.toarray()])
+    out = {}
+    for lam in lambdas:
+        budget = cc.bonferroni_budget(lam, K)
+        kappa = scipy.stats.norm.ppf(budget.lambda_impact)
+        rows, rhs = [-np.eye(n)[alts]], [np.zeros(2)]
+        if cap_spec is not None:
+            cap = cc.declared_quantile(cap_spec, budget.epsilon_at(1))
+            rows.append(np.eye(n)[[alts[1]]])
+            rhs.append([cap])
+        A_le = np.vstack(rows)
+        Acone = np.vstack([np.append(np.zeros(n), -1.0), np.hstack([-G, np.zeros((G.shape[0], 1))])])
+        A_all = sp.csc_matrix(np.vstack([np.hstack([A_m, np.zeros((A_m.shape[0], 1))]),
+                                         np.hstack([A_le, np.zeros((A_le.shape[0], 1))]), Acone]))
+        b_all = np.concatenate([f_m, np.concatenate(rhs), np.zeros(1 + G.shape[0])])
+        settings = clarabel.DefaultSettings()
+        settings.verbose = False
+        settings.tol_gap_abs = settings.tol_gap_rel = settings.tol_feas = 1e-11
+        sol = clarabel.DefaultSolver(sp.csc_matrix((n + 1, n + 1)), np.append(mom.mu, kappa), A_all, b_all,
+                                     [clarabel.ZeroConeT(A_m.shape[0]), clarabel.NonnegativeConeT(A_le.shape[0]),
+                                      clarabel.SecondOrderConeT(1 + G.shape[0])], settings).solve()
+        s = np.asarray(sol.x[:n])
+        out[lam] = (mom.mean(s) + kappa * mom.std(s), s)
+    return out
+
+
+# ---------------------------------------------------------------------------
+# import
+# ---------------------------------------------------------------------------
+
+class TestImport(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        cls.worker = soc_worker()
+        cls.data = unc.import_declared(cls.worker)
+
+    def test_structure_and_families(self):
+        self.assertEqual(set(self.data['If']), set(SOC_DBS))
+        self.assertEqual(list(self.data['Cf']), [SOC_METHOD])
+        families = {int(spec['uncertainty_type']) for group in self.data.values()
+                    for block in group.values() for spec in block['declared'].values()}
+        self.assertTrue({2, 3, 4, 5} <= families)
+        cf = self.data['Cf'][SOC_METHOD]
+        co2, n2o = 0, 2
+        self.assertEqual(cf['declared'][co2]['uncertainty_type'], 3)      # exact: N(1, 0)
+        self.assertEqual(cf['declared'][co2]['scale'], 0.0)
+        self.assertIn(n2o, cf['undeclared'])
+
+    def test_every_characterized_entry_is_a_parameter(self):
+        """No filter: the parameters are exactly the nonzero, characterized entries of B."""
+        B = sp.coo_matrix(self.worker.lci_data['intervention_matrix'])
+        q = self.worker.lci_data['matrices'][SOC_METHOD].diagonal()
+        characterized = {e for e in range(B.shape[0])}            # all three flows carry a CF here
+        self.assertTrue(all(q[e] != 0 for e in characterized))
+        expected = {(int(e), int(j)) for e, j, v in zip(B.row, B.col, B.data) if v != 0 and e in characterized}
+        imported = {idx for block in self.data['If'].values()
+                    for status in ('declared', 'undeclared') for idx in block[status]}
+        self.assertEqual(imported, expected)
+
+    def test_counts_and_undeclared(self):
+        rows = unc.counts(self.data)
+        total = sum(r['n'] for r in rows)
+        n = sum(len(b[s]) for g in self.data.values() for b in g.values() for s in ('declared', 'undeclared'))
+        self.assertEqual(total, n)
+        und = unc.undeclared(self.data)
+        self.assertIn(2, und['Cf'][SOC_METHOD])
+
+    def test_one_method_only(self):
+        worker = pulpo.PulpoOptimizer(PROJECT, DATABASES, {CLIMATE_KEY: 1, "('my project', 'air quality')": 1})
+        quiet(worker.get_lci_data)
+        with self.assertRaises(ValueError):
+            unc.import_declared(worker)
+
+    def test_override(self):
+        data = copy.deepcopy(self.data)
+        n2o = 2
+        amount = data['Cf'][SOC_METHOD]['undeclared'][n2o]['amount']
+        unc.override(data, 'Cf', SOC_METHOD, {n2o: {'uncertainty_type': 4, 'minimum': 200.0, 'maximum': 350.0}})
+        spec = data['Cf'][SOC_METHOD]['declared'][n2o]
+        self.assertNotIn(n2o, data['Cf'][SOC_METHOD]['undeclared'])
+        self.assertEqual(spec['amount'], amount)                      # the deterministic value stays
+        with self.assertRaises(KeyError):
+            unc.override(data, 'Cf', SOC_METHOD, {99: {'uncertainty_type': 3, 'loc': 1.0, 'scale': 0.1}})
+        with self.assertRaises(ValueError):                            # mode outside the support
+            unc.override(data, 'Cf', SOC_METHOD, {n2o: {'uncertainty_type': 5, 'minimum': 1.0,
+                                                        'loc': 5.0, 'maximum': 2.0}})
+        with self.assertRaises(NotImplementedError):                   # Weibull: no closed form here
+            unc.override(data, 'Cf', SOC_METHOD, {n2o: {'uncertainty_type': 8, 'loc': 1.0, 'scale': 1.0}})
+        unc.override(data, 'Cf', SOC_METHOD, {n2o: {'uncertainty_type': 0}})
+        self.assertIn(n2o, data['Cf'][SOC_METHOD]['undeclared'])
+        # An unknown database, method or group names what the data holds.
+        spec = {n2o: {'uncertainty_type': 0}}
+        with self.assertRaisesRegex(KeyError, "'my_foreground_db' is not a subgroup of 'If'.*soc_demo_foreground_db"):
+            unc.override(data, 'If', 'my_foreground_db', spec)
+        with self.assertRaisesRegex(KeyError, "name the method of the data"):
+            unc.override(data, 'Cf', 'another method', spec)
+        with self.assertRaisesRegex(KeyError, "group must be 'If'"):
+            unc.override(data, 'If_', 'soc_demo_foreground_db', spec)
+
+    def test_shared_entries_are_refused(self):
+        """Two exchanges on one entry of B have no single declared distribution."""
+        lci = dict(self.worker.lci_data)
+        params = lci['intervention_params']
+        lci['intervention_params'] = np.concatenate([params, params[:1]])
+        fake = types.SimpleNamespace(lci_data=lci, database=SOC_DBS, method={SOC_METHOD: 1})
+        with self.assertRaises(NotImplementedError):
+            unc.import_declared(fake)
+
+
+# ---------------------------------------------------------------------------
+# moments
+# ---------------------------------------------------------------------------
+
+class TestSpecMoments(unittest.TestCase):
+    """Closed-form mean and variance of each family against Monte Carlo."""
+
+    N = 400_000
+
+    def assert_matches(self, spec, draws):
+        mean, var = unc.spec_moments(spec)
+        se_mean = draws.std() / np.sqrt(len(draws))
+        centred = draws - draws.mean()
+        se_var = np.sqrt(((centred ** 2 - centred.var()) ** 2).mean() / len(draws))
+        self.assertLess(abs(mean - draws.mean()), 4 * se_mean, f"mean of {spec}")
+        self.assertLess(abs(var - draws.var()), 4 * se_var, f"variance of {spec}")
+
+    def test_families_against_monte_carlo(self):
+        rng = np.random.default_rng(20261001)
+        cases = [
+            ({'uncertainty_type': 2, 'loc': np.log(0.15), 'scale': 0.5, 'amount': 0.15},
+             rng.lognormal(np.log(0.15), 0.5, self.N)),
+            ({'uncertainty_type': 2, 'loc': np.log(2.0), 'scale': 0.3, 'amount': -2.0, 'negative': True},
+             -rng.lognormal(np.log(2.0), 0.3, self.N)),
+            ({'uncertainty_type': 3, 'loc': -1.5, 'scale': 0.4, 'amount': -1.5},
+             rng.normal(-1.5, 0.4, self.N)),
+            ({'uncertainty_type': 5, 'minimum': 0.1, 'loc': 1.0, 'maximum': 1.1, 'amount': 1.0},
+             rng.triangular(0.1, 1.0, 1.1, self.N)),
+            ({'uncertainty_type': 4, 'minimum': 2.0, 'maximum': 6.0, 'amount': 4.0},
+             rng.uniform(2.0, 6.0, self.N)),
+        ]
+        for spec, draws in cases:
+            with self.subTest(family=spec['uncertainty_type'], negative=spec.get('negative', False)):
+                self.assert_matches(spec, draws)
+
+    def test_exact_and_undeclared(self):
+        self.assertEqual(unc.spec_moments({'uncertainty_type': 0, 'amount': 3.0}), (3.0, 0.0))
+        self.assertEqual(unc.spec_moments({'uncertainty_type': 1, 'amount': -2.0}), (-2.0, 0.0))
+
+    def test_unsupported_family_raises(self):
+        with self.assertRaises(NotImplementedError):
+            unc.spec_moments({'uncertainty_type': 6, 'amount': 1.0, 'loc': 1.0, 'scale': 1.0, 'shape': 2.0})
+
+
+class TestImpactMoments(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        cls.worker = soc_worker()
+        cls.data = unc.import_declared(cls.worker)
+        cls.mom = unc.compute_moments(cls.data, cls.worker)
+
+    def test_coefficients_match_pulpo_1_8(self):
+        names = {j: key[1] for key, j in self.worker.lci_data['process_map'].items()}
+        for j, name in names.items():
+            with self.subTest(process=name):
+                self.assertAlmostEqual(self.mom.mu[j], V18_MU_D[name][0], places=13)
+                self.assertAlmostEqual(self.mom.d[j], V18_MU_D[name][1], places=13)
+        self.assertEqual(list(self.mom.cf_rows), [1])
+        self.assertAlmostEqual(self.mom.w[0], V18_W_METHANE, places=12)
+
+    def test_mean_and_variance_of_X_against_monte_carlo(self):
+        """X(s) sampled parameter by parameter. The methane CF is widened and s
+        weights the methane-emitting processes, so that the CF term w_e y_e^2 is
+        a sizeable part of Var X and the test can tell the variance from the
+        variance without it."""
+        data = copy.deepcopy(self.data)
+        unc.override(data, 'Cf', SOC_METHOD, {1: {'uncertainty_type': 3, 'loc': 29.7, 'scale': 15.0}})
+        mom = unc.compute_moments(data, self.worker)
+        names = {key[1]: j for key, j in self.worker.lci_data['process_map'].items()}
+        s = np.zeros(mom.mu.size)
+        s[names['natural gas extraction']], s[names['hydrogen SMR']] = 3.0, 0.5
+        rng = np.random.default_rng(7)
+        N = 400_000
+        B = sp.csr_matrix(self.worker.lci_data['intervention_matrix']).toarray()
+        q = np.asarray(self.worker.lci_data['matrices'][SOC_METHOD].diagonal(), dtype=float)
+
+        def draw(spec):
+            t = int(spec['uncertainty_type'])
+            if t == 2:
+                x = rng.lognormal(spec['loc'], spec['scale'], N)
+                return -x if spec.get('negative') else x
+            if t == 3:
+                return rng.normal(spec['loc'], spec['scale'], N) if spec['scale'] > 0 else np.full(N, spec['loc'])
+            if t == 4:
+                return rng.uniform(spec['minimum'], spec['maximum'], N)
+            if t == 5:
+                return rng.triangular(spec['minimum'], spec['loc'], spec['maximum'], N)
+            return np.full(N, spec['amount'])
+
+        g = {e: np.full(N, B[e] @ s) for e in range(B.shape[0])}
+        for block in data['If'].values():
+            for (e, j), spec in block['declared'].items():
+                g[e] += (draw(spec) - B[e, j]) * s[j]
+        X = np.zeros(N)
+        for e in range(B.shape[0]):
+            spec = data['Cf'][SOC_METHOD]['declared'].get(e) or data['Cf'][SOC_METHOD]['undeclared'].get(e)
+            X += (draw(spec) if spec is not None else q[e]) * g[e]
+        se_mean = X.std() / np.sqrt(N)
+        c = X - X.mean()
+        se_var = np.sqrt(((c ** 2 - c.var()) ** 2).mean() / N)
+        self.assertLess(abs(mom.mean(s) - X.mean()), 4 * se_mean)
+        self.assertLess(abs(mom.variance(s) - X.var()), 4 * se_var)
+        # Power: without the CF term w_e y_e^2 the variance is rejected.
+        self.assertGreater(abs(float(mom.d @ s ** 2) - X.var()), 10 * se_var)
+
+    def test_independent_std_drops_the_shared_factor_covariance(self):
+        s = np.ones(self.mom.mu.size)
+        var_c = self.mom.d + self.mom.q_var @ self.mom.B_mean.multiply(self.mom.B_mean).toarray()
+        self.assertAlmostEqual(self.mom.std_independent(s), np.sqrt(var_c @ s ** 2), places=12)
+        no_cf = copy.copy(self.mom)
+        no_cf.w, no_cf.cf_rows = np.zeros(0), np.zeros(0, dtype=int)
+        no_cf.q_var = np.zeros_like(self.mom.q_var)
+        self.assertAlmostEqual(no_cf.std(s), no_cf.std_independent(s), places=12)
+
+    def test_summary(self):
+        self.assertEqual(self.mom.summary(), {'processes': 6, 'processes_with_variance': 4, 'uncertain_cfs': 1})
+
+    def test_moments_at_a_solved_instance(self):
+        quiet(self.worker.solve, formulation='reduced')
+        s = unc.current_scaling_vector(self.worker.instance)
+        j = index(self.worker, self.worker.ammonia)
+        self.assertAlmostEqual(s[j], 1.0, places=12)
+        self.assertAlmostEqual(self.mom.mean(s), float(self.mom.mu @ s), places=12)
+
+    def test_closed_form_table(self):
+        table = unc.compute_closed_form_moments(self.data)
+        n = sum(len(b[st]) for g in self.data.values() for b in g.values() for st in ('declared', 'undeclared'))
+        self.assertEqual(sum(len(b) for g in table.values() for b in g.values()), n)
+
+
+# ---------------------------------------------------------------------------
+# risk budget and quantiles
+# ---------------------------------------------------------------------------
+
+class TestRiskBudget(unittest.TestCase):
+
+    def test_equal_split_is_the_default(self):
+        budget = cc.bonferroni_budget(0.95, 4)
+        self.assertEqual(budget.weights, (0.25, 0.25, 0.25, 0.25))
+        self.assertAlmostEqual(budget.epsilon, 0.05, places=15)
+        self.assertAlmostEqual(budget.epsilon_at(1), 0.0125, places=15)
+        self.assertAlmostEqual(budget.lambda_impact, 0.9875, places=15)
+
+    def test_single_event_reproduces_the_individual_level(self):
+        budget = cc.bonferroni_budget(0.95, 1)
+        self.assertAlmostEqual(budget.lambda_impact, 0.95, places=15)
+
+    def test_validation(self):
+        with self.assertRaises(ValueError):
+            cc.bonferroni_budget(0.95, 4, weights=(0.25, 0.25, 0.25, 0.30))
+        with self.assertRaises(ValueError):
+            cc.bonferroni_budget(0.95, 4, weights=(0.5, 0.5))
+        with self.assertRaises(ValueError):
+            cc.bonferroni_budget(0.95, 3, weights=(1.5, -0.25, -0.25))
+        for bad in (-0.1, 1.0, 1.5):
+            with self.assertRaises(ValueError):
+                cc.bonferroni_budget(bad, 4)
+        budget = cc.bonferroni_budget(0.95, 4, weights=(0.7, 0.1, 0.1, 0.1))
+        self.assertAlmostEqual(budget.lambda_impact, 0.965, places=15)
+
+
+class TestDeclaredQuantile(unittest.TestCase):
+
+    def test_triangular_against_scipy(self):
+        a, c, b = 0.1, 1.0, 1.1
+        spec = {'uncertainty_type': 5, 'minimum': a, 'loc': c, 'maximum': b}
+        dist = scipy.stats.triang((c - a) / (b - a), loc=a, scale=b - a)
+        for p in (0.0, 1e-9, 0.001, 0.0125, 0.125, 0.5, 0.9, 0.95, 0.999, 1.0):
+            self.assertAlmostEqual(cc.declared_quantile(spec, p), dist.ppf(p), delta=1e-12)
+
+    def test_other_families_against_scipy(self):
+        cases = [({'uncertainty_type': 3, 'loc': 5.0, 'scale': 2.0}, scipy.stats.norm(5.0, 2.0)),
+                 ({'uncertainty_type': 4, 'minimum': 2.0, 'maximum': 6.0}, scipy.stats.uniform(2.0, 4.0)),
+                 ({'uncertainty_type': 2, 'loc': 0.3, 'scale': 0.5}, scipy.stats.lognorm(0.5, scale=np.exp(0.3)))]
+        for spec, dist in cases:
+            for p in (0.01, 0.25, 0.5, 0.9):
+                self.assertAlmostEqual(cc.declared_quantile(spec, p), dist.ppf(p), delta=1e-12)
+        negative = {'uncertainty_type': 2, 'loc': 0.3, 'scale': 0.5, 'negative': True}
+        mirrored = scipy.stats.lognorm(0.5, scale=np.exp(0.3))
+        self.assertAlmostEqual(cc.declared_quantile(negative, 0.1), -mirrored.ppf(0.9), delta=1e-12)
+
+    def test_exact_values_and_validation(self):
+        self.assertEqual(cc.declared_quantile({'uncertainty_type': 0, 'amount': 4.0}, 0.3), 4.0)
+        with self.assertRaises(ValueError):
+            cc.declared_quantile({'uncertainty_type': 3, 'loc': 0.0, 'scale': 1.0}, 1.5)
+        with self.assertRaises(NotImplementedError):
+            cc.declared_quantile({'uncertainty_type': 7, 'loc': 0.0, 'scale': 1.0}, 0.5)
+
+
+# ---------------------------------------------------------------------------
+# the chance-constrained problem
+# ---------------------------------------------------------------------------
+
+try:
+    import gurobipy  # noqa: F401
+    HAS_GUROBI = True
+except ImportError:
+    HAS_GUROBI = False
+
+
+class TestChanceConstrained(unittest.TestCase):
+
+    LAMBDAS = sorted(V18_FREE)
+
+    @classmethod
+    def setUpClass(cls):
+        cls.free = soc_worker()
+        cls.capped = soc_worker(electrolysis_cap=0.035)
+        cls.mom = unc.compute_moments(unc.import_declared(cls.free), cls.free)
+
+    def front(self, worker, capped, **kwargs):
+        upper = {worker.elyz: TRI_CAP} if capped else None
+        return unc.ChanceConstrained(worker, self.mom, upper_bounds=upper, **kwargs).solve(self.LAMBDAS)
+
+    def test_reproduces_pulpo_1_8(self):
+        for capped, reference, worker in ((False, V18_FREE, self.free), (True, V18_CAP, self.capped)):
+            front = self.front(worker, capped)
+            for lam, (adjusted, electrolysis) in reference.items():
+                with self.subTest(capped=capped, lam=lam):
+                    self.assertLess(abs(front[lam].adjusted - adjusted), 1e-6 * adjusted)
+                    if capped:
+                        # The cap binds: the decision is pinned and comparable.
+                        self.assertAlmostEqual(front[lam].s[index(worker, worker.elyz)], electrolysis, delta=1e-8)
+
+    def test_matches_an_independent_full_space_cone(self):
+        for capped, worker in ((False, self.free), (True, self.capped)):
+            front = self.front(worker, capped)
+            ref = full_space_front(worker, self.mom, self.LAMBDAS, TRI_CAP if capped else None, K=2 if capped else 1)
+            for lam in self.LAMBDAS:
+                with self.subTest(capped=capped, lam=lam):
+                    self.assertLess(abs(front[lam].adjusted - ref[lam][0]), 1e-7 * ref[lam][0])
+                    # At a smooth optimum the objective is flat, so a gap of 1e-10
+                    # pins the decision only to about sqrt(1e-10) relative.
+                    np.testing.assert_allclose(front[lam].s, ref[lam][1], rtol=1e-4, atol=1e-8)
+
+    def test_point_contents(self):
+        front = self.front(self.capped, True)
+        point = front[0.9]
+        self.assertAlmostEqual(point.lambda_impact, 0.95, places=15)
+        self.assertAlmostEqual(point.kappa, scipy.stats.norm.ppf(0.95), places=12)
+        self.assertAlmostEqual(point.adjusted, point.mean + point.kappa * point.sigma, places=12)
+        j = index(self.capped, self.capped.elyz)
+        self.assertAlmostEqual(point.bounds[('upper', j)], cc.declared_quantile(TRI_CAP, 0.05), places=14)
+        self.assertAlmostEqual(point.epsilon[('upper', j)], 0.05, places=14)   # keyed like bounds
+        self.assertLess(point.balance_residual, 1e-12)
+        table = front.table()
+        self.assertEqual(list(table.index), self.LAMBDAS)
+
+    @unittest.skipUnless(HAS_GUROBI, "gurobipy is not installed")
+    def test_gurobi_agrees_with_clarabel(self):
+        a = self.front(self.capped, True)
+        b = unc.ChanceConstrained(self.capped, self.mom, upper_bounds={self.capped.elyz: TRI_CAP}).solve(
+            self.LAMBDAS, solver_name='gurobi')
+        for lam in self.LAMBDAS:
+            self.assertLess(abs(a[lam].adjusted - b[lam].adjusted), 1e-8)
+
+    def test_gram_factor_agrees_with_qr(self):
+        a = self.front(self.free, False)
+        original = cc.QR_ENTRIES
+        cc.QR_ENTRIES = 0
+        try:
+            b = self.front(self.free, False)
+        finally:
+            cc.QR_ENTRIES = original
+        for lam in self.LAMBDAS:
+            self.assertLess(abs(a[lam].adjusted - b[lam].adjusted), 1e-8)
+
+    def test_scaled_instance_gives_the_same_front(self):
+        scaled = soc_worker(electrolysis_cap=0.035, scale=True)
+        a = self.front(self.capped, True)
+        b = self.front(scaled, True)
+        for lam in self.LAMBDAS:
+            self.assertLess(abs(a[lam].adjusted - b[lam].adjusted), 1e-9)
+
+    def test_individual_allocation(self):
+        ccp = unc.ChanceConstrained(self.capped, self.mom, upper_bounds={self.capped.elyz: TRI_CAP},
+                                    allocation='individual')
+        lam_z, eps = ccp.levels(0.9)
+        self.assertEqual(lam_z, 0.9)
+        self.assertAlmostEqual(list(eps.values())[0], 0.1, places=15)
+        point = ccp.solve_point(0.9)
+        self.assertAlmostEqual(point.s[index(self.capped, self.capped.elyz)],
+                               cc.declared_quantile(TRI_CAP, 0.1), delta=1e-8)
+
+    def test_events_weights_and_levels(self):
+        ccp = unc.ChanceConstrained(self.capped, self.mom, upper_bounds={self.capped.elyz: TRI_CAP},
+                                    lower_bounds={self.capped.smr: {'uncertainty_type': 4, 'minimum': 0.0,
+                                                                    'maximum': 0.05}},
+                                    weights=(0.5, 0.25, 0.25))
+        self.assertEqual(ccp.K, 3)
+        # Lower bounds first, then upper bounds (PULPO 1.8.0's order).
+        self.assertEqual(ccp.events, [('lower', index(self.capped, self.capped.smr)),
+                                      ('upper', index(self.capped, self.capped.elyz))])
+        lam_z, eps = ccp.levels(0.9)
+        self.assertAlmostEqual(lam_z, 0.95, places=15)
+        bounds = ccp.bounds(0.9)
+        j_smr = index(self.capped, self.capped.smr)
+        self.assertAlmostEqual(bounds[('lower', j_smr)], 0.05 * (1 - 0.025), places=14)
+        point = ccp.solve_point(0.9)
+        self.assertGreaterEqual(point.s[j_smr], bounds[('lower', j_smr)] - 1e-9)
+        with self.assertRaises(ValueError):
+            unc.ChanceConstrained(self.capped, self.mom, upper_bounds={self.capped.elyz: TRI_CAP},
+                                  weights=(0.5, 0.5, 0.0))
+
+    def test_weights_follow_the_event_order(self):
+        uni = lambda a, b: {'uncertainty_type': 4, 'minimum': a, 'maximum': b}
+        j_smr, j_ely = index(self.free, self.free.smr), index(self.free, self.free.elyz)
+        ccp = unc.ChanceConstrained(self.free, self.mom, upper_bounds={self.free.smr: uni(0.05, 0.15)},
+                                    lower_bounds={self.free.elyz: uni(0.0, 0.1)}, weights=(0.5, 0.4, 0.1))
+        bounds = ccp.bounds(0.9)
+        self.assertAlmostEqual(bounds[('lower', j_ely)], 0.1 * (1 - 0.4 * 0.1), places=14)
+        self.assertAlmostEqual(bounds[('upper', j_smr)], 0.05 + 0.1 * (0.1 * 0.1), places=14)
+
+    def test_certain_events_are_refused(self):
+        normal = {'uncertainty_type': 3, 'loc': 0.03, 'scale': 0.01}
+        with self.assertRaises(ValueError):
+            unc.ChanceConstrained(self.capped, self.mom, upper_bounds={self.capped.elyz: normal}, weights=(1.0, 0.0))
+        with self.assertRaises(ValueError):
+            cc.bonferroni_budget(0.9, 2, weights=(0.0, 1.0))
+
+    def test_large_finite_limits_that_cannot_bind(self):
+        """Capacities of 1e10 and default limits of 1e15 stand for "unlimited";
+        they must not degrade the cone solve."""
+        defaults = {'lower_bound': -1e15, 'upper_bound': 1e15, 'upper_inv_bound': 1e15, 'lower_inv_bound': -1e15,
+                    'lower_imp_bound': -1e15, 'upper_imp_bound': 1e15}
+        for label, worker in (('1e10 caps', soc_worker(electrolysis_cap=1e10)),
+                              ('1e15 defaults', soc_worker(default_limits=defaults))):
+            for solver in ['clarabel'] + (['gurobi'] if HAS_GUROBI else []):
+                with self.subTest(case=label, solver=solver):
+                    front = unc.ChanceConstrained(worker, self.mom).solve(self.LAMBDAS, solver_name=solver)
+                    for lam, (adjusted, _) in V18_FREE.items():
+                        self.assertLess(abs(front[lam].adjusted - adjusted), 1e-6 * adjusted)
+                        self.assertEqual(front[lam].rounds, 1)
+
+    def test_remote_warning_points_at_the_caller(self):
+        """The warning about limits far beyond the problem is reported at the caller's
+        line, through solve and through solve_point."""
+        import os
+        problem = unc.ChanceConstrained(soc_worker(electrolysis_cap=1e10), self.mom)
+        for name, call in (('solve', lambda: problem.solve([0.9])),
+                           ('solve_point', lambda: problem.solve_point(0.9))):
+            with self.subTest(call=name), warnings.catch_warnings(record=True) as caught:
+                warnings.simplefilter('always')
+                call()
+                [remote] = [w for w in caught if 'far beyond' in str(w.message)]
+                self.assertTrue(os.path.samefile(remote.filename, __file__), remote.filename)
+
+    def test_a_large_limit_that_binds_is_still_imposed(self):
+        """A remote bound is withheld only until a solution violates it."""
+        free = self.front(self.free, False)
+        mean = free[0.9].mean
+        worker = soc_worker(upper_imp_limit={SOC_METHOD: mean - 0.05})
+        scaled_limit = {SOC_METHOD: (mean - 0.05)}
+        point = unc.ChanceConstrained(worker, self.mom).solve_point(0.9)
+        self.assertLessEqual(point.mean, scaled_limit[SOC_METHOD] + 1e-9)
+
+    def test_reinstantiation_is_followed(self):
+        worker = soc_worker()
+        ccp = unc.ChanceConstrained(worker, self.mom)
+        first = ccp.solve_point(0.9)
+        quiet(worker.instantiate, choices={'hydrogen': {worker.smr: float('inf'), worker.elyz: 0.05}},
+              demand={worker.ammonia: 2})
+        again = ccp.solve_point(0.9)
+        fresh = unc.ChanceConstrained(worker, self.mom).solve_point(0.9)
+        self.assertNotAlmostEqual(again.adjusted, first.adjusted, places=3)
+        self.assertAlmostEqual(again.adjusted, fresh.adjusted, places=9)
+        ccp.write(again)
+        self.assertAlmostEqual(worker.instance.scaling_vector[index(worker, worker.ammonia)].value, 2.0, places=12)
+
+    def test_levels_below_one_half_are_refused(self):
+        ccp = unc.ChanceConstrained(self.free, self.mom)
+        with self.assertRaises(ValueError):
+            ccp.solve_point(0.3)
+
+    def test_goal_objective_is_refused(self):
+        worker = soc_worker(objective='goal', imp_goals={SOC_METHOD: 1.0})
+        with self.assertRaises(NotImplementedError):
+            unc.ChanceConstrained(worker, self.mom)
+
+    def test_limit_on_the_uncertain_impact_applies_to_its_mean(self):
+        free = self.front(self.free, False)
+        limit = (free[0.9].mean + free[0.5].mean) / 2
+        worker = soc_worker(upper_imp_limit={SOC_METHOD: limit})
+        point = unc.ChanceConstrained(worker, self.mom).solve_point(0.9)
+        self.assertLessEqual(point.mean, limit + 1e-9)
+        self.assertGreater(point.adjusted, free[0.9].adjusted)
+
+    def test_infeasible_level_raises(self):
+        impossible = {'uncertainty_type': 4, 'minimum': 2.0, 'maximum': 3.0}   # SMR >= 2 > demand
+        ccp = unc.ChanceConstrained(self.free, self.mom, lower_bounds={self.free.smr: impossible})
+        with self.assertRaises(unc.ChanceConstrainedError):
+            ccp.solve_point(0.9)
+
+    def test_write_puts_the_point_on_the_instance(self):
+        ccp = unc.ChanceConstrained(self.capped, self.mom, upper_bounds={self.capped.elyz: TRI_CAP})
+        point = ccp.solve_point(0.95)
+        ccp.write(point)
+        j = index(self.capped, self.capped.elyz)
+        self.assertAlmostEqual(self.capped.instance.scaling_vector[j].value, point.s[j], places=14)
+        self.assertIn('Scaling Vector', quiet(self.capped.extract_results))
+
+    def test_facade(self):
+        worker = soc_worker(electrolysis_cap=0.035, worker_class=pulpo_unc.PulpoOptimizerUnc)
+        with self.assertRaises(ValueError):
+            worker.moments()
+        worker.import_uncertainty_data()
+        worker.apply_expert_knowledge('Cf', SOC_METHOD, {2: {'uncertainty_type': 3, 'loc': 273.0, 'scale': 0.0}})
+        front = worker.chance_constrained(upper_bounds={worker.elyz: TRI_CAP}).solve([0.9])
+        self.assertLess(abs(front[0.9].adjusted - V18_CAP[0.9][0]), 1e-6)
+
+    def test_facade_analyses_match_the_functions(self):
+        """The façade's screen_undeclared and validate give what the functions give,
+        and refuse to run before the uncertainty data is imported."""
+        worker = soc_worker(electrolysis_cap=0.035, worker_class=pulpo_unc.PulpoOptimizerUnc)
+        for call in (lambda: worker.screen_undeclared(None, exact_cfs=[0]),
+                     lambda: worker.validate(None, None, n=10)):
+            with self.assertRaisesRegex(ValueError, 'import_uncertainty_data'):
+                call()
+        data = worker.import_uncertainty_data()
+        problem = worker.chance_constrained(upper_bounds={worker.elyz: TRI_CAP})
+        front = problem.solve([0.5, 0.9])
+        exact_cfs = unc.co2_flows(worker)
+        screening = worker.screen_undeclared(front[0.9], exact_cfs=exact_cfs)
+        reference = unc.screen_undeclared(front[0.9], data, worker, exact_cfs=exact_cfs)
+        pd.testing.assert_frame_equal(screening.sigma, reference.sigma)
+        pd.testing.assert_frame_equal(screening.ranking, reference.ranking)
+        validation = worker.validate(front, problem, n=5_000, seed=1)
+        pd.testing.assert_frame_equal(validation.table, unc.validate(front, problem, data, n=5_000, seed=1).table)
+        # The optional arguments reach the functions.
+        families = unc.families_by_database(worker)
+        screening = worker.screen_undeclared(front[0.9], exact_cfs=exact_cfs, families=families)
+        reference = unc.screen_undeclared(front[0.9], data, worker, exact_cfs=exact_cfs, families=families)
+        pd.testing.assert_frame_equal(screening.ranking, reference.ranking)
+        validation = worker.validate(front, problem, n=5_000, seed=1, tol=1e-6, level=0.9)
+        reference = unc.validate(front, problem, data, n=5_000, seed=1, tol=1e-6, level=0.9)
+        pd.testing.assert_frame_equal(validation.table, reference.table)
+
+    def test_input_errors(self):
+        """Each invalid input to the chance-constrained problem raises a clear error."""
+        worker = self.capped
+        j = index(worker, worker.elyz)
+        build = lambda **kw: unc.ChanceConstrained(worker, self.mom, **kw)
+        capped = dict(upper_bounds={worker.elyz: TRI_CAP})
+        unbounded = {'uncertainty_type': 3, 'loc': 0.03, 'scale': float('inf')}
+        cases = [
+            ('lambda 0', lambda: build(**capped).solve([0.0]), ValueError, 'lambda must lie in'),
+            ('lambda 1', lambda: build(**capped).solve([1.0]), ValueError, 'lambda must lie in'),
+            ('lambda 1.2', lambda: build(**capped).solve([1.2]), ValueError, 'lambda must lie in'),
+            ('impact level below 1/2', lambda: build(allocation='individual').solve([0.3]), ValueError,
+             'non-convex'),
+            ('unknown solver', lambda: build(**capped).solve([0.9], solver_name='cplex'), ValueError,
+             "'clarabel' or 'gurobi'"),
+            ('unknown allocation', lambda: build(allocation='banana'), ValueError, 'allocation must be'),
+            ('weights with individual', lambda: build(allocation='individual', weights=(0.5, 0.5), **capped),
+             ValueError, 'Bonferroni allocation only'),
+            ('weights not summing to 1', lambda: build(weights=(0.5, 0.2), **capped), ValueError, 'sum to 1'),
+            ('the same bound twice', lambda: build(upper_bounds={worker.elyz: TRI_CAP, j: TRI_CAP}), ValueError,
+             'same uncertain bound twice'),
+            ('an infinite quantile', lambda: build(upper_bounds={worker.elyz: unbounded}).solve([0.9]), ValueError,
+             'cannot hold'),
+        ]
+        for label, call, error, message in cases:
+            with self.subTest(label):
+                with self.assertRaisesRegex(error, message):
+                    call()
+
+    def test_the_goal_objective_is_refused(self):
+        worker = soc_worker(imp_goals={SOC_METHOD: 1.0}, objective='goal')
+        with self.assertRaisesRegex(NotImplementedError, 'goal objective'):
+            unc.ChanceConstrained(worker, self.mom)
+
+    def test_facade_with_two_methods(self):
+        """A worker with a second method (to limit, say) imports the impact it names."""
+        air = "('my project', 'air quality')"
+        worker = pulpo_unc.PulpoOptimizerUnc(PROJECT, DATABASES, {CLIMATE_KEY: 1, air: 0})
+        quiet(worker.get_lci_data)
+        with self.assertRaises(ValueError) as error:
+            worker.import_uncertainty_data()
+        self.assertIn('method=', str(error.exception))
+        data = worker.import_uncertainty_data(method=CLIMATE_KEY)
+        single = pulpo.PulpoOptimizer(PROJECT, DATABASES, {CLIMATE_KEY: 1})
+        quiet(single.get_lci_data)
+        np.testing.assert_equal(data, unc.import_declared(single))      # NaN fields compare equal
+
+
+class Activity:
+    """Stands in for a Brightway activity: hashes and compares like its key."""
+
+    def __init__(self, key):
+        self.key = key
+
+    def __hash__(self):
+        return hash(self.key)
+
+    def __eq__(self, other):
+        return self.key == getattr(other, 'key', other)
+
+
+class TestFacilityChanceConstrained(unittest.TestCase):
+    """An ill-conditioned system with a known optimum.
+
+    Route D makes the demanded product and consumes 1e-10 facilities, each of
+    which consumes 1e11 units of E; route A makes the same product at a certain
+    impact of 11. Coefficients span 1e-10 .. 1e11, as in ecoinvent, and the
+    facility's impact carries a variance of 1e20 per facility.
     """
-    db_names = worker.database if isinstance(worker.database, list) else [worker.database]
-    method_name = next(iter(worker.method))
-    strategies = []
-    for db in db_names:
-        if db in worker.uncertainty_data.get("If", {}):
-            strategies.append(TriangluarBaseStrategy(
-                uncertain_param_type="If",
-                uncertain_param_subgroup=db,
-                upper_scaling_factor=0.1,
-                lower_scaling_factor=0.1,
-                noise_interval={"min": 0.1, "max": 0.1},
-            ))
-    if method_name in worker.uncertainty_data.get("Cf", {}):
-        strategies.append(TriangluarBaseStrategy(
-            uncertain_param_type="Cf",
-            uncertain_param_subgroup=method_name,
-            upper_scaling_factor=0.05,
-            lower_scaling_factor=0.05,
-            noise_interval={"min": 0.1, "max": 0.1},
-        ))
-    return strategies
+
+    LAMBDA = 0.9
+
+    def problem(self, scale):
+        A = sp.csr_matrix(np.array([[1.0, 0.0, 0.0, 0.0],
+                                    [0.0, 1.0, -1e11, 0.0],
+                                    [-1e-10, 0.0, 1.0, 0.0],
+                                    [0.0, 0.0, 0.0, 1.0]]))
+        B = sp.csr_matrix(np.array([[0.0, 1.0, 0.0, 11.0]]))
+        acts = [Activity(('db', name)) for name in ('D', 'E', 'F', 'A')]
+        lci = {'technology_matrix': A, 'intervention_matrix': B, 'matrices': {'h': sp.identity(1, format='csr')},
+               'process_map': {a.key: j for j, a in enumerate(acts)}, 'intervention_map': {('bio', 'x'): 0}}
+        choices = {'product': {acts[0]: float('inf'), acts[3]: float('inf')}}
+        data = converter.combine_inputs(lci, {'product': 1.0}, choices, {}, {}, {}, {}, {}, {}, {'h': 1},
+                                        scale=scale)
+        worker = types.new_class('Worker')()
+        worker.instance = quiet(optimizer.instantiate, data)
+        worker.lci_data, worker.choices = lci, choices
+        mom = moments_module.Moments(method='h', mu=np.array([0.0, 1.0, 0.0, 11.0]),
+                                     d=np.array([0.01, 0.04, 1e20, 0.25]), w=np.zeros(0),
+                                     cf_rows=np.zeros(0, dtype=int), B_mean=B, B_var=sp.csr_matrix(B.shape),
+                                     q_mean=np.ones(1), q_var=np.zeros(1))
+        return worker, mom
+
+    def analytic(self, mom):
+        z = scipy.stats.norm.ppf(self.LAMBDA)
+
+        def objective(a):
+            x = np.array([a, 10 * a, 1e-10 * a, 1 - a])
+            return float(mom.mu @ x + z * np.sqrt(mom.d @ x ** 2))
+
+        res = scipy.optimize.minimize_scalar(objective, bounds=(0.0, 1.0), method='bounded',
+                                             options={'xatol': 1e-12})
+        return res.fun, res.x
+
+    def test_reaches_the_analytic_optimum(self):
+        import scipy.optimize  # noqa: F401
+        for scale in (False, True):
+            with self.subTest(scale=scale):
+                worker, mom = self.problem(scale)
+                point = unc.ChanceConstrained(worker, mom).solve_point(self.LAMBDA)
+                best, a_star = self.analytic(mom)
+                self.assertAlmostEqual(point.adjusted / best, 1.0, places=9)
+                self.assertAlmostEqual(point.s[0], a_star, places=5)
+                self.assertAlmostEqual(point.s[2], 1e-10 * point.s[0], delta=1e-22)   # facility balance
 
 
-def prepare_uncertainty(worker):
-    """Run the import + strategy steps of the pipeline on a solved worker."""
-    worker.import_and_filter_uncertainty_data(
-        cutoff=0.001, scaling_vector_strategy="constructed_demand")
-    worker.apply_uncertainty_strategies(
-        strategies=default_strategies(worker), drop_undefined=True)
+class TestDrawUncertaintySampleSeeding(unittest.TestCase):
+    """``draw_uncertainty_sample(seed=...)`` seeds every family, not only Normal."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.data = unc.import_declared(soc_worker())
+
+    def test_fixture_contains_non_normal_parameters(self):
+        families = {spec['uncertainty_type'] for g in self.data.values() for b in g.values()
+                    for spec in b['declared'].values()}
+        self.assertTrue(families - {stats_arrays.NormalUncertainty.id})
+
+    def test_same_seed_reproduces_despite_global_rng_use(self):
+        first = processor.draw_uncertainty_sample(self.data, SOC_METHOD, seed=123)
+        np.random.seed(999)
+        np.random.random(17)
+        second = processor.draw_uncertainty_sample(self.data, SOC_METHOD, seed=123)
+        self.assertEqual(first['If'], second['If'])
+        self.assertEqual(first['Cf'], second['Cf'])
+        third = processor.draw_uncertainty_sample(self.data, SOC_METHOD, seed=124)
+        self.assertNotEqual(first['If'], third['If'])
 
 
-##################################################
-#### bw25 uncertainty-parameter extraction    ####
-##################################################
+class TestApplyCCFormulation(unittest.TestCase):
+
+    def test_writes_exact_quantiles_and_checks_K(self):
+        worker = soc_worker(electrolysis_cap=0.035)
+        j = index(worker, worker.elyz)
+        budget = cc.bonferroni_budget(0.9, 2)
+        cc.apply_CC_formulation(worker.instance, budget, upper_bounds={j: TRI_CAP})
+        self.assertAlmostEqual(pyo.value(worker.instance.UPPER_LIMIT[j]),
+                               cc.declared_quantile(TRI_CAP, 0.05), places=14)
+        with self.assertRaises(ValueError):
+            cc.apply_CC_formulation(worker.instance, cc.bonferroni_budget(0.9, 3), upper_bounds={j: TRI_CAP})
+
+
+# ---------------------------------------------------------------------------
+# bw25 extraction of uncertainty parameters
+# ---------------------------------------------------------------------------
 
 def setup_uncertainty_free_project():
-    """Build a throwaway project with a single-process database and one CF,
-    neither carrying any uncertainty. Used to exercise the ``None`` + warning
-    branch of ``bw_parser.import_data`` without rebuilding a full example
-    database (the realistic content is irrelevant to that code path)."""
+    """A throwaway project with one CF and two databases of one process each: in
+    ``no_uncertainty_db`` nothing is uncertain, in ``declared_db`` the CO2
+    emission is lognormal. Only ``declared_db`` declares a distribution."""
     project = "sample_project_no_uncertainty"
     bd.projects.set_current(project)
-    for db_name in ("no_uncertainty_db", "biosphere3"):
+    for db_name in ("no_uncertainty_db", "declared_db", "biosphere3"):
         if db_name in bd.databases:
             del bd.databases[db_name]
-
     co2 = ("biosphere3", "CO2")
     bd.Database("biosphere3").write({
-        co2: {"name": "Carbon dioxide, fossil",
-              "categories": ("climate change",),
+        co2: {"name": "Carbon dioxide, fossil", "categories": ("climate change",),
               "type": "emission", "unit": "kg"},
     })
     bd.Database("no_uncertainty_db").write({
         ("no_uncertainty_db", "process"): {
-            "name": "process", "unit": "kg", "location": "GLO",
-            "reference product": "widget",
+            "name": "process", "unit": "kg", "location": "GLO", "reference product": "widget",
             "exchanges": [
-                {"input": ("no_uncertainty_db", "process"),
-                 "amount": 1.0, "type": "production"},
-                # biosphere exchange without an 'uncertainty type' field
+                {"input": ("no_uncertainty_db", "process"), "amount": 1.0, "type": "production"},
                 {"input": co2, "amount": 2.0, "type": "biosphere"},
+            ],
+        },
+    })
+    bd.Database("declared_db").write({
+        ("declared_db", "process"): {
+            "name": "declared process", "unit": "kg", "location": "GLO", "reference product": "gadget",
+            "exchanges": [
+                {"input": ("declared_db", "process"), "amount": 1.0, "type": "production"},
+                {"input": co2, "amount": 3.0, "type": "biosphere", "uncertainty type": 2,
+                 "loc": float(np.log(3.0)), "scale": 0.1},
             ],
         },
     })
@@ -164,1098 +847,84 @@ def setup_uncertainty_free_project():
         bd.Method(method).deregister()
     method = bd.Method(("my project", "climate change"))
     method.register(unit="kg CO2eq")
-    method.write([(co2, 1.0)])  # bare CF value, no uncertainty
+    method.write([(co2, 1.0)])
     return project
 
 
-@unittest.skipUnless(is_bw25(), "bw25-only: structured uncertainty-parameter "
-                                "arrays require bw2data >= 4")
+@unittest.skipUnless(is_bw25(), "bw25-only: structured uncertainty-parameter arrays require bw2data >= 4")
 class TestUncertaintyParamArrays(unittest.TestCase):
-    """``bw_parser.import_data`` must expose combined structured arrays for
-    the uncertainty preparer (or ``None`` + a warning when the databases carry
-    no uncertainty)."""
+    """``bw_parser.import_data`` exposes structured uncertainty arrays, also for
+    datapackages that declare no distribution (whose entries are then listed as
+    deterministic)."""
 
-    REQUIRED_FIELDS = (
-        "row", "col", "amount", "uncertainty_type",
-        "loc", "scale", "shape", "minimum", "maximum", "negative",
-    )
+    REQUIRED_FIELDS = ("row", "col", "amount", "uncertainty_type",
+                       "loc", "scale", "shape", "minimum", "maximum", "negative")
 
     def test_with_uncertainty(self):
-        lci_data = bw_parser.import_data(
-            project=PROJECT,
-            databases=DATABASES,
-            method=CLIMATE_KEY,
-            intervention_matrix_name="biosphere3",
-            seed=42,
-        )
+        lci_data = bw_parser.import_data(project=PROJECT, databases=DATABASES, method=CLIMATE_KEY,
+                                         intervention_matrix_name="biosphere3", seed=42)
         method_key = next(iter(lci_data["matrices"]))
-
         int_params = lci_data["intervention_params"]
         cf_params = lci_data["characterization_params"][method_key]
-        self.assertIsNotNone(int_params)
-        self.assertIsNotNone(cf_params)
-
-        # Structured arrays with the fields the preparer relies on.
-        for name, arr in (("intervention_params", int_params),
-                          ("characterization_params", cf_params)):
+        for name, arr in (("intervention_params", int_params), ("characterization_params", cf_params)):
             self.assertIsNotNone(arr.dtype.names, f"{name} must be a structured array")
-            for field in self.REQUIRED_FIELDS:
-                self.assertIn(field, arr.dtype.names, f"{name} missing field '{field}'")
-
-        # Uncertainty actually populated (sample db uses NormalUncertainty).
+            for f in self.REQUIRED_FIELDS:
+                self.assertIn(f, arr.dtype.names, f"{name} missing field '{f}'")
         self.assertTrue((int_params["uncertainty_type"] > 0).any())
         self.assertTrue((cf_params["uncertainty_type"] > 0).any())
-
-        # Row/col must be mapped to matrix positions (small, contiguous
-        # integers), not raw brightway ids (huge 64-bit numbers).
         self.assertLess(int_params["row"].max(), 10_000)
         self.assertLess(int_params["col"].max(), 10_000)
-        self.assertLess(cf_params["row"].max(), 10_000)
-
-        # The preparer indexes intervention params on (row, col); those must
-        # be unique for set_index to behave.
         pairs = list(zip(int_params["row"].tolist(), int_params["col"].tolist()))
         self.assertEqual(len(pairs), len(set(pairs)))
-
-        # Params must be accumulated across BOTH databases, i.e. cover more
-        # than a single database's process columns.
         self.assertGreater(len(set(int_params["col"].tolist())), 1)
 
-    def test_without_uncertainty_stores_none_and_warns(self):
-        # A minimal uncertainty-free database exercises the None + warning
-        # branch far more cheaply than rebuilding a full example database.
+    def test_without_uncertainty_lists_deterministic_entries(self):
         project = setup_uncertainty_free_project()
+        lci_data = bw_parser.import_data(project=project, databases=["no_uncertainty_db"],
+                                         method=CLIMATE_KEY, intervention_matrix_name="biosphere3", seed=42)
+        method_key = next(iter(lci_data["matrices"]))
+        for arr in (lci_data["intervention_params"], lci_data["characterization_params"][method_key]):
+            self.assertEqual(len(arr), 1)
+            self.assertEqual(int(arr["uncertainty_type"][0]), 0)
+            self.assertEqual(arr["loc"][0], arr["amount"][0])
+            self.assertTrue(np.isnan(arr["scale"][0]))
 
+
+class TestUndeclaredData(unittest.TestCase):
+    """Parameters without a distribution are imported as undeclared, on both
+    Brightway stacks. A database or LCIA method that declares none (on bw25 its
+    datapackage then carries no distributions at all) hides nothing else."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.project = setup_uncertainty_free_project()
+
+    def import_declared(self, databases):
         with warnings.catch_warnings(record=True) as caught:
             warnings.simplefilter("always")
-            lci_data = bw_parser.import_data(
-                project=project,
-                databases=["no_uncertainty_db"],
-                method=CLIMATE_KEY,
-                intervention_matrix_name="biosphere3",
-                seed=42,
-            )
+            lci_data = bw_parser.import_data(project=self.project, databases=databases, method=CLIMATE_KEY,
+                                             intervention_matrix_name="biosphere3", seed=42)
+        self.assertFalse([w for w in caught if 'uncertainty' in str(w.message)])
         method_key = next(iter(lci_data["matrices"]))
-
-        self.assertIsNone(lci_data["intervention_params"])
-        self.assertIsNone(lci_data["characterization_params"][method_key])
-
-        messages = [str(w.message) for w in caught
-                    if issubclass(w.category, UserWarning)]
-        self.assertTrue(any("intervention" in m for m in messages),
-                        "expected a warning about intervention params")
-        self.assertTrue(any("characterization" in m for m in messages),
-                        "expected a warning about characterization params")
-
-
-##################################################
-#### Curated uncertainty pipeline (pulpo_unc) ####
-##################################################
-
-@unittest.skipUnless(UNCERTAINTY_DEPS, UNCERTAINTY_SKIP_REASON)
-class TestUncertaintyPipeline(unittest.TestCase):
-    """Deterministic solve + uncertainty import/filter + gap-filling."""
-
-    @classmethod
-    def setUpClass(cls):
-        cls.worker = build_solved_worker()
-        cls.deterministic_results = cls.worker.extract_results()
-        cls.worker.import_and_filter_uncertainty_data(
-            cutoff=0.001, scaling_vector_strategy="constructed_demand")
-        # Snapshot the imported structure before the strategies run.
-        cls.imported_counts = {
-            section: {
-                subgroup: (len(entries["defined"]), len(entries["undefined"]))
-                for subgroup, entries in cls.worker.uncertainty_data[section].items()
-            }
-            for section in cls.worker.uncertainty_data
-        }
-        cls.worker.apply_uncertainty_strategies(
-            strategies=default_strategies(cls.worker), drop_undefined=True)
-
-    def test_deterministic_reference_impact(self):
-        impact = self.deterministic_results["Impacts"].loc[CLIMATE_KEY, "Value"]
-        self.assertAlmostEqual(impact, DETERMINISTIC_IMPACT, places=6)
-
-    def test_imported_uncertainty_structure(self):
-        self.assertEqual(sorted(self.imported_counts.keys()),
-                         ["Cf", "If", "Var_bounds"])
-        # The sample databases carry NormalUncertainty on every exchange, so
-        # everything surviving the cutoff is 'defined'. Both stacks keep the
-        # same intervention flows: the constructed-demand scaling vector is now
-        # aligned identically on bw2 and bw25.
-        expected_if = {"background_db": (4, 0), "foreground_db": (1, 0)}
-        self.assertEqual(self.imported_counts["If"], expected_if)
-        self.assertEqual(self.imported_counts["Cf"], {CLIMATE_KEY: (2, 0)})
-        # Variable bounds arrive without distributions: the six choice
-        # alternatives (upper) and the O2-byproduct lower limit.
-        self.assertEqual(self.imported_counts["Var_bounds"]["upper_limit"], (0, 6))
-        self.assertEqual(self.imported_counts["Var_bounds"]["lower_limit"], (0, 1))
-
-    def test_strategies_leave_no_undefined_parameters(self):
-        self.assertFalse(
-            processor.check_missing_uncertainty_data(self.worker.uncertainty_data))
-
-    def test_import_rejects_multiple_methods(self):
-        two_methods = dict(METHODS)
-        two_methods["('my project', 'air quality')"] = 1
-        worker = pulpo_unc.PulpoOptimizerUnc(PROJECT, DATABASES, two_methods, "")
-        with self.assertRaises(Exception) as context:
-            worker.import_and_filter_uncertainty_data()
-        self.assertIn("single LCIA method", str(context.exception))
-
-    def test_strategies_require_imported_data(self):
-        worker = pulpo_unc.PulpoOptimizerUnc(PROJECT, DATABASES, METHODS, "")
-        with self.assertRaises(Exception) as context:
-            worker.apply_uncertainty_strategies()
-        self.assertIn("import_and_filter_uncertainty_data", str(context.exception))
-
-    def test_mc_requires_uncertainty_data(self):
-        worker = pulpo_unc.PulpoOptimizerUnc(PROJECT, DATABASES, METHODS, "")
-        with self.assertRaises(Exception) as context:
-            worker.run_mc_from_uncertainty(n_samples=2)
-        self.assertIn("No uncertainty data", str(context.exception))
-
-    def test_naive_strategy_requires_result_data(self):
-        worker = build_solved_worker()
-        with self.assertRaises(Exception) as context:
-            worker.import_and_filter_uncertainty_data(
-                cutoff=0.001, scaling_vector_strategy="naive")
-        self.assertIn("result_data", str(context.exception))
-
-        # With the deterministic results passed in, the naive strategy works.
-        worker.import_and_filter_uncertainty_data(
-            cutoff=0.001,
-            scaling_vector_strategy="naive",
-            result_data=worker.extract_results(),
-        )
-        self.assertIn("If", worker.uncertainty_data)
-        self.assertIn("Cf", worker.uncertainty_data)
-        total_defined = sum(
-            len(entries["defined"])
-            for entries in worker.uncertainty_data["If"].values()
-        )
-        self.assertGreater(total_defined, 0)
-
-    def test_none_strategy_retains_every_exchange(self):
-        """'none' disables the filter: one parameter per nonzero intervention entry.
-
-        The contribution filter selects parameters at a single scaling vector, so
-        exchanges belonging to processes that are inactive there are dropped and
-        enter a chance-constrained problem carrying no uncertainty. 'none' is the
-        opt-out for systems small enough not to need the filter.
-        """
-        worker = build_solved_worker()
-        worker.import_and_filter_uncertainty_data(scaling_vector_strategy="none")
-
-        n_exchanges = worker.lci_data["intervention_matrix"].nnz
-        n_imported = sum(
-            len(entries["defined"]) + len(entries["undefined"])
-            for entries in worker.uncertainty_data["If"].values()
-        )
-        self.assertEqual(n_imported, n_exchanges)
-
-        # And it is a strict superset of what the naive filter keeps.
-        filtered = build_solved_worker()
-        filtered.import_and_filter_uncertainty_data(
-            cutoff=0.0,
-            scaling_vector_strategy="naive",
-            result_data=filtered.extract_results(),
-        )
-        n_filtered = sum(
-            len(entries["defined"]) + len(entries["undefined"])
-            for entries in filtered.uncertainty_data["If"].values()
-        )
-        self.assertGreaterEqual(n_imported, n_filtered)
-
-
-@unittest.skipUnless(UNCERTAINTY_DEPS, UNCERTAINTY_SKIP_REASON)
-class TestMonteCarloFromUncertainty(unittest.TestCase):
-    """``run_mc_from_uncertainty``: MC on the curated distributions."""
-
-    N_SAMPLES = 20
-
-    @classmethod
-    def setUpClass(cls):
-        worker = build_solved_worker()
-        prepare_uncertainty(worker)
-        # n_jobs=1 solves sequentially in-process: spawning a joblib worker
-        # pool costs far more than these 20 tiny LPs.
-        cls.mc_results = worker.run_mc_from_uncertainty(
-            n_samples=cls.N_SAMPLES, seed=42, n_jobs=1)
-        cls.samples = np.array([
-            cls.mc_results[i]["Impacts"].loc[CLIMATE_KEY, "Value"]
-            for i in cls.mc_results
-            if "error" not in cls.mc_results[i]
-        ])
-
-    def test_result_structure(self):
-        self.assertIsInstance(self.mc_results, dict)
-        self.assertEqual(len(self.mc_results), self.N_SAMPLES)
-        self.assertEqual(len(self.samples), self.N_SAMPLES,
-                         "no MC iteration should have errored")
-
-    def test_seeded_samples_match_reference(self):
-        # Both stacks now filter to the same parameter set and pair it with the
-        # same seeds, so the seeded draws agree across bw2 and bw25.
-        self.assertAlmostEqual(self.samples.mean(), 1.754014, places=5)
-        self.assertAlmostEqual(self.samples.std(), 0.199952, places=5)
-
-    def test_samples_scatter_around_deterministic_optimum(self):
-        self.assertTrue(np.isfinite(self.samples).all())
-        self.assertGreater(self.samples.std(), 0)
-        self.assertLess(abs(self.samples.mean() - DETERMINISTIC_IMPACT),
-                        0.2 * DETERMINISTIC_IMPACT)
-
-
-@unittest.skipUnless(UNCERTAINTY_DEPS, UNCERTAINTY_SKIP_REASON)
-class TestChanceConstrained(unittest.TestCase):
-    """``create_CC_formulation`` + ``solve_CC_problem`` Pareto trace."""
-
-    LAMBDAS = [0.50, 0.75, 0.90, 0.95]
-    SCALE = False
-
-    @classmethod
-    def setUpClass(cls):
-        cls.worker = build_solved_worker(scale=cls.SCALE)
-        prepare_uncertainty(cls.worker)
-        # The normal transformation samples the triangular distributions;
-        # stats_arrays draws from numpy's global RNG, so seed it for
-        # reproducible CC statistics.
-        np.random.seed(42)
-        cls.env_meta, cls.var_bounds_meta = cls.worker.create_CC_formulation(
-            CC_env_cost=True,
-            CC_var_bounds=[],
-            normal_transformation_sample_size=1000,
-        )
-        cls.results = cls.worker.solve_CC_problem(
-            lambda_level=cls.LAMBDAS,
-            normal_metadata_env_cost=cls.env_meta,
-            normal_metadata_var_bounds=cls.var_bounds_meta,
-            plot_results=False,
-        )
-        cls.impacts = {lam: cls.results[lam]["Impacts"].loc[CLIMATE_KEY, "Value"]
-                       for lam in cls.LAMBDAS}
-
-    def test_env_cost_metadata_structure(self):
-        self.assertGreater(len(self.env_meta), 0)
-        method_name = next(iter(self.worker.method))
-        for (process_id, method), spec in self.env_meta.items():
-            self.assertEqual(method, method_name)
-            self.assertIn("loc", spec)
-            self.assertIn("scale", spec)
-        self.assertEqual(self.var_bounds_meta, {})
-
-    def test_lambda_50_reproduces_deterministic_optimum(self):
-        # At lambda = 0.5 the safety margin (norm ppf) is zero, so the CC
-        # problem collapses onto the deterministic one.
-        self.assertAlmostEqual(self.impacts[0.50], DETERMINISTIC_IMPACT, places=6)
-
-    def test_impact_increases_with_confidence_level(self):
-        trace = [self.impacts[lam] for lam in self.LAMBDAS]
-        for lower, upper in zip(trace, trace[1:]):
-            self.assertGreater(upper, lower)
-
-    def test_seeded_pareto_trace_matches_reference(self):
-        expected = {0.75: 1.884391, 0.90: 1.995962, 0.95: 2.062733}
-        for lam, value in expected.items():
-            self.assertAlmostEqual(self.impacts[lam], value, places=5)
-
-    def test_formulation_requires_a_target(self):
-        with self.assertRaises(Exception) as context:
-            self.worker.create_CC_formulation(CC_env_cost=False, CC_var_bounds=[])
-        self.assertIn("No CC formulation specified", str(context.exception))
-
-
-@unittest.skipUnless(UNCERTAINTY_DEPS, UNCERTAINTY_SKIP_REASON)
-class TestChanceConstrainedScaled(TestChanceConstrained):
-    """The same CC trace on an equilibrated instance (``scale=True``).
-
-    The formulation writes its coefficients and bounds in the model's scaled
-    units and reads back in original units, so the seeded reference trace of
-    the parent class must be reproduced unchanged.
-    """
-
-    SCALE = True
-
-    def test_instance_is_scaled(self):
-        from pulpo.utils import scaling
-        self.assertTrue(scaling.is_scaled(self.worker.instance))
-
-
-@unittest.skipUnless(UNCERTAINTY_DEPS, UNCERTAINTY_SKIP_REASON)
-class TestExactSOC(unittest.TestCase):
-    """``create_SOC_formulation`` + ``solve_SOC_problem`` exact-variance Pareto trace."""
-
-    LAMBDAS = [0.50, 0.75, 0.90, 0.95]
-    SCALE = False
-
-    @classmethod
-    def setUpClass(cls):
-        cls.worker = build_solved_worker(scale=cls.SCALE)
-        prepare_uncertainty(cls.worker)
-        np.random.seed(42)
-        cls.coeffs = cls.worker.create_SOC_formulation(
-            normal_transformation_sample_size=1000,
-        )
-        cls.results = cls.worker.solve_SOC_problem(
-            lambda_level=cls.LAMBDAS,
-            coeffs=cls.coeffs,
-            plot_results=False,
-        )
-        cls.impacts = {lam: cls.results[lam]["Impacts"].loc[CLIMATE_KEY, "Value"]
-                       for lam in cls.LAMBDAS}
-
-    def test_coefficients_structure(self):
-        summary = self.coeffs.summary()
-        self.assertGreater(summary["processes"], 0)
-        self.assertEqual(self.coeffs.method, CLIMATE_KEY)
-
-    def test_lambda_50_reproduces_deterministic_optimum(self):
-        # At lambda = 0.5 the safety margin (norm ppf) is zero, so the SOC
-        # problem collapses onto the deterministic one, same as the L1 path.
-        self.assertAlmostEqual(self.impacts[0.50], DETERMINISTIC_IMPACT, places=5)
-
-    def test_impact_increases_with_confidence_level(self):
-        trace = [self.impacts[lam] for lam in self.LAMBDAS]
-        for lower, upper in zip(trace, trace[1:]):
-            self.assertGreater(upper, lower)
-
-    def test_seeded_pareto_trace_matches_reference(self):
-        expected = {0.75: 1.879708, 0.90: 1.987064, 0.95: 2.051313}
-        for lam, value in expected.items():
-            self.assertAlmostEqual(self.impacts[lam], value, places=5)
-
-    def test_never_exceeds_l1_shortcut(self):
-        # The L1 shortcut sums per-process sigmas with an L1 norm, which
-        # over-estimates the true (Euclidean) uncertainty and ignores the
-        # covariance shared processes pick up through a common
-        # characterization factor - a correct exact-SOC front can therefore
-        # only lie at or below the L1 front. Uses an independent worker so
-        # this comparison can't be perturbed by (or perturb) `cls.worker`'s
-        # instance state, which `apply_CC_formulation` mutates permanently.
-        worker = build_solved_worker()
-        prepare_uncertainty(worker)
-        np.random.seed(42)
-        env_meta, var_bounds_meta = worker.create_CC_formulation(
-            CC_env_cost=True, CC_var_bounds=[], normal_transformation_sample_size=1000,
-        )
-        l1_results = worker.solve_CC_problem(
-            lambda_level=self.LAMBDAS,
-            normal_metadata_env_cost=env_meta,
-            normal_metadata_var_bounds=var_bounds_meta,
-            plot_results=False,
-        )
-        for lam in self.LAMBDAS:
-            l1_impact = l1_results[lam]["Impacts"].loc[CLIMATE_KEY, "Value"]
-            self.assertGreaterEqual(l1_impact, self.impacts[lam] - 1e-9)
-
-    def test_direct_method_matches_cutting_plane(self):
-        # Same coefficients, single lambda: the direct QCP solve (Gurobi) and
-        # the cutting-plane LP solve (any solver) should agree on this small,
-        # well-scaled toy system. Independent worker/instance, so it can run
-        # in any order relative to the other tests.
-        worker = build_solved_worker()
-        prepare_uncertainty(worker)
-        np.random.seed(42)
-        coeffs = worker.create_SOC_formulation(normal_transformation_sample_size=1000)
-        try:
-            direct_results = worker.solve_SOC_problem(
-                lambda_level=0.90, coeffs=coeffs, method='direct',
-            )
-        except Exception as exc:
-            self.skipTest(f"'gurobi' Pyomo solver unavailable: {exc}")
-        direct_impact = direct_results[0.90]["Impacts"].loc[CLIMATE_KEY, "Value"]
-        self.assertAlmostEqual(direct_impact, self.impacts[0.90], places=4)
-
-    def test_restore_deterministic_objective(self):
-        self.worker.restore_deterministic_objective()
-        self.worker.solve()
-        result = self.worker.extract_results()
-        self.assertAlmostEqual(
-            result["Impacts"].loc[CLIMATE_KEY, "Value"], DETERMINISTIC_IMPACT, places=5)
-
-    def test_formulation_requires_uncertainty_data(self):
-        worker = pulpo_unc.PulpoOptimizerUnc(PROJECT, DATABASES, METHODS, "")
-        with self.assertRaises(Exception) as context:
-            worker.create_SOC_formulation()
-        self.assertIn("import_and_filter_uncertainty_data", str(context.exception))
-
-
-@unittest.skipUnless(UNCERTAINTY_DEPS, UNCERTAINTY_SKIP_REASON)
-class TestExactSOCScaled(TestExactSOC):
-    """The same exact-SOC trace on an equilibrated instance (``scale=True``).
-
-    ``solve_exact`` writes each cut in the model's scaled units and reads the
-    iterate back in original units, so the seeded reference trace, the
-    lambda = 0.5 collapse and the L1 dominance must all hold unchanged. The
-    inherited direct-method comparison additionally checks the cone rows when
-    Gurobi is available.
-    """
-
-    SCALE = True
-
-    def test_instance_is_scaled(self):
-        from pulpo.utils import scaling
-        self.assertTrue(scaling.is_scaled(self.worker.instance))
-
-
-class _RecordingSampler:
-    """Stand-in for the SALib sampler module that keeps the design matrix.
-
-    ``run_gsa`` takes the sampler as an object with a ``.sample`` attribute, so
-    wrapping the real module is enough to observe what the seed did without
-    reaching into ``GlobalSensitivityAnalysis``.
-    """
-
-    def __init__(self, module):
-        self._module = module
-        self.samples = None
-
-    def sample(self, problem, N, **kwargs):
-        self.samples = self._module.sample(problem, N, **kwargs)
-        return self.samples
-
-
-@unittest.skipUnless(UNCERTAINTY_DEPS, UNCERTAINTY_SKIP_REASON)
-class TestGlobalSensitivityAnalysis(unittest.TestCase):
-    """``run_gsa``: Sobol sensitivity indices on the curated parameters."""
-
-    @classmethod
-    def setUpClass(cls):
-        cls.worker = build_solved_worker()
-        cls.deterministic_results = cls.worker.extract_results()
-        prepare_uncertainty(cls.worker)
-        cls.total_order, cls.sensitivity_indices = cls.worker.run_gsa(
-            result_data=cls.deterministic_results,
-            sample_method=sobol_sample,
-            SA_method=sobol_analyze,
-            sample_size=32,  # tiny, as in the showcase notebook
-            plot_gsa_results=False,
-            top_sensitivity_amt=10,
-        )
-
-    def test_output_structure(self):
-        self.assertEqual(list(self.total_order.columns), ["ST", "ST_conf"])
-        # All filtered parameters take part: five intervention flows + two CFs
-        # (identical on both stacks now that filtering is aligned).
-        self.assertEqual(len(self.total_order), 7)
-        for key in ("S1", "ST"):
-            self.assertIn(key, self.sensitivity_indices)
-
-    def test_parameter_names_resolve_against_metadata(self):
-        # If-parameters are (intervention_idx, process_idx) tuples,
-        # Cf-parameters bare intervention indices - both must resolve against
-        # the lci_data metadata maps (as done for labeling in the notebook).
-        process_map = self.worker.lci_data["process_map_metadata"]
-        intervention_map = self.worker.lci_data["intervention_map_metadata"]
-        cf_params = 0
-        for param in self.total_order.index:
-            if isinstance(param, tuple):
-                intervention_idx, process_idx = param
-                self.assertIn(intervention_idx, intervention_map)
-                self.assertIn(process_idx, process_map)
-            else:
-                cf_params += 1
-                self.assertIn(param, intervention_map)
-        self.assertEqual(cf_params, 2)
-
-    def test_sobol_indices_plausible(self):
-        st = self.total_order["ST"]
-        self.assertTrue(np.isfinite(st).all())
-        # Some parameter must explain a substantial share of the variance;
-        # on both stacks the CO2 characterization factor dominates.
-        self.assertGreater(st.max(), 0.3)
-        self.assertNotIsInstance(st.idxmax(), tuple,
-                                 "top driver should be a characterization factor")
-
-    def test_seed_controls_sampling(self):
-        """``run_gsa(seed=...)`` reaches SALib's sampler.
-
-        Three claims in one pass, because each run costs a full sample sweep:
-        the default is still 161 (results published before the argument existed
-        stay reproducible), the same seed reproduces the design matrix exactly,
-        and a different seed produces a different one.
-        """
-        def draw(**seed_kwarg):
-            recorder = _RecordingSampler(sobol_sample)
-            total_order, _ = self.worker.run_gsa(
-                result_data=self.deterministic_results,
-                sample_method=recorder,
-                SA_method=sobol_analyze,
-                sample_size=16,
-                plot_gsa_results=False,
-                **seed_kwarg,
-            )
-            return recorder.samples, total_order
-
-        default_samples, default_order = draw()
-        explicit_161_samples, _ = draw(seed=161)
-        other_samples, other_order = draw(seed=2024)
-        other_samples_again, _ = draw(seed=2024)
-
-        np.testing.assert_array_equal(default_samples, explicit_161_samples)
-        np.testing.assert_array_equal(other_samples, other_samples_again)
-        self.assertEqual(default_samples.shape, other_samples.shape)
-        self.assertFalse(np.array_equal(default_samples, other_samples),
-                         "a different seed must give a different design matrix")
-        # The seed moves the numbers, not the story: the leading driver is a
-        # property of the model and must survive the reseeding.
-        self.assertEqual(default_order["ST"].idxmax(), other_order["ST"].idxmax())
-
-
-##################################################
-#### SOC-demo system (soc_demo_database)      ####
-##################################################
-# sample_database.py gives every non-production exchange a blanket
-# NormalUncertainty, so it has zero native non-Normal parameters and zero
-# undefined ones (see soc_demo_database's module docstring) - it cannot
-# exercise DeterministicGapFillStrategy or compute_closed_form_moments
-# meaningfully. soc_demo_database.py's ammonia/hydrogen-route toy system was
-# purpose-built with native Normal/Lognormal/Triangular/Uniform parameters
-# and several genuinely undefined ones.
-
-SOC_DEMO_PROJECT = "soc_demo_project_bw25" if is_bw25() else "soc_demo_project"
-SOC_DEMO_DATABASES = ["soc_demo_background_db", "soc_demo_foreground_db"]
-SOC_DEMO_METHOD_KEY = "('soc demo', 'climate change')"
-SOC_DEMO_METHODS = {SOC_DEMO_METHOD_KEY: 1}
-
-
-def build_solved_soc_demo_worker():
-    """Ammonia-synthesis toy system: hydrogen route choice (SMR vs.
-    electrolysis). Electrolysis capacity is capped below full demand so both
-    routes carry nonzero scaling at the deterministic optimum - the 'naive'
-    cutoff-filter strategy below only keeps parameters on processes with
-    nonzero scaling, and every native distribution family in this system
-    lives on one route or the other (see soc_demo_database's module
-    docstring).
-    """
-    worker = pulpo_unc.PulpoOptimizerUnc(SOC_DEMO_PROJECT, SOC_DEMO_DATABASES, SOC_DEMO_METHODS, "")
-    worker.get_lci_data()
-    ammonia = worker.retrieve_processes(reference_products="ammonia")
-    hydrogen = worker.retrieve_processes(processes=["hydrogen SMR", "hydrogen electrolysis"])
-    demand = {ammonia[0]: 1}
-    choices = {"Hydrogen route": {hydrogen[0]: 1e10, hydrogen[1]: 0.09}}
-    worker.instantiate(choices=choices, demand=demand)
-    worker.solve()
-    return worker
-
-
-def prepare_soc_demo_uncertainty(worker, gap_fill="triangular"):
-    """Import + filter + gap-fill for the SOC-demo system.
-
-    ``gap_fill='triangular'`` uses the existing +-10% strategy (all gaps
-    filled); ``gap_fill='deterministic'`` uses ``DeterministicGapFillStrategy``
-    (no gaps filled - degenerate N(amount, 0) instead).
-    """
-    det_result = worker.extract_results()
-    worker.import_and_filter_uncertainty_data(
-        cutoff=0.0, scaling_vector_strategy="naive", result_data=det_result)
-    method_name = next(iter(worker.method))
-    if gap_fill == "triangular":
-        strategies = [
-            TriangluarBaseStrategy("If", "soc_demo_background_db", 0.1, 0.1,
-                                    noise_interval={"min": 0.1, "max": 0.1}),
-            TriangluarBaseStrategy("If", "soc_demo_foreground_db", 0.1, 0.1,
-                                    noise_interval={"min": 0.1, "max": 0.1}),
-            TriangluarBaseStrategy("Cf", method_name, 0.1, 0.1,
-                                    noise_interval={"min": 0.1, "max": 0.1}),
-        ]
-    elif gap_fill == "deterministic":
-        strategies = [
-            DeterministicGapFillStrategy("If", "soc_demo_background_db"),
-            DeterministicGapFillStrategy("If", "soc_demo_foreground_db"),
-            DeterministicGapFillStrategy("Cf", method_name),
-        ]
-    else:
-        raise ValueError(gap_fill)
-    worker.apply_uncertainty_strategies(strategies=strategies, drop_undefined=True)
-
-
-@unittest.skipUnless(UNCERTAINTY_DEPS, UNCERTAINTY_SKIP_REASON)
-class TestDeterministicGapFillStrategy(unittest.TestCase):
-    """``DeterministicGapFillStrategy``: the 'no gap filling' alternative to
-    ``TriangluarBaseStrategy`` - fills undefined entries with a degenerate
-    N(amount, 0) instead of spreading them out."""
-
-    @classmethod
-    def setUpClass(cls):
-        cls.worker = build_solved_soc_demo_worker()
-        det_result = cls.worker.extract_results()
-        cls.worker.import_and_filter_uncertainty_data(
-            cutoff=0.0, scaling_vector_strategy="naive", result_data=det_result)
-        # Snapshot the pre-fill undefined entries so the post-fill values can
-        # be checked against them.
-        cls.pre_fill_undefined = {
-            (unc_type, subgroup): dict(entries["undefined"])
-            for unc_type in ("If", "Cf")
-            for subgroup, entries in cls.worker.uncertainty_data[unc_type].items()
-            if entries["undefined"]
-        }
-        method_name = next(iter(cls.worker.method))
-        cls.worker.apply_uncertainty_strategies(
-            strategies=[
-                DeterministicGapFillStrategy("If", "soc_demo_background_db"),
-                DeterministicGapFillStrategy("If", "soc_demo_foreground_db"),
-                DeterministicGapFillStrategy("Cf", method_name),
-            ],
-            drop_undefined=True,
-        )
-
-    def test_gaps_existed_before_filling(self):
-        # Sanity check the fixture actually has something to gap-fill (unlike
-        # sample_database.py, which has zero undefined 'If'/'Cf' parameters).
-        self.assertGreater(sum(len(d) for d in self.pre_fill_undefined.values()), 0)
-
-    def test_no_undefined_parameters_remain(self):
-        self.assertFalse(
-            processor.check_missing_uncertainty_data(self.worker.uncertainty_data))
-
-    def test_filled_entries_are_degenerate_normals_at_amount(self):
-        for (unc_type, subgroup), undefined in self.pre_fill_undefined.items():
-            defined = self.worker.uncertainty_data[unc_type][subgroup]["defined"]
-            for idx, spec in undefined.items():
-                filled = defined[idx]
-                self.assertEqual(filled["uncertainty_type"], stats_arrays.NormalUncertainty.id)
-                self.assertEqual(filled["scale"], 0.0)
-                self.assertEqual(filled["loc"], spec["amount"])
-
-
-@unittest.skipUnless(UNCERTAINTY_DEPS, UNCERTAINTY_SKIP_REASON)
-class TestClosedFormMoments(unittest.TestCase):
-    """``compute_closed_form_moments``: analytic (mean, std) per distribution
-    family, against hand-computed reference values."""
-
-    def test_matches_hand_computed_moments(self):
-        uncertainty_data = {
-            "If": {
-                "db": {
-                    "defined": {
-                        "normal": {"uncertainty_type": stats_arrays.NormalUncertainty.id,
-                                   "amount": 1.0, "loc": 2.0, "scale": 0.5},
-                        "uniform": {"uncertainty_type": stats_arrays.UniformUncertainty.id,
-                                    "amount": 1.0, "minimum": 2.0, "maximum": 6.0},
-                        "triangular": {"uncertainty_type": stats_arrays.TriangularUncertainty.id,
-                                       "amount": 1.0, "loc": 3.0, "minimum": 1.0, "maximum": 8.0},
-                        "lognormal": {"uncertainty_type": stats_arrays.LognormalUncertainty.id,
-                                      "amount": 1.0, "loc": 1.0, "scale": 0.3, "negative": False},
-                    },
-                    "undefined": {},
-                },
-            },
-        }
-        moments = processor.compute_closed_form_moments(uncertainty_data, unc_types=["If"])
-        result = moments["If"]["db"]["defined"]
-
-        # Normal: passthrough.
-        self.assertAlmostEqual(result["normal"]["loc"], 2.0)
-        self.assertAlmostEqual(result["normal"]["scale"], 0.5)
-
-        # Uniform: mean=(min+max)/2, std=sqrt((max-min)^2/12).
-        self.assertAlmostEqual(result["uniform"]["loc"], 4.0)
-        self.assertAlmostEqual(result["uniform"]["scale"], np.sqrt((6.0 - 2.0) ** 2 / 12))
-
-        # Triangular: mean=(min+max+mode)/3, variance = the standard
-        # triangular-distribution formula.
-        a, b, c = 1.0, 8.0, 3.0  # minimum, maximum, mode
-        expected_mean = (a + b + c) / 3
-        expected_var = (a ** 2 + b ** 2 + c ** 2 - a * b - a * c - b * c) / 18
-        self.assertAlmostEqual(result["triangular"]["loc"], expected_mean)
-        self.assertAlmostEqual(result["triangular"]["scale"], np.sqrt(expected_var))
-
-        # Lognormal: mean=exp(mu+sigma^2/2), std=sqrt((exp(sigma^2)-1)*exp(2mu+sigma^2)).
-        mu, sigma = 1.0, 0.3
-        expected_mean = np.exp(mu + sigma ** 2 / 2)
-        expected_std = np.sqrt((np.exp(sigma ** 2) - 1) * np.exp(2 * mu + sigma ** 2))
-        self.assertAlmostEqual(result["lognormal"]["loc"], expected_mean)
-        self.assertAlmostEqual(result["lognormal"]["scale"], expected_std)
-
-        # Every output is tagged Normal, matching transform_to_normal's shape.
-        for spec in result.values():
-            self.assertEqual(spec["uncertainty_type"], stats_arrays.NormalUncertainty.id)
-
-    def test_unsupported_uncertainty_type_raises(self):
-        uncertainty_data = {
-            "If": {"db": {"defined": {0: {"uncertainty_type": 1, "amount": 1.0}}, "undefined": {}}},
-        }
-        with self.assertRaises(NotImplementedError) as context:
-            processor.compute_closed_form_moments(uncertainty_data, unc_types=["If"])
-        self.assertIn("uncertainty_type=1", str(context.exception))
-
-    def test_missing_data_guard_matches_transform_to_normal(self):
-        uncertainty_data = {
-            "If": {"db": {"defined": {}, "undefined": {0: {"uncertainty_type": 0, "amount": 1.0}}}},
-        }
-        with self.assertRaises(Exception) as context:
-            processor.compute_closed_form_moments(uncertainty_data, unc_types=["If"])
-        self.assertIn("undefined uncertainty data", str(context.exception))
-
-
-@unittest.skipUnless(UNCERTAINTY_DEPS, UNCERTAINTY_SKIP_REASON)
-class TestSOCClosedFormMoments(unittest.TestCase):
-    """``create_SOC_formulation(moments='closed_form')`` end-to-end on
-    soc_demo_database - the only fixture with native non-Normal parameters
-    that can exercise this meaningfully (mirrors ``TestExactSOC``)."""
-
-    LAMBDAS = [0.50, 0.75, 0.90, 0.95]
-
-    @classmethod
-    def setUpClass(cls):
-        cls.worker = build_solved_soc_demo_worker()
-        prepare_soc_demo_uncertainty(cls.worker, gap_fill="deterministic")
-        cls.coeffs = cls.worker.create_SOC_formulation(
-            normal_transformation_sample_size=1000, moments="closed_form")
-        cls.results = cls.worker.solve_SOC_problem(
-            lambda_level=cls.LAMBDAS, coeffs=cls.coeffs, plot_results=False)
-        cls.impacts = {lam: cls.results[lam]["Impacts"].loc[SOC_DEMO_METHOD_KEY, "Value"]
-                       for lam in cls.LAMBDAS}
-
-    def test_coefficients_structure(self):
-        summary = self.coeffs.summary()
-        self.assertGreater(summary["processes"], 0)
-        self.assertEqual(self.coeffs.method, SOC_DEMO_METHOD_KEY)
-
-    def test_impact_increases_with_confidence_level(self):
-        trace = [self.impacts[lam] for lam in self.LAMBDAS]
-        for lower, upper in zip(trace, trace[1:]):
-            self.assertGreater(upper, lower)
-
-    def test_closed_form_close_to_fit(self):
-        # closed_form skips resampling entirely; fit resamples and refits a
-        # Normal. On the same (deterministic-filled) uncertainty data the two
-        # should agree closely - a large discrepancy would mean a bug in the
-        # closed-form formulas (or in reading minimum/maximum/loc off the
-        # wrong fields), not sampling noise.
-        worker = build_solved_soc_demo_worker()
-        prepare_soc_demo_uncertainty(worker, gap_fill="deterministic")
-        np.random.seed(42)
-        coeffs_fit = worker.create_SOC_formulation(
-            normal_transformation_sample_size=2000, moments="fit")
-        results_fit = worker.solve_SOC_problem(lambda_level=self.LAMBDAS, coeffs=coeffs_fit)
-        for lam in self.LAMBDAS:
-            fit_impact = results_fit[lam]["Impacts"].loc[SOC_DEMO_METHOD_KEY, "Value"]
-            self.assertAlmostEqual(fit_impact, self.impacts[lam],
-                                   delta=0.05 * abs(self.impacts[lam]))
-
-    def test_never_exceeds_l1_shortcut(self):
-        # create_CC_formulation (L1) has no 'closed_form' option - it always
-        # fits Normals via processor.transform_to_normal - so this compares
-        # against a SOC(moments='fit') worker, not cls.worker's closed_form
-        # coefficients: the "L1 never lies below SOC" guarantee is about the
-        # L1-vs-Euclidean norm on the *variance* term (SI derivation), for a
-        # shared set of per-parameter moments. Comparing fit-based L1 against
-        # closed-form SOC would instead mix in the (unrelated, and at
-        # lambda=0.5 undefined-sign) discrepancy between two different mean
-        # estimators. Independent workers throughout: apply_CC_formulation
-        # mutates its instance permanently.
-        l1_worker = build_solved_soc_demo_worker()
-        prepare_soc_demo_uncertainty(l1_worker, gap_fill="deterministic")
-        np.random.seed(42)
-        env_meta, var_bounds_meta = l1_worker.create_CC_formulation(
-            CC_env_cost=True, CC_var_bounds=[], normal_transformation_sample_size=1000)
-        l1_results = l1_worker.solve_CC_problem(
-            lambda_level=self.LAMBDAS, normal_metadata_env_cost=env_meta,
-            normal_metadata_var_bounds=var_bounds_meta, plot_results=False)
-
-        soc_fit_worker = build_solved_soc_demo_worker()
-        prepare_soc_demo_uncertainty(soc_fit_worker, gap_fill="deterministic")
-        np.random.seed(42)
-        coeffs_fit = soc_fit_worker.create_SOC_formulation(
-            normal_transformation_sample_size=1000, moments="fit")
-        soc_fit_results = soc_fit_worker.solve_SOC_problem(
-            lambda_level=self.LAMBDAS, coeffs=coeffs_fit, plot_results=False)
-
-        for lam in self.LAMBDAS:
-            l1_impact = l1_results[lam]["Impacts"].loc[SOC_DEMO_METHOD_KEY, "Value"]
-            soc_impact = soc_fit_results[lam]["Impacts"].loc[SOC_DEMO_METHOD_KEY, "Value"]
-            self.assertGreaterEqual(l1_impact, soc_impact - 1e-9)
-
-
-@unittest.skipUnless(UNCERTAINTY_DEPS, UNCERTAINTY_SKIP_REASON)
-class TestDrawUncertaintySampleSeeding(unittest.TestCase):
-    """``draw_uncertainty_sample(seed=...)`` must seed *every* family.
-
-    Regression test for a defect that survived because the only other seeded
-    sampling test runs on a fixture whose parameters are all Normal.  Normal
-    specs are drawn from the seeded ``Generator`` directly; every other family
-    is delegated to stats_arrays, which silently falls back to the legacy
-    global ``np.random`` unless ``seeded_random`` is passed.  The effect was
-    that lognormal, triangular and uniform parameters ignored the seed, so any
-    Monte Carlo built on them was irreproducible -- and the SOC demo system's
-    dominant driver is one of them.
-    """
-
-    @classmethod
-    def setUpClass(cls):
-        cls.worker = build_solved_soc_demo_worker()
-        prepare_soc_demo_uncertainty(cls.worker, gap_fill="deterministic")
-        cls.method = next(iter(cls.worker.method))
-
-    def _draw(self, seed):
-        return processor.draw_uncertainty_sample(
-            self.worker.uncertainty_data, self.method, seed=seed)
-
-    def test_fixture_actually_contains_non_normal_parameters(self):
-        """Guard: without this the rest of the class could pass vacuously."""
-        families = {
-            spec.get("uncertainty_type")
-            for group in ("If", "Cf")
-            for block in self.worker.uncertainty_data.get(group, {}).values()
-            for spec in block.get("defined", {}).values()
-        }
-        self.assertTrue(
-            families - {stats_arrays.NormalUncertainty.id},
-            "fixture has only Normal parameters; it cannot detect the defect")
-
-    def test_same_seed_reproduces_despite_global_rng_use(self):
-        first = self._draw(123)
-        np.random.seed(999)          # disturb the legacy global stream
-        np.random.random(17)
-        second = self._draw(123)
-        for group in ("If", "Cf"):
-            self.assertEqual(first[group], second[group],
-                             f"{group} draw depends on the global RNG, not the seed")
-
-    def test_different_seeds_give_different_draws(self):
-        first, other = self._draw(123), self._draw(124)
-        self.assertNotEqual(first["If"], other["If"])
-
-
-##################################################
-#### Unbounded variable bounds                ####
-##################################################
-
-@unittest.skipUnless(UNCERTAINTY_DEPS, UNCERTAINTY_SKIP_REASON)
-class TestUnboundedVariableBounds(unittest.TestCase):
-    """An alternative declared infinite carries no chance-constrained row.
-
-    ``converter.combine_inputs`` already treats an infinite upper bound as "no
-    limit"; registering one as an uncertain parameter would give the closed-form
-    triangular an ``inf`` amount and a ``nan`` variance. It also matters for a
-    joint formulation: a sentinel row consumes risk budget it can never use.
-    """
-
-    def _upper_rows(self, capacity):
-        worker = pulpo_unc.PulpoOptimizerUnc(PROJECT, DATABASES, METHODS, "")
-        worker.get_lci_data()
-        methanol = worker.retrieve_processes(reference_products="methanol")
-        hydrogen = worker.retrieve_processes(
-            processes=["hydrogen SMR", "hydrogen electrolysis"])
-        worker.instantiate(
-            demand={methanol[0]: 1},
-            choices={"Hydrogen": {hydrogen[0]: capacity, hydrogen[1]: 1e10}})
-        worker.solve()
-        worker.import_and_filter_uncertainty_data(
-            cutoff=0.001, scaling_vector_strategy="constructed_demand")
-        return worker.uncertainty_data["Var_bounds"]["upper_limit"]["undefined"]
-
-    def test_finite_capacity_is_registered(self):
-        self.assertEqual(len(self._upper_rows(1e10)), 2)
-
-    def test_infinite_capacity_is_skipped(self):
-        # Only the finite sibling survives; the unbounded one is not a bound.
-        # NaN is not tested here because it cannot reach this code: Pyomo
-        # rejects it first when constructing UPPER_LIMIT, whose domain is Reals.
-        self.assertEqual(len(self._upper_rows(float("inf"))), 1)
-
-
-##################################################
-#### Joint chance constraints                 ####
-##################################################
-
-@unittest.skipUnless(UNCERTAINTY_DEPS, UNCERTAINTY_SKIP_REASON)
-class TestRiskBudget(unittest.TestCase):
-    """``bonferroni_budget`` - splitting a failure budget across K events."""
-
-    def test_equal_split_is_the_default(self):
-        budget = cc.bonferroni_budget(0.95, 4)
-        self.assertEqual(budget.weights, (0.25, 0.25, 0.25, 0.25))
-        self.assertAlmostEqual(budget.epsilon, 0.05)
-        self.assertAlmostEqual(budget.epsilon_at(1), 0.0125)
-
-    def test_impact_target_level_is_tightened(self):
-        budget = cc.bonferroni_budget(0.95, 4)
-        # 1 - w0 * eps, strictly above lambda: the target is one of the events.
-        self.assertAlmostEqual(budget.lambda_impact, 0.9875)
-        self.assertGreater(budget.lambda_impact, budget.lambda_level)
-
-    def test_single_event_reproduces_the_individual_level(self):
-        budget = cc.bonferroni_budget(0.95, 1)
-        self.assertAlmostEqual(budget.epsilon_at(0), 0.05)
-        self.assertAlmostEqual(budget.lambda_impact, 0.95)
-
-    def test_weights_must_sum_to_one(self):
-        with self.assertRaises(ValueError) as context:
-            cc.bonferroni_budget(0.95, 4, weights=(0.25, 0.25, 0.25, 0.30))
-        self.assertIn("sum to 1", str(context.exception))
-
-    def test_weights_must_match_K(self):
-        with self.assertRaises(ValueError):
-            cc.bonferroni_budget(0.95, 4, weights=(0.5, 0.5))
-
-    def test_weights_must_be_non_negative(self):
-        with self.assertRaises(ValueError):
-            cc.bonferroni_budget(0.95, 3, weights=(1.5, -0.25, -0.25))
-
-    def test_lambda_must_be_a_probability(self):
-        for bad in (-0.1, 1.0, 1.5):
-            with self.assertRaises(ValueError):
-                cc.bonferroni_budget(bad, 4)
-
-    def test_unequal_weights_are_allowed(self):
-        budget = cc.bonferroni_budget(0.95, 4, weights=(0.7, 0.1, 0.1, 0.1))
-        self.assertAlmostEqual(budget.epsilon_at(0), 0.035)
-        self.assertAlmostEqual(budget.lambda_impact, 0.965)
-
-
-@unittest.skipUnless(UNCERTAINTY_DEPS, UNCERTAINTY_SKIP_REASON)
-class TestDeclaredQuantile(unittest.TestCase):
-    """``declared_quantile`` - the exact inverse CDF of each declared family."""
-
-    TRIANGULAR = {"uncertainty_type": 5, "minimum": 0.1, "loc": 1.0,
-                  "maximum": 1.1}
-
-    def test_triangular_matches_the_closed_form(self):
-        for eps in (0.001, 0.0125, 0.05, 0.125):
-            expected = 0.1 + np.sqrt(eps * (1.1 - 0.1) * (1.0 - 0.1))
-            self.assertAlmostEqual(
-                cc.declared_quantile(self.TRIANGULAR, eps), expected, places=12)
-
-    def test_triangular_upper_branch(self):
-        # Above (b-a)/(c-a) = 0.9 the other branch applies.
-        eps = 0.95
-        expected = 1.1 - np.sqrt((1 - eps) * (1.1 - 0.1) * (1.1 - 1.0))
-        self.assertAlmostEqual(
-            cc.declared_quantile(self.TRIANGULAR, eps), expected, places=12)
-
-    def test_triangular_never_leaves_its_support(self):
-        # The property a moment-matched normal lacks: at extreme reliability the
-        # fitted normal demands a negative availability, the exact one cannot
-        # fall below the support floor.
-        self.assertAlmostEqual(cc.declared_quantile(self.TRIANGULAR, 0.0), 0.1)
-        for eps in (1e-12, 1e-9, 1e-6):
-            self.assertGreaterEqual(
-                cc.declared_quantile(self.TRIANGULAR, eps), 0.1)
-
-    def test_normal_agrees_with_the_individual_formulation(self):
-        spec = {"uncertainty_type": 3, "loc": 5.0, "scale": 2.0}
-        for lam in (0.5, 0.9, 0.99):
-            individual = spec["loc"] - spec["scale"] * scipy.stats.norm.ppf(lam)
-            self.assertAlmostEqual(cc.declared_quantile(spec, 1.0 - lam),
-                                   individual, places=12)
-
-    def test_uniform_is_linear(self):
-        spec = {"uncertainty_type": 4, "minimum": 2.0, "maximum": 6.0}
-        self.assertAlmostEqual(cc.declared_quantile(spec, 0.25), 3.0)
-
-    def test_lognormal_median(self):
-        spec = {"uncertainty_type": 2, "loc": 0.0, "scale": 1.0}
-        self.assertAlmostEqual(cc.declared_quantile(spec, 0.5), 1.0)
-
-    def test_unsupported_family_raises(self):
-        with self.assertRaises(NotImplementedError):
-            cc.declared_quantile({"uncertainty_type": 0, "amount": 1.0}, 0.5)
-
-    def test_probability_must_be_a_probability(self):
-        with self.assertRaises(ValueError):
-            cc.declared_quantile(self.TRIANGULAR, 1.5)
-
-
-@unittest.skipUnless(UNCERTAINTY_DEPS, UNCERTAINTY_SKIP_REASON)
-class TestClosedFormMomentsCarrySource(unittest.TestCase):
-    """The moments keep the declared spec, so an exact quantile stays reachable."""
-
-    def test_source_is_preserved(self):
-        declared = {1: {"uncertainty_type": 5, "minimum": 0.1, "loc": 1.0,
-                        "maximum": 1.1, "amount": 1.0}}
-        moments = processor._closed_form_moments(declared)
-        self.assertEqual(moments[1]["uncertainty_type"],
-                         stats_arrays.NormalUncertainty.id)
-        self.assertAlmostEqual(moments[1]["loc"], (0.1 + 1.0 + 1.1) / 3)
-        self.assertEqual(moments[1]["source"], declared[1])
-
-    def test_source_is_a_copy_not_a_reference(self):
-        declared = {1: {"uncertainty_type": 5, "minimum": 0.1, "loc": 1.0,
-                        "maximum": 1.1}}
-        moments = processor._closed_form_moments(declared)
-        declared[1]["minimum"] = 999.0
-        self.assertAlmostEqual(moments[1]["source"]["minimum"], 0.1)
-
-
-@unittest.skipUnless(UNCERTAINTY_DEPS, UNCERTAINTY_SKIP_REASON)
-class TestApplyCCFormulationGuards(unittest.TestCase):
-    """The argument checks that keep a budget and a model from disagreeing."""
-
-    def test_exact_requires_a_budget(self):
-        with self.assertRaises(ValueError) as context:
-            cc.apply_CC_formulation(None, 0.95, {}, {}, bound_quantile="exact")
-        self.assertIn("needs a risk_budget", str(context.exception))
-
-    def test_unknown_quantile_rejected(self):
-        with self.assertRaises(ValueError):
-            cc.apply_CC_formulation(None, 0.95, {}, {}, bound_quantile="student")
-
-    def test_budget_lambda_must_match(self):
-        budget = cc.bonferroni_budget(0.90, 4)
-        with self.assertRaises(ValueError) as context:
-            cc.apply_CC_formulation(None, 0.95, {}, {}, risk_budget=budget)
-        self.assertIn("was built for lambda", str(context.exception))
-
-    def test_K_must_match_the_rows_actually_imposed(self):
-        # Three bound rows plus the impact target is K = 4, not K = 9.
-        bounds = {"upper_limit": {i: {"loc": 1.0, "scale": 0.1} for i in range(3)}}
-        budget = cc.bonferroni_budget(0.95, 9)
-        with self.assertRaises(ValueError) as context:
-            cc.apply_CC_formulation(None, 0.95, {}, bounds, risk_budget=budget)
-        self.assertIn("covers K=9", str(context.exception))
-
-    def test_bound_positions_are_sorted_not_insertion_ordered(self):
-        shuffled = {"upper_limit": {7: {}, 2: {}, 5: {}}}
-        positions = cc._bound_positions(shuffled)
-        self.assertEqual(positions,
-                         {("upper_limit", 2): 1, ("upper_limit", 5): 2,
-                          ("upper_limit", 7): 3})
-
-
-##################################################
-#### GSA with deterministic characterization  ####
-##################################################
-
-@unittest.skipUnless(UNCERTAINTY_DEPS, UNCERTAINTY_SKIP_REASON)
-class TestGSADeterministicCharacterization(unittest.TestCase):
-    """A flow whose factor is deterministic still reaches the decomposition.
-
-    Reindexing the sampled factors onto the sampled flows hands an unsampled
-    factor an all-NaN column, and one NaN column makes every sample impact NaN.
-    The factor is not missing, it is constant, so it is filled with its amount.
-    """
-
-    def _analyser(self, cf_amounts):
-        analyser = object.__new__(gsa.GlobalSensitivityAnalysis)
-        analyser.method = "m"
-        analyser.lci_data = {
-            "matrices": {"m": scipy.sparse.diags(cf_amounts, format="csr")}}
-        return analyser
-
-    def test_deterministic_factor_is_filled_not_dropped(self):
-        analyser = self._analyser([7.5, 11.0, 0.0])
-        # Two sampled flows on one process; only flow 0 has a sampled factor.
-        sample_if = pd.DataFrame(
-            [[2.0, 3.0], [4.0, 5.0]],
-            columns=pd.MultiIndex.from_tuples([(0, 10), (1, 10)]))
-        sample_cf = pd.DataFrame([[7.0], [8.0]], columns=[0])
-        env_cost, _ = analyser._compute_env_cost(sample_if, sample_cf)
-        self.assertFalse(np.isnan(env_cost.to_numpy()).any(),
-                         "an unsampled factor still poisons every impact")
-        # Flow 0 uses its sampled factor, flow 1 its deterministic amount of 11.
-        np.testing.assert_allclose(env_cost.to_numpy(),
-                                   [[7.0 * 2.0, 11.0 * 3.0],
-                                    [8.0 * 4.0, 11.0 * 5.0]])
-
-    def test_all_factors_sampled_is_unchanged(self):
-        analyser = self._analyser([7.5, 11.0, 0.0])
-        sample_if = pd.DataFrame(
-            [[2.0, 3.0]], columns=pd.MultiIndex.from_tuples([(0, 10), (1, 10)]))
-        sample_cf = pd.DataFrame([[7.0, 9.0]], columns=[0, 1])
-        env_cost, _ = analyser._compute_env_cost(sample_if, sample_cf)
-        np.testing.assert_allclose(env_cost.to_numpy(), [[14.0, 27.0]])
+        worker = types.SimpleNamespace(lci_data=lci_data, database=databases, method={method_key: 1})
+        return unc.import_declared(worker), method_key
+
+    def test_nothing_declared(self):
+        data, method = self.import_declared(["no_uncertainty_db"])
+        block, cfs = data['If']['no_uncertainty_db'], data['Cf'][method]
+        self.assertEqual((block['declared'], cfs['declared']), ({}, {}))
+        self.assertEqual([spec['amount'] for spec in block['undeclared'].values()], [2.0])
+        self.assertEqual([spec['amount'] for spec in cfs['undeclared'].values()], [1.0])
+
+    def test_a_database_without_distributions_hides_no_other(self):
+        data, method = self.import_declared(["no_uncertainty_db", "declared_db"])
+        [spec] = data['If']['declared_db']['declared'].values()
+        self.assertEqual((spec['uncertainty_type'], spec['amount']), (2, 3.0))
+        self.assertAlmostEqual(spec['scale'], 0.1)
+        self.assertEqual(data['If']['no_uncertainty_db']['declared'], {})
+        self.assertEqual(len(data['If']['no_uncertainty_db']['undeclared']), 1)
+        self.assertEqual(len(data['Cf'][method]['undeclared']), 1)
+
+
+if __name__ == '__main__':
+    unittest.main()

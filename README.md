@@ -10,8 +10,8 @@
 [![Markdown](https://img.shields.io/badge/Markdown-000000.svg?style=flat&logo=Markdown&logoColor=white)](https://www.markdownguide.org/)
 
 <!-- Project Metadata -->
-[![License](https://img.shields.io/github/license/flechtenberg/pulpo?style=flat&color=5D6D7E)](https://github.com/flechtenberg/pulpo/blob/main/LICENSE)
-[![Last Commit](https://img.shields.io/github/last-commit/flechtenberg/pulpo?style=flat&color=5D6D7E)](https://github.com/flechtenberg/pulpo/commits/main)
+[![License](https://img.shields.io/github/license/flechtenberg/pulpo?style=flat&color=5D6D7E)](https://github.com/flechtenberg/pulpo/blob/master/LICENSE)
+[![Last Commit](https://img.shields.io/github/last-commit/flechtenberg/pulpo?style=flat&color=5D6D7E)](https://github.com/flechtenberg/pulpo/commits/master)
 [![Commit Activity](https://img.shields.io/github/commit-activity/m/flechtenberg/pulpo?style=flat&color=5D6D7E)](https://github.com/flechtenberg/pulpo/pulse)
 
 <!-- Additional -->
@@ -38,11 +38,12 @@ Applying optimization is recommended when the system of study has (1) many degre
 - **Specify constraints** on any activity in the life cycle inventories, interpreted as tangible limitations such as raw material availability, production capacity, or environmental regulations.
 - **Optimize for or constrain any impact category** for which characterization factors are available.
 - **Specify supply values** instead of final demands, which is relevant when only production volumes are known (e.g. [here](https://www.pnas.org/doi/10.1073/pnas.1821029116)).
-- **Optimize under uncertainty** via a dedicated pipeline: import and filter uncertain LCI parameters, apply uncertainty strategies, run Global Sensitivity Analysis (Sobol), perform Monte Carlo sampling, or solve Chance-Constrained programs to obtain Pareto-optimal solutions at user-defined probability levels.
+- **Optimize under uncertainty**: import the declared distributions of the inventory and characterization factors, compute the impact's mean and variance in closed form, and solve chance-constrained programs (jointly over the impact and uncertain capacities) to obtain the Pareto front over reliability levels. Decompose the variance exactly, screen the parameters that declare no uncertainty, and validate every solution out of sample. *As of now, uncertainty in the LCA data is considered only in the biosphere flows and the characterization factors; technosphere exchanges are treated as deterministic.*
+- **Solve in reduced space** with `solve(formulation='reduced')`: the same LP over the choice alternatives only, exact and much smaller on large databases.
 
 **Features recently completed:**
 
-> - [X] `ℹ️  Optimization under uncertainty [chance-constraints, Monte Carlo, global sensitivity analysis]`
+> - [X] `ℹ️  Optimization under uncertainty [chance-constraints, Monte Carlo]`
 > - [X] `ℹ️  Time-dependent optimization [time-indexed formulation with inter-timestep storage/carry-over]`
 > - [X] `ℹ️  Development of a GUI for simple optimization tasks` [Link](https://github.com/flechtenberg/pulpo-gui)
 > - [X] `ℹ️  Enable PULPO to work on both bw2 and bw25 projects`
@@ -50,6 +51,7 @@ Applying optimization is recommended when the system of study has (1) many degre
 > - [X] `ℹ️  Goal-programming objective (average transgression of soft impact limits)`
 > - [X] `ℹ️  Exact chance-constrained optimization (second-order cone, joint risk budgets, exact bound quantiles)`
 > - [X] `ℹ️  Numerical scaling of the LP for unaggregated ecoinvent backgrounds`
+> - [X] `ℹ️  Reduced-space solves, and an exact, validated uncertainty method`
 
 **Features currently under development:**
 
@@ -70,11 +72,17 @@ or
 pip install "pulpo-dev[bw25]"
 ```
 
-Add the `uncertainty` extra (SALib, stats_arrays, seaborn) if you plan to use the `pulpo_unc` module for Monte Carlo, Chance-Constrained optimization, or Global Sensitivity Analysis:
+#### 🍎 macOS and Linux on ARM
+**The PARDISO solver is not available on these platforms.** For fast reduced solves, install `scikit-umfpack` from conda-forge before PULPO:
 
 ```sh
-pip install "pulpo-dev[bw25,uncertainty]"
+conda install -c conda-forge scikit-umfpack
+pip install "pulpo-dev[bw25]"
 ```
+
+Without it, PULPO falls back to SciPy's solver: same results, but much slower on large databases. See the [installation guide](https://flechtenberg.github.io/pulpo/content/installation.html).
+
+The uncertainty features need no extra packages; the `uncertainty` extra is kept as an empty alias, so `pip install "pulpo-dev[bw25,uncertainty]"` still works. To run the example notebooks, add the `notebooks` extra (JupyterLab, matplotlib, seaborn): `pip install "pulpo-dev[bw25,notebooks]"`.
 
 ### 🤖 Running PULPO
 
@@ -82,21 +90,34 @@ PULPO is organized into three optimizer classes, one per module, each covering a
 
 - **`pulpo.pulpo.PulpoOptimizer`** — the core LCO framework: technology/region choices, constraints, single- and multi-objective optimization (including goal programming), and supply-driven optimization. Start with the [PULPO showcase notebook](https://github.com/flechtenberg/pulpo/blob/master/notebooks/pulpo_showcase.ipynb), a complete walkthrough built around a methanol production case.
 - **`pulpo.pulpo_time.PulpoOptimizerTime`** — the time-indexed extension: per-timestep demands and limits, impact budgets aggregated across the horizon, and inter-timestep storage/carry-over. See the [time-dependent toy notebook](https://github.com/flechtenberg/pulpo/blob/master/notebooks/elec_time_toy.ipynb) for hourly and daily battery-dispatch examples.
-- **`pulpo.pulpo_unc.PulpoOptimizerUnc`** — the uncertainty extension: import and filter uncertain LCI parameters, apply gap-filling strategies, run Monte Carlo sampling, Chance-Constrained optimization, and Global Sensitivity Analysis. See the [uncertainty toy notebook](https://github.com/flechtenberg/pulpo/blob/master/notebooks/uncertainty_toy.ipynb).
+- **`pulpo.pulpo_unc.PulpoOptimizerUnc`** — the uncertainty extension (a thin layer over `pulpo.utils.uncertainty`): import declared distributions, add expert knowledge, and solve chance-constrained programs in reduced space. See the [uncertainty toy notebook](https://github.com/flechtenberg/pulpo/blob/master/notebooks/uncertainty_toy.ipynb).
 
-Additional example notebooks are available for a [hydrogen case](https://github.com/flechtenberg/pulpo/blob/master/notebooks/showcases/hydrogen_showcase.ipynb), an [electricity case](https://github.com/flechtenberg/pulpo/blob/master/notebooks/showcases/electricity_showcase.ipynb), and a [plastic case](https://github.com/flechtenberg/pulpo/blob/master/notebooks/showcases/plastic_showcase.ipynb).
+The [rice husk example](https://github.com/flechtenberg/pulpo/blob/master/notebooks/rice_example.ipynb) extends the rice case of Kätelhön et al. (2016). All four notebooks run on bundled databases with open-source solvers; the [documentation](https://flechtenberg.github.io/pulpo/content/examples/index.html) shows them with their results.
 
 There is also a workshop repository ([here](https://github.com/flechtenberg/pulpo_workshop)) created for the Brightcon 2024 conference, with guided notebooks and exercises.
+
+### ⚡ Reduced-space solves
+
+`solve(formulation='reduced')` solves the same LP over the choice alternatives only. With the technosphere matrix square and invertible, every scaling vector that meets the balances is `s = s0 + S v`, with one variable `v_k` per alternative, so the problem over `v` is the problem over `s`: exact, for every static constraint type, and small however large the database (one column per alternative, one row per constraint that is not a balance). The solution is written back onto the instance, so `extract_results()` and the rest read it as before. The time-dependent model supports `formulation='full'` only.
+
+The chance-constrained problems of `pulpo.utils.uncertainty` are always solved this way. Solvers:
+
+| Problem | Default | Alternative |
+|---|---|---|
+| deterministic LP (`full` or `reduced`) | HiGHS | Gurobi (and GAMS/NEOS for `full`) |
+| chance-constrained cone | Clarabel | Gurobi |
+
+HiGHS and Clarabel are installed with PULPO and need no licence. Gurobi is used with `solver_name='gurobi'` when `gurobipy` is installed; the size-limited licence that ships with `pip install gurobipy` is for non-production use (see Gurobi's licence terms) and covers problems of up to 2,000 variables and 2,000 linear constraints, or 200 variables once quadratic terms are present. That fits most reduced problems, since they have one column per alternative.
 
 ### 🧪 Tests
 
 The test suite runs with `pytest` against dedicated virtual environments for the modern (`bw25`) and legacy (`bw2`) Brightway stacks. See the [testing README](https://github.com/flechtenberg/pulpo/blob/master/tests/README.md) for setup instructions and the exact commands.
 
 ---
-## What's new in 1.8.0?
-- **Exact chance-constrained optimization** — `create_SOC_formulation()` / `solve_SOC_problem()` represent the impact's standard deviation exactly as a second-order cone, including the covariance that processes share through a common characterization factor, rather than by the conservative `L1` bound that `solve_CC_problem` uses. The default cutting-plane strategy solves a sequence of the ordinary LPs PULPO already builds, which is what makes it tractable at ecoinvent scale. Joint chance constraints across several rows (`risk_budget=`) and exact quantiles for uncertain bounds (`bound_quantile='exact'`) are available alongside it.
-- **Optional LP equilibration** — `instantiate(scale=True)` rescales the LP by powers of two so a facility-scale row cannot be under-supplied within the solver's feasibility tolerance. On an unaggregated ecoinvent background that leak was worth roughly 1 % of the optimum and made different solvers disagree. The solution is unscaled after the solve, so every result still reads in original units.
-- **From 1.7.0: goal-programming objective** — `objective='goal'` minimizes the average transgression of user-defined soft impact limits (`imp_goals`), reported per category via `extract_results()["Transgressions"]`.
+## What's new in 2.0.0?
+- **Reduced-space solves** — `solve(formulation='reduced')`, see above.
+- **One uncertainty method** — `pulpo.utils.uncertainty` replaces the 1.x generations (uncertainty in the biosphere flows and characterization factors only, as before; technosphere exchanges are deterministic): declared distributions only (undeclared parameters stay deterministic and are screened, not gap-filled), closed-form moments, a joint chance-constrained front over the impact and uncertain capacities solved in reduced space with Clarabel, an exact variance decomposition, and out-of-sample validation. The [uncertainty notebook](https://github.com/flechtenberg/pulpo/blob/master/notebooks/uncertainty_toy.ipynb) runs it on the bundled demo database without ecoinvent or a commercial solver. The 1.x uncertainty API is removed (see the changelog).
+- **Defaults unchanged** — `formulation='full'` and `instantiate(scale=False)`. Current development considers `formulation='reduced'` and `scale=True` (from 1.8.0) superior; a future release may switch the defaults.
 
 See the [changelog](https://github.com/flechtenberg/pulpo/blob/master/CHANGES.md) for the full details and earlier releases.
 
@@ -110,7 +131,7 @@ Contributions are very welcome. To request a feature or report a bug, please [op
 ## 📄 License
 
 This project is licensed under the `ℹ️  BSD 3-Clause` License. See the [LICENSE](https://github.com/flechtenberg/pulpo/blob/master/LICENSE) file for additional info.  
-Copyright (c) 2026, Fabian Lechtenberg. All rights reserved.
+Copyright (c) 2024-2026, Fabian Lechtenberg. All rights reserved.
 
 
 ---

@@ -110,7 +110,7 @@ choices = {'electricity': {electricity_activities[0]: float('inf'),
 
 Note that the choices are defined as a nested dictionary, where the outer dictionary indexes the choice sets with a label (e.g., "electricity"). The inner dictionaries specify the activities that can be selected and their respective upper bounds. 
 
-In an unconstrained scenario, the upper bound should be set to `float('inf')`, as demonstrated above. Avoid huge finite stand-ins like `1e20`: HiGHS logs a "treated as +Infinity" warning for each of them, and under pyomo ≥ 6.6 that logging can deadlock the solve on Windows.
+In an unconstrained scenario, the upper bound should be set to `float('inf')`, as demonstrated above, or to `None`, which means the same; a list of activities instead of the inner dictionary gives every alternative no limit at all. Avoid huge finite stand-ins like `1e10` or `1e20`: they add nothing, HiGHS logs a "treated as +Infinity" warning for the largest of them (which under pyomo ≥ 6.6 can deadlock the solve on Windows), and they degrade the numerics of the chance-constrained solve. `solve(formulation='reduced')` warns when it finds one.
 
 Technically, this example represents a **"fore- and background" choice**, as there is no distinct foreground system. The assessment relies entirely on the background database, but the deviation in the market could also be interpreted as a foreground choice, depending on how the boundaries are defined.
 

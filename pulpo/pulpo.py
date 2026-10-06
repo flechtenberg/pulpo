@@ -1,29 +1,27 @@
 import numbers
-import warnings
 
-from pulpo.utils import optimizer, bw_parser, converter, saver, monte_carlo
+from pulpo.utils import optimizer, bw_parser, converter, saver, monte_carlo, reduced
 from typing import List, Union
 from pulpo.datasets.rice_database import setup_rice_husk_db
 from pulpo.datasets.sample_database import setup_sample_db
 from pulpo.datasets.soc_demo_database import setup_soc_demo_db
+from pulpo.utils.warning import warn
 
 class PulpoOptimizer:
-    def __init__(self, project: str, database: Union[str, List[str]], method: Union[str, List[str], dict], directory: str):
+    def __init__(self, project: str, database: Union[str, List[str]], method: Union[str, List[str], dict]):
         """
-        Initializes the PulpoOptimizer with project, databases, method, and directory.
+        Initializes the PulpoOptimizer with project, databases and method.
 
         Args:
             project (str): Name of the project.
             database (Union[str, List[str]]): Name of the database or list of two databases
                                                (e.g. foreground and linked background).
             method (Union[str, List[str], dict]): Method(s) for optimization.
-            directory (str): Directory for saving results.
         """
         self.project = project
         self.database = database
         self.intervention_matrix = 'biosphere3'
         self.method = converter.convert_to_dict(method)
-        self.directory = directory
         self.uncertainty_data = None
         self.lci_data = None
         self.instance = None
@@ -64,8 +62,8 @@ class PulpoOptimizer:
             if isinstance(limit, bool) or not isinstance(limit, numbers.Real) or limit <= 0:
                 raise ValueError(f"Goal limit for method '{method}' must be a positive number, got {limit}.")
         if imp_goals and objective == 'weighted_sum':
-            warnings.warn("'imp_goals' passed but objective='weighted_sum'; the goals are ignored. "
-                          "Use objective='goal' to activate the goal-programming objective.", UserWarning)
+            warn("'imp_goals' passed but objective='weighted_sum'; the goals are ignored. "
+                 "Use objective='goal' to activate the goal-programming objective.")
             imp_goals = {}
         return imp_goals
 
@@ -76,10 +74,17 @@ class PulpoOptimizer:
         Combines inputs and instantiates the optimization model.
 
         Args:
-            choices (dict): Choices for the model.
+            choices (dict): Choices for the model: ``{label: {activity: capacity}}``, or a list of
+                            activities when none has a capacity. A capacity of ``float('inf')``
+                            or ``None`` means no limit; avoid huge finite stand-ins such as
+                            ``1e10``. ``None`` means "no limit" in the limit dicts below too;
+                            ``default_limits`` takes numbers.
             demand (dict): Demand data.
-            upper_limit (dict): Upper limit constraints.
-            lower_limit (dict): Lower limit constraints.
+            upper_limit (dict): Upper limit constraints. On a choice alternative it replaces the
+                                capacity, with a warning.
+            lower_limit (dict): Lower limit constraints. Equal lower and upper limits on a process
+                                fix its output as a supply (its product's balance gets a slack);
+                                equal limits of 0 switch the process off.
             upper_elem_limit (dict): Upper elemental limit constraints.
             upper_imp_limit (dict): Upper impact limit constraints.
             lower_elem_limit (dict): Lower elemental limit constraints.
@@ -92,7 +97,13 @@ class PulpoOptimizer:
                                             Categories listed in imp_goals ignore 'lower_imp_bound'/
                                             'upper_imp_bound' (the goal is a soft limit, not a hard Var
                                             bound) unless also given an explicit upper_imp_limit/
-                                            lower_imp_limit.
+                                            lower_imp_limit. Finite 'lower_bound' / 'upper_bound'
+                                            put a bound on every activity, which has no physical
+                                            meaning and makes solve(formulation='reduced') build the
+                                            whole of S; they raise a FutureWarning. Set
+                                            lower_limit / upper_limit on the processes that have
+                                            a real limit instead. default_limits may be
+                                            deprecated in a near-future release.
             imp_goals (dict, optional): Goal-programming soft limits {method_string: limit}. Unlike
                                         upper_imp_limit these CAN be transgressed; used with
                                         objective='goal'. Categories with a goal are kept in the
@@ -141,18 +152,45 @@ class PulpoOptimizer:
         self.objective = objective
         self.scale = scale
 
-    def solve(self, GAMS_PATH=False, solver_name=None, options=None, neos_email=None):
+    def solve(self, GAMS_PATH=False, solver_name=None, options=None, neos_email=None, formulation='full'):
         """
         Solves the optimization model and calculates additional methods and inventory flows if needed.
 
         Args:
-            GAMS_PATH (bool): Path to GAMS if needed.
-            options (dict): Additional options for the solver.
+            GAMS_PATH (str or bool, optional): Solve with the GAMS installation in this
+                directory (``True``: the directory in the ``GAMS_PULPO`` environment
+                variable), using ``solver_name`` as the GAMS solver (default CPLEX).
+            solver_name (str, optional): 'highs' (default) or 'gurobi'; with formulation='full'
+                also any GAMS or NEOS solver.
+            options (dict, optional): Solver options: option names and values for HiGHS
+                and Gurobi (an unknown HiGHS option or an invalid value raises a
+                ValueError), a list of option lines for GAMS. NEOS does not use them.
+            neos_email (str, optional): The e-mail address NEOS requires when ``solver_name``
+                names a NEOS solver (formulation='full'); without it, the ``NEOS_EMAIL``
+                environment variable is used.
+            formulation (str, optional): 'full' (default) solves the Pyomo LP over every process;
+                'reduced' solves the same problem over the alternatives only
+                (see :mod:`pulpo.utils.reduced`).
 
         Returns:
-            results: Results of the optimization.
+            results: Results of the optimization (a :class:`pulpo.utils.reduced.ReducedResults`
+            with formulation='reduced').
+
+        Raises:
+            pulpo.utils.optimizer.SolveError: the solve did not end optimal (infeasible,
+                unbounded, or stopped by a time or iteration limit). Nothing is loaded:
+                the instance keeps its previous values. With formulation='reduced' it is
+                the subclass :class:`pulpo.utils.reduced.ReducedSolveError`.
         """
-        results, self.instance = optimizer.solve_model(self.instance, GAMS_PATH, solver_name=solver_name, options=options, neos_email=neos_email)
+        if formulation == 'reduced':
+            if GAMS_PATH or neos_email is not None:
+                raise ValueError("formulation='reduced' solves with HiGHS or Gurobi; GAMS and NEOS "
+                                 "need formulation='full'.")
+            results = reduced.build(self).solve(solver_name=solver_name, options=options)
+        elif formulation == 'full':
+            results, self.instance = optimizer.solve_model(self.instance, GAMS_PATH, solver_name=solver_name, options=options, neos_email=neos_email)
+        else:
+            raise ValueError(f"Unknown formulation {formulation!r}; use 'full' or 'reduced'.")
 
         # Post calculate additional methods, in case several methods have been specified and one of them is 0
         if not isinstance(self.method, str):
@@ -231,13 +269,17 @@ class PulpoOptimizer:
         """
         Retrieves environmental flows from the database based on given filters.
 
+        Filters are matched exactly and combined with AND; ``keys`` takes precedence.
+        Each filter takes one value or a list of them. Categories are tuples such as
+        ``('air', 'urban air close to ground')``.
+
         Args:
-            keys (list): List of keys to filter environmental flows.
-            activities (list): List of activities to filter.
-            categories (list): List of categories to filter.
+            keys (optional): Flow keys, as (database, code) tuples or their string form.
+            activities (optional): Flow names.
+            categories (optional): Flow categories, as tuples or their string form.
 
         Returns:
-            activities: Filtered environmental flows from the database.
+            list: The matching flows; empty, with a warning, if none match.
         """
         activities = bw_parser.retrieve_env_interventions(project=self.project,
                                                           intervention_matrix=self.intervention_matrix, keys=keys,
@@ -262,7 +304,8 @@ class PulpoOptimizer:
         Saves the results of the optimization to a file.
 
         Args:
-            name (str): Name of the file to save results.
+            name (str or os.PathLike): The Excel file, relative to the working
+                directory or absolute; missing folders are created.
         """
         saver.save_results(self, name)
 
@@ -274,7 +317,18 @@ class PulpoOptimizer:
 
     def extract_results(self, extractparams:bool=False):
         """
-        Summarizes the results of the optimization.
+        The results of the last solve, as DataFrames keyed by the sheet names of
+        :meth:`save_results`.
+
+        The keys are 'Scaling Vector', 'Intervention Vector', 'Slack', 'Impacts',
+        'Transgressions', 'Demand', 'Choices' (a dict with one DataFrame per choice),
+        'Constraints Upper', 'Constraints Lower' and 'Constraints Upper Elem'.
+
+        Args:
+            extractparams (bool, optional): Also return the instance's parameters.
+
+        Returns:
+            dict: The results, as described above.
         """
         return saver.extract_results(self, extractparams=extractparams)
 

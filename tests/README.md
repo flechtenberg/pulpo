@@ -9,27 +9,22 @@ so the main development venv (`.venv`) never needs re-tuning:
 - **`.venv-bw25`** — bw25 stack (bw2data ≥ 4, bw2calc ≥ 2)
 - **`.venv-bw2`** — bw2 stack (bw2data 3.6.6, bw2calc 1.8.2, numpy < 2)
 
-Both include the **`uncertainty`** extra (SALib, stats_arrays, seaborn,
-matplotlib) so the most complete dependency set — including potential cross
-effects between optional and core packages — is always exercised. Each venv
-needs `pytest` and an **editable** install of pulpo (`-e`), so tests always
-run against the working tree instead of a stale site-packages copy.
-
-Note: `tests/test_uncertainty.py` needs **SALib ≥ 1.5.1** (pinned in the
-`uncertainty` extra since July 2026; 1.4.8 breaks under numpy 2 because
-`ndarray.ptp` was removed). If a venv predates that pin, upgrade it with
-`uv pip install -p .venv-bw25 "SALib==1.5.1"`.
+Each venv needs an **editable** install of pulpo (`-e`) with the `test`
+extra (`pytest`, SALib to cross-check the exact Sobol' indices, and openpyxl to
+read saved result workbooks back), so tests
+always run against the working tree instead of a stale site-packages copy.
+Without SALib that one comparison skips itself.
 
 Create / recreate them with [uv](https://docs.astral.sh/uv/) from the repo root:
 
 ```powershell
 # bw25
 uv venv .venv-bw25 --python 3.12
-uv pip install -p .venv-bw25 -e ".[bw25,uncertainty]" pytest
+uv pip install -p .venv-bw25 -e ".[bw25,test]"
 
 # bw2 (bw2 requires Python <= 3.12)
 uv venv .venv-bw2 --python 3.12
-uv pip install -p .venv-bw2 -e ".[bw2,uncertainty]" pytest
+uv pip install -p .venv-bw2 -e ".[bw2,test]"
 ```
 
 The `bw2` and `bw25` extras are mutually exclusive (declared in
@@ -107,6 +102,14 @@ uncertainty workflow tests added (July 2026) the suite takes ~35 s (bw25) /
 ~20 s (bw2). The suite is xdist-safe if ever needed — each worker gets its
 own temp Brightway directory via `conftest.py`.
 
+## Continuous integration
+
+`.github/workflows/ci.yml` runs the suite on every push to `master`, `feature/**` and
+`release/**` and on pull requests: bw2 on Linux (Python 3.10, 3.12), bw25 on Linux
+(3.14), Windows and macOS (3.12), and bw25 with UMFPACK from conda-forge on macOS. It also builds the sdist and the wheel, solves the sample database with the
+installed wheel, checks that the docs copies of the example notebooks match their
+originals in `notebooks/`, and builds the documentation from `docs/environment.yaml`.
+
 ## Environment-gated tests
 
 These skip themselves with an explanatory message when the requirement is
@@ -118,7 +121,8 @@ missing:
 | `test_gams_solver` | `GAMS_PULPO` env var pointing to the GAMS installation |
 | `test_neos_solver` | `NEOS_EMAIL` env var set (submits jobs to the remote NEOS server) |
 | `test_uncertainty.py::TestUncertaintyParamArrays` | bw25 stack (bw2data ≥ 4) |
-| `test_uncertainty.py` workflow classes | `uncertainty` extra installed (SALib, stats_arrays, …) |
+| `test_reduced.py` / `test_uncertainty.py` Gurobi cases | `gurobipy` importable and licensed |
+| `test_reduced.py` factorization subtests per backend | PARDISO: `pypardiso` (x86-64 Windows/Linux); UMFPACK: `scikit-umfpack` (conda-forge); SciPy always runs |
 
 All remaining tests use the bundled HiGHS solver and run offline.
 
@@ -130,7 +134,18 @@ All remaining tests use the bundled HiGHS solver and run offline.
   and multi-day battery-dispatch scenarios from
   `notebooks/elec_time_toy.ipynb` with reference CO2 totals and physical
   consistency checks, result extraction/saving, static fallback
-- `test_uncertainty.py` — uncertainty features: the curated `pulpo_unc`
-  pipeline from `notebooks/uncertainty_toy.ipynb` (filtering, gap-filling
-  strategies, Monte Carlo, chance constraints, Sobol GSA) plus the bw25
-  uncertainty-parameter extraction in `bw_parser.import_data`
+- `test_reduced.py` — the reduced-space backend (`solve(formulation='reduced')`)
+  against the full LP on every bundled database and constraint type, plus
+  its building blocks against dense linear algebra
+- `test_uncertainty.py` — the import of declared distributions, closed-form
+  moments (against Monte Carlo and PULPO 1.8.0), risk budget and exact
+  quantiles, the chance-constrained problem in reduced space (against PULPO
+  1.8.0, an independent full-space cone and an analytic optimum), and the
+  bw25 uncertainty-parameter extraction in `bw_parser.import_data`
+- `test_uncertainty_analysis.py` — the analyses of a solved front: the exact
+  variance decomposition (against SALib), the screening of undeclared
+  parameters and the width sensitivity, the diagnostics, the vectorized
+  sampler and the out-of-sample validation
+- `test_scaling.py` — the LP equilibration (`instantiate(scale=True)`): the
+  same optimum and results as unscaled, on the static and the time-indexed
+  model, and on a synthetic model with ecoinvent-like magnitudes

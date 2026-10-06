@@ -1,41 +1,58 @@
 [build-system]
-requires = ["setuptools>=65.5", "wheel"]
+# 77 is the first setuptools that reads the SPDX `license` string below.
+requires = ["setuptools>=77.0.3"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "pulpo-dev"
-version = "1.8.0"
+version = "2.0.0"
 description = "Pulpo package for optimization in LCI databases"
 authors = [
-  { name="Fabian Lechtenberg", email="fabian.lechtenberg@chem.ethz.ch" }
+  { name="Fabian Lechtenberg", email="fabian.lechtenberg@upc.edu" }
 ]
 maintainers = [
-  { name="Fabian Lechtenberg", email="fabian.lechtenberg@chem.ethz.ch" }
+  { name="Fabian Lechtenberg", email="fabian.lechtenberg@upc.edu" }
 ]
 readme = "README.md"
 requires-python = ">=3.10"
 license = "BSD-3-Clause"
 license-files = ["LICENSE"]
 classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Operating System :: OS Independent"
 ]
 dependencies = [
-    "fs==2.4.16",
     # 6.7.3 still touches np.float_ under numpy 2; 6.8.0 is the first
     # release verified against numpy 2 + highspy 1.15.
     "pyomo>=6.8.0,<7.0.0",
-    "highspy==1.15.1",
-    "ipython==8.14.0",
-    "jupyterlab",
+    # PULPO uses highspy directly (reduced backend) and through pyomo's appsi;
+    # new minor releases have broken those APIs before, so they are let in
+    # only after testing. Bug-fix releases are allowed.
+    "highspy>=1.15.1,<1.16",
     "numpy<3.0.0",
     "pandas",
-    "scipy<=1.14.1",
+    "scipy",
     "tqdm",
     "joblib",
     "xlsxwriter",
-    "openpyxl",
-    "pypardiso>=0.4.7; sys_platform != 'darwin'",
+    # Version checks of the Brightway packages (pulpo.utils.utils).
+    "packaging",
+    # PARDISO needs MKL, which has wheels for x86-64 Windows and Linux only;
+    # elsewhere the reduced backend uses UMFPACK (scikit-umfpack, optional) or SciPy.
+    "pypardiso>=0.4.7; sys_platform != 'darwin' and (platform_machine == 'x86_64' or platform_machine == 'AMD64')",
+    # Second-order cone solver of the chance-constrained problem.
+    "clarabel>=0.11",
+    # Distributions of uncertain parameters; already imported by bw_parser.
+    "stats_arrays>=0.7",
 ]
 
 [project.optional-dependencies]
@@ -50,19 +67,29 @@ bw25 = [
     "bw2calc>=2.0.0",
     "bw2data>=4.0.0"
 ]
-uncertainty = [
-    "stats_arrays==0.7.0",
-    # 1.4.8 breaks under numpy 2 (ndarray.ptp removed); 1.5.1 is the first
-    # release verified against numpy 2 + pandas 2.
+# Kept so that "pulpo-dev[uncertainty]" still installs: the uncertainty
+# features need nothing beyond the core dependencies.
+uncertainty = []
+# The example notebooks: JupyterLab and the plotting libraries they use.
+notebooks = [
+    "jupyterlab",
+    "matplotlib",
+    "seaborn",
+]
+# The test suite; SALib cross-checks the exact Sobol' indices, and openpyxl
+# reads the saved result workbooks back.
+test = [
+    "pytest",
     "SALib==1.5.1",
-    "seaborn==0.13.2",
-    "matplotlib==3.10.7",
-    "typing_extensions==4.15.0"
+    "openpyxl",
 ]
 
 [project.urls]
-homepage = "https://github.com/flechtenberg/pulpo"
-repository = "https://github.com/flechtenberg/pulpo"
+Homepage = "https://github.com/flechtenberg/pulpo"
+Documentation = "https://flechtenberg.github.io/pulpo/"
+Repository = "https://github.com/flechtenberg/pulpo"
+Changelog = "https://github.com/flechtenberg/pulpo/blob/master/CHANGES.md"
+Issues = "https://github.com/flechtenberg/pulpo/issues"
 
 [tool.setuptools.packages.find]
 include = ["pulpo*"]

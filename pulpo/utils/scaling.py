@@ -17,7 +17,7 @@ were only feasible under that tolerance, and disagreed with each other.
 What
 ----
 :func:`equilibrate_model_data` rewrites the data dictionary produced by
-``combine_inputs`` / ``combine_inputs_time`` in place, substituting
+``combine_inputs`` / ``combine_inputs_time`` in place, substituting ::
 
     x_j = s_j * y_j          (column scaling of the scaling vector)
     row_i * r_i              (row scaling of every product balance)
@@ -40,15 +40,19 @@ constraint or a bound ``x_j <= b`` after ``instantiate`` must express it in the
 model's units, i.e. ``(c * s_j) * scaling_vector[j]`` and ``b / s_j`` in
 ``LOWER_LIMIT`` / ``UPPER_LIMIT``. :func:`to_scaled_coefficient`,
 :func:`to_scaled_process_bound` and :func:`from_scaled_process_bound` do
-that and are the identity on an unscaled model; the uncertainty formulations
-(``uncertainty.soc`` and ``uncertainty.cc``) go through them. Impact and
-inventory quantities are never scaled and need no conversion.
+that and are the identity on an unscaled model. Impact and inventory
+quantities are never scaled and need no conversion.
+
+The reduced backend (``solve(formulation='reduced')``) solves a different, small
+and dense LP and equilibrates it with :func:`ruiz_scaling` on every solve,
+whatever ``scale`` is; it reads the instance back in original units, so
+``scale=True`` does not change the problem it solves.
 """
 
-import warnings
 
 import numpy as np
 import scipy.sparse as sps
+from pulpo.utils.warning import warn
 
 #: Scaled variable bounds beyond this magnitude are treated as infinite. A
 #: bound of 1e9 on a facility whose column is scaled by 1e-11 becomes 1e20,
@@ -112,6 +116,34 @@ def geometric_scaling(A, iters=20, stat_cut=1e-11):
         cf[ok] = 1.0 / np.sqrt(cmax[ok] * cmin[ok])
         s *= 2.0 ** np.round(np.log2(cf))
     return r, s
+
+
+def ruiz_scaling(M, iters=10):
+    """Power-of-two row and column factors that bring every row and column of
+    ``diag(r) M diag(d)`` to a largest entry of about 1 (Ruiz equilibration).
+
+    This is the scaling of the reduced LP (``pulpo.utils.reduced``), whose rows
+    are dense and mix the unit LCA score of each alternative with cross terms
+    many orders smaller. Equilibrating by the largest entry keeps the leading
+    coefficients at O(1); :func:`geometric_scaling`'s ``max * min == 1``
+    would lift them by half the row's dynamic range, and its absolute
+    ``stat_cut`` is tuned to the units of the technosphere, not to those of a
+    projection. Empty rows and columns keep 1.
+    """
+    M = abs(sps.csr_matrix(M, dtype=float))
+    m, n = M.shape
+    r, d = np.ones(m), np.ones(n)
+    if M.nnz == 0:
+        return r, d
+    for _ in range(iters):
+        B = sps.diags(r) @ M @ sps.diags(d)
+        rmax = B.max(axis=1).toarray().ravel()
+        cmax = B.max(axis=0).toarray().ravel()
+        rf = np.where(rmax > 0, 1.0 / np.sqrt(np.where(rmax > 0, rmax, 1.0)), 1.0)
+        cf = np.where(cmax > 0, 1.0 / np.sqrt(np.where(cmax > 0, cmax, 1.0)), 1.0)
+        r *= 2.0 ** np.round(np.log2(rf))
+        d *= 2.0 ** np.round(np.log2(cf))
+    return r, d
 
 
 def _cap_bound(value, n_capped):
@@ -183,13 +215,9 @@ def equilibrate_model_data(model_data, iters=20, stat_cut=1e-11, row_shift=1024.
         d['K'][(i, i2)] = v * r[ridx[i]] / r[ridx[i2]]
 
     if n_capped[0]:
-        warnings.warn(
-            f"{n_capped[0]} scaled process bounds exceeded {SCALED_BOUND_CAP:.0e} in "
-            "magnitude and were treated as infinite. Finite default limits such as "
-            "upper_bound=1e9 are meaningless on facility-scale processes; pass "
-            "+-inf (the default) for limits that are not meant to bind.",
-            UserWarning, stacklevel=3,
-        )
+        warn(f"{n_capped[0]} choice capacities or lower_limit / upper_limit values exceeded "
+             f"{SCALED_BOUND_CAP:.0e} in magnitude after scaling and were treated as infinite, which "
+             "they cannot bind against. If they stand for 'no limit', use float('inf') or None.")
 
     row_scale = {i: float(r[ridx[i]]) for i in products}
     col_scale = {j: float(s[cidx[j]]) for j in processes}
@@ -211,7 +239,9 @@ def relax_default_bounds(lower_limit_dict, upper_limit_dict, explicit_lower, exp
     bounds are therefore made truly infinite, as PULPO's own defaults are.
 
     ``explicit_lower`` / ``explicit_upper`` hold the dict keys whose bounds
-    were set explicitly. Warns once when a finite default was replaced.
+    were set explicitly. Returns how many finite defaults were replaced; the
+    user is told by the warning on finite ``default_limits``
+    (``converter.warn_finite_default_limits``).
     """
     replaced = 0
     for key in lower_limit_dict:
@@ -222,14 +252,6 @@ def relax_default_bounds(lower_limit_dict, upper_limit_dict, explicit_lower, exp
         if key not in explicit_upper:
             replaced += np.isfinite(upper_limit_dict[key])
             upper_limit_dict[key] = float('inf')
-    if replaced:
-        warnings.warn(
-            f"scale=True: {int(replaced)} finite default process bounds "
-            "(default_limits['lower_bound'] / ['upper_bound']) were replaced by +-inf. "
-            "Bounds that are not meant to bind must be infinite on a scaled model; "
-            "use lower_limit / upper_limit for limits that are.",
-            UserWarning, stacklevel=3,
-        )
     return replaced
 
 
@@ -273,33 +295,14 @@ def to_scaled_process_bound(model, j, bound):
     n_capped = [0]
     value = _cap_bound(bound / col_factor(model, j), n_capped)
     if n_capped[0]:
-        warnings.warn(
-            f"a process bound written onto the scaled model exceeded {SCALED_BOUND_CAP:.0e} "
-            "in magnitude after scaling and was treated as infinite.",
-            UserWarning, stacklevel=3,
-        )
+        warn(f"a process bound written onto the scaled model exceeded {SCALED_BOUND_CAP:.0e} "
+             "in magnitude after scaling and was treated as infinite.")
     return value
 
 
 def from_scaled_process_bound(model, j, value):
     """Read a ``LOWER_LIMIT[j]`` / ``UPPER_LIMIT[j]`` value back in original units."""
     return float(value) * col_factor(model, j)
-
-
-def cut_row_factor(coefficients, stat_cut=1e-11):
-    """Power-of-two row factor centring a constraint row at 1 (``max * min == 1``).
-
-    Same per-row rule as :func:`geometric_scaling`, for a single row written
-    after the build (a Kelley cut, for instance). Entries below ``stat_cut``
-    in magnitude are ignored for the statistics; an empty row gives 1.0.
-    Multiplying a whole constraint by a power of two is exact and leaves the
-    LP unchanged, so this only affects the solver's conditioning.
-    """
-    mags = np.abs(np.asarray(coefficients, dtype=float))
-    mags = mags[mags >= stat_cut]
-    if mags.size == 0:
-        return 1.0
-    return float(2.0 ** np.round(-0.5 * np.log2(mags.max() * mags.min())))
 
 
 def _apply(model, unscale):

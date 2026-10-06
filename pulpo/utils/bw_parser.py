@@ -1,13 +1,14 @@
 import ast
 from typing import List, Union, Dict, Any, TypedDict
-import warnings
 import bw2calc as bc
 import bw2data as bd
 from pulpo.utils.utils import get_bw_version, build_bw25_params
 from stats_arrays.random import MCRandomNumberGenerator
 import numpy as np
+from pulpo.utils.warning import warn
 
 class LCIDataDict(TypedDict):
+    """The LCI data of a worker (``worker.lci_data``): matrices, maps and uncertainty parameters."""
     matrices: Dict[str, np.ndarray]
     intervention_matrix: np.ndarray
     technology_matrix: np.ndarray
@@ -51,9 +52,12 @@ def import_data(project: str, databases: Union[str, List[str]], method: Union[st
         seed (Union[None, int], optional): Seed for RNG. If None, the default A, B, and Q matrices are used.
         compute_uncertainty_params (bool, optional): Whether to assemble the bw25
             'intervention_params' / 'characterization_params' structured arrays. These are
-            only needed by the uncertainty sub-package (chance-constraints, GSA), not by
-            A/B/Q resampling, so skipping them speeds up repeated Monte Carlo calls.
-            Default True to preserve the full LCIDataDict.
+            only needed by the uncertainty sub-package (``uncertainty.import_declared``),
+            not by A/B/Q resampling, so skipping them speeds up repeated Monte Carlo calls.
+            Default True to preserve the full LCIDataDict. An array is ``None``, without a
+            warning, when the databases or the method carry no (complete) uncertainty
+            data: a deterministic study does not need it, and ``import_declared`` says so
+            when uncertainty is actually requested.
 
     Returns:
         Dict[str, Union[dict, Any]]: Dictionary containing imported LCI data.
@@ -90,6 +94,9 @@ def import_data(project: str, databases: Union[str, List[str]], method: Union[st
     eidbs = []
     for database in databases:
         eidbs.append(bd.Database(database))
+    # The LCA also loads the databases these link to (ecoinvent behind a foreground,
+    # say); their processes are columns of the matrices as well.
+    activity_rows = _activity_rows(_linked_databases(databases))
 
     bw_version = get_bw_version()
     dist = seed is not None
@@ -101,7 +108,8 @@ def import_data(project: str, databases: Union[str, List[str]], method: Union[st
     match bw_version:
         case 'bw25':
             lca, characterization_matrices, characterization_params, process_map, bio_params = \
-                _load_lci_bw25(eidbs, methods, seed, dist, resample, compute_uncertainty_params)
+                _load_lci_bw25(eidbs, methods, seed, dist, resample, compute_uncertainty_params,
+                               activity_rows)
         case 'bw2':
             lca, characterization_matrices, characterization_params, process_map, bio_params = \
                 _load_lci_bw2(eidbs, methods, seed, dist, resample)
@@ -111,13 +119,11 @@ def import_data(project: str, databases: Union[str, List[str]], method: Union[st
     intervention_matrix = lca.biosphere_matrix
 
 
-    # Add descriptive strings to the process map for both primary and secondary databases
-    process_map_metadata = {}
-    for eidb in eidbs:
-        for act in eidb:
-            process_map_metadata[process_map[act.key]] = (
-                f"{act['name']} | {act.get('reference product', '')} | {act.get('location', '')}"
-            )
+    # Descriptive labels for every process in the matrices, linked databases included
+    process_map_metadata = {
+        process_map[(db, code)]: f"{name} | {product or ''} | {location or ''}"
+        for _, db, code, name, product, location in activity_rows if (db, code) in process_map
+    }
 
     # ATTN: could probbly ask BW what the biosphere matrix is and then move this code into the cases further up
     if intervention_matrix_name in bd.databases:
@@ -150,12 +156,17 @@ def import_data(project: str, databases: Union[str, List[str]], method: Union[st
     return lci_data
 
 
-def _load_lci_bw25(eidbs, methods, seed, dist, resample, compute_uncertainty_params):
+def _load_lci_bw25(eidbs, methods, seed, dist, resample, compute_uncertainty_params, activity_rows):
     """Build the (optionally resampled) A/B/Q matrices and maps for a bw25 project.
 
     One LCA with a combined functional unit (one activity per listed database) loads
     the union of all databases and their dependencies into a single index space, so
     database order does not matter.
+
+    Only the matrices in ``resample`` are drawn from their distributions, each
+    from its own random stream (child seeds spawned from ``seed``, as in the bw2
+    path); the others keep their deterministic values. bw2calc alone would draw
+    every matrix, all from the same seed.
 
     Returns ``(lca, characterization_matrices, characterization_params, process_map,
     intervention_params)``; ``intervention_params`` is ``None`` when not requested
@@ -163,35 +174,42 @@ def _load_lci_bw25(eidbs, methods, seed, dist, resample, compute_uncertainty_par
     """
     characterization_matrices = {}
     characterization_params = {}
+    draw = {name: dist and letter in resample for letter, name in
+            (('A', 'technosphere_matrix'), ('B', 'biosphere_matrix'), ('Q', 'characterization_matrix'))}
+    if dist:
+        child_seeds = [int(c.generate_state(1)[0]) for c in np.random.SeedSequence(seed).spawn(2 + len(methods))]
+        tech_seed, bio_seed = child_seeds[:2]
+        method_seeds = {str(mth): s for mth, s in zip(methods, child_seeds[2:])}
 
     # Build technosphere/biosphere matrices ONCE for all databases (heavy step)
     demand = {eidb.random(): 1 for eidb in eidbs}
     fu, data_objs, _ = bd.prepare_lca_inputs(demand, method=methods[0])
-    lca = bc.LCA(demand=fu, data_objs=data_objs, use_distributions=dist, seed_override=seed)
+    lca = bc.LCA(demand=fu, data_objs=data_objs, use_distributions=False,
+                 selective_use={name: {'use_distributions': use} for name, use in draw.items()},
+                 seed_override=tech_seed if dist else None)
     lca.load_lci_data()
+    if draw['biosphere_matrix']:
+        # bw2calc draws B with A's seed; redraw it from a stream of its own.
+        import matrix_utils as mu
+        lca.biosphere_mm = mu.MappedMatrix(
+            packages=lca.packages, matrix='biosphere_matrix',
+            use_arrays=lca.check_selective_use('biosphere_matrix')[0], use_distributions=True,
+            seed_override=bio_seed, row_mapper=lca.biosphere_mm.row_mapper,
+            col_mapper=lca.technosphere_mm.col_mapper, empty_ok=True)
+        lca.biosphere_matrix = lca.biosphere_mm.matrix
 
     for method in methods:
-        lca.switch_method(method)  # cheap: swaps only the characterization datapackage/matrix
         m = str(method)
+        if dist:
+            lca.seed_override = method_seeds[m]   # the Q of each method from its own stream
+        lca.switch_method(method)  # cheap: swaps only the characterization datapackage/matrix
 
         if compute_uncertainty_params:
-            cf_params, cf_incomplete = build_bw25_params(
+            cf_params, _ = build_bw25_params(
                 lca.packages, 'characterization_matrix', lca.dicts.biosphere
             )
-            if cf_params is None:
-                characterization_params[m] = None
-                warnings.warn(
-                    f"No{' complete' if cf_incomplete else ''} characterization factor "
-                    f"uncertainty information found for method '{m}'. "
-                    f"Storing 'characterization_params' as None.",
-                    UserWarning, stacklevel=2,
-                )
-            else:
-                characterization_params[m] = cf_params
+            characterization_params[m] = cf_params
 
-        if dist and "Q" in resample:
-            next(lca.characterization_mm)
-            lca.characterization_matrix = lca.characterization_mm.matrix
         characterization_matrices[m] = lca.characterization_matrix
 
     # Method-independent biosphere uncertainty params: data_objs spans all listed
@@ -200,22 +218,12 @@ def _load_lci_bw25(eidbs, methods, seed, dist, resample, compute_uncertainty_par
         intervention_params, _ = build_bw25_params(
             data_objs, 'biosphere_matrix', lca.dicts.biosphere, lca.dicts.product
         )
-        if intervention_params is None:
-            warnings.warn(
-                "No complete intervention flow uncertainty information found for the "
-                "provided databases. Storing 'intervention_params' as None.",
-                UserWarning, stacklevel=2,
-            )
     else:
         intervention_params = None
 
-    process_map = {act.key: lca.dicts.product[act.id] for eidb in eidbs for act in eidb}
-    if dist and "A" in resample:
-        next(lca.technosphere_mm)
-        lca.technosphere_matrix = lca.technosphere_mm.matrix
-    if dist and "B" in resample:
-        next(lca.biosphere_mm)
-        lca.biosphere_matrix = lca.biosphere_mm.matrix
+    # Every process the LCA loaded, also those of linked databases that were not listed.
+    process_map = {(db, code): lca.dicts.product[i]
+                   for i, db, code, *_ in activity_rows if i in lca.dicts.product}
 
     return lca, characterization_matrices, characterization_params, process_map, intervention_params
 
@@ -272,19 +280,34 @@ def _load_lci_bw2(eidbs, methods, seed, dist, resample):
     return lca, characterization_matrices, characterization_params, process_map, bio_params
 
 
-def update_lci_data(lci_data: LCIDataDict, seed: int) -> LCIDataDict:
-    """
-    Update the LCI data dictionary with new data. For that, c
+def _linked_databases(names):
+    """``names`` and every database they link to, directly or not (``depends``)."""
+    seen, stack = [], list(names)
+    while stack:
+        name = stack.pop()
+        if name in seen or name not in bd.databases:
+            continue
+        seen.append(name)
+        stack.extend(bd.databases[name].get('depends', []))
+    return seen
 
-    Args:
-        lci_data (LCIDataDict): Original LCI data dictionary.
-        new_data (Dict[str, Any]): New data to be added to the LCI data dictionary.
 
-    Returns:
-        LCIDataDict: Updated LCI data dictionary.
-    """
-
-    return lci_data
+def _activity_rows(db_names):
+    """``(id, database, code, name, reference product, location)`` of every activity
+    of ``db_names``: one SQL query where the backend allows it, else by iteration."""
+    ActivityDataset, _ = _activity_orm()
+    in_sql = [db for db in db_names
+              if ActivityDataset is not None and bd.databases[db].get('backend', 'sqlite') in _SQL_BACKENDS]
+    rows = []
+    if in_sql:
+        A = ActivityDataset
+        rows += list(A.select(A.id, A.database, A.code, A.name, A.product, A.location)
+                     .where(A.database.in_(in_sql)).tuples())
+    for db in db_names:
+        if db not in in_sql:
+            rows += [(act.id, act['database'], act['code'], act.get('name'),
+                      act.get('reference product'), act.get('location')) for act in bd.Database(db)]
+    return rows
 
 
 def _activity_orm():
@@ -416,40 +439,59 @@ def retrieve_env_interventions(project: str = '', intervention_matrix: str = 'bi
     """
     Retrieve environmental interventions from the biosphere database based on specified keys, activities, and categories.
 
+    Filters are matched exactly and combined with AND; ``keys`` takes precedence over
+    the other filters. Each filter takes one value or a list of them. Categories are
+    tuples such as ``('air', 'urban air close to ground')``.
+
     Args:
         project (str, optional): Name of the project.
         intervention_matrix (str): Name of the intervention matrix.
-        keys (list, optional): List of keys to filter environmental flows.
-        activities (list, optional): List of activity names to filter.
-        categories (list, optional): List of categories to filter.
+        keys (optional): Flow keys, as (database, code) tuples or their string form.
+        activities (optional): Flow names.
+        categories (optional): Flow categories, as tuples or their string form.
 
     Returns:
-        list: List of matching environmental flows from the database.
+        list: The matching environmental flows; empty, with a warning, if none match.
     """
 
     # Set project and get database
     _ensure_project_current(project)
     eidb = bd.Database(intervention_matrix)
 
-    # Filter by keys if provided
     if keys is not None:
-        if isinstance(keys, str):
-            keys = [keys]
-        keys = [eval(key) for key in keys]
-        return [flow for flow in eidb if flow.key in keys]
-
-    matching_flows = []
-
-    # Filter by activities and categories
-    for flow in eidb:
-        if (activities is None or flow['name'] in activities) and \
-                (categories is None or str(flow['categories']) in categories):
-            matching_flows.append(flow)
+        keys = {_parse_tuple(key, 'keys', "('biosphere3', 'code')") for key in _as_list(keys)}
+        matching_flows = [flow for flow in eidb if flow.key in keys]
+    else:
+        names = None if activities is None else set(_as_list(activities))
+        if categories is not None:
+            categories = {_parse_tuple(category, 'categories', "('air', 'urban air close to ground')")
+                          for category in _as_list(categories)}
+        matching_flows = [flow for flow in eidb
+                          if (names is None or flow['name'] in names)
+                          and (categories is None or tuple(flow.get('categories') or ()) in categories)]
 
     if not matching_flows:
-        print("No flows match the given specifications or the input format is incorrect.")
-    else:
-        return matching_flows
+        warn(f"No flows in {intervention_matrix!r} match keys={keys!r}, activities={activities!r}, "
+             f"categories={categories!r}; names, keys and categories are matched exactly.")
+    return matching_flows
+
+
+def _as_list(value):
+    """A filter value as a list: a string or a tuple is one value."""
+    return [value] if isinstance(value, (str, tuple)) else list(value)
+
+
+def _parse_tuple(value, name, example):
+    """A key or category given as a tuple or its string form, as a tuple."""
+    parsed = value
+    if isinstance(value, str):
+        try:
+            parsed = ast.literal_eval(value)
+        except (ValueError, SyntaxError):
+            pass
+    if not isinstance(parsed, (tuple, list)):
+        raise ValueError(f"{name}: expected tuples such as {example} or their string form, got {value!r}.")
+    return tuple(parsed)
 
 
 def retrieve_methods(project: str, sub_string: List[str]) -> List[str]:
