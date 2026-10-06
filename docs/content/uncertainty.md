@@ -18,12 +18,12 @@ uncertain process bounds.
 ```python
 from pulpo.utils import uncertainty as unc
 
-data  = unc.import_declared(worker)                     # parameters of the impact
-unc.override(data, 'If', 'foreground', expert_specs)    # elicited distributions
-mom   = unc.compute_moments(data, worker)               # closed-form mean and variance
+data  = unc.import_declared(worker)                         # parameters of the impact
+unc.override(data, 'If', 'my_foreground_db', expert_specs)  # elicited distributions
+mom   = unc.compute_moments(data, worker)                   # closed-form mean and variance
 ccp   = unc.ChanceConstrained(worker, mom, upper_bounds={activity: capacity_spec})
-front = ccp.solve([0.5, 0.9, 0.99])                     # reliability sweep
-dec   = unc.decompose(front[0.9], mom)                  # exact Sobol' indices
+front = ccp.solve([0.5, 0.9, 0.99])                         # reliability sweep
+dec   = unc.decompose(front[0.9], mom)                      # exact Sobol' indices
 scr   = unc.screen_undeclared(front[0.9], data, worker, exact_cfs=unc.co2_flows(worker))
 val   = unc.validate(front, ccp, data, n=200_000, seed=1)
 ```

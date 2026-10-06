@@ -9,7 +9,7 @@ A PulpoOptimizer that holds its uncertainty data::
     worker.get_lci_data()
     worker.instantiate(choices=..., demand=...)
     worker.import_uncertainty_data()
-    worker.apply_expert_knowledge('If', 'foreground', expert_specs)
+    worker.apply_expert_knowledge('If', 'my_foreground_db', expert_specs)
     problem = worker.chance_constrained(upper_bounds={activity: spec})
     front = problem.solve([0.5, 0.9, 0.99])
     worker.screen_undeclared(front[0.5], exact_cfs=uncertainty.co2_flows(worker))

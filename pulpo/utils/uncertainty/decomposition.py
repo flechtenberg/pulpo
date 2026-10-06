@@ -355,7 +355,7 @@ def width_sensitivity(s, uncertainty_data: UncertaintyData, lci_data, widths, *,
         lci_data: the LCI data, or a worker holding it.
         widths: a list of settings, each a coefficient of variation for every
             undeclared parameter or ``{subgroup: r}`` (see :func:`widen`), e.g.
-            ``{'ecoinvent-3.10-cutoff': 0.1, 'foreground': 0.3, 'Cf': 0.1}``
+            ``{'ecoinvent-3.10-cutoff': 0.1, 'my_foreground_db': 0.3, 'Cf': 0.1}``
             with the names of the worker's databases.
         exact_cfs: flow rows whose CF never receives a width (see
             :func:`screen_undeclared`).

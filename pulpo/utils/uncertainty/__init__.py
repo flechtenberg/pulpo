@@ -8,12 +8,12 @@ The pieces, in the order a study uses them::
 
     from pulpo.utils import uncertainty as unc
 
-    data  = unc.import_declared(worker)                   # parameters of the impact
-    unc.override(data, 'If', 'foreground', expert_specs)  # elicited distributions
-    mom   = unc.compute_moments(data, worker)             # closed-form mean and variance
+    data  = unc.import_declared(worker)                         # parameters of the impact
+    unc.override(data, 'If', 'my_foreground_db', expert_specs)  # elicited distributions
+    mom   = unc.compute_moments(data, worker)                   # closed-form mean and variance
     ccp   = unc.ChanceConstrained(worker, mom, upper_bounds={activity: spec})
-    front = ccp.solve([0.5, 0.9, 0.99])                   # reliability sweep, reduced space
-    dec   = unc.decompose(front[0.5], mom)                # exact Sobol' indices at a decision
+    front = ccp.solve([0.5, 0.9, 0.99])                         # reliability sweep, reduced space
+    dec   = unc.decompose(front[0.5], mom)                      # exact Sobol' indices at a decision
     scr   = unc.screen_undeclared(front[0.5], data, worker, exact_cfs=unc.co2_flows(worker))
     val   = unc.validate(front, ccp, data, n=200_000, seed=1)   # out-of-sample coverage
 
