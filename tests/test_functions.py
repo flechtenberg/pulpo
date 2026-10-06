@@ -1,3 +1,5 @@
+import contextlib
+import io
 import os
 from tempfile import TemporaryDirectory
 import pandas as pd
@@ -233,6 +235,47 @@ class TestPULPO(unittest.TestCase):
             worker.instantiate(choices={'electricity': {wind: None, steam: None}}, demand=demand,
                                upper_limit={wind: 0.3})
         self.assertFalse(any('upper_limit is used' in str(w.message) for w in caught))
+
+    def test_results_round_trip(self):
+        """save_results writes what extract_results returns, and summarize_results
+        prints it as plain text outside Jupyter."""
+        worker = pulpo.PulpoOptimizer(self.project, self.database, self.methods, '')
+        worker.get_lci_data()
+        demand = {worker.retrieve_activities(reference_products='transport')[0]: 1}
+        elec = worker.retrieve_activities(reference_products='electricity')
+        worker.instantiate(choices={'electricity': list(elec)}, demand=demand, upper_limit={elec[0]: 0.5})
+        worker.solve()
+        results = worker.extract_results()
+        with TemporaryDirectory() as temp_dir:
+            path = os.path.join(temp_dir, 'results.xlsx')
+            worker.save_results(path)
+            sheets = pd.read_excel(path, sheet_name=None)
+        written = {name for name, df in results.items() if name != 'Choices' and not df.empty}
+        self.assertEqual(set(sheets), written | {'Choices'})
+        for name in written:
+            np.testing.assert_allclose(sheets[name]['Value'].to_numpy(dtype=float),
+                                       results[name]['Value'].to_numpy(dtype=float), rtol=1e-12, err_msg=name)
+        saved_choice = pd.to_numeric(sheets['Choices']['Value'], errors='coerce').dropna()
+        self.assertIn('electricity', set(sheets['Choices']['Value']))
+        np.testing.assert_allclose(sorted(saved_choice), sorted(results['Choices']['electricity']['Value']), rtol=1e-12)
+
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            worker.summarize_results(zeroes=True)
+        for text in ('Total Impact(s)', "('my project', 'climate change')", 'Choices Made', 'electricity',
+                     'Constraints'):
+            self.assertIn(text, out.getvalue())
+        self.assertNotIn('IPython', out.getvalue())
+
+    def test_results_without_choices(self):
+        worker = pulpo.PulpoOptimizer(self.project, self.database, self.methods, '')
+        worker.get_lci_data()
+        worker.instantiate(demand={worker.retrieve_activities(reference_products='transport')[0]: 1})
+        worker.solve()
+        with TemporaryDirectory() as temp_dir:
+            path = os.path.join(temp_dir, 'results.xlsx')
+            worker.save_results(path)
+            self.assertNotIn('Choices', pd.read_excel(path, sheet_name=None))
 
     def test_supply_specification(self):
         worker = pulpo.PulpoOptimizer(self.project, self.database, self.methods, '')

@@ -343,7 +343,7 @@ def save_results(worker: Any, file_name: str) -> None:
 
     # Save data to Excel
     with pd.ExcelWriter(file_name, engine='xlsxwriter') as writer:
-        # Write the aggregated "Choices" sheet
+        # Write the aggregated "Choices" sheet (none without choices)
         combined_choices = []
         for choice_name, df in choices_dict.items():
             divider = pd.DataFrame([[choice_name] + [None] * (len(df.columns) - 1)], columns=df.columns)
@@ -351,8 +351,8 @@ def save_results(worker: Any, file_name: str) -> None:
             df_with_index = df.reset_index()
             df_with_index.insert(0, "Original Index", df.index)
             combined_choices.append(df_with_index)
-        combined_choices_df = pd.concat(combined_choices, ignore_index=True)
-        combined_choices_df.to_excel(writer, sheet_name="Choices", index=False)
+        if combined_choices:
+            pd.concat(combined_choices, ignore_index=True).to_excel(writer, sheet_name="Choices", index=False)
 
         # Write other sheets
         for sheet_name, df in result_data.items():
@@ -368,11 +368,13 @@ def summarize_results(worker: Any, zeroes: bool = False) -> None:
     Only the total impacts, the choices made, and the constraints (if any) are shown.
     """
 
+    display, Markdown = print, lambda text: text
     try:
-        from IPython.display import display, Markdown
+        from IPython import get_ipython
+        if get_ipython() is not None:            # rich output only inside IPython / Jupyter
+            from IPython.display import display, Markdown
     except ImportError:
-        display = print
-        Markdown = lambda x: x
+        pass
 
     # Extract the data
     result_data = extract_results(worker)
