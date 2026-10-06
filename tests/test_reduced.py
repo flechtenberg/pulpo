@@ -194,7 +194,7 @@ class TestReducedSampleTechnosphere(ParityMixin, unittest.TestCase):
     METHODS = {CLIMATE: 1, AIR: 1, RESOURCES: 0}
 
     def worker(self):
-        worker = pulpo.PulpoOptimizer(SAMPLE_PROJECT, 'technosphere', self.METHODS, '')
+        worker = pulpo.PulpoOptimizer(SAMPLE_PROJECT, 'technosphere', self.METHODS)
         worker.get_lci_data()
         self.ecar = worker.retrieve_activities(reference_products='transport')[0]
         self.elec = worker.retrieve_activities(reference_products='electricity')
@@ -620,7 +620,7 @@ class TestReducedSampleForeground(ParityMixin, unittest.TestCase):
 
     def worker(self, methods=None):
         worker = pulpo.PulpoOptimizer(SAMPLE_PROJECT, ['background_db', 'foreground_db'],
-                                      methods or {CLIMATE: 1}, '')
+                                      methods or {CLIMATE: 1})
         worker.get_lci_data()
         get = worker.retrieve_processes
         self.methanol = get(reference_products='methanol')[0]
@@ -705,7 +705,7 @@ class TestReducedSampleForeground(ParityMixin, unittest.TestCase):
 class TestReducedRice(ParityMixin, unittest.TestCase):
 
     def worker(self, methods="('my project', 'climate change')"):
-        worker = pulpo.PulpoOptimizer('rice_husk_example', 'rice_husk_example_db', methods, '')
+        worker = pulpo.PulpoOptimizer('rice_husk_example', 'rice_husk_example_db', methods)
         worker.get_lci_data()
         get = worker.retrieve_processes
         self.factory = get(reference_products='Processed rice (in Mt)')[0]
@@ -823,7 +823,7 @@ class TestReducedSocDemo(ParityMixin, unittest.TestCase):
 
     def worker(self):
         worker = pulpo.PulpoOptimizer(SOC_PROJECT, ['soc_demo_background_db', 'soc_demo_foreground_db'],
-                                      {str(SOC_METHOD): 1}, '')
+                                      {str(SOC_METHOD): 1})
         worker.get_lci_data()
         get = worker.retrieve_processes
         self.ammonia = get(processes=['ammonia synthesis'])[0]
@@ -877,7 +877,7 @@ class TestReducedSocDemo(ParityMixin, unittest.TestCase):
 class TestReducedElecStatic(ParityMixin, unittest.TestCase):
 
     def worker(self):
-        worker = pulpo_time.PulpoOptimizerTime(ELEC_PROJECT, ELEC_DB, {str(("GWP", "100a")): 1}, '')
+        worker = pulpo_time.PulpoOptimizerTime(ELEC_PROJECT, ELEC_DB, {str(("GWP", "100a")): 1})
         worker.intervention_matrix = 'biosphere3'
         worker.get_lci_data()
         self.acts = {name: worker.retrieve_activities(activities=[name])[0]
@@ -965,7 +965,7 @@ class TestReducedRemoteRounds(ParityMixin, unittest.TestCase):
             method.write([(flow, 1.0)])
 
     def worker(self):
-        worker = pulpo.PulpoOptimizer(self.PROJECT, 'far', {self.LAND: 1, self.CO2: 0}, '')
+        worker = pulpo.PulpoOptimizer(self.PROJECT, 'far', {self.LAND: 1, self.CO2: 0})
         worker.get_lci_data()
         get = worker.retrieve_processes
         self.a, self.b, self.c, self.x = (get(processes=[name])[0]

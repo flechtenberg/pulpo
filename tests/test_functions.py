@@ -168,11 +168,11 @@ class TestPULPO(unittest.TestCase):
 
     def test_invalid_project(self):
         with self.assertRaises(ValueError) as context:
-            pulpo.PulpoOptimizer('nonexistent_project', self.database, self.methods, '')
+            pulpo.PulpoOptimizer('nonexistent_project', self.database, self.methods)
         self.assertIn("Project 'nonexistent_project' does not exist", str(context.exception))
 
     def test_basic_pulpo(self):
-        worker = pulpo.PulpoOptimizer(self.project, self.database, self.methods, '')
+        worker = pulpo.PulpoOptimizer(self.project, self.database, self.methods)
         worker.intervention_matrix = 'biosphere3'
         worker.get_lci_data()
         eCar = worker.retrieve_activities(reference_products='transport')
@@ -189,7 +189,7 @@ class TestPULPO(unittest.TestCase):
     def test_list_choices_mean_unlimited_capacities(self):
         """A list of alternatives is documented to mean "no capacity at all": it
         must solve like infinite capacities and its results must be extractable."""
-        worker = pulpo.PulpoOptimizer(self.project, self.database, self.methods, '')
+        worker = pulpo.PulpoOptimizer(self.project, self.database, self.methods)
         worker.intervention_matrix = 'biosphere3'
         worker.get_lci_data()
         demand = {worker.retrieve_activities(reference_products='transport')[0]: 1}
@@ -212,7 +212,7 @@ class TestPULPO(unittest.TestCase):
 
     def test_upper_limit_replaces_choice_capacity(self):
         """An upper_limit on an alternative wins over its capacity, with a warning."""
-        worker = pulpo.PulpoOptimizer(self.project, self.database, self.methods, '')
+        worker = pulpo.PulpoOptimizer(self.project, self.database, self.methods)
         worker.intervention_matrix = 'biosphere3'
         worker.get_lci_data()
         demand = {worker.retrieve_activities(reference_products='transport')[0]: 1}
@@ -239,7 +239,7 @@ class TestPULPO(unittest.TestCase):
     def test_results_round_trip(self):
         """save_results writes what extract_results returns, and summarize_results
         prints it as plain text outside Jupyter."""
-        worker = pulpo.PulpoOptimizer(self.project, self.database, self.methods, '')
+        worker = pulpo.PulpoOptimizer(self.project, self.database, self.methods)
         worker.get_lci_data()
         demand = {worker.retrieve_activities(reference_products='transport')[0]: 1}
         elec = worker.retrieve_activities(reference_products='electricity')
@@ -268,7 +268,7 @@ class TestPULPO(unittest.TestCase):
         self.assertNotIn('IPython', out.getvalue())
 
     def test_results_without_choices(self):
-        worker = pulpo.PulpoOptimizer(self.project, self.database, self.methods, '')
+        worker = pulpo.PulpoOptimizer(self.project, self.database, self.methods)
         worker.get_lci_data()
         worker.instantiate(demand={worker.retrieve_activities(reference_products='transport')[0]: 1})
         worker.solve()
@@ -278,7 +278,7 @@ class TestPULPO(unittest.TestCase):
             self.assertNotIn('Choices', pd.read_excel(path, sheet_name=None))
 
     def test_supply_specification(self):
-        worker = pulpo.PulpoOptimizer(self.project, self.database, self.methods, '')
+        worker = pulpo.PulpoOptimizer(self.project, self.database, self.methods)
         worker.intervention_matrix = 'biosphere3'
         worker.get_lci_data()
         eCar = worker.retrieve_activities(reference_products='transport')
@@ -294,7 +294,7 @@ class TestPULPO(unittest.TestCase):
         self.assertEqual(result_aux, 5.1)
 
     def test_elementary_intervention_flow_constraint(self):
-        worker = pulpo.PulpoOptimizer(self.project, self.database, self.methods, '')
+        worker = pulpo.PulpoOptimizer(self.project, self.database, self.methods)
         worker.intervention_matrix = 'biosphere3'
         worker.get_lci_data()
         eCar = worker.retrieve_activities(reference_products='transport')
@@ -322,7 +322,7 @@ class TestPULPO(unittest.TestCase):
         choices = {'electricity': [wind, gas]}
         objectives = []
         for databases in (['foreground_db'], ['background_db', 'foreground_db']):
-            worker = pulpo.PulpoOptimizer(self.project, databases, climate, '')
+            worker = pulpo.PulpoOptimizer(self.project, databases, climate)
             worker.get_lci_data()
             lci = worker.lci_data
             self.assertEqual(len(lci['process_map']), lci['technology_matrix'].shape[0])
@@ -339,7 +339,7 @@ class TestPULPO(unittest.TestCase):
     def test_lower_elementary_flow_limit_alone(self):
         """A lower flow limit needs no upper limit on the same flow; it binds here,
         forcing steam into the mix, in both formulations."""
-        worker = pulpo.PulpoOptimizer(self.project, self.database, self.methods, '')
+        worker = pulpo.PulpoOptimizer(self.project, self.database, self.methods)
         worker.get_lci_data()
         demand = {worker.retrieve_activities(reference_products='transport')[0]: 1}
         elec = worker.retrieve_activities(reference_products='electricity')
@@ -356,7 +356,7 @@ class TestPULPO(unittest.TestCase):
         self.assertAlmostEqual(objectives[1], objectives[0], places=9)
 
     def _goal_worker(self):
-        worker = pulpo.PulpoOptimizer(self.project, self.database, self.methods, '')
+        worker = pulpo.PulpoOptimizer(self.project, self.database, self.methods)
         worker.intervention_matrix = 'biosphere3'
         worker.get_lci_data()
         eCar = worker.retrieve_activities(reference_products='transport')
@@ -442,7 +442,7 @@ class TestPULPO(unittest.TestCase):
             import gurobipy as gp
         except ImportError:
             self.skipTest("gurobipy is not installed – skipping Gurobi test.")
-        worker = pulpo.PulpoOptimizer(self.project, self.database, self.methods, '')
+        worker = pulpo.PulpoOptimizer(self.project, self.database, self.methods)
         worker.intervention_matrix = 'biosphere3'
         worker.get_lci_data()
 
@@ -477,7 +477,7 @@ class TestPULPO(unittest.TestCase):
                 "- On macOS/Linux: Run 'export GAMS_PULPO=/path/to/gams' in the terminal."
             )
 
-        worker = pulpo.PulpoOptimizer(self.project, self.database, self.methods, '')
+        worker = pulpo.PulpoOptimizer(self.project, self.database, self.methods)
         worker.intervention_matrix = 'biosphere3'
         worker.get_lci_data()
         eCar = worker.retrieve_activities(reference_products='transport')
@@ -520,7 +520,7 @@ class TestPULPO(unittest.TestCase):
                 "NEOS_EMAIL environment variable is not set. Skipping NEOS test. "
                 "To set it follow instructions on: https://www.twilio.com/en-us/blog/how-to-set-environment-variables-html"
             )
-        worker = pulpo.PulpoOptimizer(self.project, self.database, self.methods, '')
+        worker = pulpo.PulpoOptimizer(self.project, self.database, self.methods)
         worker.intervention_matrix = 'biosphere3'
         worker.get_lci_data()
         eCar = worker.retrieve_activities(reference_products='transport')
@@ -537,7 +537,7 @@ class TestPULPO(unittest.TestCase):
         self.assertEqual(result_obj, 0.103093)
     
     def _mc_worker(self):
-        worker = pulpo.PulpoOptimizer(self.project, self.database, self.methods, '')
+        worker = pulpo.PulpoOptimizer(self.project, self.database, self.methods)
         worker.get_lci_data()
         demand = {worker.retrieve_activities(reference_products='transport')[0]: 1}
         elec = worker.retrieve_activities(reference_products='electricity')
@@ -570,7 +570,7 @@ class TestPULPO(unittest.TestCase):
 
     def test_monte_carlo(self):
         """Test the Monte Carlo simulation."""
-        worker = pulpo.PulpoOptimizer(self.project, self.database, self.methods, '')
+        worker = pulpo.PulpoOptimizer(self.project, self.database, self.methods)
         worker.intervention_matrix = 'biosphere3'
         worker.get_lci_data()
         eCar = worker.retrieve_activities(reference_products='transport')
@@ -600,7 +600,7 @@ class TestPULPO(unittest.TestCase):
 
     def test_custom_limits_too_low(self):
         """Test that setting custom limits too low causes an optimization error."""
-        worker = pulpo.PulpoOptimizer(self.project, self.database, self.methods, '')
+        worker = pulpo.PulpoOptimizer(self.project, self.database, self.methods)
         worker.intervention_matrix = 'biosphere3'
         worker.get_lci_data()
         eCar = worker.retrieve_activities(reference_products='transport')
@@ -627,7 +627,7 @@ class TestPULPO(unittest.TestCase):
     def test_a_solve_that_is_not_optimal_raises(self):
         """A solve stopped early or proven infeasible raises SolveError in both
         formulations and with every installed solver, and loads nothing."""
-        worker = pulpo.PulpoOptimizer(self.project, self.database, self.methods, '')
+        worker = pulpo.PulpoOptimizer(self.project, self.database, self.methods)
         worker.get_lci_data()
         demand = {worker.retrieve_activities(reference_products='transport')[0]: 1}
         choices = {'electricity': worker.retrieve_activities(reference_products='electricity')}
@@ -654,7 +654,7 @@ class TestPULPO(unittest.TestCase):
 
     def test_dependent_constraints(self):
         """Test that dependent constraints work properly between scaling vectors."""
-        worker = pulpo.PulpoOptimizer(self.project, self.database, self.methods, '')
+        worker = pulpo.PulpoOptimizer(self.project, self.database, self.methods)
         worker.intervention_matrix = 'biosphere3'
         worker.get_lci_data()
         eCar = worker.retrieve_activities(reference_products='transport')
@@ -710,7 +710,7 @@ class TestSaver(unittest.TestCase):
         methods = {"('my project', 'climate change')": 1,
                    "('my project', 'air quality')": 1,
                    "('my project', 'resources')": 0}
-        cls.worker = pulpo.PulpoOptimizer(project, database, methods, '')
+        cls.worker = pulpo.PulpoOptimizer(project, database, methods)
         cls.worker.intervention_matrix = 'biosphere3'
         cls.worker.get_lci_data()
         eCar = cls.worker.retrieve_activities(reference_products='transport')
@@ -875,4 +875,28 @@ class TestSaver(unittest.TestCase):
                 # Check if the sheet is empty
                 if df.empty:
                     self.fail(f"The sheet '{sheet_name}' is empty.")
+
+    def test_save_results_paths(self):
+        """A relative name lands in the working directory; an absolute one, a str or a
+        pathlib.Path, lands where it points, with the missing folders created."""
+        import pathlib
+        with TemporaryDirectory() as temp_dir:
+            cwd = os.getcwd()
+            os.chdir(temp_dir)
+            try:
+                with contextlib.redirect_stdout(io.StringIO()):
+                    self.worker.save_results(os.path.join('out', 'relative.xlsx'))
+            finally:
+                os.chdir(cwd)
+            targets = [os.path.join(temp_dir, 'out', 'relative.xlsx')]
+            absolute = os.path.join(temp_dir, 'new', 'nested', 'absolute.xlsx')
+            as_path = pathlib.Path(temp_dir) / 'as_path' / 'results.xlsx'
+            with contextlib.redirect_stdout(io.StringIO()):
+                self.worker.save_results(absolute)
+                self.worker.save_results(as_path)
+            targets += [absolute, str(as_path)]
+            for target in targets:
+                self.assertTrue(os.path.isfile(target), target)
+                with pd.ExcelFile(target) as workbook:
+                    self.assertIn('Impacts', workbook.sheet_names)
 

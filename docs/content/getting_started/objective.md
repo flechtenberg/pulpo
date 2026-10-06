@@ -13,12 +13,7 @@ The functionality for specifying objectives is being expanded to facilitate the 
 The objective is specified when creating a `pulpo` object, often referred to as `pulpo_worker`. Below is an example of how to create and fully specify a `pulpo_worker`.
 
 ```python
-import os
 from pulpo import pulpo
-
-# Define the working directory
-notebook_dir = os.path.dirname(os.getcwd())
-directory = os.path.join(notebook_dir, 'data')
 
 # (Optional) Define the path to GAMS
 GAMS_PATH = r"C:\APPS\GAMS\win64\40.1\gams.exe"
@@ -47,7 +42,7 @@ In this example, the `pulpo_worker` is created with the objective of minimizing 
 
 ```python
 # Create the pulpo_worker object
-pulpo_worker = pulpo.PulpoOptimizer(project, database, methods, directory)
+pulpo_worker = pulpo.PulpoOptimizer(project, database, methods)
 
 # Retrieve the LCI data
 pulpo_worker.get_lci_data()

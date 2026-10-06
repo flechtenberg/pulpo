@@ -5,7 +5,7 @@ Time-dependent façade for PULPO. Users opt into the time-indexed formulation
 by writing::
 
     from pulpo import pulpo_time
-    worker = pulpo_time.PulpoOptimizerTime(project, db, method, directory)
+    worker = pulpo_time.PulpoOptimizerTime(project, db, method)
     worker.get_lci_data()
     worker.instantiate(
         choices=..., demand=..., upper_limit=...,
@@ -30,8 +30,8 @@ from pulpo.datasets.elec_time_database import setup_elec_time_db
 class PulpoOptimizerTime(PulpoOptimizer):
     """PulpoOptimizer + time-indexed formulation with optional storage carry-over."""
 
-    def __init__(self, project, database, method, directory):
-        super().__init__(project, database, method, directory)
+    def __init__(self, project, database, method):
+        super().__init__(project, database, method)
         self.time_steps: Optional[list] = None
         self.storage: list = []
         self.upper_imp_agg_limit: dict = {}

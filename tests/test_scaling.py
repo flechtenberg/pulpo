@@ -48,7 +48,7 @@ METHODS = {
 
 
 def _sample_worker():
-    worker = pulpo.PulpoOptimizer(project_name, 'technosphere', METHODS, '')
+    worker = pulpo.PulpoOptimizer(project_name, 'technosphere', METHODS)
     worker.intervention_matrix = 'biosphere3'
     worker.get_lci_data()
     eCar = worker.retrieve_activities(reference_products='transport')
@@ -269,7 +269,7 @@ class TestScaledSolveEqualsUnscaled(unittest.TestCase):
         names = ("solar", "coal", "battery_charge", "battery_hold", "battery_discharge", "battery_holdtm1")
 
         def build():
-            worker = pulpo_time.PulpoOptimizerTime(TIME_PROJECT, TIME_DB, {GWP: 1}, "")
+            worker = pulpo_time.PulpoOptimizerTime(TIME_PROJECT, TIME_DB, {GWP: 1})
             worker.intervention_matrix = "biosphere3"
             worker.get_lci_data()
             acts = {n: worker.retrieve_activities(activities=[n])[0] for n in names}

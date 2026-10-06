@@ -76,7 +76,7 @@ def quiet(function, *args, **kwargs):
 
 
 def soc_worker(electrolysis_cap=float('inf'), scale=False, worker_class=pulpo.PulpoOptimizer, **kwargs):
-    worker = worker_class(SOC_PROJECT, SOC_DBS, {SOC_METHOD: 1}, '')
+    worker = worker_class(SOC_PROJECT, SOC_DBS, {SOC_METHOD: 1})
     quiet(worker.get_lci_data)
     get = worker.retrieve_processes
     worker.ammonia = get(processes=['ammonia synthesis'])[0]
@@ -175,7 +175,7 @@ class TestImport(unittest.TestCase):
         self.assertIn(2, und['Cf'][SOC_METHOD])
 
     def test_one_method_only(self):
-        worker = pulpo.PulpoOptimizer(PROJECT, DATABASES, {CLIMATE_KEY: 1, "('my project', 'air quality')": 1}, '')
+        worker = pulpo.PulpoOptimizer(PROJECT, DATABASES, {CLIMATE_KEY: 1, "('my project', 'air quality')": 1})
         quiet(worker.get_lci_data)
         with self.assertRaises(ValueError):
             unc.import_declared(worker)
@@ -662,13 +662,13 @@ class TestChanceConstrained(unittest.TestCase):
     def test_facade_with_two_methods(self):
         """A worker with a second method (to limit, say) imports the impact it names."""
         air = "('my project', 'air quality')"
-        worker = pulpo_unc.PulpoOptimizerUnc(PROJECT, DATABASES, {CLIMATE_KEY: 1, air: 0}, '')
+        worker = pulpo_unc.PulpoOptimizerUnc(PROJECT, DATABASES, {CLIMATE_KEY: 1, air: 0})
         quiet(worker.get_lci_data)
         with self.assertRaises(ValueError) as error:
             worker.import_uncertainty_data()
         self.assertIn('method=', str(error.exception))
         data = worker.import_uncertainty_data(method=CLIMATE_KEY)
-        single = pulpo.PulpoOptimizer(PROJECT, DATABASES, {CLIMATE_KEY: 1}, '')
+        single = pulpo.PulpoOptimizer(PROJECT, DATABASES, {CLIMATE_KEY: 1})
         quiet(single.get_lci_data)
         np.testing.assert_equal(data, unc.import_declared(single))      # NaN fields compare equal
 

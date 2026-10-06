@@ -8,22 +8,20 @@ from pulpo.datasets.sample_database import setup_sample_db
 from pulpo.datasets.soc_demo_database import setup_soc_demo_db
 
 class PulpoOptimizer:
-    def __init__(self, project: str, database: Union[str, List[str]], method: Union[str, List[str], dict], directory: str):
+    def __init__(self, project: str, database: Union[str, List[str]], method: Union[str, List[str], dict]):
         """
-        Initializes the PulpoOptimizer with project, databases, method, and directory.
+        Initializes the PulpoOptimizer with project, databases and method.
 
         Args:
             project (str): Name of the project.
             database (Union[str, List[str]]): Name of the database or list of two databases
                                                (e.g. foreground and linked background).
             method (Union[str, List[str], dict]): Method(s) for optimization.
-            directory (str): Directory for saving results.
         """
         self.project = project
         self.database = database
         self.intervention_matrix = 'biosphere3'
         self.method = converter.convert_to_dict(method)
-        self.directory = directory
         self.uncertainty_data = None
         self.lci_data = None
         self.instance = None
@@ -296,7 +294,8 @@ class PulpoOptimizer:
         Saves the results of the optimization to a file.
 
         Args:
-            name (str): Name of the file to save results.
+            name (str or os.PathLike): The Excel file, relative to the working
+                directory or absolute; missing folders are created.
         """
         saver.save_results(self, name)
 

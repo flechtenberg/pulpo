@@ -1,7 +1,7 @@
 import pandas as pd
 import os
 from pyomo.environ import ConcreteModel, Param
-from typing import TypedDict, Dict, Any, Optional, List
+from typing import TypedDict, Dict, Any, Optional, List, Union
 from pulpo.utils.utils import broadcast_over_time, none_capacities
 
 class ResultDataDict(TypedDict, total=False):
@@ -329,9 +329,12 @@ def extract_results(worker: Any, extractparams:bool=False) -> ResultDataDict:
         result_data.update(param_data)
     return result_data
 
-def save_results(worker: Any, file_name: str) -> None:
+def save_results(worker: Any, file_name: Union[str, os.PathLike]) -> None:
     """
     Saves worker/result data to an Excel file with multiple sheets.
+
+    ``file_name`` is a path relative to the working directory or an absolute
+    one; missing folders on it are created.
     """
     result_data = extract_results(worker)
     choices_dict = result_data.pop("Choices")  # Extract choices separately

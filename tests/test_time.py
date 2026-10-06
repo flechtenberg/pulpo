@@ -41,7 +41,7 @@ ACTIVITY_NAMES = (
 
 
 def build_worker():
-    worker = pulpo_time.PulpoOptimizerTime(PROJECT_NAME, DB_NAME, {GWP: 1}, "")
+    worker = pulpo_time.PulpoOptimizerTime(PROJECT_NAME, DB_NAME, {GWP: 1})
     worker.intervention_matrix = "biosphere3"
     worker.get_lci_data()
     return worker
@@ -405,7 +405,7 @@ class TestPerStepLimits(unittest.TestCase):
     SOLAR = {0: 0.2, 1: 0.8, 2: 0.5}
 
     def solve(self, methods=None, **limits):
-        worker = pulpo_time.PulpoOptimizerTime(PROJECT_NAME, DB_NAME, methods or {GWP: 1}, "")
+        worker = pulpo_time.PulpoOptimizerTime(PROJECT_NAME, DB_NAME, methods or {GWP: 1})
         worker.intervention_matrix = "biosphere3"
         worker.get_lci_data()
         solar, coal = (worker.retrieve_activities(activities=[name])[0] for name in ("solar", "coal"))
@@ -434,7 +434,7 @@ class TestPerStepLimits(unittest.TestCase):
         self.assertAlmostEqual(worker.instance.OBJ(), 1.8, places=9)
 
     def test_a_per_step_flow_limit(self):
-        worker = pulpo_time.PulpoOptimizerTime(PROJECT_NAME, DB_NAME, {GWP: 1}, "")
+        worker = pulpo_time.PulpoOptimizerTime(PROJECT_NAME, DB_NAME, {GWP: 1})
         worker.intervention_matrix = "biosphere3"
         worker.get_lci_data()
         co2 = worker.retrieve_envflows(activities=["Carbon dioxide, fossil"])[0]

@@ -4,7 +4,7 @@ pulpo_unc.py
 A PulpoOptimizer that holds its uncertainty data::
 
     from pulpo import pulpo_unc
-    worker = pulpo_unc.PulpoOptimizerUnc(project, databases, method, directory)
+    worker = pulpo_unc.PulpoOptimizerUnc(project, databases, method)
     worker.get_lci_data()
     worker.instantiate(choices=..., demand=...)
     worker.import_uncertainty_data()
