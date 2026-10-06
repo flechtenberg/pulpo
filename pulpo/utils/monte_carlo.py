@@ -27,11 +27,11 @@ def pre_sample_lci_matrices(
     Runs Brightway only once (thread-safe).
     Returns list of dicts with randomized A, B, Q matrices.
     """
-    np.random.seed(seed)
+    rng = np.random.default_rng(seed)   # local: the global NumPy generator stays untouched
     samples = []
 
     for i in trange(n_samples, desc="Sampling LCI matrices"):
-        seed_i = np.random.randint(0, 1_000_000)
+        seed_i = int(rng.integers(0, 1_000_000))
         lci_data_i = bw_parser.import_data(
             project=project,
             databases=databases,

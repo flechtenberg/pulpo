@@ -12,6 +12,8 @@ from pulpo.utils.saver import extract_flows, extract_slack, extract_impacts, ext
 import unittest
 import warnings
 
+import numpy as np
+
 import bw2data as bd
 from pulpo.datasets.sample_database import sample_lcia, setup_test_db, setup_background_db, setup_biosphere_db, setup_lcia_methods, setup_foreground_db
 
@@ -98,14 +100,35 @@ class TestParser(unittest.TestCase):
 
         result = import_data(project_name, 'technosphere', methods, 'biosphere3', seed=42)
 
-        # Check one element in each matrix
+        # Check one element in each matrix; both Brightway stacks draw the same values.
         self.assertAlmostEqual(result['technology_matrix'][0, 0], 1.0, places=6)
-        if is_bw25():
-           self.assertAlmostEqual(result['intervention_matrix'][0, 2], 0.8275082141783688, places=6)
-           self.assertAlmostEqual(result['matrices']["('my project', 'climate change')"][0, 0], 1.0647688547752003, places=6)
-        else:
-            self.assertAlmostEqual(result['intervention_matrix'][0, 2], 0.9399899625893925, places=6)
-            self.assertAlmostEqual(result['matrices']["('my project', 'climate change')"][0, 0], 1.131145417683423, places=6)
+        self.assertAlmostEqual(result['intervention_matrix'][0, 2], 0.9399899625893925, places=6)
+        self.assertAlmostEqual(result['matrices']["('my project', 'climate change')"][0, 0], 1.131145417683423, places=6)
+
+    def test_resample_draws_the_named_matrices_independently(self):
+        """Only the matrices in ``resample`` are drawn, each from its own random
+        stream; the others keep their deterministic values."""
+        methods = {"('my project', 'climate change')": 1}
+        key = "('my project', 'climate change')"
+        databases = ['background_db', 'foreground_db']
+
+        def matrices(**kwargs):
+            r = import_data(project_name, databases, methods, 'biosphere3', **kwargs)
+            return {'A': r['technology_matrix'].toarray(), 'B': r['intervention_matrix'].toarray(),
+                    'Q': r['matrices'][key].toarray()}
+
+        base = matrices()
+        for resample in ('A', 'B', 'Q'):
+            drawn = matrices(seed=7, resample=(resample,))
+            changed = {name for name in base if not np.array_equal(drawn[name], base[name])}
+            self.assertEqual(changed, {resample})
+        # Over many seeds, no entry of A moves in lockstep with an entry of B.
+        draws = [matrices(seed=seed) for seed in range(30)]
+        a = np.array([d['A'].ravel() for d in draws]); b = np.array([d['B'].ravel() for d in draws])
+        a, b = a[:, a.std(axis=0) > 0], b[:, b.std(axis=0) > 0]
+        self.assertGreater(a.shape[1] * b.shape[1], 0)
+        corr = np.corrcoef(a.T, b.T)[:a.shape[1], a.shape[1]:]
+        self.assertLess(np.abs(corr).max(), 0.95)
 
     def test_retrieve_activities(self):
         key = retrieve_processes(project_name, 'technosphere', keys=["('technosphere', 'wind turbine')"])

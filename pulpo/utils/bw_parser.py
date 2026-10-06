@@ -161,22 +161,46 @@ def _load_lci_bw25(eidbs, methods, seed, dist, resample, compute_uncertainty_par
     the union of all databases and their dependencies into a single index space, so
     database order does not matter.
 
+    Only the matrices in ``resample`` are drawn from their distributions, each
+    from its own random stream (child seeds spawned from ``seed``, as in the bw2
+    path); the others keep their deterministic values. bw2calc alone would draw
+    every matrix, all from the same seed.
+
     Returns ``(lca, characterization_matrices, characterization_params, process_map,
     intervention_params)``; ``intervention_params`` is ``None`` when not requested
     or unavailable.
     """
     characterization_matrices = {}
     characterization_params = {}
+    draw = {name: dist and letter in resample for letter, name in
+            (('A', 'technosphere_matrix'), ('B', 'biosphere_matrix'), ('Q', 'characterization_matrix'))}
+    if dist:
+        child_seeds = [int(c.generate_state(1)[0]) for c in np.random.SeedSequence(seed).spawn(2 + len(methods))]
+        tech_seed, bio_seed = child_seeds[:2]
+        method_seeds = {str(mth): s for mth, s in zip(methods, child_seeds[2:])}
 
     # Build technosphere/biosphere matrices ONCE for all databases (heavy step)
     demand = {eidb.random(): 1 for eidb in eidbs}
     fu, data_objs, _ = bd.prepare_lca_inputs(demand, method=methods[0])
-    lca = bc.LCA(demand=fu, data_objs=data_objs, use_distributions=dist, seed_override=seed)
+    lca = bc.LCA(demand=fu, data_objs=data_objs, use_distributions=False,
+                 selective_use={name: {'use_distributions': use} for name, use in draw.items()},
+                 seed_override=tech_seed if dist else None)
     lca.load_lci_data()
+    if draw['biosphere_matrix']:
+        # bw2calc draws B with A's seed; redraw it from a stream of its own.
+        import matrix_utils as mu
+        lca.biosphere_mm = mu.MappedMatrix(
+            packages=lca.packages, matrix='biosphere_matrix',
+            use_arrays=lca.check_selective_use('biosphere_matrix')[0], use_distributions=True,
+            seed_override=bio_seed, row_mapper=lca.biosphere_mm.row_mapper,
+            col_mapper=lca.technosphere_mm.col_mapper, empty_ok=True)
+        lca.biosphere_matrix = lca.biosphere_mm.matrix
 
     for method in methods:
-        lca.switch_method(method)  # cheap: swaps only the characterization datapackage/matrix
         m = str(method)
+        if dist:
+            lca.seed_override = method_seeds[m]   # the Q of each method from its own stream
+        lca.switch_method(method)  # cheap: swaps only the characterization datapackage/matrix
 
         if compute_uncertainty_params:
             cf_params, _ = build_bw25_params(
@@ -184,9 +208,6 @@ def _load_lci_bw25(eidbs, methods, seed, dist, resample, compute_uncertainty_par
             )
             characterization_params[m] = cf_params
 
-        if dist and "Q" in resample:
-            next(lca.characterization_mm)
-            lca.characterization_matrix = lca.characterization_mm.matrix
         characterization_matrices[m] = lca.characterization_matrix
 
     # Method-independent biosphere uncertainty params: data_objs spans all listed
@@ -201,12 +222,6 @@ def _load_lci_bw25(eidbs, methods, seed, dist, resample, compute_uncertainty_par
     # Every process the LCA loaded, also those of linked databases that were not listed.
     process_map = {(db, code): lca.dicts.product[i]
                    for i, db, code, *_ in activity_rows if i in lca.dicts.product}
-    if dist and "A" in resample:
-        next(lca.technosphere_mm)
-        lca.technosphere_matrix = lca.technosphere_mm.matrix
-    if dist and "B" in resample:
-        next(lca.biosphere_mm)
-        lca.biosphere_matrix = lca.biosphere_mm.matrix
 
     return lca, characterization_matrices, characterization_params, process_map, intervention_params
 
