@@ -215,6 +215,13 @@ def override(uncertainty_data: UncertaintyData, group: str, subgroup: str,
         specs: ``{index: spec}`` with ``index`` = ``(flow row, process column)``
             for ``'If'`` and the flow row for ``'Cf'``.
     """
+    if group not in uncertainty_data:
+        raise KeyError(f"group must be 'If' (biosphere entries) or 'Cf' (characterization factors), "
+                       f"not {group!r}.")
+    if subgroup not in uncertainty_data[group]:
+        kind = 'a database' if group == 'If' else 'the method'
+        raise KeyError(f"{subgroup!r} is not a subgroup of {group!r}; name {kind} of the data: "
+                       f"{sorted(uncertainty_data[group])}.")
     block = uncertainty_data[group][subgroup]
     replaced = {}
     for index, spec in specs.items():

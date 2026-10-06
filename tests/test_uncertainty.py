@@ -197,6 +197,14 @@ class TestImport(unittest.TestCase):
             unc.override(data, 'Cf', SOC_METHOD, {n2o: {'uncertainty_type': 8, 'loc': 1.0, 'scale': 1.0}})
         unc.override(data, 'Cf', SOC_METHOD, {n2o: {'uncertainty_type': 0}})
         self.assertIn(n2o, data['Cf'][SOC_METHOD]['undeclared'])
+        # An unknown database, method or group names what the data holds.
+        spec = {n2o: {'uncertainty_type': 0}}
+        with self.assertRaisesRegex(KeyError, "'my_foreground_db' is not a subgroup of 'If'.*soc_demo_foreground_db"):
+            unc.override(data, 'If', 'my_foreground_db', spec)
+        with self.assertRaisesRegex(KeyError, "name the method of the data"):
+            unc.override(data, 'Cf', 'another method', spec)
+        with self.assertRaisesRegex(KeyError, "group must be 'If'"):
+            unc.override(data, 'If_', 'soc_demo_foreground_db', spec)
 
     def test_shared_entries_are_refused(self):
         """Two exchanges on one entry of B have no single declared distribution."""
