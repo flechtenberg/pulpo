@@ -37,6 +37,9 @@ All notable changes to this project will be documented in this file.
   (`validate`). The reduced system, the impact's projections onto it and a
   vectorized sampler are public, for formulations of one's own. The uncertainty
   notebook now runs on the bundled demo database with open-source solvers only.
+* **Examples** — four notebooks (showcase, rice, time-dependent, uncertainty), each
+  in `notebooks/` and in the documentation, run on bundled databases with
+  open-source solvers. The ecoinvent showcase notebooks are removed.
 
 ### Defaults
 * `formulation='full'` and `instantiate(scale=False)` remain the defaults. Current

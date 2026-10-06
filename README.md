@@ -92,7 +92,7 @@ PULPO is organized into three optimizer classes, one per module, each covering a
 - **`pulpo.pulpo_time.PulpoOptimizerTime`** — the time-indexed extension: per-timestep demands and limits, impact budgets aggregated across the horizon, and inter-timestep storage/carry-over. See the [time-dependent toy notebook](https://github.com/flechtenberg/pulpo/blob/master/notebooks/elec_time_toy.ipynb) for hourly and daily battery-dispatch examples.
 - **`pulpo.pulpo_unc.PulpoOptimizerUnc`** — the uncertainty extension (a thin layer over `pulpo.utils.uncertainty`): import declared distributions, add expert knowledge, and solve chance-constrained programs in reduced space. See the [uncertainty toy notebook](https://github.com/flechtenberg/pulpo/blob/master/notebooks/uncertainty_toy.ipynb).
 
-Additional example notebooks are available for a [hydrogen case](https://github.com/flechtenberg/pulpo/blob/master/notebooks/showcases/hydrogen_showcase.ipynb), an [electricity case](https://github.com/flechtenberg/pulpo/blob/master/notebooks/showcases/electricity_showcase.ipynb), and a [plastic case](https://github.com/flechtenberg/pulpo/blob/master/notebooks/showcases/plastic_showcase.ipynb).
+The [rice husk example](https://github.com/flechtenberg/pulpo/blob/master/notebooks/rice_example.ipynb) extends the rice case of Kätelhön et al. (2016). All four notebooks run on bundled databases with open-source solvers; the [documentation](https://flechtenberg.github.io/pulpo/content/examples/index.html) shows them with their results.
 
 There is also a workshop repository ([here](https://github.com/flechtenberg/pulpo_workshop)) created for the Brightcon 2024 conference, with guided notebooks and exercises.
 
