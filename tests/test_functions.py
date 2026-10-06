@@ -176,6 +176,17 @@ class TestParser(unittest.TestCase):
             with self.assertRaises(ValueError):
                 retrieve_env_interventions(project_name, intervention_matrix='biosphere3', **bad)
 
+    def test_import_without_brightway(self):
+        """Without Brightway (no bw2/bw25 extra), importing pulpo names the extra to install."""
+        import subprocess
+        import sys
+        code = "import sys; sys.modules['bw2calc'] = None; import pulpo"
+        result = subprocess.run([sys.executable, '-c', code], capture_output=True, text=True,
+                                cwd=os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn('ModuleNotFoundError: PULPO needs Brightway', result.stderr)
+        self.assertIn('pulpo-dev[bw25]', result.stderr)
+
 ###############################
 #### Test the BASE PULPO  #####
 ###############################
