@@ -265,13 +265,13 @@ class PulpoOptimizer:
         Retrieves environmental flows from the database based on given filters.
 
         Filters are matched exactly and combined with AND; ``keys`` takes precedence.
-        Each filter takes one value or a list of them.
+        Each filter takes one value or a list of them. Categories are tuples such as
+        ``('air', 'urban air close to ground')``.
 
         Args:
             keys (optional): Flow keys, as (database, code) tuples or their string form.
             activities (optional): Flow names.
-            categories (optional): Flow categories, as tuples such as
-                ('air', 'urban air close to ground') or their string form.
+            categories (optional): Flow categories, as tuples or their string form.
 
         Returns:
             list: The matching flows; empty, with a warning, if none match.

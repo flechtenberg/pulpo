@@ -439,15 +439,15 @@ def retrieve_env_interventions(project: str = '', intervention_matrix: str = 'bi
     Retrieve environmental interventions from the biosphere database based on specified keys, activities, and categories.
 
     Filters are matched exactly and combined with AND; ``keys`` takes precedence over
-    the other filters. Each filter takes one value or a list of them.
+    the other filters. Each filter takes one value or a list of them. Categories are
+    tuples such as ``('air', 'urban air close to ground')``.
 
     Args:
         project (str, optional): Name of the project.
         intervention_matrix (str): Name of the intervention matrix.
         keys (optional): Flow keys, as (database, code) tuples or their string form.
         activities (optional): Flow names.
-        categories (optional): Flow categories, as tuples such as
-            ('air', 'urban air close to ground') or their string form.
+        categories (optional): Flow categories, as tuples or their string form.
 
     Returns:
         list: The matching environmental flows; empty, with a warning, if none match.
