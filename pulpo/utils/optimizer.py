@@ -1,5 +1,4 @@
 import os
-import warnings
 from collections import defaultdict
 from pathlib import Path
 import pandas as pd
@@ -11,6 +10,7 @@ from pyomo.core.expr.numeric_expr import LinearExpression
 from pyomo.contrib import appsi
 from .saver import extract_flows
 from . import scaling as _scaling
+from .warning import warn
 
 
 
@@ -50,7 +50,7 @@ def calculate_methods(instance, lci_data, methods, time_steps=None):
             for h, value in impacts.items():
                 instance.impacts_calculated[h].value = value
         else:
-            instance.impacts_calculated = pyo.Var(impacts.keys(), initialize=impacts)
+            instance.impacts_calculated = pyo.Var(list(impacts), initialize=impacts)
 
         return instance
 
@@ -580,8 +580,7 @@ def solve_model(model_instance, gams_path=False, solver_name=None, options=None,
             results, model_instance = solve_gurobi(model_instance, options=options)
         else:
             if options:
-                warnings.warn("options are not passed to NEOS; the solve uses NEOS's settings.",
-                              UserWarning, stacklevel=3)
+                warn("options are not passed to NEOS; the solve uses NEOS's settings.")
             results, model_instance = solve_neos(model_instance, solver_name, options, neos_email)
     finally:
         # Also on failure: whatever values the instance holds (fresh or stale)

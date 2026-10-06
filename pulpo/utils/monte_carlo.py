@@ -6,7 +6,6 @@ Independent of the uncertainty sub-package.
 """
 
 import copy
-import warnings
 
 import numpy as np
 from joblib import Parallel, delayed
@@ -14,6 +13,7 @@ from tqdm import tqdm, trange
 
 from pulpo.utils import bw_parser
 from pulpo.utils.utils import reinstantiate_kwargs
+from pulpo.utils.warning import warn
 
 
 def pre_sample_lci_matrices(
@@ -93,7 +93,6 @@ def solve_model_MC_pre_sampled(
 
     failed = [i for i, res in enumerate(results) if 'error' in res]
     if failed:
-        warnings.warn(f"{len(failed)} of {len(results)} Monte Carlo samples did not solve (e.g. sample "
-                      f"{failed[0]}: {results[failed[0]]['error'][:200]}); their entries hold the error.",
-                      UserWarning, stacklevel=3)
+        warn(f"{len(failed)} of {len(results)} Monte Carlo samples did not solve (e.g. sample "
+             f"{failed[0]}: {results[failed[0]]['error'][:200]}); their entries hold the error.")
     return {i: res for i, res in enumerate(results)}

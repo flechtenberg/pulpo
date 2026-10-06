@@ -1,10 +1,10 @@
-import warnings
 
 import numpy as np
 import scipy.sparse as sparse
 
 from pulpo.utils import scaling
 from pulpo.utils.utils import none_capacities, none_to_bound
+from pulpo.utils.warning import warn
 
 
 DEFAULT_LIMITS_NOTE = (
@@ -15,7 +15,7 @@ DEFAULT_LIMITS_NOTE = (
     "near-future release.")
 
 
-def warn_finite_default_limits(default_limits, scale, stacklevel=4):
+def warn_finite_default_limits(default_limits, scale):
     """One FutureWarning when ``default_limits`` bounds every activity.
 
     With ``scale=True`` the same message says that those defaults are replaced
@@ -30,7 +30,7 @@ def warn_finite_default_limits(default_limits, scale, stacklevel=4):
     if scale:
         message += (" With scale=True these defaults are replaced by +-inf; only lower_limit / "
                     "upper_limit and the choice capacities stay finite.")
-    warnings.warn(message, FutureWarning, stacklevel=stacklevel)
+    warn(message, FutureWarning)
 
 
 def capacity_conflicts(choices, upper_limit, process_map):
@@ -49,17 +49,15 @@ def capacity_conflicts(choices, upper_limit, process_map):
     return conflicts
 
 
-def warn_capacity_overridden(conflicts, stacklevel=4):
+def warn_capacity_overridden(conflicts):
     """One UserWarning when an ``upper_limit`` replaces choice capacities."""
     if not conflicts:
         return
     shown = '; '.join(f"{proc} (capacity {capacity:g}, upper_limit {limit:g})"
                       for proc, capacity, limit in conflicts[:3])
     more = f" and {len(conflicts) - 3} more" if len(conflicts) > 3 else ""
-    warnings.warn(
-        f"{len(conflicts)} choice alternative(s) have both a capacity and an upper_limit; the "
-        f"upper_limit is used: {shown}{more}. Give each limit in one place to silence this warning.",
-        UserWarning, stacklevel=stacklevel)
+    warn(f"{len(conflicts)} choice alternative(s) have both a capacity and an upper_limit; the "
+         f"upper_limit is used: {shown}{more}. Give each limit in one place to silence this warning.")
 
 
 def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, upper_inv_limit, upper_imp_limit, lower_inv_limit, lower_imp_limit, methods, dependent_constraints=None, default_limits=None, imp_goals=None, scale=False):

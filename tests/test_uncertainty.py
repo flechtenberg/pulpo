@@ -543,6 +543,19 @@ class TestChanceConstrained(unittest.TestCase):
                         self.assertLess(abs(front[lam].adjusted - adjusted), 1e-6 * adjusted)
                         self.assertEqual(front[lam].rounds, 1)
 
+    def test_remote_warning_points_at_the_caller(self):
+        """The warning about limits far beyond the problem is reported at the caller's
+        line, through solve and through solve_point."""
+        import os
+        problem = unc.ChanceConstrained(soc_worker(electrolysis_cap=1e10), self.mom)
+        for name, call in (('solve', lambda: problem.solve([0.9])),
+                           ('solve_point', lambda: problem.solve_point(0.9))):
+            with self.subTest(call=name), warnings.catch_warnings(record=True) as caught:
+                warnings.simplefilter('always')
+                call()
+                [remote] = [w for w in caught if 'far beyond' in str(w.message)]
+                self.assertTrue(os.path.samefile(remote.filename, __file__), remote.filename)
+
     def test_a_large_limit_that_binds_is_still_imposed(self):
         """A remote bound is withheld only until a solution violates it."""
         free = self.front(self.free, False)

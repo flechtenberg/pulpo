@@ -1,11 +1,11 @@
 import numbers
-import warnings
 
 from pulpo.utils import optimizer, bw_parser, converter, saver, monte_carlo, reduced
 from typing import List, Union
 from pulpo.datasets.rice_database import setup_rice_husk_db
 from pulpo.datasets.sample_database import setup_sample_db
 from pulpo.datasets.soc_demo_database import setup_soc_demo_db
+from pulpo.utils.warning import warn
 
 class PulpoOptimizer:
     def __init__(self, project: str, database: Union[str, List[str]], method: Union[str, List[str], dict]):
@@ -62,8 +62,8 @@ class PulpoOptimizer:
             if isinstance(limit, bool) or not isinstance(limit, numbers.Real) or limit <= 0:
                 raise ValueError(f"Goal limit for method '{method}' must be a positive number, got {limit}.")
         if imp_goals and objective == 'weighted_sum':
-            warnings.warn("'imp_goals' passed but objective='weighted_sum'; the goals are ignored. "
-                          "Use objective='goal' to activate the goal-programming objective.", UserWarning)
+            warn("'imp_goals' passed but objective='weighted_sum'; the goals are ignored. "
+                 "Use objective='goal' to activate the goal-programming objective.")
             imp_goals = {}
         return imp_goals
 

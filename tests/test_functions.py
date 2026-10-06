@@ -256,6 +256,52 @@ class TestPULPO(unittest.TestCase):
             worker.save_results(os.path.join(temp_dir, 'list_choices.xlsx'))
         worker.summarize_results()
 
+    def _sample_worker(self):
+        worker = pulpo.PulpoOptimizer(self.project, self.database, self.methods)
+        worker.intervention_matrix = 'biosphere3'
+        with contextlib.redirect_stdout(io.StringIO()):
+            worker.get_lci_data()
+        demand = {worker.retrieve_activities(reference_products='transport')[0]: 1}
+        wind = worker.retrieve_activities(activities=['wind turbine'])[0]
+        steam = worker.retrieve_activities(activities=['steam cycle'])[0]
+        return worker, demand, wind, steam
+
+    def test_warnings_point_at_the_caller(self):
+        """PULPO's warnings are reported at the user's line, whichever path raised them."""
+        worker, demand, wind, steam = self._sample_worker()
+        defaults = {'lower_bound': -1e15, 'upper_bound': 1e15, 'upper_inv_bound': float('inf'),
+                    'lower_inv_bound': -float('inf'), 'lower_imp_bound': -float('inf'),
+                    'upper_imp_bound': float('inf')}
+        cases = {
+            'the goals are ignored': dict(choices={'electricity': [wind, steam]}, demand=demand,
+                                          imp_goals={"('my project', 'climate change')": 1}),
+            'default_limits': dict(choices={'electricity': [wind, steam]}, demand=demand,
+                                   default_limits=defaults),
+            # under scale=True only explicit limits stay finite; this one is beyond the cap
+            'choice capacities or lower_limit / upper_limit': dict(
+                choices={'electricity': {wind: 1e30, steam: float('inf')}}, demand=demand, scale=True),
+        }
+        for text, kwargs in cases.items():
+            with self.subTest(warning=text), warnings.catch_warnings(record=True) as caught:
+                warnings.simplefilter('always')
+                with contextlib.redirect_stdout(io.StringIO()):
+                    worker.instantiate(**kwargs)
+                [warning] = [w for w in caught if text in str(w.message)]
+                self.assertTrue(os.path.samefile(warning.filename, __file__), warning.filename)
+
+    def test_deepcopy_of_a_solved_worker(self):
+        """Copying a solved worker copies its impacts without pyomo complaining."""
+        import copy
+        worker, demand, wind, steam = self._sample_worker()
+        with contextlib.redirect_stdout(io.StringIO()):
+            worker.instantiate(choices={'electricity': [wind, steam]}, demand=demand)
+            worker.solve()
+        with self.assertNoLogs('pyomo', level='WARNING'):
+            twin = copy.deepcopy(worker)
+        for method in self.methods:
+            self.assertEqual(twin.instance.impacts_calculated[method].value,
+                             worker.instance.impacts_calculated[method].value)
+
     def test_upper_limit_replaces_choice_capacity(self):
         """An upper_limit on an alternative wins over its capacity, with a warning."""
         worker = pulpo.PulpoOptimizer(self.project, self.database, self.methods)

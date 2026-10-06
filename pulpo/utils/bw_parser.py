@@ -1,11 +1,11 @@
 import ast
-import warnings
 from typing import List, Union, Dict, Any, TypedDict
 import bw2calc as bc
 import bw2data as bd
 from pulpo.utils.utils import get_bw_version, build_bw25_params
 from stats_arrays.random import MCRandomNumberGenerator
 import numpy as np
+from pulpo.utils.warning import warn
 
 class LCIDataDict(TypedDict):
     matrices: Dict[str, np.ndarray]
@@ -470,9 +470,8 @@ def retrieve_env_interventions(project: str = '', intervention_matrix: str = 'bi
                           and (categories is None or tuple(flow.get('categories') or ()) in categories)]
 
     if not matching_flows:
-        warnings.warn(f"No flows in {intervention_matrix!r} match keys={keys!r}, activities={activities!r}, "
-                      f"categories={categories!r}; names, keys and categories are matched exactly.",
-                      UserWarning, stacklevel=2)
+        warn(f"No flows in {intervention_matrix!r} match keys={keys!r}, activities={activities!r}, "
+             f"categories={categories!r}; names, keys and categories are matched exactly.")
     return matching_flows
 
 

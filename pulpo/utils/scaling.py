@@ -49,10 +49,10 @@ whatever ``scale`` is; it reads the instance back in original units, so
 ``scale=True`` does not change the problem it solves.
 """
 
-import warnings
 
 import numpy as np
 import scipy.sparse as sps
+from pulpo.utils.warning import warn
 
 #: Scaled variable bounds beyond this magnitude are treated as infinite. A
 #: bound of 1e9 on a facility whose column is scaled by 1e-11 becomes 1e20,
@@ -215,13 +215,9 @@ def equilibrate_model_data(model_data, iters=20, stat_cut=1e-11, row_shift=1024.
         d['K'][(i, i2)] = v * r[ridx[i]] / r[ridx[i2]]
 
     if n_capped[0]:
-        warnings.warn(
-            f"{n_capped[0]} scaled process bounds exceeded {SCALED_BOUND_CAP:.0e} in "
-            "magnitude and were treated as infinite. Finite default limits such as "
-            "upper_bound=1e9 are meaningless on facility-scale processes; pass "
-            "+-inf (the default) for limits that are not meant to bind.",
-            UserWarning, stacklevel=3,
-        )
+        warn(f"{n_capped[0]} choice capacities or lower_limit / upper_limit values exceeded "
+             f"{SCALED_BOUND_CAP:.0e} in magnitude after scaling and were treated as infinite, which "
+             "they cannot bind against. If they stand for 'no limit', use float('inf') or None.")
 
     row_scale = {i: float(r[ridx[i]]) for i in products}
     col_scale = {j: float(s[cidx[j]]) for j in processes}
@@ -299,11 +295,8 @@ def to_scaled_process_bound(model, j, bound):
     n_capped = [0]
     value = _cap_bound(bound / col_factor(model, j), n_capped)
     if n_capped[0]:
-        warnings.warn(
-            f"a process bound written onto the scaled model exceeded {SCALED_BOUND_CAP:.0e} "
-            "in magnitude after scaling and was treated as infinite.",
-            UserWarning, stacklevel=3,
-        )
+        warn(f"a process bound written onto the scaled model exceeded {SCALED_BOUND_CAP:.0e} "
+             "in magnitude after scaling and was treated as infinite.")
     return value
 
 

@@ -72,6 +72,7 @@ from pyomo.opt import TerminationCondition
 
 from . import scaling as _scaling
 from .optimizer import SolveError, check_highs_options
+from .warning import warn
 
 #: Dense right-hand-side blocks are solved in chunks of at most this many
 #: entries (n x chunk), which bounds the memory of a projection to a few
@@ -975,11 +976,9 @@ class ReducedModel:
         examples = ([f"lower bound {lower[j]:.3g} on '{names.get(int(j), j)}'" for j in far_lo[:2]]
                     + [f"upper bound {upper[j]:.3g} on '{names.get(int(j), j)}'" for j in far_up[:2]]
                     + [f"the {kind} limit on {key!r}" for kind, key in list(dict.fromkeys(limits))[:2]])
-        warnings.warn(
-            f"{count} bound(s) or limit(s) lie far beyond every activity of this problem (the largest is "
-            f"about {scale:.3g}), e.g. {'; '.join(examples[:3])}. They did not bind at the optimum, so they "
-            "were left out of the solve. If they stand for 'no limit', use float('inf') or None.",
-            UserWarning, stacklevel=5)
+        warn(f"{count} bound(s) or limit(s) lie far beyond every activity of this problem (the largest is "
+             f"about {scale:.3g}), e.g. {'; '.join(examples[:3])}. They did not bind at the optimum, so they "
+             "were left out of the solve. If they stand for 'no limit', use float('inf') or None.")
 
     def solve(self, solver_name=None, options=None):
         """Solve the reduced LP and write the solution onto the instance.
