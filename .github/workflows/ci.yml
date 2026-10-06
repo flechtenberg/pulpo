@@ -1,0 +1,127 @@
+name: CI
+
+on:
+  push:
+    branches: [master, "feature/**", "release/**"]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: test (${{ matrix.os }}, Python ${{ matrix.python }}, ${{ matrix.bw }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {os: ubuntu-latest, python: "3.10", bw: bw2}
+          - {os: ubuntu-latest, python: "3.12", bw: bw2}
+          - {os: ubuntu-latest, python: "3.14", bw: bw25}
+          - {os: windows-latest, python: "3.12", bw: bw25}
+          # No PARDISO on macOS: the reduced solves use SciPy's solver.
+          - {os: macos-latest, python: "3.12", bw: bw25}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: ${{ matrix.python }}
+          activate-environment: true
+      - name: Install
+        run: uv pip install ".[${{ matrix.bw }},test]"
+      # tests/conftest.py points Brightway at a temporary directory. The NEOS, GAMS and
+      # Gurobi tests skip themselves without their environment variables or licence.
+      - name: Test
+        run: python -m pytest -q -p no:cacheprovider -rs tests
+
+  test-umfpack:
+    # scikit-umfpack has binaries on conda-forge only: the UMFPACK backend on Apple Silicon.
+    name: test (macos-latest, Python 3.12, bw25, conda-forge with UMFPACK)
+    runs-on: macos-latest
+    defaults:
+      run:
+        shell: bash -el {0}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: mamba-org/setup-micromamba@v2
+        with:
+          environment-name: pulpo
+          create-args: python=3.12 scikit-umfpack numpy scipy
+          condarc: |
+            channels:
+              - conda-forge
+      - name: Install
+        run: python -m pip install ".[bw25,test]"
+      - name: Test
+        run: |
+          python -c "from pulpo.utils import reduced; assert reduced._resolve_backend('auto') == 'umfpack'"
+          python -m pytest -q -p no:cacheprovider -rs tests
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+      - name: Build the sdist and the wheel
+        run: uv build
+      - name: Check the metadata and the wheel's contents
+        run: |
+          uvx twine check --strict dist/*
+          uvx check-wheel-contents dist/*.whl
+      - name: Install the wheel outside the repository and solve the sample database
+        run: |
+          uv venv /tmp/wheel --python 3.12
+          uv pip install --python /tmp/wheel/bin/python "$(ls dist/*.whl)[bw25]"
+          mkdir /tmp/bw && cd /tmp
+          BRIGHTWAY2_DIR=/tmp/bw /tmp/wheel/bin/python - <<'EOF'
+          from pulpo import pulpo
+          from pulpo.datasets.sample_database import setup_sample_db
+          setup_sample_db()
+          worker = pulpo.PulpoOptimizer('sample_project_bw25', 'technosphere',
+                                        {"('my project', 'climate change')": 1}, '')
+          worker.get_lci_data()
+          demand = {worker.retrieve_activities(reference_products='transport')[0]: 1}
+          electricity = worker.retrieve_activities(reference_products='electricity')
+          objectives = []
+          for formulation in ('full', 'reduced'):
+              worker.instantiate(choices={'electricity': electricity}, demand=demand)
+              worker.solve(formulation=formulation)
+              objectives.append(worker.instance.OBJ())
+          assert abs(objectives[0] - objectives[1]) < 1e-9, objectives
+          assert pulpo.__file__.startswith('/tmp/wheel'), pulpo.__file__
+          print('wheel OK, objective', objectives[0])
+          EOF
+      - name: The docs copies of the example notebooks match their originals
+        run: |
+          python3 - <<'EOF'
+          import json
+          # docs copy -> original, and the image paths that legitimately differ
+          pairs = {'pulpo_showcase': {'data/pulpo_showcase.png': 'pictures/showcase.png'},
+                   'uncertainty_toy': {}}
+          for name, paths in pairs.items():
+              docs = open(f'docs/content/examples/{name}.ipynb', encoding='utf8').read()
+              for docs_path, original_path in paths.items():
+                  docs = docs.replace(docs_path, original_path)
+              original = open(f'notebooks/{name}.ipynb', encoding='utf8').read()
+              assert json.loads(docs) == json.loads(original), f'{name}: the docs copy differs from notebooks/'
+          print('notebook copies match')
+          EOF
+
+  docs:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash -el {0}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: mamba-org/setup-micromamba@v2
+        with:
+          environment-file: docs/environment.yaml
+          environment-name: pulpo-docs
+      - name: Build the documentation
+        run: sphinx-build -b html docs docs/_build/html

@@ -102,6 +102,14 @@ uncertainty workflow tests added (July 2026) the suite takes ~35 s (bw25) /
 ~20 s (bw2). The suite is xdist-safe if ever needed — each worker gets its
 own temp Brightway directory via `conftest.py`.
 
+## Continuous integration
+
+`.github/workflows/ci.yml` runs the suite on every push to `master`, `feature/**` and
+`release/**` and on pull requests: bw2 on Linux (Python 3.10, 3.12), bw25 on Linux
+(3.14), Windows and macOS (3.12), and bw25 with UMFPACK from conda-forge on macOS. It also builds the sdist and the wheel, solves the sample database with the
+installed wheel, checks that the docs copies of the example notebooks match their
+originals in `notebooks/`, and builds the documentation from `docs/environment.yaml`.
+
 ## Environment-gated tests
 
 These skip themselves with an explanatory message when the requirement is
