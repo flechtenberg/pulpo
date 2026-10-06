@@ -5,16 +5,16 @@ Here are some examples on how you can use `pulpo`.
 ::::{grid} 1 2 2 2
 :gutter: 2
 
-:::{grid-item-card} ⚡ Electricity Market Example
-:link: ./electricity_showcase.html
+:::{grid-item-card} 🐙 PULPO Showcase
+:link: ./pulpo_showcase.html
 :link-type: url
 :class-body: sphinx-design-class-body-examples
 :text-align: left
-Example showcasing the optimization of the German electricity market, using ecoinvent 3.8 cutoff system model as the LCI database.
-```{image} ./data/electricity_showcase_1.png
+A tour of PULPO on the bundled demo database: technology choices, capacity and resource limits, Pareto front, Monte Carlo, infeasible problems, dependent constraints, supply-driven systems and goal programming, with open-source solvers only.
+```{image} ./data/pulpo_showcase.png
 :class: only-dark
 ```
-```{image} ./data/electricity_showcase_1.png
+```{image} ./data/pulpo_showcase.png
 :class: only-light
 ```
 +++
@@ -71,7 +71,7 @@ hidden:
 maxdepth: 1
 ---
 self
-electricity_showcase
+pulpo_showcase
 rice_example
 uncertainty_toy
 ```
