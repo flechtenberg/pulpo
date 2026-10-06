@@ -25,6 +25,7 @@ import unittest
 import warnings
 
 import numpy as np
+import pandas as pd
 import pyomo.environ as pyo
 import scipy.sparse as sp
 import scipy.stats
@@ -603,6 +604,59 @@ class TestChanceConstrained(unittest.TestCase):
         worker.apply_expert_knowledge('Cf', SOC_METHOD, {2: {'uncertainty_type': 3, 'loc': 273.0, 'scale': 0.0}})
         front = worker.chance_constrained(upper_bounds={worker.elyz: TRI_CAP}).solve([0.9])
         self.assertLess(abs(front[0.9].adjusted - V18_CAP[0.9][0]), 1e-6)
+
+    def test_facade_analyses_match_the_functions(self):
+        """The façade's screen_undeclared and validate give what the functions give,
+        and refuse to run before the uncertainty data is imported."""
+        worker = soc_worker(electrolysis_cap=0.035, worker_class=pulpo_unc.PulpoOptimizerUnc)
+        for call in (lambda: worker.screen_undeclared(None, exact_cfs=[0]),
+                     lambda: worker.validate(None, None, n=10)):
+            with self.assertRaisesRegex(ValueError, 'import_uncertainty_data'):
+                call()
+        data = worker.import_uncertainty_data()
+        problem = worker.chance_constrained(upper_bounds={worker.elyz: TRI_CAP})
+        front = problem.solve([0.5, 0.9])
+        exact_cfs = unc.co2_flows(worker)
+        screening = worker.screen_undeclared(front[0.9], exact_cfs=exact_cfs)
+        reference = unc.screen_undeclared(front[0.9], data, worker, exact_cfs=exact_cfs)
+        pd.testing.assert_frame_equal(screening.sigma, reference.sigma)
+        pd.testing.assert_frame_equal(screening.ranking, reference.ranking)
+        validation = worker.validate(front, problem, n=5_000, seed=1)
+        pd.testing.assert_frame_equal(validation.table, unc.validate(front, problem, data, n=5_000, seed=1).table)
+
+    def test_input_errors(self):
+        """Each invalid input to the chance-constrained problem raises a clear error."""
+        worker = self.capped
+        j = index(worker, worker.elyz)
+        build = lambda **kw: unc.ChanceConstrained(worker, self.mom, **kw)
+        capped = dict(upper_bounds={worker.elyz: TRI_CAP})
+        unbounded = {'uncertainty_type': 3, 'loc': 0.03, 'scale': float('inf')}
+        cases = [
+            ('lambda 0', lambda: build(**capped).solve([0.0]), ValueError, 'lambda must lie in'),
+            ('lambda 1', lambda: build(**capped).solve([1.0]), ValueError, 'lambda must lie in'),
+            ('lambda 1.2', lambda: build(**capped).solve([1.2]), ValueError, 'lambda must lie in'),
+            ('impact level below 1/2', lambda: build(allocation='individual').solve([0.3]), ValueError,
+             'non-convex'),
+            ('unknown solver', lambda: build(**capped).solve([0.9], solver_name='cplex'), ValueError,
+             "'clarabel' or 'gurobi'"),
+            ('unknown allocation', lambda: build(allocation='banana'), ValueError, 'allocation must be'),
+            ('weights with individual', lambda: build(allocation='individual', weights=(0.5, 0.5), **capped),
+             ValueError, 'Bonferroni allocation only'),
+            ('weights not summing to 1', lambda: build(weights=(0.5, 0.2), **capped), ValueError, 'sum to 1'),
+            ('the same bound twice', lambda: build(upper_bounds={worker.elyz: TRI_CAP, j: TRI_CAP}), ValueError,
+             'same uncertain bound twice'),
+            ('an infinite quantile', lambda: build(upper_bounds={worker.elyz: unbounded}).solve([0.9]), ValueError,
+             'cannot hold'),
+        ]
+        for label, call, error, message in cases:
+            with self.subTest(label):
+                with self.assertRaisesRegex(error, message):
+                    call()
+
+    def test_the_goal_objective_is_refused(self):
+        worker = soc_worker(imp_goals={SOC_METHOD: 1.0}, objective='goal')
+        with self.assertRaisesRegex(NotImplementedError, 'goal objective'):
+            unc.ChanceConstrained(worker, self.mom)
 
     def test_facade_with_two_methods(self):
         """A worker with a second method (to limit, say) imports the impact it names."""
