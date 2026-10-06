@@ -187,6 +187,16 @@ class TestParser(unittest.TestCase):
         self.assertIn('ModuleNotFoundError: PULPO needs Brightway', result.stderr)
         self.assertIn('pulpo-dev[bw25]', result.stderr)
 
+    def test_version(self):
+        """pulpo.__version__ is the installed distribution's version."""
+        import importlib.metadata
+        import pulpo as package
+        try:
+            expected = importlib.metadata.version('pulpo-dev')
+        except importlib.metadata.PackageNotFoundError:
+            expected = 'unknown'
+        self.assertEqual(package.__version__, expected)
+
 ###############################
 #### Test the BASE PULPO  #####
 ###############################

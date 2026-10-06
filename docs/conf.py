@@ -1,6 +1,8 @@
 ### path setup ####################################################################################
 
 import datetime
+import tomllib
+from pathlib import Path
 
 ###################################################################################################
 ### Project Information ###########################################################################
@@ -10,6 +12,8 @@ project = "pulpo"
 author = "Fabian Lechtenberg"
 copyright = datetime.date.today().strftime("%Y") + " pulpo developers"
 version: str = "latest"  # required by the version switcher
+# The package is not installed for the docs build, so the release is read from pyproject.toml.
+release = tomllib.loads((Path(__file__).parents[1] / "pyproject.toml").read_text(encoding="utf8"))["project"]["version"]
 
 ###################################################################################################
 ### Project Configuration #########################################################################

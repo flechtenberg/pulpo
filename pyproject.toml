@@ -18,6 +18,9 @@ requires-python = ">=3.10"
 license = "BSD-3-Clause"
 license-files = ["LICENSE"]
 classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
     "Programming Language :: Python :: 3.10",
@@ -82,8 +85,11 @@ test = [
 ]
 
 [project.urls]
-homepage = "https://github.com/flechtenberg/pulpo"
-repository = "https://github.com/flechtenberg/pulpo"
+Homepage = "https://github.com/flechtenberg/pulpo"
+Documentation = "https://flechtenberg.github.io/pulpo/"
+Repository = "https://github.com/flechtenberg/pulpo"
+Changelog = "https://github.com/flechtenberg/pulpo/blob/master/CHANGES.md"
+Issues = "https://github.com/flechtenberg/pulpo/issues"
 
 [tool.setuptools.packages.find]
 include = ["pulpo*"]

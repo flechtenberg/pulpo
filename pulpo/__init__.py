@@ -1,4 +1,10 @@
 import importlib.util
+from importlib.metadata import PackageNotFoundError, version
+
+try:
+    __version__ = version('pulpo-dev')
+except PackageNotFoundError:  # a source tree that is not installed
+    __version__ = 'unknown'
 
 # Brightway comes with the bw2 or bw25 extra. Without one, the first import of
 # bw2calc would fail with no hint at the fix.

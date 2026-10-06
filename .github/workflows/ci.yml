@@ -94,6 +94,11 @@ jobs:
               objectives.append(worker.instance.OBJ())
           assert abs(objectives[0] - objectives[1]) < 1e-9, objectives
           assert pulpo.__file__.startswith('/tmp/wheel'), pulpo.__file__
+          import os, tomllib
+          import pulpo as package
+          with open(os.path.join(os.environ['GITHUB_WORKSPACE'], 'pyproject.toml'), 'rb') as f:
+              expected = tomllib.load(f)['project']['version']
+          assert package.__version__ == expected, (package.__version__, expected)
           print('wheel OK, objective', objectives[0])
           EOF
       - name: The docs copies of the example notebooks match their originals
