@@ -156,7 +156,9 @@ class PulpoOptimizer:
         Solves the optimization model and calculates additional methods and inventory flows if needed.
 
         Args:
-            GAMS_PATH (bool): Path to GAMS if needed.
+            GAMS_PATH (str or bool, optional): Solve with the GAMS installation in this
+                directory (``True``: the directory in the ``GAMS_PULPO`` environment
+                variable), using ``solver_name`` as the GAMS solver (default CPLEX).
             solver_name (str, optional): 'highs' (default) or 'gurobi'; with formulation='full'
                 also any GAMS or NEOS solver.
             options (dict, optional): Solver options: option names and values for HiGHS

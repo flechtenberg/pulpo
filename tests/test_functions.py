@@ -443,18 +443,32 @@ class TestPULPO(unittest.TestCase):
         choices = {'electricity': {elec[0]: 100, elec[1]: 100}}
         worker.instantiate(choices=choices, demand=demand)
 
-        # Subtests for different solvers
-        for solver_name in ['cplex', 'baron', 'xpress']:
-            with self.subTest(solver=solver_name):
-                # Solve using GAMS with the specified solver
-                if solver_name == 'cplex':
-                    worker.solve(GAMS_PATH=gams_path)
-                else:
-                    worker.solve(GAMS_PATH=gams_path, solver_name=solver_name)
+        # Subtests for different solvers; record which gams and which solver ran.
+        from pyomo.solvers.plugins.solvers.GAMS import GAMSShell
+        ran, solve = [], GAMSShell.solve
 
-                # Assert the objective value
-                result_obj = round(worker.instance.OBJ(), 6)
-                self.assertEqual(result_obj, 0.103093)
+        def spy(shell, *args, **kwargs):
+            ran.append((shell.executable(), kwargs['io_options']['solver']))
+            return solve(shell, *args, **kwargs)
+
+        with mock.patch.object(GAMSShell, 'solve', spy):
+            for solver_name in [None, 'baron', 'xpress']:
+                with self.subTest(solver=solver_name):
+                    worker.solve(GAMS_PATH=gams_path, solver_name=solver_name)
+                    self.assertEqual(round(worker.instance.OBJ(), 6), 0.103093)
+                    executable, solver = ran[-1]
+                    self.assertEqual(os.path.dirname(os.path.normpath(executable)), os.path.normpath(gams_path))
+                    self.assertEqual(solver, solver_name or 'CPLEX')
+
+    def test_gams_path_errors(self):
+        """A GAMS path that holds no GAMS, or GAMS_PATH=True without GAMS_PULPO, is refused."""
+        worker = self._mc_worker()
+        with self.assertRaisesRegex(FileNotFoundError, 'No GAMS executable'):
+            worker.solve(GAMS_PATH=os.path.join(os.path.dirname(__file__), 'no_gams_here'))
+        with mock.patch.dict(os.environ, {}, clear=False):
+            os.environ.pop('GAMS_PULPO', None)
+            with self.assertRaisesRegex(ValueError, 'GAMS_PULPO'):
+                worker.solve(GAMS_PATH=True)
 
     def test_neos_solver(self):
         """Test solving the optimization problem using the NEOS solver."""

@@ -1,9 +1,11 @@
 import os
 import warnings
 from collections import defaultdict
+from pathlib import Path
 import pandas as pd
 import numpy as np
 import scipy
+import pyomo.common
 import pyomo.environ as pyo
 from pyomo.core.expr.numeric_expr import LinearExpression
 from pyomo.contrib import appsi
@@ -432,34 +434,47 @@ def solve_neos(model_instance, solver_name, options, neos_email):
     print("Optimization problem solved using NEOS")
     return results, model_instance
 
+def _gams_executable(gams_path):
+    """The GAMS executable in ``gams_path``, a GAMS directory or the executable itself."""
+    path = Path(gams_path)
+    for candidate in ([path] if path.is_file() else [path / 'gams.exe', path / 'gams']):
+        if candidate.is_file():
+            return str(candidate)
+    raise FileNotFoundError(f"No GAMS executable at {gams_path!r}; pass the GAMS directory "
+                            "(e.g. 'C:/GAMS/47') or the path to the gams executable.")
+
+
 def solve_gams(model_instance, gams_path, options, solver_name=None):
-    """Solve the model using GAMS with either CPLEX or an alternative solver."""
+    """Solve the model with the GAMS installation at ``gams_path`` (``True``: the
+    ``GAMS_PULPO`` environment variable), using ``solver_name`` (default CPLEX)."""
     if gams_path is True:
         gams_path = os.getenv('GAMS_PULPO')
-        if gams_path:
-            print('GAMS path retrieved from GAMS_PULPO environment variable:', gams_path)
-        else:
-            print("GAMS path not found. Set the 'GAMS_PULPO' environment variable to your GAMS path or pass it explicitly.")
-            return None, model_instance
-
-    solver = pyo.SolverFactory('gams')
-    if not solver.available():
-        print("GAMS solver is not available. Ensure GAMS is installed and the path is correct.")
-        return None, model_instance
+        if not gams_path:
+            raise ValueError("GAMS_PATH=True reads the GAMS directory from the GAMS_PULPO environment "
+                             "variable, which is not set; set it or pass the directory as GAMS_PATH.")
+    executable = _gams_executable(gams_path)
 
     io_options = {'solver': solver_name or 'CPLEX'}
     options = get_cplex_options(options) if solver_name is None else options
 
-    results = solver.solve(
-        model_instance,
-        keepfiles=False,
-        symbolic_solver_labels=True,
-        tee=False,
-        report_timing=False,
-        io_options=io_options,
-        add_options=options,
-        load_solutions=False,
-    )
+    # Pyomo finds GAMS on the system PATH; point it at the requested installation
+    # for this solve only.
+    registered = pyomo.common.Executable('gams')
+    previous = registered.path()
+    registered.set_path(executable)
+    try:
+        results = pyo.SolverFactory('gams').solve(
+            model_instance,
+            keepfiles=False,
+            symbolic_solver_labels=True,
+            tee=False,
+            report_timing=False,
+            io_options=io_options,
+            add_options=options,
+            load_solutions=False,
+        )
+    finally:
+        registered.set_path(previous)
     if results.solver.termination_condition != pyo.TerminationCondition.optimal:
         raise _not_optimal(f"GAMS ({io_options['solver']})", results.solver.termination_condition, results)
     model_instance.solutions.load_from(results)
@@ -558,7 +573,7 @@ def solve_model(model_instance, gams_path=False, solver_name=None, options=None,
     _scaling.rescale_solution(model_instance)
     try:
         if gams_path:
-            results, model_instance = solve_gams(model_instance, gams_path, options)
+            results, model_instance = solve_gams(model_instance, gams_path, options, solver_name)
         elif solver_name is None or solver_name.lower() == 'highs':
             results, model_instance = solve_highspy(model_instance, options)
         elif solver_name.lower() == 'gurobi':
