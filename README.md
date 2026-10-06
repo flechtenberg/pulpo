@@ -10,7 +10,7 @@
 [![Markdown](https://img.shields.io/badge/Markdown-000000.svg?style=flat&logo=Markdown&logoColor=white)](https://www.markdownguide.org/)
 
 <!-- Project Metadata -->
-[![License](https://img.shields.io/github/license/flechtenberg/pulpo?style=flat&color=5D6D7E)](https://github.com/flechtenberg/pulpo/blob/main/LICENSE)
+[![License](https://img.shields.io/github/license/flechtenberg/pulpo?style=flat&color=5D6D7E)](https://github.com/flechtenberg/pulpo/blob/master/LICENSE)
 [![Last Commit](https://img.shields.io/github/last-commit/flechtenberg/pulpo?style=flat&color=5D6D7E)](https://github.com/flechtenberg/pulpo/commits/main)
 [![Commit Activity](https://img.shields.io/github/commit-activity/m/flechtenberg/pulpo?style=flat&color=5D6D7E)](https://github.com/flechtenberg/pulpo/pulse)
 

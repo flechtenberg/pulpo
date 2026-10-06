@@ -21,7 +21,7 @@ uncertainty at all, because CO2 is the flow GWP100 is defined *against* -
 its CF of 1 is exact, not an estimate with error bars, so it is written as a
 degenerate Normal (scale=0) rather than assigned a family from the gallery.
 
-Mirrors the ammonia case study's central mechanism (uncertainty treatment
+Mirrors the central mechanism of an ammonia case (uncertainty treatment
 changes which hydrogen route gets chosen) at toy scale: one product (ammonia),
 one choice axis (hydrogen route: SMR vs. electrolysis), everything else
 reduced to simple utility inputs.
