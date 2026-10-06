@@ -42,6 +42,7 @@ All notable changes to this project will be documented in this file.
 * `formulation='full'` and `instantiate(scale=False)` remain the defaults. Current
   development considers `formulation='reduced'` and `scale=True` superior, and a
   future release may switch the defaults.
+* Methods with weight 0 now appear in the results with their calculated impact.
 * Finite `default_limits['lower_bound']` / `['upper_bound']` raise a
   `FutureWarning`: a bound on every activity has no physical meaning and makes
   `formulation='reduced'` build a dense row per process. Set `lower_limit` /

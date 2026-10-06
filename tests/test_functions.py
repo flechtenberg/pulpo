@@ -746,11 +746,12 @@ class TestSaver(unittest.TestCase):
     def test_extract_impacts(self):
         result = extract_impacts(self.worker.instance)
 
-        # Define the expected DataFrame
+        # 'resources' has weight 0: not part of the model, but calculated after the solve and reported.
         expected = pd.DataFrame({
-            'Weight': [1, 1],
-            'Value': [-0.0, 0.1]
-        }, index=["('my project', 'air quality')", "('my project', 'climate change')"]).rename_axis("Method")
+            'Weight': [1, 1, 0],
+            'Value': [-0.0, 0.1, 5.1]
+        }, index=["('my project', 'air quality')", "('my project', 'climate change')",
+                  "('my project', 'resources')"]).rename_axis("Method")
 
         # Assert the result matches the expected DataFrame
         assert_frame_equal(result, expected, check_exact=False, rtol=1e-5)

@@ -455,6 +455,11 @@ class TestPerStepLimits(unittest.TestCase):
             for gwp, twice in zip(self.per_step(worker), self.per_step(worker, str(doubled))):
                 self.assertAlmostEqual(twice, 2 * gwp, places=9)
             worker.solve()
+        # The results report it, with weight 0.
+        impacts = worker.extract_results()['Impacts'].xs(str(doubled), level='Method')
+        self.assertEqual(set(impacts['Weight']), {0})
+        for t, gwp in zip(self.STEPS, self.per_step(worker)):
+            self.assertAlmostEqual(impacts.loc[t, 'Value'], 2 * gwp, places=9)
 
     def test_an_input_keyed_by_some_steps_only(self):
         with self.assertRaisesRegex(ValueError, r'time steps \[1\] but not by \[0, 2\]'):

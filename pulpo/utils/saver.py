@@ -93,6 +93,19 @@ def extract_impacts(instance: ConcreteModel) -> pd.DataFrame:
         data['Weight'].append(instance.WEIGHTS[h].value if h in instance.WEIGHTS and instance.WEIGHTS[h].value is not None else 0)
         data['Value'].append(instance.impacts[i].value if instance.impacts[i] is not None else 0)
 
+    # Methods with weight 0 and no limit are not part of the model; their impacts
+    # are calculated after the solve (optimizer.calculate_methods).
+    if hasattr(instance, 'impacts_calculated'):
+        modelled = set(instance.impacts.keys())
+        for i in instance.impacts_calculated.keys():
+            if i in modelled:
+                continue
+            t, h = i if isinstance(i, tuple) else (None, i)
+            data['Method'].append(h)
+            data['Time'].append(t)
+            data['Weight'].append(0)
+            data['Value'].append(instance.impacts_calculated[i].value)
+
     df = pd.DataFrame(data)
     if time_indexed:
         # Create the DataFrame, sorted by 'Weight' (descending) and then by 'Method' (alphabetically)
