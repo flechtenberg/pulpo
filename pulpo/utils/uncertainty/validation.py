@@ -5,7 +5,7 @@ Why
 A solved point claims reliabilities that rest on the normality of ``X`` (A2)
 and on Boole's inequality (A5). Both are checked here without either: at the
 fixed decision ``s*`` and the recorded target ``z*``, every declared input is
-drawn from its own family (not a fitted normal) and each event is counted,
+drawn from its own family (not a fitted normal) and each event is counted, ::
 
     impact row    X(s*) <= z*                 against lambda_z
     bound j       s*_j <= U_j  (s*_j >= L_j)  against 1 - eps_j

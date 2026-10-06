@@ -70,6 +70,19 @@ class PulpoOptimizerTime(PulpoOptimizer):
         time-dependent path.
 
         Args:
+            choices (dict, optional): ``{label: {activity: capacity}}`` or a list of
+                activities, as in the static model.
+            demand (dict, optional): ``{activity or choice label: amount}``.
+            upper_limit (dict, optional): Upper limits on the scaling of activities.
+            lower_limit (dict, optional): Lower limits on the scaling of activities.
+            upper_elem_limit (dict, optional): Upper limits on elementary flows, per timestep.
+            upper_imp_limit (dict, optional): Upper limits on the impacts, per timestep.
+            lower_elem_limit (dict, optional): Lower limits on elementary flows, per timestep.
+            lower_imp_limit (dict, optional): Lower limits on the impacts, per timestep.
+            dependent_constraints (dict, optional): Only for the static model; with
+                ``time_steps`` they raise a NotImplementedError.
+            time_steps (list, optional): The timesteps. Without them, the static model
+                is built.
             default_limits (dict, optional): Custom default limits. If None, uses
                 standard values. Required keys: 'lower_bound', 'upper_bound',
                 'upper_inv_bound', 'lower_inv_bound', 'lower_imp_bound',

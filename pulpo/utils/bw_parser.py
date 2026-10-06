@@ -8,6 +8,7 @@ import numpy as np
 from pulpo.utils.warning import warn
 
 class LCIDataDict(TypedDict):
+    """The LCI data of a worker (``worker.lci_data``): matrices, maps and uncertainty parameters."""
     matrices: Dict[str, np.ndarray]
     intervention_matrix: np.ndarray
     technology_matrix: np.ndarray

@@ -163,6 +163,9 @@ class PulpoOptimizer:
             options (dict, optional): Solver options: option names and values for HiGHS
                 and Gurobi (an unknown HiGHS option or an invalid value raises a
                 ValueError), a list of option lines for GAMS. NEOS does not use them.
+            neos_email (str, optional): The e-mail address NEOS requires when ``solver_name``
+                names a NEOS solver (formulation='full'); without it, the ``NEOS_EMAIL``
+                environment variable is used.
             formulation (str, optional): 'full' (default) solves the Pyomo LP over every process;
                 'reduced' solves the same problem over the alternatives only
                 (see :mod:`pulpo.utils.reduced`).
@@ -312,7 +315,18 @@ class PulpoOptimizer:
 
     def extract_results(self, extractparams:bool=False):
         """
-        Summarizes the results of the optimization.
+        The results of the last solve, as DataFrames keyed by the sheet names of
+        :meth:`save_results`.
+
+        The keys are 'Scaling Vector', 'Intervention Vector', 'Slack', 'Impacts',
+        'Transgressions', 'Demand', 'Choices' (a dict with one DataFrame per choice),
+        'Constraints Upper', 'Constraints Lower' and 'Constraints Upper Elem'.
+
+        Args:
+            extractparams (bool, optional): Also return the instance's parameters.
+
+        Returns:
+            dict: The results, as described above.
         """
         return saver.extract_results(self, extractparams=extractparams)
 

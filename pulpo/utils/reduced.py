@@ -6,7 +6,7 @@ PULPO's LP has one variable per process and one balance row per product. The
 choices free only a few directions: one per alternative, minus one per
 category (16 on a 23,569-process ecoinvent model). With the technosphere
 matrix ``A`` square and invertible, every scaling vector that satisfies the
-merged balances is
+merged balances is ::
 
     s = s0 + S v,        s0 = A^-1 f~,        S = A^-1 E
 
@@ -25,7 +25,7 @@ feasibility tolerance.
 
 What
 ----
-Every constraint of the instance becomes one row in ``v``:
+Every constraint of the instance becomes one row in ``v``::
 
     category c            sum_{k in c} v_k = f_c
     bound on process j    l_j - s0_j  <=  S[j, :] v  <=  u_j - s0_j

@@ -17,7 +17,7 @@ were only feasible under that tolerance, and disagreed with each other.
 What
 ----
 :func:`equilibrate_model_data` rewrites the data dictionary produced by
-``combine_inputs`` / ``combine_inputs_time`` in place, substituting
+``combine_inputs`` / ``combine_inputs_time`` in place, substituting ::
 
     x_j = s_j * y_j          (column scaling of the scaling vector)
     row_i * r_i              (row scaling of every product balance)

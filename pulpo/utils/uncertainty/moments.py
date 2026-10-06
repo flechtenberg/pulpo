@@ -12,7 +12,7 @@ What
 ----
 Assumptions: all uncertain inputs are mutually independent (A1); undeclared
 parameters are deterministic (A3); ``A`` is deterministic (A4). Then, with
-``y_e = sum_j E[b_ej] s_j`` the mean inventory flow ``e``,
+``y_e = sum_j E[b_ej] s_j`` the mean inventory flow ``e``, ::
 
     E[X]  = mu' s,                    mu_j = sum_e E[q_e] E[b_ej]
     Var X = sum_j d_j s_j^2 + sum_e w_e y_e^2

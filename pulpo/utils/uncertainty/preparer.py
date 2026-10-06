@@ -58,11 +58,13 @@ ParamIndex = Union[Tuple[int, int], int]
 
 
 class ParameterBlock(TypedDict, total=False):
+    """The parameters of one database or method, split by whether they declare a distribution."""
     declared: Dict[ParamIndex, UncertaintySpec]
     undeclared: Dict[ParamIndex, UncertaintySpec]
 
 
 class UncertaintyData(TypedDict, total=False):
+    """The uncertainty data of an impact: ``'If'`` per database, ``'Cf'`` for the method."""
     If: Dict[str, ParameterBlock]     # one block per database
     Cf: Dict[str, ParameterBlock]     # one block, for the LCIA method
 

@@ -5,7 +5,7 @@ Why
 ---
 ``X(s) = sum_e q_e sum_j b_ej s_j`` is a sum of products of independent
 inputs (A1), so its ANOVA decomposition stops at second order. With
-``V = Var X(s)`` and ``y_e = sum_j E[b_ej] s_j``,
+``V = Var X(s)`` and ``y_e = sum_j E[b_ej] s_j``, ::
 
     S1(q_e)        = w_e y_e^2 / V
     S1(b_ej)       = E[q_e]^2 Var(b_ej) s_j^2 / V

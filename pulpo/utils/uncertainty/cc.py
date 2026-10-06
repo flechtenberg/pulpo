@@ -4,7 +4,7 @@ Why
 ---
 With a joint reliability level ``lambda`` over ``K`` events (the impact row
 and one per uncertain bound) and Boole's inequality, each event may fail with
-probability ``eps_k = w_k (1 - lambda)`` (equal weights by default). Then
+probability ``eps_k = w_k (1 - lambda)`` (equal weights by default). Then ::
 
     impact row:  P(X <= z) >= lambda_z = 1 - eps_0
                  =>  mu' s + kappa sigma(s) <= z,   kappa = Phi^-1(lambda_z)   (X normal, A2)
@@ -12,7 +12,7 @@ probability ``eps_k = w_k (1 - lambda)`` (equal weights by default). Then
 
 and minimizing ``z`` gives ``min mu' s + kappa sigma(s)`` subject to PULPO's
 constraints with the uncertain bounds at their quantiles. In reduced space
-(``pulpo.utils.reduced``) ``s = s0 + S v`` and
+(``pulpo.utils.reduced``) ``s = s0 + S v`` and ::
 
     sigma(s) = || R [1; v] ||,     R' R = G' G,     G = Q^(1/2) [s0, S]
 
@@ -328,7 +328,7 @@ class Projections:
     """The impact's moments on the reduced space ``s = s0 + S v``.
 
     With these and :meth:`reduced.ReducedModel.linear_program` a formulation
-    over ``v`` needs no further solves:
+    over ``v`` needs no further solves::
 
         E[X]  = m0 + m' v
         Var X = sum_{j in J} d_j (s0_J + S_J v)_j^2 + sum_e w_e (B_unc_s0 + B_unc_S v)_e^2

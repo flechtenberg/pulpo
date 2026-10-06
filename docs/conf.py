@@ -83,6 +83,17 @@ autoapi_member_order = "bysource"
 autoapi_root = "content/api"
 autoapi_template_dir = "_templates/autoapi_templates/"
 autoapi_keep_files = False
+# The dataclasses document their fields in an "Attributes:" section; as :ivar: fields
+# they do not repeat the attribute entries that AutoAPI writes for them.
+napoleon_use_ivar = True
+# Links from the API pages to the types of the libraries PULPO works with.
+intersphinx_mapping = {
+    "python": ("https://docs.python.org/3", None),
+    "numpy": ("https://numpy.org/doc/stable", None),
+    "pandas": ("https://pandas.pydata.org/docs", None),
+    "scipy": ("https://docs.scipy.org/doc/scipy", None),
+    "pyomo": ("https://pyomo.readthedocs.io/en/stable", None),
+}
 
 graphviz_output_format = "svg"  # https://pydata-sphinx-theme.readthedocs.io/en/stable/examples/graphviz.html#inheritance-diagram
 

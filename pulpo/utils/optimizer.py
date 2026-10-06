@@ -485,12 +485,10 @@ def solve_gams(model_instance, gams_path, options, solver_name=None):
 def solve_gurobi(model_instance, options=None):
     """
     Solve the given Pyomo ConcreteModel using Gurobi.
-    Captures:
-      - model_instance.solver_status
-      - model_instance.solver_termination
-      - model_instance.best_feasible_obj (if available)
-      - model_instance.best_obj_bound    (if available)
-    Then, if truly optimal, the Pyomo vars are already loaded (no extra loader needed).
+
+    Stores ``solver_status`` and ``solver_termination`` on the instance, and
+    ``best_feasible_obj`` and ``best_obj_bound`` when Gurobi reports them. When the
+    solve is optimal, the Pyomo variables are already loaded.
     """
     # Create the Gurobi solver plugin
     solver = pyo.SolverFactory('gurobi')

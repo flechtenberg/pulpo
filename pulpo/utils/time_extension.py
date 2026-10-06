@@ -21,7 +21,7 @@ of :func:`combine_inputs_time`, given as a list of triples::
 Each triple says: *the net production of ``source_product`` at time t-1
 contributes ``factor`` units to the balance of ``target_product`` at time t.*
 Formally it sets ``K[target_product, source_product] = factor`` in a
-product-by-product carry-over matrix; the demand balance at t becomes
+product-by-product carry-over matrix; the demand balance at t becomes ::
 
     A_i · s[t]  +  Σ_{i2} K[i, i2] · ( A_{i2} · s[t-1] )  ≥ / =  d[t, i].
 
@@ -407,7 +407,7 @@ def instantiate_time(model_data, objective='weighted_sum'):
     """Build a concrete instance of the time-indexed model.
 
     With ``objective='goal'`` the model minimizes the average transgression
-    level of the *time-aggregated* impacts,
+    level of the *time-aggregated* impacts, ::
 
         (1/K) * sum_h max(0, sum_t impacts[t, h] / IMP_GOALS[h] - 1),
 
@@ -516,11 +516,11 @@ def instantiate_time(model_data, objective='weighted_sum'):
     def demand_constraint(model, t, i):
         """Demand balance at time t for product i.
 
-        Within-step contribution from all producers/consumers of i:
+        Within-step contribution from all producers/consumers of i::
 
             tech_t = Σ_j A[i, j] · s[t, j]
 
-        Carry-over from t-1 (only for products that appear as a target in K):
+        Carry-over from t-1 (only for products that appear as a target in K)::
 
             prev_t = Σ_{i2 : (i, i2) ∈ K} K[i, i2] · Σ_j A[i2, j] · s[t-1, j]
 

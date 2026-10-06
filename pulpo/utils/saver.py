@@ -5,6 +5,7 @@ from typing import TypedDict, Dict, Any, Optional, List, Union
 from pulpo.utils.utils import broadcast_over_time, none_capacities
 
 class ResultDataDict(TypedDict, total=False):
+    """The results of :func:`extract_results`, one entry per sheet of :func:`save_results`."""
     Scaling_Vector: pd.DataFrame
     Intervention_Vector: pd.DataFrame
     Slack: pd.DataFrame

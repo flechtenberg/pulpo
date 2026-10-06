@@ -5,41 +5,42 @@ Five-step electricity dispatch with a battery, modelled in the four-activity
 storage logic is energy-conserving under PULPO's product×product carry-over
 matrix ``K`` (see :mod:`pulpo.utils.time_extension`).
 
-    Activities (each is its own product)
-        solar              -- produces 1 kWh; no emissions
-        coal               -- produces 1 kWh; 1 kg CO2/kWh
-        battery_charge     -- CHARGE: consumes 1 kWh electricity, produces
-                              1 unit of "charge_product" (its self-product)
-        battery_hold       -- HOLD: produces 1 unit of "charge_product" at t,
-                              consuming 1 unit of "holdtm1_product" at t (the
-                              carried storage state; see K below)
-        battery_discharge  -- DISCHARGE: consumes 1 unit of "charge_product",
-                              produces 1 kWh of electricity
-        battery_holdtm1    -- HOLD t-1 phantom: ref product is
-                              "holdtm1_product"; locked at scaling 0 by
-                              the upper-bound. Exists only so that the
-                              technosphere matrix has a producer for the
-                              storage-state product; the real injection
-                              comes from the K matrix.
+Activities (each is its own product)::
 
-    Choices group {solar, coal, battery_discharge} into a virtual
-    "electricity" product (where the demand is placed), and group
-    {battery_charge, battery_hold} into a virtual "charge_product" so that
-    DISCHARGE can draw from either fresh charge or held-over carry.
+    solar              -- produces 1 kWh; no emissions
+    coal               -- produces 1 kWh; 1 kg CO2/kWh
+    battery_charge     -- CHARGE: consumes 1 kWh electricity, produces
+                          1 unit of "charge_product" (its self-product)
+    battery_hold       -- HOLD: produces 1 unit of "charge_product" at t,
+                          consuming 1 unit of "holdtm1_product" at t (the
+                          carried storage state; see K below)
+    battery_discharge  -- DISCHARGE: consumes 1 unit of "charge_product",
+                          produces 1 kWh of electricity
+    battery_holdtm1    -- HOLD t-1 phantom: ref product is
+                          "holdtm1_product"; locked at scaling 0 by
+                          the upper-bound. Exists only so that the
+                          technosphere matrix has a producer for the
+                          storage-state product; the real injection
+                          comes from the K matrix.
 
-    Storage triple: ``("holdtm1_product", "charge_product", K)`` sets
-    ``K[holdtm1_product, charge_product] = K``. The carry term in the
-    Pyomo demand_constraint becomes
+Choices group {solar, coal, battery_discharge} into a virtual
+"electricity" product (where the demand is placed), and group
+{battery_charge, battery_hold} into a virtual "charge_product" so that
+DISCHARGE can draw from either fresh charge or held-over carry.
 
-        carry_t = K * net_production_of_charge_product_at_{t-1}
-                = K * (CHARGE[t-1] + HOLD[t-1] - DISCHARGE[t-1])
+Storage triple: ``("holdtm1_product", "charge_product", K)`` sets
+``K[holdtm1_product, charge_product] = K``. The carry term in the
+Pyomo demand_constraint becomes::
 
-    which is exactly the running storage level after one step of K decay.
-    The constraint on holdtm1_product (PRODUCT_STOR, >=) then bounds
-    ``HOLD[t] <= K * net_production_of_charge_product[t-1]``, while the
-    constraint on charge_product (also >=) bounds
-    ``DISCHARGE[t] <= CHARGE[t] + HOLD[t]``. Together this is an
-    energy-conserving battery with round-trip efficiency K per held step.
+    carry_t = K * net_production_of_charge_product_at_{t-1}
+            = K * (CHARGE[t-1] + HOLD[t-1] - DISCHARGE[t-1])
+
+which is exactly the running storage level after one step of K decay.
+The constraint on holdtm1_product (PRODUCT_STOR, >=) then bounds
+``HOLD[t] <= K * net_production_of_charge_product[t-1]``, while the
+constraint on charge_product (also >=) bounds
+``DISCHARGE[t] <= CHARGE[t] + HOLD[t]``. Together this is an
+energy-conserving battery with round-trip efficiency K per held step.
 """
 
 from __future__ import annotations
