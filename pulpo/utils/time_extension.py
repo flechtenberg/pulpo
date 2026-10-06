@@ -145,7 +145,7 @@ def combine_inputs_time(
             'upper_imp_agg_bound': float('inf'),
         }
 
-    # None means "no limit" in every capacity and limit dict.
+    # None means "no limit" in every capacity and limit dict (default_limits takes numbers).
     inf = float('inf')
 
     def per_step(limits, bound):

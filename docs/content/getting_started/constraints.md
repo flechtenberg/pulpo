@@ -31,7 +31,7 @@ The illustration above shows the "full optimization" case from the previous gene
 
 ## Specification in PULPO
 
-In `pulpo`, constraints are specified in a manner similar to choices. As mentioned earlier, each alternative of a choice has an upper bound, which is `float('inf')` (or `None`) when it has no limit. The same holds for every limit below: `None` means no limit. 
+In `pulpo`, constraints are specified in a manner similar to choices. As mentioned earlier, each alternative of a choice has an upper bound, which is `float('inf')` (or `None`) when it has no limit. The same holds for the limits below: `None` means no limit. Only `default_limits` takes numbers, such as `float('inf')`. 
 
 To implement constraints, identify the processes that need to be limited and assign the desired upper bound in a dictionary:
 

@@ -117,7 +117,7 @@ def combine_inputs(lci_data, demand, choices, upper_limit, lower_limit, upper_in
 
     warn_finite_default_limits(default_limits, scale)
 
-    # None means "no limit" in every capacity and limit dict.
+    # None means "no limit" in every capacity and limit dict (default_limits takes numbers).
     inf = float('inf')
     choices = none_capacities(choices)
     upper_limit, lower_limit = none_to_bound(upper_limit, inf), none_to_bound(lower_limit, -inf)

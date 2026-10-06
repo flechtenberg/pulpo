@@ -48,8 +48,9 @@ All notable changes to this project will be documented in this file.
   `formulation='reduced'` build a dense row per process. Set `lower_limit` /
   `upper_limit` on the processes that have a real limit. `default_limits` may be
   deprecated in a near-future release.
-* `None` means "no limit" in choice capacities and in every limit dict, like
-  `float('inf')`. `solve(formulation='reduced')` warns about huge finite stand-ins
+* `None` means "no limit" in choice capacities and in the limit dicts (`upper_limit`,
+  `lower_limit` and the flow and impact limits), like `float('inf')`; `default_limits`
+  takes numbers. `solve(formulation='reduced')` warns about huge finite stand-ins
   (e.g. a capacity of `1e10`); the examples and notebooks use `float('inf')`.
 * Loading LCI data without (complete) uncertainty data no longer warns;
   `uncertainty.import_declared` says what is missing when it is needed.

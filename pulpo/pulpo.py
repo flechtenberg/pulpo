@@ -77,7 +77,8 @@ class PulpoOptimizer:
             choices (dict): Choices for the model: ``{label: {activity: capacity}}``, or a list of
                             activities when none has a capacity. A capacity of ``float('inf')``
                             or ``None`` means no limit; avoid huge finite stand-ins such as
-                            ``1e10``. ``None`` means "no limit" in every limit dict below too.
+                            ``1e10``. ``None`` means "no limit" in the limit dicts below too;
+                            ``default_limits`` takes numbers.
             demand (dict): Demand data.
             upper_limit (dict): Upper limit constraints. On a choice alternative it replaces the
                                 capacity, with a warning.
