@@ -68,9 +68,9 @@ The 1.x uncertainty API is replaced without a deprecation period.
   `L1` formulation, the cutting planes, `restore_deterministic_objective`, and the modules
   `uncertainty.soc`, `uncertainty.gsa`, `uncertainty.monte_carlo` and `uncertainty.plots`
   (`soc.SOCCoefficients` is now `uncertainty.Moments`). `PulpoOptimizer.solve_MC`, which
-  re-optimizes over Brightway's own resampling, is unchanged.
-* `uncertainty.compute_closed_form_moments` and `cc.apply_CC_formulation` keep their names
-  with new arguments and results.
+  re-optimizes over Brightway's own resampling, is kept.
+* `compute_closed_form_moments` (now in `uncertainty.moments`, importable from `uncertainty`)
+  and `cc.apply_CC_formulation` take new arguments and return new results.
 * Unused 1.x helpers are gone: the data checks in `uncertainty.processor`,
   `saver.compare_subsequent_paretosolutions` and `bw_parser.update_lci_data`.
 * A solve that does not end optimal (infeasible, unbounded, or stopped by a limit) raises
@@ -80,6 +80,9 @@ The 1.x uncertainty API is replaced without a deprecation period.
   argument; `save_results` takes a relative or an absolute file path.
 * Equal lower and upper limits of 0 switch a process off; they no longer define a supply
   of 0, whose slack made the process's product free.
+* In the static model an `upper_limit` overrides a choice capacity, with a warning when it
+  replaces a finite one; the capacity used to win silently. The time-dependent model
+  already did this.
 * `retrieve_envflows` matches names and categories exactly (a name used to match every flow
   whose name it contains) and returns an empty list, with a warning, when nothing matches;
   keys may be tuples.

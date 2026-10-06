@@ -11,7 +11,7 @@
 
 <!-- Project Metadata -->
 [![License](https://img.shields.io/github/license/flechtenberg/pulpo?style=flat&color=5D6D7E)](https://github.com/flechtenberg/pulpo/blob/master/LICENSE)
-[![Last Commit](https://img.shields.io/github/last-commit/flechtenberg/pulpo?style=flat&color=5D6D7E)](https://github.com/flechtenberg/pulpo/commits/main)
+[![Last Commit](https://img.shields.io/github/last-commit/flechtenberg/pulpo?style=flat&color=5D6D7E)](https://github.com/flechtenberg/pulpo/commits/master)
 [![Commit Activity](https://img.shields.io/github/commit-activity/m/flechtenberg/pulpo?style=flat&color=5D6D7E)](https://github.com/flechtenberg/pulpo/pulse)
 
 <!-- Additional -->
@@ -107,7 +107,7 @@ The chance-constrained problems of `pulpo.utils.uncertainty` are always solved t
 | deterministic LP (`full` or `reduced`) | HiGHS | Gurobi (and GAMS/NEOS for `full`) |
 | chance-constrained cone | Clarabel | Gurobi |
 
-HiGHS and Clarabel are installed with PULPO and need no licence. Gurobi is used when `gurobipy` is installed; the size-limited licence that ships with `pip install gurobipy` is for non-production use (see Gurobi's licence terms) and covers problems of up to 2,000 variables and 2,000 linear constraints, or 200 variables once quadratic terms are present. That fits most reduced problems, since they have one column per alternative.
+HiGHS and Clarabel are installed with PULPO and need no licence. Gurobi is used with `solver_name='gurobi'` when `gurobipy` is installed; the size-limited licence that ships with `pip install gurobipy` is for non-production use (see Gurobi's licence terms) and covers problems of up to 2,000 variables and 2,000 linear constraints, or 200 variables once quadratic terms are present. That fits most reduced problems, since they have one column per alternative.
 
 ### 🧪 Tests
 
@@ -131,7 +131,7 @@ Contributions are very welcome. To request a feature or report a bug, please [op
 ## 📄 License
 
 This project is licensed under the `ℹ️  BSD 3-Clause` License. See the [LICENSE](https://github.com/flechtenberg/pulpo/blob/master/LICENSE) file for additional info.  
-Copyright (c) 2026, Fabian Lechtenberg. All rights reserved.
+Copyright (c) 2024-2026, Fabian Lechtenberg. All rights reserved.
 
 
 ---

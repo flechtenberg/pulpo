@@ -53,7 +53,7 @@ QR_ENTRIES = 2 ** 24
 CLARABEL_OPTIONS = {'tol_gap_abs': 1e-10, 'tol_gap_rel': 1e-10, 'tol_feas': 1e-10}
 
 #: Gurobi options for the cone. Its default BarQCPConvTol (1e-6) moves the
-#: case study's front by up to 1e-5 Mt.
+#: Pareto front by up to 1e-5 in the objective's units.
 GUROBI_CONE_OPTIONS = {'BarQCPConvTol': 1e-9, 'FeasibilityTol': 1e-9, 'OptimalityTol': 1e-9}
 
 
