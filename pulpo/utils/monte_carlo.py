@@ -5,6 +5,9 @@ Monte Carlo re-optimization by Brightway resampling (``PulpoOptimizer.solve_MC``
 Independent of the uncertainty sub-package.
 """
 
+import copy
+import warnings
+
 import numpy as np
 from joblib import Parallel, delayed
 from tqdm import tqdm, trange
@@ -68,19 +71,18 @@ def solve_model_MC_pre_sampled(
     print(f"Running {len(samples)} Monte Carlo optimizations in parallel (n_jobs={n_jobs})...")
 
     def _solve_single(i, sample):
+        # Each sample runs on a shallow copy, so the caller's worker keeps its data and
+        # instance: with n_jobs=1 joblib runs this in-process, on the very same object.
+        worker = copy.copy(pulpo_optimizer)
         try:
-            # Inject pre-sampled matrices
-            lci_data = pulpo_optimizer.lci_data.copy()
-            lci_data.update(sample)
-            pulpo_optimizer.lci_data = lci_data
-
-            pulpo_optimizer.instantiate(**reinstantiate_kwargs(pulpo_optimizer))
-            pulpo_optimizer.solve(
+            worker.lci_data = {**pulpo_optimizer.lci_data, **sample}   # the pre-sampled matrices
+            worker.instantiate(**reinstantiate_kwargs(worker))
+            worker.solve(
                 GAMS_PATH=GAMS_PATH,
                 solver_name=solver_name,
                 options=options,
             )
-            return pulpo_optimizer.extract_results()
+            return worker.extract_results()
         except Exception as e:
             return {"error": str(e)}
 
@@ -89,4 +91,9 @@ def solve_model_MC_pre_sampled(
         for i, sample in enumerate(tqdm(samples, desc="Monte Carlo solve"))
     )
 
+    failed = [i for i, res in enumerate(results) if 'error' in res]
+    if failed:
+        warnings.warn(f"{len(failed)} of {len(results)} Monte Carlo samples did not solve (e.g. sample "
+                      f"{failed[0]}: {results[failed[0]]['error'][:200]}); their entries hold the error.",
+                      UserWarning, stacklevel=3)
     return {i: res for i, res in enumerate(results)}

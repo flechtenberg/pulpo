@@ -11,6 +11,7 @@ from pulpo.utils.saver import extract_flows, extract_slack, extract_impacts, ext
 
 import unittest
 import warnings
+from unittest import mock
 
 import numpy as np
 
@@ -478,6 +479,38 @@ class TestPULPO(unittest.TestCase):
         result_obj = round(worker.instance.OBJ(), 6)
         self.assertEqual(result_obj, 0.103093)
     
+    def _mc_worker(self):
+        worker = pulpo.PulpoOptimizer(self.project, self.database, self.methods, '')
+        worker.get_lci_data()
+        demand = {worker.retrieve_activities(reference_products='transport')[0]: 1}
+        elec = worker.retrieve_activities(reference_products='electricity')
+        worker.instantiate(choices={'electricity': {elec[0]: 100, elec[1]: 100}}, demand=demand)
+        return worker
+
+    def test_monte_carlo_leaves_the_worker_untouched(self):
+        """With n_jobs=1 the samples run in-process; the worker keeps its own data,
+        instance and solution."""
+        worker = self._mc_worker()
+        worker.solve()
+        A = worker.lci_data['technology_matrix'].copy()
+        objective = worker.instance.OBJ()
+        s = {j: v.value for j, v in worker.instance.scaling_vector.items()}
+        results = worker.solve_MC(n_it=5, n_jobs=1, seed=3)
+        self.assertFalse([i for i, res in results.items() if 'error' in res])
+        self.assertEqual((worker.lci_data['technology_matrix'] != A).nnz, 0)
+        self.assertEqual(worker.instance.OBJ(), objective)
+        self.assertEqual({j: v.value for j, v in worker.instance.scaling_vector.items()}, s)
+        worker.solve()
+        self.assertAlmostEqual(worker.instance.OBJ(), objective, places=12)
+
+    def test_monte_carlo_reports_failed_samples(self):
+        worker = self._mc_worker()
+        with mock.patch.object(pulpo.PulpoOptimizer, 'solve', side_effect=SolveError('no optimum', None)),                 warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter('always')
+            results = worker.solve_MC(n_it=3, n_jobs=1, seed=3)
+        self.assertEqual([res['error'] for res in results.values()], ['no optimum'] * 3)
+        self.assertTrue(any('3 of 3 Monte Carlo samples did not solve' in str(w.message) for w in caught))
+
     def test_monte_carlo(self):
         """Test the Monte Carlo simulation."""
         worker = pulpo.PulpoOptimizer(self.project, self.database, self.methods, '')
