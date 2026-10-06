@@ -263,13 +263,17 @@ class PulpoOptimizer:
         """
         Retrieves environmental flows from the database based on given filters.
 
+        Filters are matched exactly and combined with AND; ``keys`` takes precedence.
+        Each filter takes one value or a list of them.
+
         Args:
-            keys (list): List of keys to filter environmental flows.
-            activities (list): List of activities to filter.
-            categories (list): List of categories to filter.
+            keys (optional): Flow keys, as (database, code) tuples or their string form.
+            activities (optional): Flow names.
+            categories (optional): Flow categories, as tuples such as
+                ('air', 'urban air close to ground') or their string form.
 
         Returns:
-            activities: Filtered environmental flows from the database.
+            list: The matching flows; empty, with a warning, if none match.
         """
         activities = bw_parser.retrieve_env_interventions(project=self.project,
                                                           intervention_matrix=self.intervention_matrix, keys=keys,

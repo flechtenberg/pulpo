@@ -74,6 +74,9 @@ The 1.x uncertainty API is replaced without a deprecation period.
   `ReducedSolveError` and `ChanceConstrainedError` are subclasses.
 * `PulpoOptimizer` (and its `Time`/`Unc` variants) no longer takes the unused `directory`
   argument; `save_results` takes a relative or an absolute file path.
+* `retrieve_envflows` matches names and categories exactly (a name used to match every flow
+  whose name it contains) and returns an empty list, with a warning, when nothing matches;
+  keys may be tuples.
 * The `uncertainty` extra is empty; `clarabel` and `stats_arrays` are core dependencies.
 * JupyterLab, IPython, `fs` and `openpyxl` are no longer installed with PULPO. The new
   `notebooks` extra brings JupyterLab, matplotlib and seaborn for the example notebooks.

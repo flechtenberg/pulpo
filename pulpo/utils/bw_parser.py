@@ -1,4 +1,5 @@
 import ast
+import warnings
 from typing import List, Union, Dict, Any, TypedDict
 import bw2calc as bc
 import bw2data as bd
@@ -437,40 +438,60 @@ def retrieve_env_interventions(project: str = '', intervention_matrix: str = 'bi
     """
     Retrieve environmental interventions from the biosphere database based on specified keys, activities, and categories.
 
+    Filters are matched exactly and combined with AND; ``keys`` takes precedence over
+    the other filters. Each filter takes one value or a list of them.
+
     Args:
         project (str, optional): Name of the project.
         intervention_matrix (str): Name of the intervention matrix.
-        keys (list, optional): List of keys to filter environmental flows.
-        activities (list, optional): List of activity names to filter.
-        categories (list, optional): List of categories to filter.
+        keys (optional): Flow keys, as (database, code) tuples or their string form.
+        activities (optional): Flow names.
+        categories (optional): Flow categories, as tuples such as
+            ('air', 'urban air close to ground') or their string form.
 
     Returns:
-        list: List of matching environmental flows from the database.
+        list: The matching environmental flows; empty, with a warning, if none match.
     """
 
     # Set project and get database
     _ensure_project_current(project)
     eidb = bd.Database(intervention_matrix)
 
-    # Filter by keys if provided
     if keys is not None:
-        if isinstance(keys, str):
-            keys = [keys]
-        keys = [eval(key) for key in keys]
-        return [flow for flow in eidb if flow.key in keys]
-
-    matching_flows = []
-
-    # Filter by activities and categories
-    for flow in eidb:
-        if (activities is None or flow['name'] in activities) and \
-                (categories is None or str(flow['categories']) in categories):
-            matching_flows.append(flow)
+        keys = {_parse_tuple(key, 'keys', "('biosphere3', 'code')") for key in _as_list(keys)}
+        matching_flows = [flow for flow in eidb if flow.key in keys]
+    else:
+        names = None if activities is None else set(_as_list(activities))
+        if categories is not None:
+            categories = {_parse_tuple(category, 'categories', "('air', 'urban air close to ground')")
+                          for category in _as_list(categories)}
+        matching_flows = [flow for flow in eidb
+                          if (names is None or flow['name'] in names)
+                          and (categories is None or tuple(flow.get('categories') or ()) in categories)]
 
     if not matching_flows:
-        print("No flows match the given specifications or the input format is incorrect.")
-    else:
-        return matching_flows
+        warnings.warn(f"No flows in {intervention_matrix!r} match keys={keys!r}, activities={activities!r}, "
+                      f"categories={categories!r}; names, keys and categories are matched exactly.",
+                      UserWarning, stacklevel=2)
+    return matching_flows
+
+
+def _as_list(value):
+    """A filter value as a list: a string or a tuple is one value."""
+    return [value] if isinstance(value, (str, tuple)) else list(value)
+
+
+def _parse_tuple(value, name, example):
+    """A key or category given as a tuple or its string form, as a tuple."""
+    parsed = value
+    if isinstance(value, str):
+        try:
+            parsed = ast.literal_eval(value)
+        except (ValueError, SyntaxError):
+            pass
+    if not isinstance(parsed, (tuple, list)):
+        raise ValueError(f"{name}: expected tuples such as {example} or their string form, got {value!r}.")
+    return tuple(parsed)
 
 
 def retrieve_methods(project: str, sub_string: List[str]) -> List[str]:

@@ -151,6 +151,31 @@ class TestParser(unittest.TestCase):
         result = retrieve_env_interventions(project_name, intervention_matrix='biosphere3', keys="('biosphere3', 'PM')")
         self.assertEqual(result[0]['name'], 'Particulate matter, industrial')
 
+    def test_retrieve_envflows_filters(self):
+        """Keys as tuples or strings, one value or a list; names and categories match exactly."""
+        def names(**kwargs):
+            with warnings.catch_warnings(record=True) as caught:
+                warnings.simplefilter('always')
+                flows = retrieve_env_interventions(project_name, intervention_matrix='biosphere3', **kwargs)
+            self.assertIsInstance(flows, list)
+            empty_warned = any('No flows' in str(w.message) for w in caught)
+            self.assertEqual(empty_warned, not flows)
+            return sorted(flow['name'] for flow in flows)
+
+        self.assertEqual(names(keys=('biosphere3', 'PM')), ['Particulate matter, industrial'])
+        self.assertEqual(names(keys=[('biosphere3', 'CO2'), "('biosphere3', 'CH4')"]),
+                         ['Carbon dioxide, fossil', 'Methane, agricultural'])
+        self.assertEqual(names(activities='Methane, agricultural'), ['Methane, agricultural'])
+        # A longer name no longer matches the flows whose names it contains.
+        self.assertEqual(names(activities='Methane, agricultural, from soil'), [])
+        climate = ('climate change', 'GWP 100a')
+        self.assertEqual(names(categories=climate), ['Carbon dioxide, fossil', 'Methane, agricultural'])
+        self.assertEqual(names(categories=[str(climate)], activities=['Carbon dioxide, fossil']),
+                         ['Carbon dioxide, fossil'])
+        for bad in ({'keys': 'PM'}, {'categories': 'climate change'}):
+            with self.assertRaises(ValueError):
+                retrieve_env_interventions(project_name, intervention_matrix='biosphere3', **bad)
+
 ###############################
 #### Test the BASE PULPO  #####
 ###############################
