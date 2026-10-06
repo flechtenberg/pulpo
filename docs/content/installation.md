@@ -13,7 +13,7 @@
 1. **Create a new environment**:
    - Using `conda`:
      ```bash
-     conda create -n pulpo_env python=3.10
+     conda create -n pulpo_env python=3.12
      conda activate pulpo_env
      ```
    - Using `venv`:
@@ -23,15 +23,16 @@
      ```
 
 2. **Install `pulpo` with the appropriate dependencies**:
-   - For Brightway2-compatible environments:
+   - For Brightway2-compatible environments (Python 3.10 to 3.12):
      ```bash
-     pip install pulpo-dev[bw2]
+     pip install "pulpo-dev[bw2]"
      ```
-   - For Brightway25-compatible environments:
+   - For Brightway25-compatible environments (Python 3.10 to 3.14):
      ```bash
-     pip install pulpo-dev[bw25]
+     pip install "pulpo-dev[bw25]"
      ```
    - To run the example notebooks, add the `notebooks` extra (JupyterLab, matplotlib, seaborn), e.g. `pip install "pulpo-dev[bw25,notebooks]"`.
+   - The quotes keep shells such as zsh, the default on macOS, from reading the brackets as a pattern.
 
 3. **Verify installation**:
    Ensure that `pulpo` and its dependencies are correctly installed by running:
@@ -70,11 +71,11 @@ For Brightway2, use `"pulpo-dev[bw2]"` instead (Python 3.12 at most). Add the `n
 2. Update `pulpo` with the appropriate dependencies:
    - For Brightway2-compatible environments:
      ```bash
-     pip install --upgrade pulpo-dev[bw2]
+     pip install --upgrade "pulpo-dev[bw2]"
      ```
    - For Brightway25-compatible environments:
      ```bash
-     pip install --upgrade pulpo-dev[bw25]
+     pip install --upgrade "pulpo-dev[bw25]"
      ```
 
 ```{warning}

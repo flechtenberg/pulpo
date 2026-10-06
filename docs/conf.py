@@ -183,7 +183,7 @@ html_theme_options = {
     # "navbar_persistent": ["theme-switcher"], # this is where the search button is usually placed
     "footer_start": ["copyright"],
     "footer_end": ["footer"],
-    "secondary_sidebar_items": ["page-toc", "edit-this-page", "sourcelink", "support"],
+    "secondary_sidebar_items": ["page-toc", "edit-this-page", "sourcelink"],
     "header_links_before_dropdown": 5,
     # page elements content
     "icon_links": [
