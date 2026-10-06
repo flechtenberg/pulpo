@@ -37,6 +37,22 @@ Extended rice example from [Kätelhön et al. (2016)](https://pubs.acs.org/doi/1
 by @flechtenberg
 :::
 
+:::{grid-item-card} 🔋 Time-dependent optimization
+:link: ./elec_time_toy.html
+:link-type: url
+:class-body: sphinx-design-class-body-examples
+:text-align: left
+Battery dispatch on a toy electricity system with `PulpoOptimizerTime`: one day at hourly resolution and two weeks at daily resolution, with stored energy carried across time steps.
+```{image} ./data/elec_time_toy.png
+:class: only-dark
+```
+```{image} ./data/elec_time_toy.png
+:class: only-light
+```
++++
+by @flechtenberg
+:::
+
 :::{grid-item-card} 🎲 Optimization under uncertainty
 :link: ./uncertainty_toy.html
 :link-type: url
@@ -73,5 +89,6 @@ maxdepth: 1
 self
 pulpo_showcase
 rice_example
+elec_time_toy
 uncertainty_toy
 ```

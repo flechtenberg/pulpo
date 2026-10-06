@@ -99,10 +99,15 @@ jobs:
       - name: The docs copies of the example notebooks match their originals
         run: |
           python3 - <<'EOF'
-          import json
+          import glob, json, os
           # docs copy -> original, and the image paths that legitimately differ
           pairs = {'pulpo_showcase': {'data/pulpo_showcase.png': 'pictures/showcase.png'},
+                   'rice_example': {'](data/': '](../docs/content/examples/data/'},
+                   'elec_time_toy': {},
                    'uncertainty_toy': {}}
+          for folder in ('notebooks', 'docs/content/examples'):
+              found = {os.path.basename(p)[:-len('.ipynb')] for p in glob.glob(f'{folder}/*.ipynb')}
+              assert found == set(pairs), f'{folder} holds {sorted(found)}, expected {sorted(pairs)}'
           for name, paths in pairs.items():
               docs = open(f'docs/content/examples/{name}.ipynb', encoding='utf8').read()
               for docs_path, original_path in paths.items():
@@ -111,6 +116,24 @@ jobs:
               assert json.loads(docs) == json.loads(original), f'{name}: the docs copy differs from notebooks/'
           print('notebook copies match')
           EOF
+
+  notebooks:
+    # The example notebooks run end to end on the bundled databases.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+          activate-environment: true
+      - name: Install
+        run: uv pip install ".[bw25,notebooks]" nbconvert ipykernel
+      - name: Run the example notebooks
+        run: |
+          export BRIGHTWAY2_DIR="$(mktemp -d)"
+          for notebook in notebooks/*.ipynb; do
+            jupyter nbconvert --to notebook --execute --ExecutePreprocessor.timeout=1200               --output-dir "$RUNNER_TEMP/notebooks" "$notebook"
+          done
 
   docs:
     runs-on: ubuntu-latest
