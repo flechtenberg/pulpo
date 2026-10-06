@@ -83,7 +83,7 @@ jobs:
           from pulpo.datasets.sample_database import setup_sample_db
           setup_sample_db()
           worker = pulpo.PulpoOptimizer('sample_project_bw25', 'technosphere',
-                                        {"('my project', 'climate change')": 1}, '')
+                                        {"('my project', 'climate change')": 1})
           worker.get_lci_data()
           demand = {worker.retrieve_activities(reference_products='transport')[0]: 1}
           electricity = worker.retrieve_activities(reference_products='electricity')
